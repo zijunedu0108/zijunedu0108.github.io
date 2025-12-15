@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>魔法科目选择器 - 动态消除转盘</title>
+    <title>STPM 科目选择器与考试倒计时</title>
     <link href="https://fonts.googleapis.com/css2?family=Luckiest+Guy&family=Zhi+Mang+Xing&display=swap" rel="stylesheet">
     <style>
         /* --- 1. 基础布局和主题 --- */
@@ -11,7 +11,6 @@
             display: flex;
             flex-direction: column;
             align-items: center;
-            justify-content: center;
             min-height: 100vh;
             margin: 0;
             background: linear-gradient(135deg, #1e3a8a, #0c4a6e); /* 深蓝色渐变背景 */
@@ -28,7 +27,76 @@
             margin-bottom: 40px;
         }
 
-        /* --- 2. 转盘容器与指针 (指示器) --- */
+        /* --- 2. 主内容区域布局 (左右分栏) --- */
+        .main-content {
+            display: flex;
+            width: 90%;
+            max-width: 1200px;
+            justify-content: center;
+            gap: 50px; /* 两栏之间的间距 */
+            flex-wrap: wrap; /* 确保在小屏幕上能换行 */
+        }
+        
+        /* 转盘部分 (左侧) */
+        .wheel-section {
+            flex: 1;
+            min-width: 450px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+
+        /* 倒计时部分 (右侧) */
+        .countdown-section {
+            flex: 1;
+            min-width: 350px;
+            padding: 20px;
+            background-color: rgba(0, 0, 0, 0.3); /* 略带透明的背景 */
+            border-radius: 15px;
+            box-shadow: 0 0 20px rgba(255, 255, 255, 0.1);
+        }
+
+        /* --- 3. 倒计时样式 --- */
+        .countdown-section h2 {
+            font-family: 'Luckiest Guy', cursive;
+            color: #ffcc00; /* 亮黄色 */
+            font-size: 2.5em;
+            text-align: center;
+            margin-top: 0;
+            border-bottom: 3px solid #ffcc00;
+            padding-bottom: 10px;
+            margin-bottom: 20px;
+        }
+
+        .exam-item {
+            background-color: rgba(255, 255, 255, 0.1);
+            padding: 15px;
+            margin-bottom: 15px;
+            border-radius: 8px;
+            border-left: 5px solid var(--exam-color, #00ffff);
+        }
+        
+        .exam-item p {
+            margin: 5px 0;
+        }
+        
+        .exam-subject {
+            font-family: 'Luckiest Guy', cursive;
+            font-size: 1.5em;
+            color: var(--exam-color, #00ffff);
+        }
+        
+        .countdown-value {
+            font-family: 'Luckiest Guy', cursive;
+            font-size: 3em;
+            text-align: right;
+            color: #fff;
+            text-shadow: 1px 1px 5px #000;
+        }
+
+
+        /* --- 4. 转盘原有样式（保留并调整适应新布局） --- */
+
         .wheel-container {
             position: relative;
             width: 450px;
@@ -36,35 +104,31 @@
             margin-bottom: 40px;
         }
 
-        /* 指针/指示器 (修正方向: 指向右侧 0度位置) */
         .indicator {
             position: absolute;
             top: 50%;
-            right: -30px; /* 放在转盘右侧 */
+            right: -30px; 
             transform: translateY(-50%);
             width: 0;
             height: 0;
             border-top: 20px solid transparent;
             border-bottom: 20px solid transparent;
-            border-left: 30px solid #ff4500; /* 醒目的橙红色箭头 */
+            border-left: 30px solid #ff4500; 
             z-index: 10;
             filter: drop-shadow(0 0 5px rgba(255, 69, 0, 0.8));
         }
 
-        /* --- 3. 转盘本体 --- */
         .wheel {
             position: absolute;
             width: 100%;
             height: 100%;
             border-radius: 50%;
             overflow: hidden;
-            box-shadow: 0 0 50px rgba(255, 255, 255, 0.3), 0 0 0 10px #8b4513, 0 0 0 15px #ffd700; /* 边框和发光效果 */
+            box-shadow: 0 0 50px rgba(255, 255, 255, 0.3), 0 0 0 10px #8b4513, 0 0 0 15px #ffd700;
             transform: rotate(var(--rotation-degree, 0deg));
-            /* 更有趣的弹性动画效果 */
             transition: transform 5s cubic-bezier(0.68, -0.55, 0.27, 1.55); 
         }
 
-        /* --- 4. 选项扇形 --- */
         .segment {
             position: absolute;
             top: 0;
@@ -73,32 +137,27 @@
             height: 50%;
             clip-path: polygon(0 0, 100% 0, 100% 100%, 0 100%); 
             transform-origin: 100% 100%; 
-            /* 定位和旋转 */
             transform: rotate(calc(var(--segment-angle) * var(--segment-index)));
-            
             display: flex;
             justify-content: center;
-            align-items: center; /* 居中显示文字 */
+            align-items: center; 
             box-sizing: border-box;
-            border-right: 2px solid #333; /* 扇区边界 */
+            border-right: 2px solid #333; 
             opacity: 1;
-            transition: opacity 0.8s ease-out; /* 消除动画 */
+            transition: opacity 0.8s ease-out; 
             cursor: default;
         }
         
-        /* 消除状态 */
         .segment.removed {
-            opacity: 0.1; /* 不完全消失，留下一丝痕迹 */
+            opacity: 0.1; 
             pointer-events: none;
         }
 
-        /* 颜色主题 */
-        .segment:nth-child(1) { background-color: #ff5733; } /* 烈焰红 - Pengajian Am */
-        .segment:nth-child(2) { background-color: #33ff57; } /* 翡翠绿 - Biology */
-        .segment:nth-child(3) { background-color: #3357ff; } /* 海洋蓝 - Mathematic */
-        .segment:nth-child(4) { background-color: #ff33ff; } /* 魔法紫 - ICT */
+        .segment:nth-child(1) { background-color: #ff5733; }
+        .segment:nth-child(2) { background-color: #33ff57; }
+        .segment:nth-child(3) { background-color: #3357ff; }
+        .segment:nth-child(4) { background-color: #ff33ff; }
 
-        /* 选项文字 */
         .segment-text {
             color: #fff;
             font-family: 'Luckiest Guy', cursive;
@@ -106,18 +165,16 @@
             text-shadow: 2px 2px #000;
             text-align: center;
             max-width: 80%;
-            /* 逆向旋转文字，使其对齐指针 */
             transform: rotate(calc(90deg + 360deg / var(--segments-count) * -1 / 2)); 
         }
 
-        /* --- 5. 按钮和结果 --- */
         #spinButton {
             font-family: 'Luckiest Guy', cursive;
             padding: 15px 35px;
             font-size: 1.8em;
             cursor: pointer;
-            background-color: #ffd700; /* 金色按钮 */
-            color: #8b4513; /* 棕色文字 */
+            background-color: #ffd700;
+            color: #8b4513; 
             border: 5px solid #8b4513;
             border-radius: 10px;
             box-shadow: 0 8px #a0522d;
@@ -140,7 +197,7 @@
         #result {
             margin-top: 30px;
             font-size: 2.2em;
-            color: #ffeb3b; /* 亮黄色结果 */
+            color: #ffeb3b;
             font-family: 'Luckiest Guy', cursive;
             text-shadow: 2px 2px 0 #000;
         }
@@ -148,44 +205,42 @@
 </head>
 <body>
 
-    <h1>✨ 魔法科目选择器 ✨</h1>
+    <h1>STPM 科目选择器与考试倒计时 📅</h1>
     
-    <div class="wheel-container">
-        <div class="indicator"></div>
-        <div class="wheel" id="wheel">
+    <div class="main-content">
+        <div class="wheel-section">
+            <div class="wheel-container">
+                <div class="indicator"></div>
+                <div class="wheel" id="wheel">
+                    </div>
             </div>
+            <button id="spinButton">🧙‍♂️ 启动魔法旋转 🚀</button>
+            <p id="result">决定你命运的时刻！</p>
+        </div>
+
+        <div class="countdown-section">
+            <h2>STPM 倒计时：2026</h2>
+            
+            <div id="countdown-list">
+                </div>
+            
+            <p style="font-size: 1.2em; text-align: center; margin-top: 30px; color: #aaa;">距离考试日期的剩余天数</p>
+        </div>
     </div>
 
-    <button id="spinButton">🧙‍♂️ 启动魔法旋转 🚀</button>
-    
-    <p id="result">决定你命运的时刻！</p>
-
     <script>
-        // 原始选项列表
-        const initialOptions = [
-            "Pengajian Am",
-            "Biology",
-            "Mathematic",
-            "ICT"
-        ];
-
+        /* --- 转盘游戏逻辑 --- */
+        const initialOptions = ["Pengajian Am", "Biology", "Mathematic", "ICT"];
         let currentOptions = [...initialOptions];
-        
-        // DOM 元素
         const wheel = document.getElementById('wheel');
         const spinButton = document.getElementById('spinButton');
         const resultText = document.getElementById('result');
 
-        // 全局变量
-        let totalRotation = 0; // 累计旋转的总度数
+        let totalRotation = 0; 
         let isSpinning = false; 
 
-        /**
-         * 1. 动态生成转盘选项
-         */
         function renderWheel() {
             wheel.innerHTML = '';
-            
             const numTotalSegments = initialOptions.length;
             const segmentAngle = 360 / numTotalSegments;
             
@@ -210,7 +265,6 @@
                 text.textContent = option;
                 segment.appendChild(text);
 
-                // 判断是否已移除
                 if (!currentOptions.includes(option)) {
                     segment.classList.add('removed');
                 }
@@ -219,9 +273,6 @@
             });
         }
 
-        /**
-         * 2. 开始旋转逻辑
-         */
         function spinWheel() {
             if (isSpinning || currentOptions.length === 0) return;
             isSpinning = true;
@@ -231,74 +282,105 @@
             const numTotalSegments = initialOptions.length;
             const segmentAngle = 360 / numTotalSegments;
             
-            // 随机选择一个 "当前剩余" 选项
             const selectedIndexInCurrent = Math.floor(Math.random() * currentOptions.length);
             const selectedOption = currentOptions[selectedIndexInCurrent];
 
-            // 找到 selectedOption 在 "原始选项" 列表中的固定索引
             const originalIndex = initialOptions.indexOf(selectedOption);
 
-            // --- 关键修正：计算目标旋转角度 ---
-            // 指针在 0度 (右侧)
-            // 目标选项的中心角度 = (originalIndex * segmentAngle) + (segmentAngle / 2)
-            // 需要旋转的度数 = 360 - 目标中心角度
             let targetCenterAngle = (originalIndex * segmentAngle) + (segmentAngle / 2);
             let offsetAngle = 360 - targetCenterAngle;
             
-            // 保证至少转 8 圈，并且加上一个随机的微小偏移量增加趣味性
             const extraRotations = 8 * 360; 
-            const randomOffset = Math.random() * (segmentAngle - 5) + 5; // 避免正好停在边缘
+            const randomOffset = Math.random() * (segmentAngle * 0.8) - (segmentAngle * 0.4); // 随机偏移量
             
-            // 计算新的总旋转度数
             totalRotation += extraRotations + offsetAngle + randomOffset;
 
-            // 应用旋转
             wheel.style.setProperty('--rotation-degree', `${totalRotation}deg`);
 
-            // 监听动画结束 (CSS transition 为 5s)
+            // 监听动画结束 (5秒)
             setTimeout(() => {
-                // 3.1 显示结果
                 resultText.textContent = `🎉 恭喜选中: ${selectedOption} 🎉`;
-                
-                // 3.2 移除选项
                 removeSegment(selectedOption);
                 
-                // 3.3 恢复状态
                 isSpinning = false;
                 if (currentOptions.length > 0) {
                     spinButton.disabled = false;
                 } else {
                     spinButton.disabled = true;
                 }
-
-            }, 5000 + 200); // 5000ms (CSS transition) + 200ms 缓冲
+            }, 5000 + 200); 
         }
 
-        /**
-         * 3. 移除选中选项逻辑
-         */
         function removeSegment(option) {
-            // 从 currentOptions 数组中移除
             currentOptions = currentOptions.filter(item => item !== option);
-            
-            // 在 DOM 中添加 'removed' 类 (CSS 会将其变暗)
             const segment = wheel.querySelector(`.segment[data-option="${option}"]`);
             if (segment) {
                 segment.classList.add('removed');
             }
-            
-            // 如果所有选项都移除了，更新状态
             if (currentOptions.length === 0) {
                 resultText.textContent = "🏆 所有科目都已选中！魔法已完成！ 🏆";
                 spinButton.disabled = true;
             }
         }
 
-        /**
-         * 4. 初始化
-         */
+        /* --- 倒计时逻辑 --- */
+        
+        // 考试日期列表：日期必须使用 YYYY-MM-DD 格式
+        const examDates = [
+            { subjects: "Pengajian Am", date: "2026-01-21", color: "#ff5733" },
+            { subjects: "Biology & ICT", date: "2026-01-22", color: "#33ff57" },
+            { subjects: "Mathematic", date: "2026-01-23", color: "#3357ff" }
+        ];
+
+        function updateCountdown() {
+            const now = new Date();
+            const countdownList = document.getElementById('countdown-list');
+            countdownList.innerHTML = ''; // 清空列表
+
+            examDates.forEach(exam => {
+                const targetDate = new Date(exam.date);
+                
+                // 计算时间差 (毫秒)
+                const difference = targetDate.getTime() - now.getTime();
+                
+                // 如果考试已过，显示已完成
+                if (difference < 0) {
+                    const item = document.createElement('div');
+                    item.classList.add('exam-item');
+                    item.style.setProperty('--exam-color', exam.color);
+                    item.innerHTML = `
+                        <p class="exam-subject">【${exam.subjects}】</p>
+                        <p>日期: ${exam.date.replace(/-/g, '/')}</p>
+                        <p class="countdown-value" style="font-size: 2em; color: #aaa;">已考完 🎉</p>
+                    `;
+                    countdownList.appendChild(item);
+                    return;
+                }
+
+                // 转换为天数
+                const days = Math.floor(difference / (1000 * 60 * 60 * 24));
+                
+                const item = document.createElement('div');
+                item.classList.add('exam-item');
+                item.style.setProperty('--exam-color', exam.color); // 设置颜色变量
+                
+                item.innerHTML = `
+                    <p class="exam-subject">【${exam.subjects}】</p>
+                    <p>日期: ${exam.date.replace(/-/g, '/')}</p>
+                    <p class="countdown-value">${days} <span style="font-size: 0.5em;">天</span></p>
+                `;
+                
+                countdownList.appendChild(item);
+            });
+        }
+
+        /* --- 初始化调用 --- */
         spinButton.addEventListener('click', spinWheel);
         renderWheel();
+        
+        // 首次加载和每隔一小时更新一次倒计时（天数变化慢，不需要每秒更新）
+        updateCountdown();
+        setInterval(updateCountdown, 1000 * 60 * 60); // 每小时更新一次
     </script>
 
 </body>
