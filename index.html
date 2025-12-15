@@ -3,9 +3,10 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>动态消除转盘</title>
+    <title>魔法科目选择器 - 动态消除转盘</title>
+    <link href="https://fonts.googleapis.com/css2?family=Luckiest+Guy&family=Zhi+Mang+Xing&display=swap" rel="stylesheet">
     <style>
-        /* 1. 基础布局和样式 */
+        /* --- 1. 基础布局和主题 --- */
         body {
             display: flex;
             flex-direction: column;
@@ -13,121 +14,141 @@
             justify-content: center;
             min-height: 100vh;
             margin: 0;
-            background-color: #f4f4f4;
-            font-family: Arial, sans-serif;
+            background: linear-gradient(135deg, #1e3a8a, #0c4a6e); /* 深蓝色渐变背景 */
+            font-family: 'Zhi Mang Xing', cursive, Arial, sans-serif;
+            color: #fff;
+            padding: 20px;
         }
 
-        /* 2. 转盘容器 */
+        h1 {
+            font-family: 'Luckiest Guy', cursive;
+            font-size: 3em;
+            color: #ffd700; /* 金色标题 */
+            text-shadow: 4px 4px 0 #8b4513, 6px 6px 0 #000;
+            margin-bottom: 40px;
+        }
+
+        /* --- 2. 转盘容器与指针 (指示器) --- */
         .wheel-container {
             position: relative;
-            width: 400px;
-            height: 400px;
-            margin-bottom: 30px;
+            width: 450px;
+            height: 450px;
+            margin-bottom: 40px;
         }
 
-        /* 3. 转盘本体 */
+        /* 指针/指示器 (修正方向: 指向右侧 0度位置) */
+        .indicator {
+            position: absolute;
+            top: 50%;
+            right: -30px; /* 放在转盘右侧 */
+            transform: translateY(-50%);
+            width: 0;
+            height: 0;
+            border-top: 20px solid transparent;
+            border-bottom: 20px solid transparent;
+            border-left: 30px solid #ff4500; /* 醒目的橙红色箭头 */
+            z-index: 10;
+            filter: drop-shadow(0 0 5px rgba(255, 69, 0, 0.8));
+        }
+
+        /* --- 3. 转盘本体 --- */
         .wheel {
             position: absolute;
             width: 100%;
             height: 100%;
             border-radius: 50%;
             overflow: hidden;
-            box-shadow: 0 0 20px rgba(0, 0, 0, 0.2);
-            /* CSS 变量: --segments-count 选项数量，在 JS 中更新 */
-            /* CSS 变量: --rotation-degree 累计旋转角度，在 JS 中更新 */
+            box-shadow: 0 0 50px rgba(255, 255, 255, 0.3), 0 0 0 10px #8b4513, 0 0 0 15px #ffd700; /* 边框和发光效果 */
             transform: rotate(var(--rotation-degree, 0deg));
-            transition: transform 4s cubic-bezier(0.25, 0.1, 0.25, 1.0); /* 旋转动画效果 */
+            /* 更有趣的弹性动画效果 */
+            transition: transform 5s cubic-bezier(0.68, -0.55, 0.27, 1.55); 
         }
 
-        /* 4. 每个选项的样式 */
+        /* --- 4. 选项扇形 --- */
         .segment {
             position: absolute;
             top: 0;
             left: 0;
             width: 50%;
             height: 50%;
-            /* 剪切路径创建扇形 */
             clip-path: polygon(0 0, 100% 0, 100% 100%, 0 100%); 
-            transform-origin: 100% 100%; /* 旋转中心点为右下角 */
-            /* CSS 变量: --segment-angle 每个选项的角度 */
-            /* CSS 变量: --segment-index 选项的索引 */
+            transform-origin: 100% 100%; 
+            /* 定位和旋转 */
             transform: rotate(calc(var(--segment-angle) * var(--segment-index)));
+            
             display: flex;
             justify-content: center;
-            align-items: flex-start; /* 文字靠近圆心 */
-            padding-top: 15px;
+            align-items: center; /* 居中显示文字 */
             box-sizing: border-box;
-            border: 1px solid #ccc; /* 选项之间的边界 */
+            border-right: 2px solid #333; /* 扇区边界 */
             opacity: 1;
-            transition: opacity 0.5s ease-out;
+            transition: opacity 0.8s ease-out; /* 消除动画 */
+            cursor: default;
         }
-        /* 移除时的样式 */
+        
+        /* 消除状态 */
         .segment.removed {
-            opacity: 0;
-            pointer-events: none; /* 移除后不可交互 */
+            opacity: 0.1; /* 不完全消失，留下一丝痕迹 */
+            pointer-events: none;
         }
-        
-        /* 选项文字的样式 */
+
+        /* 颜色主题 */
+        .segment:nth-child(1) { background-color: #ff5733; } /* 烈焰红 - Pengajian Am */
+        .segment:nth-child(2) { background-color: #33ff57; } /* 翡翠绿 - Biology */
+        .segment:nth-child(3) { background-color: #3357ff; } /* 海洋蓝 - Mathematic */
+        .segment:nth-child(4) { background-color: #ff33ff; } /* 魔法紫 - ICT */
+
+        /* 选项文字 */
         .segment-text {
-            color: #333;
-            font-weight: bold;
-            font-size: 1.1em;
-            /* 逆向旋转文字，使其保持水平 */
-            transform: rotate(calc(360deg / var(--segments-count) * -1 / 2)); 
-        }
-
-        /* 选项背景颜色（为不同选项添加颜色） */
-        .segment:nth-child(1) { background-color: #ff9999; }
-        .segment:nth-child(2) { background-color: #99ccff; }
-        .segment:nth-child(3) { background-color: #99ff99; }
-        .segment:nth-child(4) { background-color: #ffff99; }
-        /* 更多的选项可以继续添加... */
-        
-        /* 5. 指针/指示器 */
-        .indicator {
-            position: absolute;
-            top: -20px; /* 放在转盘上方 */
-            left: 50%;
-            transform: translateX(-50%);
-            width: 0;
-            height: 0;
-            border-left: 15px solid transparent;
-            border-right: 15px solid transparent;
-            border-bottom: 25px solid #cc0000; /* 红色箭头 */
-            z-index: 10;
-        }
-
-        /* 6. 按钮样式 */
-        button {
-            padding: 10px 20px;
-            font-size: 1.2em;
-            cursor: pointer;
-            background-color: #007bff;
-            color: white;
-            border: none;
-            border-radius: 5px;
-            box-shadow: 0 4px #0056b3;
-            transition: background-color 0.1s;
-        }
-
-        button:active {
-            background-color: #0056b3;
-            box-shadow: 0 2px #003d80;
-            transform: translateY(2px);
-        }
-        
-        /* 7. 结果显示 */
-        #result {
-            margin-top: 20px;
+            color: #fff;
+            font-family: 'Luckiest Guy', cursive;
             font-size: 1.5em;
-            color: #333;
-            font-weight: bold;
+            text-shadow: 2px 2px #000;
+            text-align: center;
+            max-width: 80%;
+            /* 逆向旋转文字，使其对齐指针 */
+            transform: rotate(calc(90deg + 360deg / var(--segments-count) * -1 / 2)); 
+        }
+
+        /* --- 5. 按钮和结果 --- */
+        #spinButton {
+            font-family: 'Luckiest Guy', cursive;
+            padding: 15px 35px;
+            font-size: 1.8em;
+            cursor: pointer;
+            background-color: #ffd700; /* 金色按钮 */
+            color: #8b4513; /* 棕色文字 */
+            border: 5px solid #8b4513;
+            border-radius: 10px;
+            box-shadow: 0 8px #a0522d;
+            transition: all 0.1s;
+        }
+
+        #spinButton:active {
+            box-shadow: 0 3px #a0522d;
+            transform: translateY(5px);
+        }
+
+        #spinButton:disabled {
+            background-color: #ccc;
+            color: #666;
+            border-color: #666;
+            box-shadow: none;
+            cursor: not-allowed;
+        }
+        
+        #result {
+            margin-top: 30px;
+            font-size: 2.2em;
+            color: #ffeb3b; /* 亮黄色结果 */
+            font-family: 'Luckiest Guy', cursive;
+            text-shadow: 2px 2px 0 #000;
         }
     </style>
 </head>
 <body>
 
-    <h1>动态消除转盘</h1>
+    <h1>✨ 魔法科目选择器 ✨</h1>
     
     <div class="wheel-container">
         <div class="indicator"></div>
@@ -135,9 +156,9 @@
             </div>
     </div>
 
-    <button id="spinButton">开始旋转</button>
+    <button id="spinButton">🧙‍♂️ 启动魔法旋转 🚀</button>
     
-    <p id="result">点击 "开始旋转" 按钮！</p>
+    <p id="result">决定你命运的时刻！</p>
 
     <script>
         // 原始选项列表
@@ -148,7 +169,6 @@
             "ICT"
         ];
 
-        // 当前剩余的选项（会在旋转后移除）
         let currentOptions = [...initialOptions];
         
         // DOM 元素
@@ -158,46 +178,39 @@
 
         // 全局变量
         let totalRotation = 0; // 累计旋转的总度数
-        let isSpinning = false; // 旋转状态
+        let isSpinning = false; 
 
         /**
          * 1. 动态生成转盘选项
          */
         function renderWheel() {
-            // 清空旧的选项
             wheel.innerHTML = '';
             
-            const numSegments = currentOptions.length;
-            // 计算每个选项占用的角度
-            const segmentAngle = 360 / initialOptions.length; // 注意：这里使用 initialOptions.length 保持扇形大小不变
+            const numTotalSegments = initialOptions.length;
+            const segmentAngle = 360 / numTotalSegments;
             
-            // 如果所有选项都移除了，显示完成信息
-            if (numSegments === 0) {
-                resultText.textContent = "所有选项都已选中并移除！";
+            if (currentOptions.length === 0) {
+                resultText.textContent = "🏆 所有科目都已选中！魔法已完成！ 🏆";
                 spinButton.disabled = true;
                 return;
             }
 
-            // 更新 CSS 变量，用于计算文字反向旋转角度
-            wheel.style.setProperty('--segments-count', initialOptions.length); 
+            wheel.style.setProperty('--segments-count', numTotalSegments); 
 
-            // 遍历所有原始选项，创建它们的扇形
             initialOptions.forEach((option, index) => {
                 const segment = document.createElement('div');
                 segment.classList.add('segment');
                 segment.dataset.option = option;
                 
-                // 设置每个选项的角度和索引
                 segment.style.setProperty('--segment-angle', segmentAngle + 'deg');
                 segment.style.setProperty('--segment-index', index);
                 
-                // 添加文字
                 const text = document.createElement('div');
                 text.classList.add('segment-text');
                 text.textContent = option;
                 segment.appendChild(text);
 
-                // 如果选项已在 currentOptions 中被移除，则添加 'removed' 类
+                // 判断是否已移除
                 if (!currentOptions.includes(option)) {
                     segment.classList.add('removed');
                 }
@@ -213,45 +226,39 @@
             if (isSpinning || currentOptions.length === 0) return;
             isSpinning = true;
             spinButton.disabled = true;
-            resultText.textContent = "转盘正在旋转中...";
+            resultText.textContent = "🚀 魔法能量充能中... 🚀";
             
-            const numSegments = currentOptions.length;
-            const segmentAngle = 360 / initialOptions.length; // 每个扇形实际占用的角度
+            const numTotalSegments = initialOptions.length;
+            const segmentAngle = 360 / numTotalSegments;
             
-            // 随机选择一个 "当前剩余" 选项的索引
-            const selectedIndexInCurrent = Math.floor(Math.random() * numSegments);
+            // 随机选择一个 "当前剩余" 选项
+            const selectedIndexInCurrent = Math.floor(Math.random() * currentOptions.length);
             const selectedOption = currentOptions[selectedIndexInCurrent];
 
-            // 找到 selectedOption 在 "原始选项" 列表中的索引 (这是扇形在转盘上的固定位置)
+            // 找到 selectedOption 在 "原始选项" 列表中的固定索引
             const originalIndex = initialOptions.indexOf(selectedOption);
 
-            // 1. 计算目标位置
-            // 目标角度 = 旋转圈数 (至少 5 圈) + 偏移角度
-            // 偏移角度：将目标选项的中心线对准指针
-            // originalIndex * segmentAngle: 目标扇形起始角度
-            // segmentAngle / 2: 目标扇形中心点
-            // 360 / initialOptions.length: 扇形大小
+            // --- 关键修正：计算目标旋转角度 ---
+            // 指针在 0度 (右侧)
+            // 目标选项的中心角度 = (originalIndex * segmentAngle) + (segmentAngle / 2)
+            // 需要旋转的度数 = 360 - 目标中心角度
+            let targetCenterAngle = (originalIndex * segmentAngle) + (segmentAngle / 2);
+            let offsetAngle = 360 - targetCenterAngle;
             
-            // 我们希望指针指向扇形的中心线。指针在 0 度位置。
-            // 目标选项的中心在 (originalIndex * segmentAngle + segmentAngle / 2)
-            // 需要旋转的度数 = (360 - 目标中心角度)
-            const angleToCenter = (originalIndex * segmentAngle) + (segmentAngle / 2);
-            let offsetAngle = 360 - angleToCenter;
-            
-            // 为了让动画效果更明显，我们增加至少 5 圈 (5 * 360度)
-            const extraRotations = 5 * 360; 
+            // 保证至少转 8 圈，并且加上一个随机的微小偏移量增加趣味性
+            const extraRotations = 8 * 360; 
+            const randomOffset = Math.random() * (segmentAngle - 5) + 5; // 避免正好停在边缘
             
             // 计算新的总旋转度数
-            totalRotation += extraRotations + offsetAngle;
+            totalRotation += extraRotations + offsetAngle + randomOffset;
 
-            // 2. 应用旋转
+            // 应用旋转
             wheel.style.setProperty('--rotation-degree', `${totalRotation}deg`);
 
-            // 3. 监听动画结束
-            // 旋转持续时间在 CSS 中定义为 4s
+            // 监听动画结束 (CSS transition 为 5s)
             setTimeout(() => {
                 // 3.1 显示结果
-                resultText.textContent = `恭喜选中: ${selectedOption}`;
+                resultText.textContent = `🎉 恭喜选中: ${selectedOption} 🎉`;
                 
                 // 3.2 移除选项
                 removeSegment(selectedOption);
@@ -264,7 +271,7 @@
                     spinButton.disabled = true;
                 }
 
-            }, 4000 + 100); // 4000ms (CSS transition) + 100ms 缓冲
+            }, 5000 + 200); // 5000ms (CSS transition) + 200ms 缓冲
         }
 
         /**
@@ -274,7 +281,7 @@
             // 从 currentOptions 数组中移除
             currentOptions = currentOptions.filter(item => item !== option);
             
-            // 在 DOM 中添加 'removed' 类 (CSS 会将其隐藏)
+            // 在 DOM 中添加 'removed' 类 (CSS 会将其变暗)
             const segment = wheel.querySelector(`.segment[data-option="${option}"]`);
             if (segment) {
                 segment.classList.add('removed');
@@ -282,7 +289,7 @@
             
             // 如果所有选项都移除了，更新状态
             if (currentOptions.length === 0) {
-                resultText.textContent = "所有选项都已选中并移除！";
+                resultText.textContent = "🏆 所有科目都已选中！魔法已完成！ 🏆";
                 spinButton.disabled = true;
             }
         }
@@ -290,10 +297,7 @@
         /**
          * 4. 初始化
          */
-        // 绑定按钮点击事件
         spinButton.addEventListener('click', spinWheel);
-        
-        // 页面加载时渲染转盘
         renderWheel();
     </script>
 
