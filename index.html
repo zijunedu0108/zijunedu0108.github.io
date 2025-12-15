@@ -4,6 +4,8 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>STPM 科目选择器与考试倒计时</title>
+    <link rel="icon" href="zijunlogo.png" type="image/png">
+    
     <link href="https://fonts.googleapis.com/css2?family=Luckiest+Guy&family=Zhi+Mang+Xing&display=swap" rel="stylesheet">
     <style>
         /* --- 1. 基础布局和主题 --- */
@@ -16,50 +18,90 @@
             background: linear-gradient(135deg, #1e3a8a, #0c4a6e); /* 深蓝色渐变背景 */
             font-family: 'Zhi Mang Xing', cursive, Arial, sans-serif;
             color: #fff;
-            padding: 20px;
+            padding: 20px 20px 80px 20px; /* 底部留出空间给版权声明 */
+            position: relative; 
         }
 
-        h1 {
-            font-family: 'Luckiest Guy', cursive;
-            font-size: 3em;
-            color: #ffd700; /* 金色标题 */
-            text-shadow: 4px 4px 0 #8b4513, 6px 6px 0 #000;
+        /* --- 2. Logo 和 标题 --- */
+        .header-container {
+            width: 90%;
+            max-width: 1200px;
+            display: flex;
+            align-items: center;
+            justify-content: center; 
+            position: relative;
             margin-bottom: 40px;
         }
 
-        /* --- 2. 主内容区域布局 (左右分栏) --- */
+        .site-logo {
+            position: absolute;
+            left: 0; /* 放在左上角 */
+            width: 60px; 
+            height: 60px;
+            border-radius: 50%; /* 圆形 */
+            object-fit: cover;
+            border: 3px solid #ffd700;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.5);
+            z-index: 20;
+        }
+        
+        h1 {
+            font-family: 'Luckiest Guy', cursive;
+            font-size: 3em;
+            color: #ffd700; 
+            text-shadow: 4px 4px 0 #8b4513, 6px 6px 0 #000;
+            margin: 0;
+            text-align: center;
+        }
+        
+        /* --- 3. 版权声明样式 --- */
+        .footer-copyright {
+            position: fixed; /* 固定在底部 */
+            bottom: 0;
+            width: 100%;
+            background-color: rgba(0, 0, 0, 0.6); /* 稍微深一点的背景 */
+            color: #ccc;
+            text-align: center;
+            padding: 15px 0;
+            font-size: 1em;
+            font-family: Arial, sans-serif;
+            border-top: 1px solid rgba(255, 255, 255, 0.1);
+            z-index: 100;
+        }
+
+        /* --- 4. 主内容区域布局 (左右分栏) --- */
         .main-content {
             display: flex;
             width: 90%;
             max-width: 1200px;
             justify-content: center;
-            gap: 50px; /* 两栏之间的间距 */
-            flex-wrap: wrap; /* 确保在小屏幕上能换行 */
+            gap: 50px; 
+            flex-wrap: wrap;
         }
         
-        /* 转盘部分 (左侧) */
         .wheel-section {
             flex: 1;
             min-width: 450px;
+            max-width: 480px; /* 限制最大宽度，保持转盘居中 */
             display: flex;
             flex-direction: column;
             align-items: center;
         }
 
-        /* 倒计时部分 (右侧) */
         .countdown-section {
             flex: 1;
             min-width: 350px;
+            max-width: 480px;
             padding: 20px;
-            background-color: rgba(0, 0, 0, 0.3); /* 略带透明的背景 */
+            background-color: rgba(0, 0, 0, 0.3);
             border-radius: 15px;
             box-shadow: 0 0 20px rgba(255, 255, 255, 0.1);
         }
 
-        /* --- 3. 倒计时样式 --- */
+        /* --- 5. 倒计时样式 --- */
         .countdown-section h2 {
             font-family: 'Luckiest Guy', cursive;
-            color: #ffcc00; /* 亮黄色 */
+            color: #ffcc00;
             font-size: 2.5em;
             text-align: center;
             margin-top: 0;
@@ -74,29 +116,39 @@
             margin-bottom: 15px;
             border-radius: 8px;
             border-left: 5px solid var(--exam-color, #00ffff);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
         }
         
-        .exam-item p {
-            margin: 5px 0;
+        .exam-info {
+            flex-grow: 1;
         }
         
         .exam-subject {
             font-family: 'Luckiest Guy', cursive;
             font-size: 1.5em;
             color: var(--exam-color, #00ffff);
+            margin: 0;
+        }
+        
+        .exam-date-label {
+             font-size: 0.9em;
+             color: #aaa;
+             margin: 0;
         }
         
         .countdown-value {
             font-family: 'Luckiest Guy', cursive;
             font-size: 3em;
-            text-align: right;
             color: #fff;
             text-shadow: 1px 1px 5px #000;
+            min-width: 100px;
+            text-align: right;
         }
 
 
-        /* --- 4. 转盘原有样式（保留并调整适应新布局） --- */
-
+        /* --- 6. 转盘样式 --- */
         .wheel-container {
             position: relative;
             width: 450px;
@@ -201,11 +253,38 @@
             font-family: 'Luckiest Guy', cursive;
             text-shadow: 2px 2px 0 #000;
         }
+
+        /* 响应式调整 */
+        @media (max-width: 900px) {
+            .main-content {
+                flex-direction: column;
+                align-items: center;
+            }
+            .wheel-section, .countdown-section {
+                min-width: auto;
+                width: 100%;
+                max-width: 450px; /* 保持在移动设备上的美观 */
+            }
+            .site-logo {
+                position: static; /* 移动设备上 Logo 靠左对齐 */
+                margin-right: 15px;
+            }
+            .header-container {
+                justify-content: flex-start;
+            }
+            h1 {
+                font-size: 2.2em;
+                text-align: left;
+            }
+        }
     </style>
 </head>
 <body>
 
-    <h1>STPM 科目选择器与考试倒计时 📅</h1>
+    <div class="header-container">
+        <img src="zijunlogo.png" alt="ZiJun Logo" class="site-logo">
+        <h1>STPM 科目选择器与考试倒计时 📅</h1>
+    </div>
     
     <div class="main-content">
         <div class="wheel-section">
@@ -227,6 +306,10 @@
             <p style="font-size: 1.2em; text-align: center; margin-top: 30px; color: #aaa;">距离考试日期的剩余天数</p>
         </div>
     </div>
+
+    <footer class="footer-copyright">
+        © Copyright by ZiJun 2025
+    </footer>
 
     <script>
         /* --- 转盘游戏逻辑 --- */
@@ -291,13 +374,12 @@
             let offsetAngle = 360 - targetCenterAngle;
             
             const extraRotations = 8 * 360; 
-            const randomOffset = Math.random() * (segmentAngle * 0.8) - (segmentAngle * 0.4); // 随机偏移量
+            const randomOffset = Math.random() * (segmentAngle * 0.8) - (segmentAngle * 0.4); 
             
             totalRotation += extraRotations + offsetAngle + randomOffset;
 
             wheel.style.setProperty('--rotation-degree', `${totalRotation}deg`);
 
-            // 监听动画结束 (5秒)
             setTimeout(() => {
                 resultText.textContent = `🎉 恭喜选中: ${selectedOption} 🎉`;
                 removeSegment(selectedOption);
@@ -325,7 +407,6 @@
 
         /* --- 倒计时逻辑 --- */
         
-        // 考试日期列表：日期必须使用 YYYY-MM-DD 格式
         const examDates = [
             { subjects: "Pengajian Am", date: "2026-01-21", color: "#ff5733" },
             { subjects: "Biology & ICT", date: "2026-01-22", color: "#33ff57" },
@@ -335,38 +416,43 @@
         function updateCountdown() {
             const now = new Date();
             const countdownList = document.getElementById('countdown-list');
-            countdownList.innerHTML = ''; // 清空列表
+            countdownList.innerHTML = '';
 
             examDates.forEach(exam => {
-                const targetDate = new Date(exam.date);
+                // 确保时间戳从当天的午夜开始计算，避免时区和小时分钟的影响
+                const targetDate = new Date(exam.date + "T00:00:00"); 
                 
                 // 计算时间差 (毫秒)
                 const difference = targetDate.getTime() - now.getTime();
                 
-                // 如果考试已过，显示已完成
                 if (difference < 0) {
+                    // 已考完
                     const item = document.createElement('div');
                     item.classList.add('exam-item');
                     item.style.setProperty('--exam-color', exam.color);
                     item.innerHTML = `
-                        <p class="exam-subject">【${exam.subjects}】</p>
-                        <p>日期: ${exam.date.replace(/-/g, '/')}</p>
+                        <div class="exam-info">
+                            <p class="exam-subject">【${exam.subjects}】</p>
+                            <p class="exam-date-label">日期: ${exam.date.replace(/-/g, '/')}</p>
+                        </div>
                         <p class="countdown-value" style="font-size: 2em; color: #aaa;">已考完 🎉</p>
                     `;
                     countdownList.appendChild(item);
                     return;
                 }
 
-                // 转换为天数
+                // 转换为天数 (向下取整，表示还剩下多少个完整的24小时)
                 const days = Math.floor(difference / (1000 * 60 * 60 * 24));
                 
                 const item = document.createElement('div');
                 item.classList.add('exam-item');
-                item.style.setProperty('--exam-color', exam.color); // 设置颜色变量
+                item.style.setProperty('--exam-color', exam.color);
                 
                 item.innerHTML = `
-                    <p class="exam-subject">【${exam.subjects}】</p>
-                    <p>日期: ${exam.date.replace(/-/g, '/')}</p>
+                    <div class="exam-info">
+                        <p class="exam-subject">【${exam.subjects}】</p>
+                        <p class="exam-date-label">日期: ${exam.date.replace(/-/g, '/')}</p>
+                    </div>
                     <p class="countdown-value">${days} <span style="font-size: 0.5em;">天</span></p>
                 `;
                 
@@ -378,9 +464,9 @@
         spinButton.addEventListener('click', spinWheel);
         renderWheel();
         
-        // 首次加载和每隔一小时更新一次倒计时（天数变化慢，不需要每秒更新）
         updateCountdown();
-        setInterval(updateCountdown, 1000 * 60 * 60); // 每小时更新一次
+        // 倒计时只需要每天更新一次天数，但为了精确，我们设置为每小时更新一次（以防用户长时间挂着页面）
+        setInterval(updateCountdown, 1000 * 60 * 60); 
     </script>
 
 </body>
