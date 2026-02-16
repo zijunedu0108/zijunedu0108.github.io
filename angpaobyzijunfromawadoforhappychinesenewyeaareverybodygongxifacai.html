@@ -7,8 +7,8 @@
     <style>
         :root {
             --tng-blue: #0154a4;
-            --packet-red: #d11e22;
-            --bg-canvas: #f7e8d6;
+            --packet-red: #d11e22; /* 官方深红色 */
+            --bg-canvas: #f7e8d6; /* 截图中的米色背景 */
         }
 
         body {
@@ -24,75 +24,67 @@
         /* 顶部广告板 - 比例调整 */
         .ad-banner {
             width: 280px;
-            margin: 25px 0 15px 0;
+            margin: 25px 0 10px 0;
             filter: drop-shadow(0 4px 8px rgba(0,0,0,0.1));
         }
         .ad-banner img { width: 100%; border-radius: 12px; display: block; }
 
         /* 红包主容器 - 维持修长比例 */
         .angpao-container {
-            width: 275px;
-            height: 480px;
+            width: 280px;
+            height: 500px;
             position: relative;
             background-color: var(--packet-red);
             border-radius: 24px;
             box-shadow: 0 15px 35px rgba(0,0,0,0.2);
-            overflow: hidden; /* 确保卡片不会溢出底边 */
+            overflow: hidden; 
         }
 
-        /* 1. 底壳层 - 仅仅是红色底 */
-        .angpao-back {
-            position: absolute;
-            inset: 0;
-            z-index: 1;
-        }
-
-        /* 2. 中间层：白色卡片 */
+        /* 1. 中间层：白色卡片 (被夹在中间) */
         .white-card {
             position: absolute;
             left: 20px;
-            top: 50px;
-            width: 235px;
-            height: 180px;
+            top: 40px;
+            width: 240px;
+            height: 160px; /* 修正后的比例 */
             background: white;
             border-radius: 14px;
             z-index: 2;
             display: flex;
             flex-direction: column;
             align-items: center;
-            padding-top: 20px;
+            padding-top: 25px;
             box-sizing: border-box;
-            box-shadow: 0 4px 15px rgba(0,0,0,0.15); /* 卡片本身的阴影 */
-            transition: transform 0.6s cubic-bezier(0.25, 1, 0.5, 1);
-            transform: translateY(180px); /* 初始藏在面袋后面 */
+            box-shadow: 0 4px 15px rgba(0,0,0,0.15); 
+            transition: transform 0.6s cubic-bezier(0.175, 0.885, 0.32, 1.1);
+            transform: translateY(220px); /* 初始完全深藏 */
         }
 
-        .card-tng-logo { width: 45px; margin-bottom: 12px; }
         .amount-row { color: var(--tng-blue); font-weight: bold; display: flex; align-items: baseline; }
         .currency { font-size: 16px; margin-right: 2px; }
         .val { font-size: 42px; letter-spacing: -1px; }
 
-        /* 3. 顶层：红色面袋（带弧位） */
+        /* 2. 顶层：红色前袋（带弧位） */
         .angpao-front {
             position: absolute;
             bottom: 0;
             left: 0;
             width: 100%;
-            height: 310px; /* 盖住卡片初始位置 */
+            height: 320px; /* 挡住卡片初始位置 */
             background-color: var(--packet-red);
             z-index: 3;
-            /* 制造上边缘弧线阴影的关键 */
-            filter: drop-shadow(0 -5px 10px rgba(0,0,0,0.12)); 
+            /* 制造弧形边缘的立体阴影 */
+            filter: drop-shadow(0 -8px 10px rgba(0,0,0,0.15)); 
         }
 
-        /* 使用遮罩制造完美弧位，解决你说的“几条线”问题 */
+        /* 弧形开口：使用伪元素精准切割 */
         .angpao-front::before {
             content: "";
             position: absolute;
-            top: -45px;
+            top: -40px;
             left: 0;
             width: 100%;
-            height: 90px;
+            height: 80px;
             background-color: var(--packet-red);
             border-radius: 50% 50% 0 0;
         }
@@ -100,34 +92,33 @@
         /* 盖子上的初始 Logo */
         .lid-logo {
             position: absolute;
-            top: 75px;
+            top: 80px;
             left: 50%;
             transform: translateX(-50%);
             width: 75px;
             height: 75px;
             background: white;
-            border-radius: 15px;
+            border-radius: 16px;
             z-index: 10;
             display: flex;
             justify-content: center;
             align-items: center;
-            box-shadow: 0 5px 15px rgba(0,0,0,0.15);
-            transition: opacity 0.3s;
+            box-shadow: 0 6px 18px rgba(0,0,0,0.15);
+            transition: opacity 0.3s, transform 0.3s;
         }
-        .lid-logo img { width: 85%; }
+        .lid-logo img { width: 80%; }
 
-        /* 信息文字区 */
+        /* 文字信息区 */
         .info-panel {
             position: absolute;
-            top: 60px;
+            top: 60px; /* 初始相对于前袋的位置 */
             width: 100%;
             text-align: center;
             color: white;
             z-index: 4;
-            transition: transform 0.5s ease;
+            transition: transform 0.6s ease;
         }
-        .from-txt { font-size: 11px; opacity: 0.8; margin-bottom: 5px; }
-        .sender-name { font-size: 18px; font-weight: bold; margin-bottom: 10px; letter-spacing: 0.5px; }
+        .sender-name { font-size: 18px; font-weight: bold; margin-bottom: 8px; }
         .blessing { font-size: 12px; opacity: 0.9; padding: 0 20px; line-height: 1.4; }
 
         /* 按钮样式 */
@@ -143,15 +134,15 @@
 
         .btn-main {
             width: 190px;
-            height: 48px;
+            height: 46px;
             background: white;
             color: var(--tng-blue);
             border: none;
-            border-radius: 24px;
+            border-radius: 23px;
             font-size: 16px;
             font-weight: bold;
             cursor: pointer;
-            box-shadow: 0 4px 15px rgba(0,0,0,0.2);
+            box-shadow: 0 5px 15px rgba(0,0,0,0.2);
         }
 
         .btn-close {
@@ -161,13 +152,13 @@
             margin-top: 15px;
             opacity: 0.8;
             font-size: 14px;
-            text-decoration: none;
+            cursor: pointer;
         }
 
-        /* 状态控制 */
+        /* 打开后的状态控制 */
         .opened .white-card { transform: translateY(0); }
-        .opened .lid-logo { opacity: 0; pointer-events: none; }
-        .opened .info-panel { transform: translateY(145px); } /* 文字同步下移 */
+        .opened .lid-logo { opacity: 0; transform: translateX(-50%) scale(0.8); pointer-events: none; }
+        .opened .info-panel { transform: translateY(160px); } /* 文字整体下移，避免遮挡 */
 
         .hidden { display: none; }
     </style>
@@ -179,15 +170,12 @@
     </div>
 
     <div class="angpao-container" id="angpao">
-        
-        <div class="angpao-back"></div>
-
         <div class="lid-logo">
             <img src="tng.png" alt="TNG">
         </div>
 
         <div class="white-card">
-            <img src="tng.png" class="card-tng-logo" alt="TNG Logo">
+            <img src="tng.png" width="45" alt="TNG">
             <div class="amount-row">
                 <span class="currency">RM</span><span class="val">1.90</span>
             </div>
@@ -195,7 +183,7 @@
 
         <div class="angpao-front">
             <div class="info-panel">
-                <div class="from-txt">来自</div>
+                <div style="font-size: 11px; opacity: 0.8; margin-bottom: 5px;">来自</div>
                 <div class="sender-name">KONG ZI JUN</div>
                 <div class="blessing">Gong Xi Fa Cai... Best Regards from Sir Ken..</div>
             </div>
@@ -205,7 +193,7 @@
             <button class="btn-main" id="openBtn" onclick="handleOpen()">Open Now</button>
             <div id="afterOpen" class="hidden" style="text-align: center;">
                 <button class="btn-main" onclick="location.href='detail.html'">View More Details</button>
-                <a href="javascript:void(0)" class="btn-close" onclick="location.reload()">Close</a>
+                <button class="btn-close" onclick="location.reload()">Close</button>
             </div>
         </div>
     </div>
@@ -217,7 +205,7 @@
             const afterOpen = document.getElementById('afterOpen');
 
             container.classList.add('opened');
-            openBtn.classList.add('hidden');
+            openBtn.style.display = 'none';
             
             setTimeout(() => {
                 afterOpen.classList.remove('hidden');
