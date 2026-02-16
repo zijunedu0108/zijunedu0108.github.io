@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>TNG Official Angpao</title>
+    <title>TNG Official Red Packet</title>
     <style>
         :root {
             --tng-blue: #0154a4;
@@ -17,119 +17,135 @@
             display: flex;
             flex-direction: column;
             align-items: center;
-            font-family: -apple-system, sans-serif;
+            font-family: -apple-system, "SF Pro Text", sans-serif;
             min-height: 100vh;
         }
 
+        /* 顶部广告图 */
         .ad-banner {
-            width: 280px;
-            margin: 20px 0 10px 0;
-            filter: drop-shadow(0 4px 6px rgba(0,0,0,0.1));
+            width: 300px;
+            margin: 15px 0;
+            filter: drop-shadow(0 4px 8px rgba(0,0,0,0.1));
         }
-        .ad-banner img { width: 100%; border-radius: 12px; }
+        .ad-banner img { width: 100%; border-radius: 12px; display: block; }
 
+        /* 红包主容器 */
         .angpao-container {
-            width: 290px;
-            height: 510px;
+            width: 300px;
+            height: 520px;
             position: relative;
             background-color: var(--packet-red);
-            border-radius: 28px;
-            box-shadow: 0 15px 35px rgba(0,0,0,0.25);
+            border-radius: 30px;
+            box-shadow: 0 20px 40px rgba(0,0,0,0.3);
             overflow: hidden; 
         }
 
-        /* --- 核心修复：白色卡片 --- */
+        /* --- 蛇年异形白色卡片 --- */
         .white-card {
             position: absolute;
             left: 25px;
-            top: 60px; /* 初始参考位置 */
-            width: 240px;
-            height: 180px;
+            top: 50px;
+            width: 250px;
+            height: 200px;
             background: white;
-            border-radius: 18px;
-            z-index: 5; /* 提高初始层级 */
+            border-radius: 15px;
+            z-index: 2;
             display: flex;
             flex-direction: column;
             align-items: center;
-            padding-top: 30px;
-            box-sizing: border-box;
-            box-shadow: 0 4px 15px rgba(0,0,0,0.1); 
-            transition: all 0.7s cubic-bezier(0.175, 0.885, 0.32, 1.275);
-            /* 初始：深深藏在袋子里 */
-            transform: translateY(280px); 
+            justify-content: center;
+            transition: all 0.8s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            transform: translateY(320px); /* 初始藏在深处 */
         }
 
-        /* 领取后的状态：向上弹射到负值，确保金额完全露出 */
-        .opened .white-card { 
-            transform: translateY(-20px) !important; 
-            z-index: 10;
+        /* 卡片顶部的蛇年装饰 */
+        .card-decoration {
+            position: absolute;
+            top: -45px;
+            width: 100%;
+            text-align: center;
+            pointer-events: none;
         }
+        .card-decoration img { width: 180px; }
 
-        .card-logo { width: 50px; margin-bottom: 10px; }
         .amount-row { 
             color: var(--tng-blue); 
             font-weight: bold; 
             display: flex; 
-            align-items: baseline;
-            margin-top: 5px;
+            align-items: baseline; 
+            margin-top: 10px;
         }
-        .currency { font-size: 18px; margin-right: 3px; }
-        .val { font-size: 48px; letter-spacing: -1px; line-height: 1; }
+        .currency { font-size: 18px; margin-right: 2px; }
+        .val { font-size: 52px; letter-spacing: -1px; }
 
-        /* 红色前袋 */
+        /* 黄金转换小按钮 (原版样式) */
+        .convert-gold {
+            background: #f1c40f;
+            color: #7f6000;
+            padding: 4px 12px;
+            border-radius: 20px;
+            font-size: 11px;
+            font-weight: bold;
+            margin-top: 8px;
+            display: flex;
+            align-items: center;
+            gap: 4px;
+        }
+
+        /* 红色前口袋 */
         .angpao-front {
             position: absolute;
             bottom: 0;
             left: 0;
             width: 100%;
-            height: 330px;
+            height: 340px;
             background-color: var(--packet-red);
-            z-index: 6; /* 略高于未开启的卡片 */
-            filter: drop-shadow(0 -8px 12px rgba(0,0,0,0.2)); 
+            z-index: 4;
+            /* 重点：给口袋边缘加点阴影，营造“插入口”的感觉 */
+            box-shadow: 0 -10px 20px rgba(0,0,0,0.1);
         }
 
+        /* 口袋的弧线开口 */
         .angpao-front::before {
             content: "";
             position: absolute;
-            top: -45px;
+            top: -40px;
             left: 0;
             width: 100%;
-            height: 90px;
+            height: 80px;
             background-color: var(--packet-red);
             border-radius: 50% 50% 0 0;
         }
 
+        /* 中间的大 Logo (未领取前显示) */
         .lid-logo {
             position: absolute;
-            top: 90px;
+            top: 100px;
             left: 50%;
             transform: translateX(-50%);
-            width: 80px;
-            height: 80px;
-            background: white;
-            border-radius: 20px;
-            z-index: 15;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            box-shadow: 0 8px 22px rgba(0,0,0,0.15);
-            transition: all 0.4s ease;
+            width: 85px;
+            height: 85px;
+            z-index: 10;
+            transition: all 0.5s ease;
         }
+        .lid-logo img { width: 100%; border-radius: 20px; box-shadow: 0 8px 20px rgba(0,0,0,0.2); }
 
-        /* 姓名文字层 */
+        /* 文字信息区 */
         .info-panel {
             position: absolute;
-            top: 70px; 
+            top: 60px;
             width: 100%;
             text-align: center;
             color: white;
-            z-index: 11;
-            transition: all 0.5s ease;
+            z-index: 5;
+            transition: all 0.6s ease;
         }
-        .sender-name { font-size: 20px; font-weight: bold; margin-bottom: 5px; }
+        .from-text { font-size: 12px; opacity: 0.8; margin-bottom: 4px; }
+        .sender-name { font-size: 20px; font-weight: bold; }
+        .blessing-text { font-size: 13px; margin-top: 8px; opacity: 0.9; }
 
-        /* 按钮层 */
-        .btn-box {
+        /* 底部按钮区 */
+        .btn-group {
             position: absolute;
             bottom: 35px;
             width: 100%;
@@ -139,47 +155,54 @@
             z-index: 20;
         }
 
-        .btn-main {
-            width: 210px;
-            height: 52px;
+        .btn-white {
+            width: 220px;
+            height: 54px;
             background: white;
             color: var(--tng-blue);
             border: none;
-            border-radius: 26px;
+            border-radius: 27px;
             font-size: 18px;
             font-weight: bold;
             cursor: pointer;
-            box-shadow: 0 6px 20px rgba(0,0,0,0.25);
+            box-shadow: 0 6px 15px rgba(0,0,0,0.2);
         }
 
-        .btn-close {
+        .btn-link {
             color: white;
             background: none;
             border: none;
-            margin-top: 15px;
+            margin-top: 18px;
             font-size: 16px;
+            opacity: 0.9;
             cursor: pointer;
         }
 
-        /* --- 领取状态控制 --- */
-        .opened .lid-logo { opacity: 0; transform: translateX(-50%) scale(0.5); pointer-events: none; }
+        /* --- 交互状态控制 --- */
+        .opened .white-card { 
+            transform: translateY(-30px); /* 向上弹射出开口 */
+        }
         
-        /* 文字向下隐藏并释放点击权限 */
-        .opened .info-panel { 
-            transform: translateY(120px); 
+        .opened .lid-logo { 
             opacity: 0; 
+            transform: translateX(-50%) scale(0.5); 
+            pointer-events: none; 
+        }
+
+        .opened .info-panel {
+            transform: translateY(140px); /* 文字下移消失 */
+            opacity: 0;
             pointer-events: none;
         }
 
-        #afterOpen {
+        #postOpenAction {
             display: flex;
             flex-direction: column;
             align-items: center;
             opacity: 0;
-            transform: translateY(10px);
-            transition: all 0.5s ease 0.4s;
+            transition: opacity 0.5s ease 0.4s;
         }
-        .opened #afterOpen { opacity: 1; transform: translateY(0); }
+        .opened #postOpenAction { opacity: 1; }
 
         .hidden { display: none !important; }
     </style>
@@ -187,47 +210,52 @@
 <body>
 
     <div class="ad-banner">
-        <img src="awd.png" alt="Ads">
+        <img src="awd.png" alt="AWD Banner">
     </div>
 
-    <div class="angpao-container" id="angpao">
+    <div class="angpao-container" id="mainPacket">
         <div class="lid-logo">
-            <img src="tng.png" width="80%" alt="TNG">
+            <img src="tng.png" alt="TNG Logo">
         </div>
 
         <div class="white-card">
-            <img src="tng.png" class="card-logo" alt="TNG Logo">
+            <div class="card-decoration">
+                <div style="color:#d11e22; font-weight:bold; font-size:12px;">🐍 蛇全蛇美 🐍</div>
+            </div>
+            <img src="tng.png" width="40" alt="TNG">
             <div class="amount-row">
                 <span class="currency">RM</span><span class="val">1.90</span>
             </div>
+            <div class="convert-gold">🪙 Convert to gold</div>
         </div>
 
         <div class="angpao-front">
-            <div class="info-panel" id="infoPanel">
-                <div style="font-size: 12px; opacity: 0.8; margin-bottom: 5px;">来自</div>
+            <div class="info-panel">
+                <div class="from-text">From</div>
                 <div class="sender-name">KONG ZI JUN</div>
-                <div class="blessing">Gong Xi Fa Cai... Best Regards from Sir Ken..</div>
+                <div class="blessing-text">happy new year!</div>
             </div>
         </div>
 
-        <div class="btn-box">
-            <button class="btn-main" id="openBtn" onclick="handleOpen()">Open Now</button>
-            <div id="afterOpen" class="hidden">
-                <button class="btn-main" onclick="location.href='detail.html'">更多详情</button>
-                <button class="btn-close" onclick="location.reload()">关闭</button>
+        <div class="btn-group">
+            <button class="btn-white" id="openActionBtn" onclick="openAngpao()">Open Now</button>
+            
+            <div id="postOpenAction" class="hidden">
+                <button class="btn-white" onclick="location.href='detail.html'">View More Details</button>
+                <button class="btn-link" onclick="location.reload()">Close</button>
             </div>
         </div>
     </div>
 
     <script>
-        function handleOpen() {
-            const container = document.getElementById('angpao');
-            const openBtn = document.getElementById('openBtn');
-            const afterOpen = document.getElementById('afterOpen');
+        function openAngpao() {
+            const packet = document.getElementById('mainPacket');
+            const openBtn = document.getElementById('openActionBtn');
+            const postAction = document.getElementById('postOpenAction');
 
-            container.classList.add('opened');
+            packet.classList.add('opened');
             openBtn.classList.add('hidden');
-            afterOpen.classList.remove('hidden');
+            postAction.classList.remove('hidden');
         }
     </script>
 </body>
