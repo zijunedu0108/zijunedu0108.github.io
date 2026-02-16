@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>TNG Official Angpao</title>
+    <title>TNG Official Red Packet</title>
     <style>
         :root {
             --tng-blue: #0154a4;
@@ -21,73 +21,71 @@
             min-height: 100vh;
         }
 
-        /* 顶部广告版 */
         .ad-banner {
             width: 280px;
-            margin: 25px 0 10px 0;
-            filter: drop-shadow(0 4px 8px rgba(0,0,0,0.1));
+            margin: 20px 0 10px 0;
+            filter: drop-shadow(0 4px 6px rgba(0,0,0,0.1));
         }
         .ad-banner img { width: 100%; border-radius: 12px; display: block; }
 
-        /* 红包主容器 */
         .angpao-container {
             width: 280px;
             height: 500px;
             position: relative;
             background-color: var(--packet-red);
             border-radius: 24px;
-            box-shadow: 0 15px 35px rgba(0,0,0,0.2);
+            box-shadow: 0 15px 35px rgba(0,0,0,0.25);
             overflow: hidden; 
         }
 
-        /* 中间层：白色卡片 */
+        /* 内部卡片：增加内部阴影 */
         .white-card {
             position: absolute;
             left: 20px;
-            top: 40px;
+            top: 45px;
             width: 240px;
-            height: 160px;
+            height: 165px;
             background: white;
-            border-radius: 14px;
+            border-radius: 16px;
             z-index: 2;
             display: flex;
             flex-direction: column;
             align-items: center;
             padding-top: 25px;
             box-sizing: border-box;
-            box-shadow: 0 4px 15px rgba(0,0,0,0.15); 
-            transition: transform 0.6s cubic-bezier(0.175, 0.885, 0.32, 1.1);
-            transform: translateY(240px); /* 初始完全深藏 */
+            box-shadow: 0 4px 15px rgba(0,0,0,0.1); 
+            transition: transform 0.65s cubic-bezier(0.19, 1, 0.22, 1);
+            transform: translateY(260px);
         }
 
         .amount-row { color: var(--tng-blue); font-weight: bold; display: flex; align-items: baseline; }
         .currency { font-size: 16px; margin-right: 2px; }
         .val { font-size: 42px; letter-spacing: -1px; }
 
-        /* 顶层：红色前袋（带弧位） */
+        /* 前袋：立体感核心 */
         .angpao-front {
             position: absolute;
             bottom: 0;
             left: 0;
             width: 100%;
-            height: 320px;
+            height: 310px;
             background-color: var(--packet-red);
             z-index: 3;
-            filter: drop-shadow(0 -8px 10px rgba(0,0,0,0.15)); 
+            /* 多重阴影模拟真实弧度 */
+            filter: drop-shadow(0 -5px 8px rgba(0,0,0,0.12)) drop-shadow(0 -2px 2px rgba(0,0,0,0.05)); 
         }
 
         .angpao-front::before {
             content: "";
             position: absolute;
-            top: -40px;
+            top: -45px;
             left: 0;
             width: 100%;
-            height: 80px;
+            height: 90px;
             background-color: var(--packet-red);
             border-radius: 50% 50% 0 0;
         }
 
-        /* 初始中心 Logo */
         .lid-logo {
             position: absolute;
             top: 80px;
@@ -101,25 +99,25 @@
             display: flex;
             justify-content: center;
             align-items: center;
-            box-shadow: 0 6px 18px rgba(0,0,0,0.15);
+            box-shadow: 0 8px 20px rgba(0,0,0,0.15);
             transition: all 0.4s ease;
         }
         .lid-logo img { width: 80%; }
 
-        /* 动态隐藏的文字区 */
+        /* 文字面板：增加平滑渐隐 */
         .info-panel {
             position: absolute;
-            top: 60px; 
+            top: 50px; 
             width: 100%;
             text-align: center;
             color: white;
             z-index: 4;
-            transition: transform 0.6s ease, opacity 0.4s ease;
+            transition: all 0.6s cubic-bezier(0.4, 0, 0.2, 1);
+            opacity: 1;
         }
         .sender-name { font-size: 18px; font-weight: bold; margin-bottom: 8px; }
-        .blessing { font-size: 12px; opacity: 0.9; padding: 0 20px; line-height: 1.4; }
+        .blessing { font-size: 12px; opacity: 0.85; padding: 0 25px; line-height: 1.4; }
 
-        /* 底部交互区 */
         .btn-box {
             position: absolute;
             bottom: 35px;
@@ -128,11 +126,11 @@
             flex-direction: column;
             align-items: center;
             z-index: 15;
-            transition: transform 0.5s ease;
+            transition: all 0.5s ease;
         }
 
         .btn-main {
-            width: 195px;
+            width: 190px;
             height: 48px;
             background: white;
             color: var(--tng-blue);
@@ -142,42 +140,49 @@
             font-weight: bold;
             cursor: pointer;
             box-shadow: 0 5px 15px rgba(0,0,0,0.2);
-            transition: opacity 0.3s;
+        }
+
+        .btn-row {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 15px;
+            margin-top: 15px;
         }
 
         .btn-close {
             color: white;
             background: none;
             border: none;
-            margin-top: 15px;
             opacity: 0.8;
             font-size: 14px;
             cursor: pointer;
+            text-decoration: none;
         }
 
-        /* --- 领取后的动画状态 --- */
+        /* --- 领取动作执行 --- */
         .opened .white-card { transform: translateY(0); }
+        .opened .lid-logo { opacity: 0; transform: translateX(-50%) scale(0.6); pointer-events: none; }
         
-        /* 1. 隐藏初始 Logo */
-        .opened .lid-logo { opacity: 0; transform: translateX(-50%) scale(0.5); pointer-events: none; }
-        
-        /* 2. 核心要求：文字向下移动并隐藏 */
+        /* 文字向下滑动并消失 */
         .opened .info-panel { 
-            transform: translateY(150px); 
+            transform: translateY(80px); 
             opacity: 0; 
             pointer-events: none;
         }
 
-        /* 3. 详情按钮淡入 */
-        #afterOpen { 
-            opacity: 0; 
-            transform: translateY(10px);
-            transition: all 0.5s ease 0.3s; /* 延迟浮现 */
+        /* 详情按钮容器：在文字消失后占据位置 */
+        #afterOpen {
+            transform: translateY(20px);
+            opacity: 0;
+            transition: all 0.6s ease 0.2s;
         }
-        .opened #afterOpen { opacity: 1; transform: translateY(0); }
+        .opened #afterOpen {
+            transform: translateY(0);
+            opacity: 1;
+        }
 
         .hidden { display: none; }
-
     </style>
 </head>
 <body>
@@ -199,19 +204,21 @@
         </div>
 
         <div class="angpao-front">
-            <div class="info-panel">
+            <div class="info-panel" id="infoPanel">
                 <div style="font-size: 11px; opacity: 0.8; margin-bottom: 5px;">来自</div>
-                <div class="sender-name">KONG ZI JUN</div>
-                <div class="blessing">Gong Xi Fa Cai... Best Regards from Sir Ken..</div>
+                <div class="sender-name">TAN KEN CHAI</div>
+                <div class="blessing">Gong Xi Fa Cai.. Best Regards from Sir Ken..</div>
             </div>
         </div>
 
         <div class="btn-box">
             <button class="btn-main" id="openBtn" onclick="handleOpen()">Open Now</button>
             
-            <div id="afterOpen" class="hidden" style="text-align: center;">
-                <button class="btn-main" onclick="location.href='detail.html'">View More Details</button>
-                <button class="btn-close" onclick="location.reload()">Close</button>
+            <div id="afterOpen" class="hidden">
+                <button class="btn-main" onclick="location.href='detail.html'">更多详情</button>
+                <div class="btn-row">
+                    <button class="btn-close" onclick="location.reload()">关闭</button>
+                </div>
             </div>
         </div>
     </div>
@@ -222,11 +229,9 @@
             const openBtn = document.getElementById('openBtn');
             const afterOpen = document.getElementById('afterOpen');
 
-            // 1. 添加开启类，触发卡片升起和文字消失
             container.classList.add('opened');
-            
-            // 2. 隐藏初始按钮
             openBtn.style.opacity = '0';
+            
             setTimeout(() => {
                 openBtn.classList.add('hidden');
                 afterOpen.classList.remove('hidden');
