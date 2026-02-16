@@ -3,224 +3,271 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>TNG 电子红包复刻版</title>
+    <title>TNG Official Red Packet</title>
     <style>
         :root {
             --tng-blue: #0154a4;
-            --packet-red: #bb0d11;
-            --bg-cream: #fde8d0;
+            --packet-red: #bd1a1d; /* 更接近原版的深红色 */
+            --packet-dark: #a31619;
+            --bg-canvas: #fcebd7;
         }
 
         body {
-            background-color: var(--bg-cream);
+            background-color: var(--bg-canvas);
             margin: 0;
             display: flex;
             flex-direction: column;
             align-items: center;
-            font-family: 'Helvetica Neue', Arial, sans-serif;
+            font-family: -apple-system, "SF Pro Text", "Helvetica Neue", Arial, sans-serif;
             min-height: 100vh;
+            overflow-x: hidden;
         }
 
-        /* 顶部广告 (awd.png) */
-        .ad-banner {
-            width: 90%;
-            max-width: 360px;
-            margin: 15px 0;
+        /* 缩小后的广告版 */
+        .ad-container {
+            width: 260px; /* 进一步缩小 */
+            margin-top: 20px;
+            margin-bottom: 10px;
+            z-index: 20;
         }
-        .ad-banner img {
+        .ad-container img {
             width: 100%;
-            border-radius: 10px;
+            border-radius: 8px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
             display: block;
         }
 
-        /* 红包主容器：调整为修长的比例 (1:2.1 左右) */
-        .packet-wrapper {
-            width: 280px; 
-            height: 580px;
+        /* 红包主容器：修长比例 */
+        .phone-viewport {
+            width: 300px;
+            height: 560px;
             position: relative;
-            margin-top: 40px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
         }
-
-        /* 蛇年顶部装饰（招牌部分） */
-        .zodiac-header {
-            position: absolute;
-            top: -50px;
-            left: 50%;
-            transform: translateX(-50%);
-            width: 220px;
-            z-index: 10;
-            text-align: center;
-        }
-        .zodiac-header img { width: 100%; }
 
         /* 红包背景壳 */
         .packet-body {
-            width: 100%;
-            height: 100%;
+            width: 270px;
+            height: 500px;
             background-color: var(--packet-red);
-            border-radius: 20px;
-            box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+            border-radius: 24px;
+            box-shadow: 0 15px 40px rgba(0,0,0,0.25);
             position: relative;
-            overflow: hidden;
+            overflow: hidden; /* 关键：切断内部溢出 */
             display: flex;
             flex-direction: column;
             align-items: center;
         }
 
-        /* TNG 蓝框 Logo (初始位置) */
-        .center-logo {
-            width: 70px;
-            height: 70px;
+        /* 顶部装饰盖子 */
+        .packet-lid {
+            width: 100%;
+            height: 120px;
+            background: linear-gradient(180deg, #d62428 0%, var(--packet-red) 100%);
+            border-bottom: 2px solid rgba(0,0,0,0.05);
+            z-index: 10;
+            display: flex;
+            justify-content: center;
+            align-items: flex-end;
+        }
+
+        /* 初始 Logo */
+        .tng-logo-init {
+            width: 72px;
+            height: 72px;
             background: white;
-            border-radius: 12px;
-            padding: 5px;
-            margin-top: 140px;
+            border-radius: 14px;
             display: flex;
             justify-content: center;
             align-items: center;
-            box-shadow: 0 4px 10px rgba(0,0,0,0.2);
-            z-index: 6;
+            margin-bottom: -36px; /* 压在缝隙上 */
+            box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+            z-index: 11;
             transition: all 0.4s ease;
         }
-        .center-logo img { width: 85%; }
+        .tng-logo-init img { width: 85%; }
 
-        /* 白色卡片 (内部滑出) */
+        /* 白色金额卡片 */
         .white-card {
             position: absolute;
-            width: 230px;
-            height: 280px;
-            background: white;
-            border-radius: 15px 15px 0 0;
-            top: 40px;
-            transform: translateY(150%); /* 初始完全藏在下面 */
-            transition: transform 0.6s cubic-bezier(0.25, 1, 0.5, 1);
-            z-index: 4;
-            padding-top: 50px;
-            text-align: center;
+            width: 220px;
+            height: 240px;
+            background: #ffffff;
+            border-radius: 12px;
+            top: 60px;
+            left: 25px;
+            z-index: 5;
+            transform: translateY(180%); /* 初始深藏 */
+            transition: transform 0.7s cubic-bezier(0.23, 1, 0.32, 1);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            padding-top: 40px;
             box-sizing: border-box;
         }
 
-        /* 卡片顶部的弧形切口效果 (模拟图2中间的红色波浪) */
-        .card-slot {
+        .white-card .card-logo {
+            width: 50px;
+            margin-bottom: 15px;
+        }
+
+        .amount-row {
+            color: var(--tng-blue);
+            font-weight: 700;
+            display: flex;
+            align-items: baseline;
+        }
+        .currency { font-size: 16px; margin-right: 2px; }
+        .val { font-size: 44px; letter-spacing: -1px; }
+
+        /* 遮挡卡槽（模拟红包袋的开口） */
+        .pocket-pocket {
             position: absolute;
-            top: 260px;
+            top: 240px; /* 卡片从这里钻出来 */
             width: 100%;
-            height: 80px;
+            height: 260px;
             background-color: var(--packet-red);
-            border-radius: 50% 50% 0 0;
-            z-index: 5;
-            box-shadow: 0 -5px 15px rgba(0,0,0,0.1);
+            z-index: 8;
+            border-top: 1px solid rgba(255,255,255,0.1);
         }
 
-        .amount-text { color: var(--tng-blue); font-weight: bold; font-size: 38px; margin-top: 10px;}
-        .amount-text span { font-size: 18px; margin-right: 2px; }
-
-        /* 底部信息 */
-        .sender-box {
-            margin-top: 120px;
-            color: white;
-            text-align: center;
-            z-index: 6;
-            transition: opacity 0.3s;
-        }
-        .sender-box .from { font-size: 12px; opacity: 0.7; }
-        .sender-box .name { font-size: 18px; font-weight: bold; margin: 5px 0 15px 0; }
-        .sender-box .msg { font-size: 13px; }
-
-        /* 按钮组 */
-        .btns-container {
+        /* 文字信息区 */
+        .info-area {
             position: absolute;
-            bottom: 30px;
+            top: 310px;
+            width: 100%;
+            text-align: center;
+            color: white;
+            z-index: 9;
+            transition: transform 0.5s ease;
+        }
+
+        .label-from { font-size: 11px; opacity: 0.75; margin-bottom: 4px; }
+        .name-main { 
+            font-size: 18px; 
+            font-weight: bold; 
+            letter-spacing: 0.5px; 
+            margin-bottom: 12px;
+        }
+        .blessing-text { 
+            font-size: 13px; 
+            opacity: 0.95; 
+            padding: 0 20px;
+            line-height: 1.4;
+        }
+
+        /* 按钮系统 */
+        .action-area {
+            position: absolute;
+            bottom: 35px;
             width: 100%;
             display: flex;
             flex-direction: column;
             align-items: center;
-            gap: 12px;
-            z-index: 10;
+            z-index: 15;
         }
 
-        .btn-open, .btn-detail {
+        .main-btn {
+            width: 180px;
+            height: 48px;
             background: white;
             color: var(--tng-blue);
-            width: 200px;
-            height: 45px;
-            border-radius: 25px;
             border: none;
-            font-weight: bold;
+            border-radius: 24px;
             font-size: 16px;
+            font-weight: bold;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.2);
             cursor: pointer;
-            box-shadow: 0 4px 10px rgba(0,0,0,0.15);
+            transition: transform 0.2s;
         }
 
-        .btn-close {
+        .main-btn:active { transform: scale(0.95); }
+
+        .close-link {
+            margin-top: 15px;
             color: white;
-            text-decoration: none;
             font-size: 14px;
+            text-decoration: none;
             opacity: 0.8;
-            margin-top: 5px;
         }
 
-        /* 状态切换逻辑 */
-        .is-opened .white-card { transform: translateY(0); }
-        .is-opened .center-logo { opacity: 0; transform: scale(0.5); pointer-events: none; }
-        .is-opened .btn-open { display: none; }
-        .is-opened .sender-box { margin-top: 250px; } /* 打开后文字位置下移 */
-        
+        /* 打开后的状态控制 */
+        .is-opened .tng-logo-init {
+            opacity: 0;
+            transform: translateY(-20px) scale(0.8);
+        }
+        .is-opened .white-card {
+            transform: translateY(0);
+        }
+        .is-opened .info-area {
+            transform: translateY(120px); /* 整体下移 */
+        }
+
         .hidden { display: none; }
 
     </style>
 </head>
 <body>
 
-    <div class="ad-banner">
-        <img src="awd.png" alt="广告版">
+    <div class="ad-container">
+        <img src="awd.png" alt="Ads">
     </div>
 
-    <div class="packet-wrapper" id="mainPacket">
-        
-        <div class="zodiac-header">
-            <div style="font-size: 24px; color: #d42e12; font-weight: bold; background: white; border-radius: 20px; padding: 5px;">🐍 蛇全蛇美 🐍</div>
-        </div>
-
-        <div class="packet-body">
-            <div class="center-logo">
-                <img src="tng.png" alt="TNG">
+    <div class="phone-viewport">
+        <div class="packet-body" id="packet">
+            
+            <div class="packet-lid">
+                <div class="tng-logo-init">
+                    <img src="tng.png" alt="TNG">
+                </div>
             </div>
 
             <div class="white-card">
-                <div class="amount-text"><span>RM</span>2.96</div>
-            </div>
-
-            <div class="card-slot"></div>
-
-            <div class="sender-box">
-                <div class="from">From</div>
-                <div class="name">KONG ZI JUN</div>
-                <div class="msg">happy new year!</div>
-            </div>
-
-            <div class="btns-container">
-                <button class="btn-open" id="openBtn" onclick="doOpen()">Open Now</button>
-                <div id="openedBtns" class="hidden" style="text-align: center;">
-                    <button class="btn-detail" onclick="location.href='detail.html'">View More Details</button><br>
-                    <a href="javascript:void(0)" class="btn-close" onclick="location.reload()">Close</a>
+                <img src="tng.png" alt="TNG" class="card-logo">
+                <div class="amount-row">
+                    <span class="currency">RM</span>
+                    <span class="val">1.90</span>
                 </div>
             </div>
+
+            <div class="pocket-pocket"></div>
+
+            <div class="info-area">
+                <div class="label-from">来自</div>
+                <div class="name-main">KONG ZI JUN</div>
+                <div class="blessing-text">
+                    Gong Xi Fa Cai... Best Regards from Sir Ken..
+                </div>
+            </div>
+
+            <div class="action-area">
+                <button class="main-btn" id="openBtn" onclick="handleOpen()">Open Now</button>
+                
+                <div id="afterOpen" class="hidden" style="text-align: center;">
+                    <button class="main-btn" onclick="location.href='detail.html'">View More Details</button>
+                    <br>
+                    <a href="javascript:void(0)" class="close-link" onclick="location.reload()">Close</a>
+                </div>
+            </div>
+
         </div>
     </div>
 
     <script>
-        function doOpen() {
-            const wrapper = document.getElementById('mainPacket');
+        function handleOpen() {
+            const packet = document.getElementById('packet');
             const openBtn = document.getElementById('openBtn');
-            const openedBtns = document.getElementById('openedBtns');
+            const afterOpen = document.getElementById('afterOpen');
 
-            // 触发开启动画
-            wrapper.classList.add('is-opened');
+            // 触发动画类
+            packet.classList.add('is-opened');
             
-            // 切换按钮显示
+            // 按钮状态切换
+            openBtn.classList.add('hidden');
             setTimeout(() => {
-                openedBtns.classList.remove('hidden');
+                afterOpen.classList.remove('hidden');
             }, 400);
         }
     </script>
