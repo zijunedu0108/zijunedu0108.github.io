@@ -3,161 +3,173 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>TNG Official Red Packet</title>
+    <title>TNG Official Angpao</title>
     <style>
         :root {
             --tng-blue: #0154a4;
             --packet-red: #d11e22;
-            --bg-color: #f7e8d6;
+            --bg-canvas: #f7e8d6;
         }
 
         body {
-            background-color: var(--bg-color);
+            background-color: var(--bg-canvas);
             margin: 0;
             display: flex;
             flex-direction: column;
             align-items: center;
-            font-family: -apple-system, sans-serif;
+            font-family: -apple-system, "SF Pro Text", sans-serif;
             min-height: 100vh;
         }
 
-        /* 顶部广告：缩小并居中 */
+        /* 顶部广告板 - 比例调整 */
         .ad-banner {
             width: 280px;
-            margin: 20px 0;
-            border-radius: 12px;
-            overflow: hidden;
-            box-shadow: 0 4px 10px rgba(0,0,0,0.1);
+            margin: 25px 0 15px 0;
+            filter: drop-shadow(0 4px 8px rgba(0,0,0,0.1));
         }
-        .ad-banner img { width: 100%; display: block; }
+        .ad-banner img { width: 100%; border-radius: 12px; display: block; }
 
-        /* 红包主容器 */
-        .packet-container {
-            width: 300px;
-            height: 520px;
-            position: relative;
-            display: flex;
-            justify-content: center;
-        }
-
-        /* 红包后背板 */
-        .packet-back {
-            width: 270px;
+        /* 红包主容器 - 维持修长比例 */
+        .angpao-container {
+            width: 275px;
             height: 480px;
+            position: relative;
             background-color: var(--packet-red);
-            border-radius: 20px;
-            position: absolute;
-            bottom: 0;
-            z-index: 1;
-            box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+            border-radius: 24px;
+            box-shadow: 0 15px 35px rgba(0,0,0,0.2);
+            overflow: hidden; /* 确保卡片不会溢出底边 */
         }
 
-        /* 白色金额卡片 */
-        .white-card {
-            width: 240px;
-            height: 160px; /* 修正：更短的比例 */
-            background: white;
-            border-radius: 12px;
+        /* 1. 底壳层 - 仅仅是红色底 */
+        .angpao-back {
             position: absolute;
-            bottom: 240px; /* 初始藏在袋子里 */
+            inset: 0;
+            z-index: 1;
+        }
+
+        /* 2. 中间层：白色卡片 */
+        .white-card {
+            position: absolute;
+            left: 20px;
+            top: 50px;
+            width: 235px;
+            height: 180px;
+            background: white;
+            border-radius: 14px;
             z-index: 2;
             display: flex;
             flex-direction: column;
             align-items: center;
             padding-top: 20px;
             box-sizing: border-box;
-            transition: transform 0.6s cubic-bezier(0.175, 0.885, 0.32, 1.1);
-            transform: translateY(120%); /* 完全隐藏 */
+            box-shadow: 0 4px 15px rgba(0,0,0,0.15); /* 卡片本身的阴影 */
+            transition: transform 0.6s cubic-bezier(0.25, 1, 0.5, 1);
+            transform: translateY(180px); /* 初始藏在面袋后面 */
         }
 
-        .card-logo { width: 45px; margin-bottom: 10px; }
-        .amount { color: var(--tng-blue); font-size: 42px; font-weight: bold; }
-        .amount span { font-size: 16px; margin-right: 2px; }
+        .card-tng-logo { width: 45px; margin-bottom: 12px; }
+        .amount-row { color: var(--tng-blue); font-weight: bold; display: flex; align-items: baseline; }
+        .currency { font-size: 16px; margin-right: 2px; }
+        .val { font-size: 42px; letter-spacing: -1px; }
 
-        /* 红包前袋（弧形遮挡） */
-        .packet-front {
-            width: 270px;
-            height: 300px; /* 遮住卡片下半部分 */
-            background-color: var(--packet-red);
-            border-radius: 0 0 20px 20px;
+        /* 3. 顶层：红色面袋（带弧位） */
+        .angpao-front {
             position: absolute;
             bottom: 0;
-            z-index: 3; /* 关键：在卡片之上 */
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-        }
-
-        /* 弧形切口：解决“几条线”的关键 */
-        .packet-front::before {
-            content: "";
-            position: absolute;
-            top: -40px;
             left: 0;
             width: 100%;
-            height: 80px;
+            height: 310px; /* 盖住卡片初始位置 */
+            background-color: var(--packet-red);
+            z-index: 3;
+            /* 制造上边缘弧线阴影的关键 */
+            filter: drop-shadow(0 -5px 10px rgba(0,0,0,0.12)); 
+        }
+
+        /* 使用遮罩制造完美弧位，解决你说的“几条线”问题 */
+        .angpao-front::before {
+            content: "";
+            position: absolute;
+            top: -45px;
+            left: 0;
+            width: 100%;
+            height: 90px;
             background-color: var(--packet-red);
             border-radius: 50% 50% 0 0;
         }
 
-        /* 初始 Logo (盖子上的) */
+        /* 盖子上的初始 Logo */
         .lid-logo {
+            position: absolute;
+            top: 75px;
+            left: 50%;
+            transform: translateX(-50%);
             width: 75px;
             height: 75px;
             background: white;
             border-radius: 15px;
+            z-index: 10;
             display: flex;
             justify-content: center;
             align-items: center;
-            position: absolute;
-            top: 60px;
-            z-index: 10;
-            box-shadow: 0 4px 10px rgba(0,0,0,0.1);
+            box-shadow: 0 5px 15px rgba(0,0,0,0.15);
             transition: opacity 0.3s;
         }
         .lid-logo img { width: 85%; }
 
-        /* 文字信息区 */
-        .info-section {
+        /* 信息文字区 */
+        .info-panel {
             position: absolute;
             top: 60px;
+            width: 100%;
             text-align: center;
             color: white;
             z-index: 4;
-            width: 100%;
+            transition: transform 0.5s ease;
         }
-        .from { font-size: 12px; opacity: 0.8; }
-        .name { font-size: 18px; font-weight: bold; margin: 5px 0; }
+        .from-txt { font-size: 11px; opacity: 0.8; margin-bottom: 5px; }
+        .sender-name { font-size: 18px; font-weight: bold; margin-bottom: 10px; letter-spacing: 0.5px; }
+        .blessing { font-size: 12px; opacity: 0.9; padding: 0 20px; line-height: 1.4; }
 
-        /* 按钮 */
-        .btn-group {
+        /* 按钮样式 */
+        .btn-box {
             position: absolute;
-            bottom: 40px;
-            z-index: 10;
+            bottom: 35px;
+            width: 100%;
             display: flex;
             flex-direction: column;
-            gap: 15px;
+            align-items: center;
+            z-index: 15;
         }
+
         .btn-main {
-            width: 200px;
-            height: 46px;
+            width: 190px;
+            height: 48px;
             background: white;
             color: var(--tng-blue);
-            border-radius: 23px;
             border: none;
-            font-weight: bold;
+            border-radius: 24px;
             font-size: 16px;
+            font-weight: bold;
             cursor: pointer;
-            box-shadow: 0 4px 10px rgba(0,0,0,0.1);
+            box-shadow: 0 4px 15px rgba(0,0,0,0.2);
         }
-        .btn-close { color: white; background: none; border: none; font-size: 14px; cursor: pointer; opacity: 0.8;}
 
-        /* 打开状态逻辑 */
+        .btn-close {
+            color: white;
+            background: none;
+            border: none;
+            margin-top: 15px;
+            opacity: 0.8;
+            font-size: 14px;
+            text-decoration: none;
+        }
+
+        /* 状态控制 */
         .opened .white-card { transform: translateY(0); }
         .opened .lid-logo { opacity: 0; pointer-events: none; }
-        .opened .info-section { transform: translateY(140px); transition: 0.5s; }
-        .hidden { display: none; }
+        .opened .info-panel { transform: translateY(145px); } /* 文字同步下移 */
 
+        .hidden { display: none; }
     </style>
 </head>
 <body>
@@ -166,42 +178,50 @@
         <img src="awd.png" alt="Ads">
     </div>
 
-    <div class="packet-container" id="packetUI">
+    <div class="angpao-container" id="angpao">
+        
+        <div class="angpao-back"></div>
+
         <div class="lid-logo">
             <img src="tng.png" alt="TNG">
         </div>
 
         <div class="white-card">
-            <img src="tng.png" class="card-logo">
-            <div class="amount"><span>RM</span>1.90</div>
-        </div>
-
-        <div class="packet-back"></div>
-
-        <div class="packet-front">
-            <div class="info-section">
-                <div class="from">来自</div>
-                <div class="name">KONG ZI JUN</div>
-                <div class="msg">Gong Xi Fa Cai... Best Regards from Sir Ken..</div>
+            <img src="tng.png" class="card-tng-logo" alt="TNG Logo">
+            <div class="amount-row">
+                <span class="currency">RM</span><span class="val">1.90</span>
             </div>
         </div>
 
-        <div class="btn-group">
-            <button class="btn-main" id="openBtn" onclick="openNow()">Open Now</button>
+        <div class="angpao-front">
+            <div class="info-panel">
+                <div class="from-txt">来自</div>
+                <div class="sender-name">KONG ZI JUN</div>
+                <div class="blessing">Gong Xi Fa Cai... Best Regards from Sir Ken..</div>
+            </div>
+        </div>
+
+        <div class="btn-box">
+            <button class="btn-main" id="openBtn" onclick="handleOpen()">Open Now</button>
             <div id="afterOpen" class="hidden" style="text-align: center;">
                 <button class="btn-main" onclick="location.href='detail.html'">View More Details</button>
-                <button class="btn-close" onclick="location.reload()">Close</button>
+                <a href="javascript:void(0)" class="btn-close" onclick="location.reload()">Close</a>
             </div>
         </div>
     </div>
 
     <script>
-        function openNow() {
-            document.getElementById('packetUI').classList.add('opened');
-            document.getElementById('openBtn').classList.add('hidden');
+        function handleOpen() {
+            const container = document.getElementById('angpao');
+            const openBtn = document.getElementById('openBtn');
+            const afterOpen = document.getElementById('afterOpen');
+
+            container.classList.add('opened');
+            openBtn.classList.add('hidden');
+            
             setTimeout(() => {
-                document.getElementById('afterOpen').classList.remove('hidden');
-            }, 400);
+                afterOpen.classList.remove('hidden');
+            }, 300);
         }
     </script>
 </body>
