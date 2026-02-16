@@ -7,9 +7,8 @@
     <style>
         :root {
             --tng-blue: #0154a4;
-            --packet-red: #bd1a1d; /* 更接近原版的深红色 */
-            --packet-dark: #a31619;
-            --bg-canvas: #fcebd7;
+            --packet-red: #cc1e1e;
+            --bg-canvas: #fde8d0;
         }
 
         body {
@@ -18,237 +17,203 @@
             display: flex;
             flex-direction: column;
             align-items: center;
-            font-family: -apple-system, "SF Pro Text", "Helvetica Neue", Arial, sans-serif;
+            font-family: -apple-system, "SF Pro Text", sans-serif;
             min-height: 100vh;
-            overflow-x: hidden;
         }
 
-        /* 缩小后的广告版 */
+        /* 顶部扁平化广告板 - 缩小尺寸 */
         .ad-container {
-            width: 260px; /* 进一步缩小 */
-            margin-top: 20px;
-            margin-bottom: 10px;
-            z-index: 20;
+            width: 250px;
+            margin: 20px 0 5px 0;
         }
         .ad-container img {
             width: 100%;
             border-radius: 8px;
-            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
             display: block;
         }
 
-        /* 红包主容器：修长比例 */
-        .phone-viewport {
-            width: 300px;
-            height: 560px;
+        /* 红包主容器：调整为 1:2 的修长比例 */
+        .packet-wrapper {
+            width: 270px;
+            height: 540px; /* 增加整体高度 */
             position: relative;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
         }
 
         /* 红包背景壳 */
-        .packet-body {
-            width: 270px;
-            height: 500px;
+        .packet-base {
+            width: 100%;
+            height: 480px; /* 实际红包袋的高度 */
             background-color: var(--packet-red);
-            border-radius: 24px;
-            box-shadow: 0 15px 40px rgba(0,0,0,0.25);
+            border-radius: 20px;
+            box-shadow: 0 15px 40px rgba(0,0,0,0.15);
             position: relative;
-            overflow: hidden; /* 关键：切断内部溢出 */
-            display: flex;
-            flex-direction: column;
-            align-items: center;
+            overflow: hidden; 
+            margin-top: 20px;
         }
 
-        /* 顶部装饰盖子 */
+        /* 顶部盖子区域 */
         .packet-lid {
             width: 100%;
-            height: 120px;
-            background: linear-gradient(180deg, #d62428 0%, var(--packet-red) 100%);
-            border-bottom: 2px solid rgba(0,0,0,0.05);
+            height: 140px;
+            background: linear-gradient(180deg, #e42a2a 0%, var(--packet-red) 100%);
             z-index: 10;
+            position: relative;
             display: flex;
             justify-content: center;
-            align-items: flex-end;
+            align-items: center;
         }
 
         /* 初始 Logo */
-        .tng-logo-init {
-            width: 72px;
-            height: 72px;
+        .tng-logo-main {
+            width: 70px;
+            height: 70px;
             background: white;
-            border-radius: 14px;
+            border-radius: 12px;
             display: flex;
             justify-content: center;
             align-items: center;
-            margin-bottom: -36px; /* 压在缝隙上 */
             box-shadow: 0 4px 12px rgba(0,0,0,0.15);
-            z-index: 11;
             transition: all 0.4s ease;
+            z-index: 11;
         }
-        .tng-logo-init img { width: 85%; }
+        .tng-logo-main img { width: 85%; }
 
-        /* 白色金额卡片 */
+        /* 白色卡片：缩短了高度，符合真实比例 */
         .white-card {
             position: absolute;
-            width: 220px;
-            height: 240px;
+            top: 45px; /* 最终弹出的固定位置 */
+            left: 20px;
+            width: 230px;
+            height: 150px; /* 大幅缩短卡片高度 */
             background: #ffffff;
             border-radius: 12px;
-            top: 60px;
-            left: 25px;
             z-index: 5;
-            transform: translateY(180%); /* 初始深藏 */
-            transition: transform 0.7s cubic-bezier(0.23, 1, 0.32, 1);
+            transform: translateY(280%); /* 初始隐藏在更深处 */
+            transition: transform 0.6s cubic-bezier(0.175, 0.885, 0.32, 1.1);
             display: flex;
             flex-direction: column;
             align-items: center;
-            padding-top: 40px;
+            padding-top: 15px;
             box-sizing: border-box;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.05);
         }
 
-        .white-card .card-logo {
-            width: 50px;
-            margin-bottom: 15px;
-        }
+        .card-tng-logo { width: 40px; margin-bottom: 5px; }
 
-        .amount-row {
+        .amount-display {
             color: var(--tng-blue);
-            font-weight: 700;
+            font-weight: 800;
             display: flex;
             align-items: baseline;
         }
-        .currency { font-size: 16px; margin-right: 2px; }
-        .val { font-size: 44px; letter-spacing: -1px; }
+        .currency { font-size: 14px; margin-right: 2px; }
+        .val { font-size: 40px; letter-spacing: -1px; }
 
-        /* 遮挡卡槽（模拟红包袋的开口） */
-        .pocket-pocket {
+        /* 核心 UI：弧形开口插槽 */
+        .packet-slot-cut {
             position: absolute;
-            top: 240px; /* 卡片从这里钻出来 */
-            width: 100%;
-            height: 260px;
+            top: 180px; /* 弧形开口的位置 */
+            width: 140%;
+            left: -20%;
+            height: 350px;
             background-color: var(--packet-red);
-            z-index: 8;
+            border-radius: 50% 50% 0 0; 
+            z-index: 8; /* 挡在卡片前面 */
+            box-shadow: 0 -5px 15px rgba(0,0,0,0.08);
             border-top: 1px solid rgba(255,255,255,0.1);
         }
 
         /* 文字信息区 */
-        .info-area {
+        .info-panel {
             position: absolute;
-            top: 310px;
+            top: 240px; /* 初始位置在弧形槽下方 */
             width: 100%;
             text-align: center;
             color: white;
             z-index: 9;
             transition: transform 0.5s ease;
         }
+        .from-tag { font-size: 11px; opacity: 0.8; margin-bottom: 3px; }
+        .sender-name { font-size: 17px; font-weight: bold; margin-bottom: 8px; letter-spacing: 0.5px; }
+        .blessing { font-size: 12px; opacity: 0.9; padding: 0 25px; line-height: 1.4; }
 
-        .label-from { font-size: 11px; opacity: 0.75; margin-bottom: 4px; }
-        .name-main { 
-            font-size: 18px; 
-            font-weight: bold; 
-            letter-spacing: 0.5px; 
-            margin-bottom: 12px;
-        }
-        .blessing-text { 
-            font-size: 13px; 
-            opacity: 0.95; 
-            padding: 0 20px;
-            line-height: 1.4;
-        }
-
-        /* 按钮系统 */
-        .action-area {
+        /* 按钮容器 */
+        .btn-container {
             position: absolute;
-            bottom: 35px;
+            bottom: 30px;
             width: 100%;
             display: flex;
             flex-direction: column;
             align-items: center;
-            z-index: 15;
+            z-index: 12;
         }
 
-        .main-btn {
+        .btn-white {
             width: 180px;
-            height: 48px;
+            height: 44px;
             background: white;
             color: var(--tng-blue);
+            border-radius: 22px;
             border: none;
-            border-radius: 24px;
-            font-size: 16px;
             font-weight: bold;
-            box-shadow: 0 4px 15px rgba(0,0,0,0.2);
+            font-size: 15px;
             cursor: pointer;
-            transition: transform 0.2s;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.15);
         }
 
-        .main-btn:active { transform: scale(0.95); }
-
-        .close-link {
-            margin-top: 15px;
+        .btn-close {
             color: white;
-            font-size: 14px;
-            text-decoration: none;
+            background: transparent;
+            border: none;
+            margin-top: 12px;
             opacity: 0.8;
+            font-size: 14px;
+            cursor: pointer;
         }
 
-        /* 打开后的状态控制 */
-        .is-opened .tng-logo-init {
-            opacity: 0;
-            transform: translateY(-20px) scale(0.8);
-        }
-        .is-opened .white-card {
-            transform: translateY(0);
-        }
-        .is-opened .info-area {
-            transform: translateY(120px); /* 整体下移 */
-        }
+        /* 打开后的状态逻辑 */
+        .opened .tng-logo-main { transform: scale(0.5); opacity: 0; pointer-events: none; }
+        .opened .white-card { transform: translateY(0); }
+        .opened .info-panel { transform: translateY(110px); } /* 文字向下推 */
 
         .hidden { display: none; }
-
     </style>
 </head>
 <body>
 
     <div class="ad-container">
-        <img src="awd.png" alt="Ads">
+        <img src="awd.png" alt="Ad Banner">
     </div>
 
-    <div class="phone-viewport">
-        <div class="packet-body" id="packet">
+    <div class="packet-wrapper" id="packetUI">
+        <div class="packet-base">
             
             <div class="packet-lid">
-                <div class="tng-logo-init">
+                <div class="tng-logo-main">
                     <img src="tng.png" alt="TNG">
                 </div>
             </div>
 
             <div class="white-card">
-                <img src="tng.png" alt="TNG" class="card-logo">
-                <div class="amount-row">
-                    <span class="currency">RM</span>
-                    <span class="val">1.90</span>
+                <img src="tng.png" class="card-tng-logo" alt="TNG Small">
+                <div class="amount-display">
+                    <span class="currency">RM</span><span class="val">2.96</span>
                 </div>
             </div>
 
-            <div class="pocket-pocket"></div>
+            <div class="packet-slot-cut"></div>
 
-            <div class="info-area">
-                <div class="label-from">来自</div>
-                <div class="name-main">KONG ZI JUN</div>
-                <div class="blessing-text">
-                    Gong Xi Fa Cai... Best Regards from Sir Ken..
-                </div>
+            <div class="info-panel">
+                <div class="from-tag">From</div>
+                <div class="sender-name">KONG ZI JUN</div>
+                <div class="blessing">happy new year!</div>
             </div>
 
-            <div class="action-area">
-                <button class="main-btn" id="openBtn" onclick="handleOpen()">Open Now</button>
-                
-                <div id="afterOpen" class="hidden" style="text-align: center;">
-                    <button class="main-btn" onclick="location.href='detail.html'">View More Details</button>
-                    <br>
-                    <a href="javascript:void(0)" class="close-link" onclick="location.reload()">Close</a>
+            <div class="btn-container">
+                <button class="btn-white" id="openBtn" onclick="toggleOpen()">Open Now</button>
+                <div id="openedState" class="hidden" style="text-align: center;">
+                    <button class="btn-white" onclick="location.href='detail.html'">View More Details</button>
+                    <button class="btn-close" onclick="location.reload()">Close</button>
                 </div>
             </div>
 
@@ -256,18 +221,17 @@
     </div>
 
     <script>
-        function handleOpen() {
-            const packet = document.getElementById('packet');
+        function toggleOpen() {
+            const wrapper = document.getElementById('packetUI');
             const openBtn = document.getElementById('openBtn');
-            const afterOpen = document.getElementById('afterOpen');
+            const openedState = document.getElementById('openedState');
 
-            // 触发动画类
-            packet.classList.add('is-opened');
+            wrapper.classList.add('opened');
+            openBtn.style.display = 'none';
             
-            // 按钮状态切换
-            openBtn.classList.add('hidden');
+            // 按钮延迟出现，匹配卡片弹出的节奏
             setTimeout(() => {
-                afterOpen.classList.remove('hidden');
+                openedState.classList.remove('hidden');
             }, 400);
         }
     </script>
