@@ -3,212 +3,225 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>TNG 电子红包</title>
+    <title>TNG 电子红包复刻版</title>
     <style>
         :root {
             --tng-blue: #0154a4;
-            --packet-red: #b30000;
-            --packet-red-light: #d60000;
-            --text-gold: #ffcf4d;
+            --packet-red: #bb0d11;
+            --bg-cream: #fde8d0;
         }
 
         body {
-            background-color: #fce4c4; /* 浅橙色背景 */
+            background-color: var(--bg-cream);
             margin: 0;
             display: flex;
             flex-direction: column;
             align-items: center;
-            font-family: 'PingFang SC', 'Microsoft YaHei', sans-serif;
+            font-family: 'Helvetica Neue', Arial, sans-serif;
             min-height: 100vh;
         }
 
-        /* 顶部广告版 (awd.png) */
+        /* 顶部广告 (awd.png) */
         .ad-banner {
-            width: 100%;
-            max-width: 400px;
-            margin: 20px 0;
-            padding: 0 15px;
-            box-sizing: border-box;
+            width: 90%;
+            max-width: 360px;
+            margin: 15px 0;
         }
         .ad-banner img {
             width: 100%;
-            border-radius: 12px;
-            box-shadow: 0 4px 10px rgba(0,0,0,0.1);
+            border-radius: 10px;
+            display: block;
         }
 
-        /* 红包主容器 */
-        .red-packet {
-            width: 320px;
-            height: 520px;
+        /* 红包主容器：调整为修长的比例 (1:2.1 左右) */
+        .packet-wrapper {
+            width: 280px; 
+            height: 580px;
+            position: relative;
+            margin-top: 40px;
+        }
+
+        /* 蛇年顶部装饰（招牌部分） */
+        .zodiac-header {
+            position: absolute;
+            top: -50px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 220px;
+            z-index: 10;
+            text-align: center;
+        }
+        .zodiac-header img { width: 100%; }
+
+        /* 红包背景壳 */
+        .packet-body {
+            width: 100%;
+            height: 100%;
             background-color: var(--packet-red);
             border-radius: 20px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.2);
             position: relative;
-            box-shadow: 0 20px 40px rgba(0,0,0,0.2);
             overflow: hidden;
             display: flex;
             flex-direction: column;
             align-items: center;
-            transition: all 0.3s ease;
         }
 
-        /* 红包盖子效果 */
-        .packet-top {
-            width: 100%;
-            height: 150px;
-            background: linear-gradient(to bottom, var(--packet-red-light), var(--packet-red));
-            border-radius: 0 0 50% 50% / 0 0 20% 20%;
-            z-index: 5;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            position: relative;
-        }
-
-        /* TNG Logo */
-        .tng-main-logo {
-            width: 80px;
-            height: 80px;
+        /* TNG 蓝框 Logo (初始位置) */
+        .center-logo {
+            width: 70px;
+            height: 70px;
             background: white;
-            border-radius: 15px;
+            border-radius: 12px;
             padding: 5px;
-            position: absolute;
-            bottom: -40px;
-            box-shadow: 0 4px 10px rgba(0,0,0,0.1);
-            z-index: 6;
+            margin-top: 140px;
             display: flex;
             justify-content: center;
             align-items: center;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.2);
+            z-index: 6;
+            transition: all 0.4s ease;
         }
-        .tng-main-logo img { width: 90%; }
+        .center-logo img { width: 85%; }
 
-        /* 白色金额卡片 (初始隐藏在下方) */
-        .money-card {
-            width: 260px;
+        /* 白色卡片 (内部滑出) */
+        .white-card {
+            position: absolute;
+            width: 230px;
+            height: 280px;
             background: white;
-            border-radius: 15px;
-            margin-top: 60px;
-            padding: 40px 10px 20px 10px;
-            text-align: center;
-            transform: translateY(100%);
-            opacity: 0;
-            transition: all 0.6s cubic-bezier(0.165, 0.84, 0.44, 1);
+            border-radius: 15px 15px 0 0;
+            top: 40px;
+            transform: translateY(150%); /* 初始完全藏在下面 */
+            transition: transform 0.6s cubic-bezier(0.25, 1, 0.5, 1);
             z-index: 4;
+            padding-top: 50px;
+            text-align: center;
+            box-sizing: border-box;
         }
 
-        .currency { color: var(--tng-blue); font-size: 18px; font-weight: bold; }
-        .amount { color: var(--tng-blue); font-size: 42px; font-weight: bold; }
+        /* 卡片顶部的弧形切口效果 (模拟图2中间的红色波浪) */
+        .card-slot {
+            position: absolute;
+            top: 260px;
+            width: 100%;
+            height: 80px;
+            background-color: var(--packet-red);
+            border-radius: 50% 50% 0 0;
+            z-index: 5;
+            box-shadow: 0 -5px 15px rgba(0,0,0,0.1);
+        }
 
-        /* 文字信息 */
-        .sender-info {
-            margin-top: 30px;
+        .amount-text { color: var(--tng-blue); font-weight: bold; font-size: 38px; margin-top: 10px;}
+        .amount-text span { font-size: 18px; margin-right: 2px; }
+
+        /* 底部信息 */
+        .sender-box {
+            margin-top: 120px;
             color: white;
             text-align: center;
             z-index: 6;
+            transition: opacity 0.3s;
         }
-        .sender-label { font-size: 12px; opacity: 0.7; margin-bottom: 5px; }
-        .sender-name { font-size: 18px; font-weight: bold; margin-bottom: 10px; }
-        .blessing-msg { font-size: 14px; color: #fff; }
+        .sender-box .from { font-size: 12px; opacity: 0.7; }
+        .sender-box .name { font-size: 18px; font-weight: bold; margin: 5px 0 15px 0; }
+        .sender-box .msg { font-size: 13px; }
 
-        /* 底部按钮 */
-        .footer-btns {
+        /* 按钮组 */
+        .btns-container {
             position: absolute;
             bottom: 30px;
+            width: 100%;
             display: flex;
             flex-direction: column;
-            gap: 15px;
             align-items: center;
+            gap: 12px;
             z-index: 10;
         }
 
-        .btn-white {
+        .btn-open, .btn-detail {
             background: white;
             color: var(--tng-blue);
-            padding: 12px 60px;
-            border-radius: 30px;
-            text-decoration: none;
+            width: 200px;
+            height: 45px;
+            border-radius: 25px;
+            border: none;
             font-weight: bold;
             font-size: 16px;
-            border: none;
             cursor: pointer;
-            box-shadow: 0 4px 10px rgba(0,0,0,0.1);
+            box-shadow: 0 4px 10px rgba(0,0,0,0.15);
         }
 
-        .btn-link {
+        .btn-close {
             color: white;
             text-decoration: none;
             font-size: 14px;
-            opacity: 0.9;
+            opacity: 0.8;
+            margin-top: 5px;
         }
 
-        /* 状态切换控制 */
-        .opened .money-card {
-            transform: translateY(0);
-            opacity: 1;
-        }
-        .opened .tng-main-logo {
-            transform: scale(0.7) translateY(-120px);
-            opacity: 0;
-            transition: all 0.4s ease;
-        }
-        .opened .open-now-btn { display: none; }
-        .closed-state .detail-btns { display: none; }
-        .opened .detail-btns { display: flex; flex-direction: column; align-items: center; gap: 10px;}
+        /* 状态切换逻辑 */
+        .is-opened .white-card { transform: translateY(0); }
+        .is-opened .center-logo { opacity: 0; transform: scale(0.5); pointer-events: none; }
+        .is-opened .btn-open { display: none; }
+        .is-opened .sender-box { margin-top: 250px; } /* 打开后文字位置下移 */
+        
+        .hidden { display: none; }
 
     </style>
 </head>
 <body>
 
     <div class="ad-banner">
-        <img src="awd.png" alt="Advertisement">
+        <img src="awd.png" alt="广告版">
     </div>
 
-    <div class="red-packet" id="packet">
-        <div class="packet-top">
-            <div class="tng-main-logo">
+    <div class="packet-wrapper" id="mainPacket">
+        
+        <div class="zodiac-header">
+            <div style="font-size: 24px; color: #d42e12; font-weight: bold; background: white; border-radius: 20px; padding: 5px;">🐍 蛇全蛇美 🐍</div>
+        </div>
+
+        <div class="packet-body">
+            <div class="center-logo">
                 <img src="tng.png" alt="TNG">
             </div>
-        </div>
 
-        <div class="money-card">
-            <div>
-                <span class="currency">RM</span>
-                <span class="amount">2.96</span>
+            <div class="white-card">
+                <div class="amount-text"><span>RM</span>2.96</div>
             </div>
-            <div style="margin-top: 10px;">
-                <button style="background: #ffcc00; border: none; border-radius: 15px; padding: 5px 15px; font-size: 12px; cursor: pointer;">
-                    🪙 Convert to gold
-                </button>
+
+            <div class="card-slot"></div>
+
+            <div class="sender-box">
+                <div class="from">From</div>
+                <div class="name">KONG ZI JUN</div>
+                <div class="msg">happy new year!</div>
             </div>
-        </div>
 
-        <div class="sender-info">
-            <div class="sender-label">From</div>
-            <div class="sender-name">KONG ZI JUN</div>
-            <div class="blessing-msg" id="msgText">Happy New Year!</div>
-        </div>
-
-        <div class="footer-btns">
-            <button class="btn-white open-now-btn" onclick="openPacket()">Open Now</button>
-            
-            <div class="detail-btns" style="display: none;" id="detailGroup">
-                <button class="btn-white" onclick="location.href='detail.html'">View More Details</button>
-                <a href="javascript:void(0)" class="btn-link" onclick="location.reload()">Close</a>
+            <div class="btns-container">
+                <button class="btn-open" id="openBtn" onclick="doOpen()">Open Now</button>
+                <div id="openedBtns" class="hidden" style="text-align: center;">
+                    <button class="btn-detail" onclick="location.href='detail.html'">View More Details</button><br>
+                    <a href="javascript:void(0)" class="btn-close" onclick="location.reload()">Close</a>
+                </div>
             </div>
         </div>
     </div>
 
     <script>
-        function openPacket() {
-            const packet = document.getElementById('packet');
-            const detailGroup = document.getElementById('detailGroup');
+        function doOpen() {
+            const wrapper = document.getElementById('mainPacket');
+            const openBtn = document.getElementById('openBtn');
+            const openedBtns = document.getElementById('openedBtns');
+
+            // 触发开启动画
+            wrapper.classList.add('is-opened');
             
-            // 切换 class 触发动画
-            packet.classList.add('opened');
-            
-            // 延迟显示详情按钮，配合动画节奏
+            // 切换按钮显示
             setTimeout(() => {
-                detailGroup.style.display = 'flex';
-            }, 300);
+                openedBtns.classList.remove('hidden');
+            }, 400);
         }
     </script>
 </body>
