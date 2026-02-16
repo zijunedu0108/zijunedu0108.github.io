@@ -17,21 +17,20 @@
             display: flex;
             flex-direction: column;
             align-items: center;
-            font-family: -apple-system, "SF Pro Text", sans-serif;
+            font-family: -apple-system, sans-serif;
             min-height: 100vh;
         }
 
-        /* 顶部广告 */
         .ad-banner {
             width: 280px;
             margin: 20px 0 10px 0;
             filter: drop-shadow(0 4px 6px rgba(0,0,0,0.1));
         }
-        .ad-banner img { width: 100%; border-radius: 12px; display: block; }
+        .ad-banner img { width: 100%; border-radius: 12px; }
 
         .angpao-container {
-            width: 285px;
-            height: 505px;
+            width: 290px;
+            height: 510px;
             position: relative;
             background-color: var(--packet-red);
             border-radius: 28px;
@@ -39,47 +38,54 @@
             overflow: hidden; 
         }
 
-        /* --- 修正：卡片层 --- */
+        /* --- 核心修复：白色卡片 --- */
         .white-card {
             position: absolute;
-            left: 22px;
-            top: 30px; /* 稍微上移卡片初始参考位 */
-            width: 241px;
+            left: 25px;
+            top: 60px; /* 初始参考位置 */
+            width: 240px;
             height: 180px;
             background: white;
             border-radius: 18px;
-            z-index: 2;
+            z-index: 5; /* 提高初始层级 */
             display: flex;
             flex-direction: column;
             align-items: center;
-            padding-top: 35px; /* 增加顶部内边距，让金额下移一点避免太挤 */
+            padding-top: 30px;
             box-sizing: border-box;
             box-shadow: 0 4px 15px rgba(0,0,0,0.1); 
-            transition: transform 0.7s cubic-bezier(0.19, 1, 0.22, 1);
-            /* 关键：初始位置必须藏得足够深 */
-            transform: translateY(300px); 
+            transition: all 0.7s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            /* 初始：深深藏在袋子里 */
+            transform: translateY(280px); 
         }
 
-        .card-logo { width: 48px; margin-bottom: 15px; }
+        /* 领取后的状态：向上弹射到负值，确保金额完全露出 */
+        .opened .white-card { 
+            transform: translateY(-20px) !important; 
+            z-index: 10;
+        }
+
+        .card-logo { width: 50px; margin-bottom: 10px; }
         .amount-row { 
             color: var(--tng-blue); 
             font-weight: bold; 
             display: flex; 
             align-items: baseline;
+            margin-top: 5px;
         }
-        .currency { font-size: 16px; margin-right: 2px; }
-        .val { font-size: 46px; letter-spacing: -1px; }
+        .currency { font-size: 18px; margin-right: 3px; }
+        .val { font-size: 48px; letter-spacing: -1px; line-height: 1; }
 
-        /* 前袋层 */
+        /* 红色前袋 */
         .angpao-front {
             position: absolute;
             bottom: 0;
             left: 0;
             width: 100%;
-            height: 320px;
+            height: 330px;
             background-color: var(--packet-red);
-            z-index: 3;
-            filter: drop-shadow(0 -6px 12px rgba(0,0,0,0.2)); 
+            z-index: 6; /* 略高于未开启的卡片 */
+            filter: drop-shadow(0 -8px 12px rgba(0,0,0,0.2)); 
         }
 
         .angpao-front::before {
@@ -93,17 +99,16 @@
             border-radius: 50% 50% 0 0;
         }
 
-        /* 初始 Logo */
         .lid-logo {
             position: absolute;
-            top: 85px;
+            top: 90px;
             left: 50%;
             transform: translateX(-50%);
-            width: 78px;
-            height: 78px;
+            width: 80px;
+            height: 80px;
             background: white;
-            border-radius: 18px;
-            z-index: 10;
+            border-radius: 20px;
+            z-index: 15;
             display: flex;
             justify-content: center;
             align-items: center;
@@ -111,19 +116,19 @@
             transition: all 0.4s ease;
         }
 
-        /* 信息文字区 */
+        /* 姓名文字层 */
         .info-panel {
             position: absolute;
-            top: 60px; 
+            top: 70px; 
             width: 100%;
             text-align: center;
             color: white;
-            z-index: 4;
+            z-index: 11;
             transition: all 0.5s ease;
         }
-        .sender-name { font-size: 19px; font-weight: bold; margin-bottom: 8px; }
+        .sender-name { font-size: 20px; font-weight: bold; margin-bottom: 5px; }
 
-        /* 按钮区 */
+        /* 按钮层 */
         .btn-box {
             position: absolute;
             bottom: 35px;
@@ -131,20 +136,20 @@
             display: flex;
             flex-direction: column;
             align-items: center;
-            z-index: 99;
+            z-index: 20;
         }
 
         .btn-main {
-            width: 200px;
+            width: 210px;
             height: 52px;
             background: white;
             color: var(--tng-blue);
             border: none;
             border-radius: 26px;
-            font-size: 17px;
+            font-size: 18px;
             font-weight: bold;
             cursor: pointer;
-            box-shadow: 0 6px 18px rgba(0,0,0,0.2);
+            box-shadow: 0 6px 20px rgba(0,0,0,0.25);
         }
 
         .btn-close {
@@ -152,17 +157,14 @@
             background: none;
             border: none;
             margin-top: 15px;
-            font-size: 15px;
+            font-size: 16px;
             cursor: pointer;
         }
 
-        /* --- 领取状态 --- */
-        /* 关键修复：让卡片升起到 0 位，确保金额完全露出 */
-        .opened .white-card { transform: translateY(0); }
-        
+        /* --- 领取状态控制 --- */
         .opened .lid-logo { opacity: 0; transform: translateX(-50%) scale(0.5); pointer-events: none; }
         
-        /* 文字消失并穿透点击 */
+        /* 文字向下隐藏并释放点击权限 */
         .opened .info-panel { 
             transform: translateY(120px); 
             opacity: 0; 
@@ -174,13 +176,10 @@
             flex-direction: column;
             align-items: center;
             opacity: 0;
-            transform: translateY(20px);
-            transition: all 0.5s ease 0.3s;
+            transform: translateY(10px);
+            transition: all 0.5s ease 0.4s;
         }
-        .opened #afterOpen {
-            opacity: 1;
-            transform: translateY(0);
-        }
+        .opened #afterOpen { opacity: 1; transform: translateY(0); }
 
         .hidden { display: none !important; }
     </style>
@@ -213,7 +212,6 @@
 
         <div class="btn-box">
             <button class="btn-main" id="openBtn" onclick="handleOpen()">Open Now</button>
-            
             <div id="afterOpen" class="hidden">
                 <button class="btn-main" onclick="location.href='detail.html'">更多详情</button>
                 <button class="btn-close" onclick="location.reload()">关闭</button>
