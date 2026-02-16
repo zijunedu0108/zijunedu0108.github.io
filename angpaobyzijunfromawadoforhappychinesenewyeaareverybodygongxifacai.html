@@ -21,6 +21,7 @@
             min-height: 100vh;
         }
 
+        /* 顶部广告 */
         .ad-banner {
             width: 280px;
             margin: 20px 0 10px 0;
@@ -28,7 +29,6 @@
         }
         .ad-banner img { width: 100%; border-radius: 12px; display: block; }
 
-        /* 红包主容器 */
         .angpao-container {
             width: 285px;
             height: 505px;
@@ -39,40 +39,47 @@
             overflow: hidden; 
         }
 
-        /* 内部白色卡片 */
+        /* --- 修正：卡片层 --- */
         .white-card {
             position: absolute;
             left: 22px;
-            top: 45px;
-            width: 240px;
-            height: 170px;
+            top: 30px; /* 稍微上移卡片初始参考位 */
+            width: 241px;
+            height: 180px;
             background: white;
-            border-radius: 16px;
+            border-radius: 18px;
             z-index: 2;
             display: flex;
             flex-direction: column;
             align-items: center;
-            padding-top: 25px;
+            padding-top: 35px; /* 增加顶部内边距，让金额下移一点避免太挤 */
             box-sizing: border-box;
             box-shadow: 0 4px 15px rgba(0,0,0,0.1); 
             transition: transform 0.7s cubic-bezier(0.19, 1, 0.22, 1);
-            transform: translateY(280px); /* 初始完全隐藏 */
+            /* 关键：初始位置必须藏得足够深 */
+            transform: translateY(300px); 
         }
 
-        .amount-row { color: var(--tng-blue); font-weight: bold; display: flex; align-items: baseline; }
+        .card-logo { width: 48px; margin-bottom: 15px; }
+        .amount-row { 
+            color: var(--tng-blue); 
+            font-weight: bold; 
+            display: flex; 
+            align-items: baseline;
+        }
         .currency { font-size: 16px; margin-right: 2px; }
-        .val { font-size: 44px; letter-spacing: -1px; }
+        .val { font-size: 46px; letter-spacing: -1px; }
 
-        /* 红色前袋（遮挡层） */
+        /* 前袋层 */
         .angpao-front {
             position: absolute;
             bottom: 0;
             left: 0;
             width: 100%;
-            height: 310px;
+            height: 320px;
             background-color: var(--packet-red);
             z-index: 3;
-            filter: drop-shadow(0 -6px 10px rgba(0,0,0,0.15)); 
+            filter: drop-shadow(0 -6px 12px rgba(0,0,0,0.2)); 
         }
 
         .angpao-front::before {
@@ -86,39 +93,37 @@
             border-radius: 50% 50% 0 0;
         }
 
-        /* 初始中心 Logo */
+        /* 初始 Logo */
         .lid-logo {
             position: absolute;
-            top: 80px;
+            top: 85px;
             left: 50%;
             transform: translateX(-50%);
-            width: 75px;
-            height: 75px;
+            width: 78px;
+            height: 78px;
             background: white;
             border-radius: 18px;
             z-index: 10;
             display: flex;
             justify-content: center;
             align-items: center;
-            box-shadow: 0 8px 20px rgba(0,0,0,0.15);
+            box-shadow: 0 8px 22px rgba(0,0,0,0.15);
             transition: all 0.4s ease;
         }
-        .lid-logo img { width: 80%; }
 
-        /* 发送人信息区：领取后消失 */
+        /* 信息文字区 */
         .info-panel {
             position: absolute;
-            top: 55px; 
+            top: 60px; 
             width: 100%;
             text-align: center;
             color: white;
             z-index: 4;
-            transition: all 0.5s cubic-bezier(0.4, 0, 0.2, 1);
+            transition: all 0.5s ease;
         }
         .sender-name { font-size: 19px; font-weight: bold; margin-bottom: 8px; }
-        .blessing { font-size: 13px; opacity: 0.85; padding: 0 25px; line-height: 1.4; }
 
-        /* 按钮容器 */
+        /* 按钮区 */
         .btn-box {
             position: absolute;
             bottom: 35px;
@@ -126,21 +131,20 @@
             display: flex;
             flex-direction: column;
             align-items: center;
-            z-index: 15;
+            z-index: 99;
         }
 
         .btn-main {
             width: 200px;
-            height: 50px;
+            height: 52px;
             background: white;
             color: var(--tng-blue);
             border: none;
-            border-radius: 25px;
+            border-radius: 26px;
             font-size: 17px;
             font-weight: bold;
             cursor: pointer;
-            box-shadow: 0 5px 15px rgba(0,0,0,0.2);
-            transition: opacity 0.3s ease;
+            box-shadow: 0 6px 18px rgba(0,0,0,0.2);
         }
 
         .btn-close {
@@ -148,29 +152,29 @@
             background: none;
             border: none;
             margin-top: 15px;
-            opacity: 0.9;
             font-size: 15px;
             cursor: pointer;
         }
 
-        /* --- 交互状态 --- */
+        /* --- 领取状态 --- */
+        /* 关键修复：让卡片升起到 0 位，确保金额完全露出 */
         .opened .white-card { transform: translateY(0); }
+        
         .opened .lid-logo { opacity: 0; transform: translateX(-50%) scale(0.5); pointer-events: none; }
         
-        /* 关键：解决遮挡问题，让旧文字下移并彻底消失 */
+        /* 文字消失并穿透点击 */
         .opened .info-panel { 
-            transform: translateY(100px); 
+            transform: translateY(120px); 
             opacity: 0; 
-            visibility: hidden;
+            pointer-events: none;
         }
 
-        /* 新按钮淡入 */
         #afterOpen {
             display: flex;
             flex-direction: column;
             align-items: center;
             opacity: 0;
-            transform: translateY(10px);
+            transform: translateY(20px);
             transition: all 0.5s ease 0.3s;
         }
         .opened #afterOpen {
@@ -178,7 +182,7 @@
             transform: translateY(0);
         }
 
-        .hidden { display: none; }
+        .hidden { display: none !important; }
     </style>
 </head>
 <body>
@@ -189,11 +193,11 @@
 
     <div class="angpao-container" id="angpao">
         <div class="lid-logo">
-            <img src="tng.png" alt="TNG">
+            <img src="tng.png" width="80%" alt="TNG">
         </div>
 
         <div class="white-card">
-            <img src="tng.png" width="45" alt="TNG">
+            <img src="tng.png" class="card-logo" alt="TNG Logo">
             <div class="amount-row">
                 <span class="currency">RM</span><span class="val">1.90</span>
             </div>
@@ -223,15 +227,9 @@
             const openBtn = document.getElementById('openBtn');
             const afterOpen = document.getElementById('afterOpen');
 
-            // 触发整体开启状态
             container.classList.add('opened');
-            
-            // 隐藏旧按钮并显示新按钮
-            openBtn.style.opacity = '0';
-            setTimeout(() => {
-                openBtn.classList.add('hidden');
-                afterOpen.classList.remove('hidden');
-            }, 300);
+            openBtn.classList.add('hidden');
+            afterOpen.classList.remove('hidden');
         }
     </script>
 </body>
