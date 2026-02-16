@@ -1,0 +1,199 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Money Packet Details</title>
+    <style>
+        :root {
+            --tng-blue: #0154a4;
+            --bg-gray: #f8f9fa;
+            --text-main: #333;
+            --text-muted: #888;
+        }
+
+        body {
+            margin: 0;
+            padding: 0;
+            background-color: white;
+            font-family: -apple-system, "SF Pro Text", sans-serif;
+            color: var(--text-main);
+        }
+
+        /* 顶部红色广告区域 */
+        .header-banner {
+            background: linear-gradient(180deg, #d11e22 0%, #ff4d4d 100%);
+            width: 100%;
+            height: 320px;
+            position: relative;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            color: white;
+            overflow: hidden;
+        }
+
+        /* AWD 广告图 */
+        .ad-img {
+            width: 100%;
+            height: 180px;
+            object-fit: cover;
+        }
+
+        .header-content {
+            text-align: center;
+            margin-top: 15px;
+        }
+
+        .sender-info {
+            font-size: 14px;
+            opacity: 0.9;
+            margin-bottom: 5px;
+        }
+
+        .main-amount {
+            font-size: 36px;
+            font-weight: bold;
+            margin: 10px 0 5px 0;
+        }
+
+        .status-tag {
+            font-size: 12px;
+            opacity: 0.8;
+        }
+
+        /* 排行榜区域 */
+        .list-container {
+            padding: 20px;
+        }
+
+        .list-title {
+            font-size: 15px;
+            font-weight: bold;
+            color: #000;
+            margin-bottom: 20px;
+        }
+
+        .ranking-item {
+            display: flex;
+            align-items: center;
+            padding: 15px 0;
+            border-bottom: 1px solid #eee;
+        }
+
+        .rank-num {
+            width: 30px;
+            font-size: 16px;
+            font-weight: bold;
+            color: var(--text-main);
+        }
+
+        .user-info {
+            flex-grow: 1;
+            margin-left: 10px;
+        }
+
+        .user-name {
+            font-size: 16px;
+            font-weight: bold;
+            margin-bottom: 4px;
+        }
+
+        .receive-time {
+            font-size: 12px;
+            color: var(--text-muted);
+        }
+
+        .amount-box {
+            text-align: right;
+        }
+
+        .amount-val {
+            font-size: 16px;
+            font-weight: bold;
+        }
+
+        /* 底部按钮 */
+        .footer-btn-container {
+            padding: 30px 20px;
+            text-align: center;
+        }
+
+        .btn-create {
+            background-color: var(--tng-blue);
+            color: white;
+            border: none;
+            width: 80%;
+            height: 48px;
+            border-radius: 24px;
+            font-size: 16px;
+            font-weight: bold;
+            cursor: pointer;
+            box-shadow: 0 4px 12px rgba(1, 84, 164, 0.3);
+        }
+
+        .tip-text {
+            font-size: 13px;
+            color: var(--text-muted);
+            margin-bottom: 15px;
+        }
+
+    </style>
+</head>
+<body>
+
+    <div class="header-banner">
+        <img src="awd.png" class="ad-img" alt="AWD Banner">
+        
+        <div class="header-content">
+            <div class="sender-info">TAN SANG YUAN发送的Money Packet</div>
+            <div style="font-size: 13px;">最多的请吃</div>
+            <div class="main-amount">RM1.03</div>
+            <div class="status-tag">已存入您的电子钱包</div>
+        </div>
+    </div>
+
+    <div class="list-container">
+        <div class="list-title">排行榜: 3/7</div>
+
+        <div class="ranking-item">
+            <div class="rank-num">1</div>
+            <div class="user-info">
+                <div class="user-name">ONG ***</div>
+                <div class="receive-time">16/02/2026 17:22:19</div>
+            </div>
+            <div class="amount-box">
+                <div class="amount-val">RM2.90</div>
+            </div>
+        </div>
+
+        <div class="ranking-item">
+            <div class="rank-num">2</div>
+            <div class="user-info">
+                <div class="user-name">KONG ZI JUN</div>
+                <div class="receive-time">16/02/2026 17:23:31</div>
+            </div>
+            <div class="amount-box">
+                <div class="amount-val">RM1.03</div>
+            </div>
+        </div>
+
+        <div class="ranking-item">
+            <div class="rank-num">3</div>
+            <div class="user-info">
+                <div class="user-name">CHING ***</div>
+                <div class="receive-time">16/02/2026 17:21:31</div>
+            </div>
+            <div class="amount-box">
+                <div class="amount-val">RM0.78</div>
+            </div>
+        </div>
+    </div>
+
+    <div class="footer-btn-container">
+        <div class="tip-text">您也可以创建 Money Packet，发送给亲友。</div>
+        <button class="btn-create" onclick="alert('跳转到创建页面')">立即创建</button>
+    </div>
+
+</body>
+</html>
