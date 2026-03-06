@@ -17,16 +17,16 @@
         body, html {
             margin: 0; padding: 0;
             width: 100%; height: 100%;
-            background-color: #000; /* 兜底背景 */
+            background-color: #000;
             color: #e0faff; font-family: 'Segoe UI', sans-serif;
             overflow-x: hidden;
         }
 
-        /* 动态背景画布 */
+        /* 动态背景 */
         #waveCanvas {
             position: fixed; top: 0; left: 0;
             width: 100vw; height: 100vh;
-            z-index: 0; /* 置于底层 */
+            z-index: 0;
             pointer-events: none;
         }
 
@@ -60,15 +60,27 @@
         .cover-box img { width: 100%; height: 100%; object-fit: cover; opacity: 0.8; }
         .card-info { padding: 12px; border-top: 1px solid var(--border-glow); }
         .song-title { color: var(--neon-blue); font-size: 14px; font-weight: bold; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-        .album-info { font-size: 10px; color: #888; margin-top: 4px; }
 
-        #player-wrapper {
-            position: fixed; bottom: 20px; right: 20px;
-            width: 320px; height: 180px; z-index: 1000;
-            border: 2px solid var(--neon-blue); background: #000;
-            box-shadow: 0 0 30px rgba(0, 242, 255, 0.4); display: none;
+        /* 修复后的居中大播放器样式 */
+        #player-overlay {
+            display: none;
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(0, 0, 0, 0.9);
+            z-index: 3000; backdrop-filter: blur(10px);
+            justify-content: center; align-items: center;
         }
-        .player-header { background: var(--neon-blue); color: var(--deep-blue); font-size: 10px; padding: 4px 10px; display: flex; justify-content: space-between; }
+        #player-content {
+            width: 85%; max-width: 1000px;
+            background: #000; border: 2px solid var(--neon-blue);
+            box-shadow: 0 0 50px rgba(0, 242, 255, 0.3);
+            position: relative;
+        }
+        .video-container { width: 100%; aspect-ratio: 16/9; background: #000; }
+        .player-footer { 
+            background: var(--neon-blue); color: var(--deep-blue); 
+            padding: 8px 15px; display: flex; justify-content: space-between; align-items: center;
+            font-weight: bold; font-size: 14px;
+        }
 
         .modal { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.85); justify-content: center; align-items: center; z-index: 2000; backdrop-filter: blur(8px); }
         .modal-content { background: var(--deep-blue); border: 2px solid var(--neon-blue); padding: 30px; width: 340px; clip-path: polygon(0 0, 90% 0, 100% 10%, 100% 100%, 10% 100%, 0 90%); }
@@ -112,12 +124,14 @@
         </div>
     </div>
 
-    <div id="player-wrapper">
-        <div class="player-header">
-            <span id="now-playing-title">DECODING_DATA...</span>
-            <span style="cursor:pointer;" onclick="document.getElementById('player-wrapper').style.display='none'">[CLOSE]</span>
+    <div id="player-overlay" onclick="window.closePlayer()">
+        <div id="player-content" onclick="event.stopPropagation()">
+            <div id="iframe-target" class="video-container"></div>
+            <div class="player-footer">
+                <span id="now-playing-title">INITIALIZING...</span>
+                <span style="cursor:pointer; background: rgba(0,0,0,0.2); padding: 2px 10px;" onclick="window.closePlayer()">[ ESC / CLOSE ]</span>
+            </div>
         </div>
-        <div id="iframe-target" style="width:100%; height:calc(100% - 20px);"></div>
     </div>
 
     <div id="album-modal" class="modal">
@@ -158,23 +172,18 @@
         const albumsCol = collection(db, "albums");
         let currentAlbumId = null;
 
-        // --- 1. 动态背景 (修正层级和颜色) ---
+        // 背景动画
         const initWaves = () => {
             const canvas = document.getElementById('waveCanvas');
             const ctx = canvas.getContext('2d');
             let w, h, step = 0;
             const resize = () => { w = canvas.width = window.innerWidth; h = canvas.height = window.innerHeight; };
             window.addEventListener('resize', resize); resize();
-
             const render = () => {
                 ctx.clearRect(0, 0, w, h);
-                // 绘制深蓝背景填充
                 const bgGrad = ctx.createLinearGradient(0, 0, 0, h);
-                bgGrad.addColorStop(0, "#020b16");
-                bgGrad.addColorStop(1, "#000000");
-                ctx.fillStyle = bgGrad;
-                ctx.fillRect(0,0,w,h);
-
+                bgGrad.addColorStop(0, "#020b16"); bgGrad.addColorStop(1, "#000000");
+                ctx.fillStyle = bgGrad; ctx.fillRect(0,0,w,h);
                 step += 0.01;
                 for (let j = 0; j < 3; j++) {
                     ctx.beginPath();
@@ -193,7 +202,7 @@
         };
         initWaves();
 
-        // --- 2. 核心逻辑 ---
+        // 数据监听
         onSnapshot(query(albumsCol, orderBy("timestamp", "desc")), (snapshot) => {
             const grid = document.getElementById('album-grid');
             grid.innerHTML = "";
@@ -205,7 +214,7 @@
                         <div class="cover-box"><img src="${cover}"></div>
                         <div class="card-info">
                             <div class="song-title">${album.title}</div>
-                            <div class="album-info">${album.songs?.length || 0} TRACKS STORED</div>
+                            <div style="font-size:10px;color:#888;margin-top:4px;">${album.songs?.length || 0} TRACKS</div>
                         </div>
                         <button class="delete-btn" onclick="window.delAlbum(event, '${d.id}')">ERASE</button>
                     </div>`;
@@ -218,7 +227,6 @@
             document.getElementById('detail-page').classList.add('active-page');
             document.getElementById('album-title-display').innerText = `ALBUM // ${title}`;
             document.getElementById('main-btn').innerText = "+ ADD SONG";
-            
             onSnapshot(doc(db, "albums", id), (d) => {
                 if(!currentAlbumId || d.id !== currentAlbumId) return;
                 const songGrid = document.getElementById('song-grid');
@@ -228,9 +236,7 @@
                     songGrid.innerHTML += `
                         <div class="card" onclick="window.play('${song.id}', '${song.name}')">
                             <div class="cover-box"><img src="https://img.youtube.com/vi/${song.id}/mqdefault.jpg"></div>
-                            <div class="card-info">
-                                <div class="song-title">${song.name}</div>
-                            </div>
+                            <div class="card-info"><div class="song-title">${song.name}</div></div>
                             <button class="delete-btn" onclick="window.removeSong(event, '${song.id}')">REMOVE</button>
                         </div>`;
                 });
@@ -259,58 +265,60 @@
             const url = document.getElementById('song-url-input').value;
             const match = url.match(/(?:v=|be\/|embed\/)(.{11})/);
             if(name && match && currentAlbumId) {
-                await updateDoc(doc(db, "albums", currentAlbumId), { 
-                    songs: arrayUnion({ id: match[1], name: name }) 
-                });
+                await updateDoc(doc(db, "albums", currentAlbumId), { songs: arrayUnion({ id: match[1], name: name }) });
                 closeModals();
-            } else { alert("Link Error or Missing Name"); }
+            }
         };
 
-        // --- 修复：单曲删除逻辑 ---
         window.removeSong = async (e, videoId) => {
             e.stopPropagation();
-            if(!confirm("REMOVE THIS TRACK?")) return;
-
-            try {
-                const albumRef = doc(db, "albums", currentAlbumId);
-                const docSnap = await getDoc(albumRef);
-                
-                if (docSnap.exists()) {
-                    const songs = docSnap.data().songs;
-                    // 找到那个 id 匹配的对象
-                    const songToDelete = songs.find(s => s.id === videoId);
-                    
-                    if (songToDelete) {
-                        await updateDoc(albumRef, {
-                            songs: arrayRemove(songToDelete)
-                        });
-                    }
-                }
-            } catch (err) {
-                console.error("Delete failed: ", err);
-                alert("SYSTEM ERROR: UNABLE TO REMOVE TRACK");
+            if(!confirm("REMOVE TRACK?")) return;
+            const albumRef = doc(db, "albums", currentAlbumId);
+            const docSnap = await getDoc(albumRef);
+            if (docSnap.exists()) {
+                const songToDelete = docSnap.data().songs.find(s => s.id === videoId);
+                if (songToDelete) await updateDoc(albumRef, { songs: arrayRemove(songToDelete) });
             }
         };
 
         window.delAlbum = async (e, id) => {
             e.stopPropagation();
-            if(confirm("PERMANENTLY ERASE THIS ALBUM?")) await deleteDoc(doc(db, "albums", id));
+            if(confirm("DELETE ALBUM?")) await deleteDoc(doc(db, "albums", id));
         };
 
+        // --- 核心修复：播放与关闭逻辑 ---
         window.play = (id, name) => {
-            document.getElementById('player-wrapper').style.display = 'block';
-            document.getElementById('now-playing-title').innerText = `STREAMING: ${name}`;
-            const origin = window.location.origin;
-            document.getElementById('iframe-target').innerHTML = `
+            const overlay = document.getElementById('player-overlay');
+            const target = document.getElementById('iframe-target');
+            const title = document.getElementById('now-playing-title');
+            
+            title.innerText = `STREAMING // ${name}`;
+            overlay.style.display = 'flex';
+            
+            // 注入 iframe
+            target.innerHTML = `
                 <iframe width="100%" height="100%" 
-                src="https://www.youtube.com/embed/${id}?autoplay=1&origin=${origin}" 
+                src="https://www.youtube.com/embed/${id}?autoplay=1&rel=0" 
                 frameborder="0" allow="autoplay; encrypted-media" allowfullscreen></iframe>`;
+        };
+
+        window.closePlayer = () => {
+            const overlay = document.getElementById('player-overlay');
+            const target = document.getElementById('iframe-target');
+            
+            overlay.style.display = 'none';
+            target.innerHTML = ""; // 关键：清空内容会强制 YouTube 停止播放
         };
 
         window.closeModals = () => {
             document.querySelectorAll('.modal').forEach(m => m.style.display = 'none');
             document.querySelectorAll('input').forEach(i => i.value = "");
         };
+
+        // 快捷键：ESC 关闭播放器
+        window.addEventListener('keydown', (e) => {
+            if(e.key === "Escape") window.closePlayer();
+        });
     </script>
 </body>
 </html>
