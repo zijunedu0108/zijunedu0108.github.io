@@ -3,186 +3,256 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>我的音乐收藏盒</title>
+    <title>Zijun 音乐合集库</title>
+    <link rel="icon" href="zijunlogo.png" type="image/png">
     <style>
-        :root {
-            --primary-color: #ff0000;
-            --dark-bg: #1a1a1a;
-        }
-        body {
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            background-color: var(--dark-bg);
-            color: white;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            padding: 20px;
-        }
-        h1 { margin-bottom: 30px; }
+        :root { --primary-color: #ff0000; --dark-bg: #121212; --card-bg: #1e1e1e; }
+        body { font-family: 'Segoe UI', system-ui, sans-serif; background: var(--dark-bg); color: white; margin: 0; padding: 20px; display: flex; flex-direction: column; align-items: center; }
+        
+        /* 导航栏样式 */
+        header { width: 100%; max-width: 1000px; display: flex; justify-content: space-between; align-items: center; margin-bottom: 30px; border-bottom: 1px solid #333; padding-bottom: 15px; }
+        .logo-area { display: flex; align-items: center; gap: 10px; cursor: pointer; }
+        .logo-area img { width: 40px; height: 40px; border-radius: 50%; }
+        
+        /* 公共列表样式 (合集和歌曲通用) */
+        .grid-list { display: grid; grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); gap: 20px; width: 100%; max-width: 1000px; }
+        
+        /* 合集卡片样式 */
+        .album-card { background: var(--card-bg); border-radius: 10px; overflow: hidden; cursor: pointer; transition: transform 0.2s; position: relative; border: 1px solid #2a2a2a; }
+        .album-card:hover { transform: translateY(-5px); border-color: #444; }
+        .album-card .cover-grid { display: grid; grid-template-columns: 1fr 1fr; aspect-ratio: 1; background: #000; } /* 四宫格封面预览 */
+        .album-card .cover-grid img { width: 100%; height: 100%; object-fit: cover; }
+        .album-card .cover-grid .single-cover { grid-column: 1 / span 2; grid-row: 1 / span 2; }
+        .album-card .info { padding: 15px; }
+        .album-card .title { font-weight: bold; font-size: 16px; margin-bottom: 5px; }
+        .album-card .count { font-size: 12px; color: #aaa; }
 
-        /* 主页歌曲展示区 */
-        #music-list {
-            display: grid;
-            grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
-            gap: 20px;
-            width: 100%;
-            max-width: 1000px;
-        }
-        .music-card {
-            background: #333;
-            border-radius: 12px;
-            overflow: hidden;
-            cursor: pointer;
-            transition: transform 0.2s;
-            position: relative;
-        }
-        .music-card:hover { transform: scale(1.05); }
-        .music-card img { width: 100%; display: block; }
-        .music-card .info { padding: 10px; text-align: center; font-size: 14px; }
-
+        /* 歌曲卡片样式 */
+        .song-card { background: var(--card-bg); border-radius: 8px; overflow: hidden; cursor: pointer; position: relative; display: flex; flex-direction: column;}
+        .song-card img { width: 100%; aspect-ratio: 16/9; object-fit: cover; }
+        
         /* 弹窗样式 */
-        .modal {
-            display: none;
-            position: fixed;
-            top: 0; left: 0; width: 100%; height: 100%;
-            background: rgba(0,0,0,0.8);
-            justify-content: center;
-            align-items: center;
-            z-index: 100;
-        }
-        .modal-content {
-            background: #222;
-            padding: 30px;
-            border-radius: 15px;
-            width: 90%;
-            max-width: 400px;
-            text-align: center;
-        }
-        input {
-            width: 100%;
-            padding: 10px;
-            margin: 15px 0;
-            border-radius: 5px;
-            border: none;
-            box-sizing: border-box;
-        }
-        button {
-            padding: 10px 20px;
-            border: none;
-            border-radius: 5px;
-            cursor: pointer;
-            font-weight: bold;
-        }
-        .btn-add { background: var(--primary-color); color: white; margin-bottom: 20px; }
-        .btn-save { background: #28a745; color: white; width: 100%; }
-        .btn-cancel { background: #666; color: white; margin-top: 10px; width: 100%; }
-
-        /* 播放器容器 */
-        #player-container {
-            margin-top: 30px;
-            width: 100%;
-            max-width: 800px;
-            aspect-ratio: 16 / 9;
-            background: #000;
-            display: none; /* 初始隐藏 */
-        }
+        .modal { display: none; position: fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.8); justify-content:center; align-items:center; z-index:100; backdrop-filter: blur(5px);}
+        .modal-content { background:#222; padding:30px; border-radius:15px; width:90%; max-width:400px; }
+        input { width: 100%; margin: 10px 0; padding: 12px; box-sizing: border-box; background: #333; border: 1px solid #444; color: white; border-radius: 8px; }
+        .btn { padding: 10px 20px; border: none; border-radius: 8px; cursor: pointer; font-weight: bold; width: 100%; margin-top: 10px; }
+        .btn-add { background: var(--primary-color); color: white; width: auto; margin: 0; }
+        
+        /* 播放器 */
+        #player-container { margin-top: 20px; width: 100%; max-width: 800px; aspect-ratio: 16/9; display: none; background: #000; border-radius: 12px; overflow: hidden; box-shadow: 0 10px 30px rgba(0,0,0,0.5); }
+        
+        /* 页面切换控制 */
+        .page { display: none; width: 100%; display: flex; flex-direction: column; align-items: center; }
+        .active-page { display: flex; }
+        #btn-back { background: #333; color: white; padding: 5px 10px; border-radius: 5px; cursor: pointer; margin-right: 10px; display: none;}
     </style>
 </head>
 <body>
 
-    <h1>🎵 我的私家音乐库</h1>
-
-    <button class="btn-add" onclick="toggleModal(true)">+ 添加 YouTube 歌曲</button>
-
-    <div id="music-list">
+    <header>
+        <div class="logo-area" onclick="showHomePage()">
+            <img src="zijunlogo.png" alt="Logo">
+            <span style="font-size: 20px; font-weight: bold;">
+                <span id="btn-back" onclick="showHomePage(event)">←</span>
+                Zijun 音乐库
+            </span>
         </div>
+        <div id="header-actions">
+            <button class="btn-add" onclick="toggleModal('album-modal', true)">+ 创建新合集</button>
+        </div>
+    </header>
 
-    <div id="player-container" id="video-player"></div>
+    <div id="player-container"></div>
 
-    <div id="modal" class="modal">
+    <div id="home-page" class="page active-page">
+        <div id="album-list" class="grid-list">
+            </div>
+    </div>
+
+    <div id="detail-page" class="page">
+        <h2 id="current-album-title" style="margin-bottom: 20px;"></h2>
+        <div style="margin-bottom: 20px;">
+            <button class="btn-add" onclick="toggleModal('song-modal', true)">+ 添加歌曲到此合集</button>
+        </div>
+        <div id="song-list" class="grid-list">
+            </div>
+    </div>
+
+    <div id="album-modal" class="modal">
         <div class="modal-content">
-            <h3>添加新音乐</h3>
-            <p style="font-size: 12px; color: #aaa;">粘贴 YouTube 视频链接</p>
-            <input type="text" id="youtube-url" placeholder="https://www.youtube.com/watch?v=...">
-            <button class="btn-save" onclick="saveSong()">保存到主页</button>
-            <button class="btn-cancel" onclick="toggleModal(false)">取消</button>
+            <h3 style="margin-top:0;">创作新合集</h3>
+            <input type="text" id="new-album-title" placeholder="合集名称 (例如：学习专用、R&B经典)">
+            <button class="btn" style="background:#28a745; color:white;" onclick="createAlbum()">确认创建</button>
+            <button class="btn" style="background:#666; color:white; padding:5px; margin-top:5px; width:auto;" onclick="toggleModal('album-modal', false)">取消</button>
         </div>
     </div>
 
-    <script>
-        // 初始化加载
-        document.addEventListener('DOMContentLoaded', displaySongs);
+    <div id="song-modal" class="modal">
+        <div class="modal-content">
+            <h3 style="margin-top:0;">添加 YouTube 歌曲</h3>
+            <p style="font-size:12px; color:#aaa; margin:0;">到合集：<span id="modal-album-name"></span></p>
+            <input type="text" id="youtube-url" placeholder="粘贴 YouTube 链接...">
+            <button class="btn" style="background:#28a745; color:white;" onclick="addSongToCurrentAlbum()">保存到合集</button>
+            <button class="btn" style="background:#666; color:white; padding:5px; margin-top:5px; width:auto;" onclick="toggleModal('song-modal', false)">取消</button>
+        </div>
+    </div>
 
-        // 控制弹窗显示/隐藏
-        function toggleModal(show) {
-            document.getElementById('modal').style.display = show ? 'flex' : 'none';
-        }
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/12.10.0/firebase-app.js";
+        import { getFirestore, collection, addDoc, onSnapshot, query, orderBy, doc, updateDoc, arrayUnion, arrayRemove, getDoc, deleteDoc } from "https://www.gstatic.com/firebasejs/12.10.0/firebase-firestore.js";
 
-        // 提取 YouTube ID 的核心正则
+        // 你的配置 (保持不变)
+        const firebaseConfig = {
+            apiKey: "AIzaSyBhc2JVAoxfk3wEsLee-Gr4I1StgqsPkBU",
+            authDomain: "zijunblog.firebaseapp.com",
+            projectId: "zijunblog",
+            storageBucket: "zijunblog.firebasestorage.app",
+            messagingSenderId: "689359220073",
+            appId: "1:689359220073:web:be9d4a467f438b6e8de1f8",
+            measurementId: "G-M8540FQZQD"
+        };
+
+        const app = initializeApp(firebaseConfig);
+        const db = getFirestore(app);
+        const albumsCol = collection(db, "albums"); // 修改为监听 albums 集合
+
+        // 全局状态
+        let currentAlbumId = null;
+
+        // ================= 逻辑一：主页：实时监听并渲染合集 =================
+        const q = query(albumsCol, orderBy("timestamp", "desc"));
+        onSnapshot(q, (snapshot) => {
+            if (!document.getElementById('home-page').classList.contains('active-page')) return; // 如果不在主页，不渲染
+
+            const list = document.getElementById('album-list');
+            list.innerHTML = "";
+            snapshot.forEach((docSnap) => {
+                const album = docSnap.data();
+                const docId = docSnap.id;
+                const songs = album.songs || [];
+                
+                // 封面逻辑：取前四首歌做宫格，如果没有歌曲用 LOGO
+                let coverHtml = `<img src="zijunlogo.png" alt="logo" class="single-cover">`;
+                if (songs.length > 0) {
+                    coverHtml = songs.slice(0, 4).map(id => `<img src="https://img.youtube.com/vi/${id}/mqdefault.jpg">`).join('');
+                }
+
+                list.innerHTML += `
+                    <div class="album-card" onclick="window.showDetailPage('${docId}', '${album.title}')">
+                        <div class="cover-grid ${songs.length < 4 ? 'single-cover' : ''}">
+                            ${songs.length === 1 ? `<img src="https://img.youtube.com/vi/${songs[0]}/mqdefault.jpg" class="single-cover">` : coverHtml}
+                        </div>
+                        <div class="info">
+                            <div class="title">${album.title}</div>
+                            <div class="count">${songs.length} 首歌曲</div>
+                        </div>
+                        <button onclick="window.deleteAlbum(event, '${docId}')" style="position:absolute; bottom:15px; right:15px; background:none; border:none; color:#555; cursor:pointer; font-size:12px;">删除</button>
+                    </div>
+                `;
+            });
+        });
+
+        // ================= 逻辑二：创建合集 =================
+        window.createAlbum = async () => {
+            const title = document.getElementById('new-album-title').value;
+            if (!title) return alert("请输入合集名称");
+            try {
+                await addDoc(albumsCol, {
+                    title: title,
+                    songs: [], // 初始歌曲为空数组
+                    timestamp: Date.now()
+                });
+                document.getElementById('new-album-title').value = "";
+                window.toggleModal('album-modal', false);
+            } catch (e) { alert("创建失败: " + e); }
+        };
+
+        // ================= 逻辑三：详情页：显示合集歌曲 =================
+        window.showDetailPage = async (albumId, albumTitle) => {
+            currentAlbumId = albumId;
+            // 切换页面状态
+            document.getElementById('home-page').classList.remove('active-page');
+            document.getElementById('detail-page').classList.add('active-page');
+            document.getElementById('btn-back').style.display = "inline";
+            document.getElementById('current-album-title').innerText = albumTitle;
+            document.getElementById('modal-album-name').innerText = albumTitle;
+            
+            // 实时监听这一个合集文档的变化
+            onSnapshot(doc(db, "albums", albumId), (docSnap) => {
+                if (!currentAlbumId || currentAlbumId !== albumId) return; // 防抖
+
+                const songList = document.getElementById('song-list');
+                songList.innerHTML = "";
+                const songs = docSnap.data().songs || [];
+
+                songs.forEach((videoId) => {
+                    songList.innerHTML += `
+                        <div class="song-card" onclick="window.playSong('${videoId}')">
+                            <img src="https://img.youtube.com/vi/${videoId}/mqdefault.jpg">
+                            <button onclick="window.removeSongFromAlbum(event, '${videoId}')" style="position:absolute; top:5px; right:5px; background:rgba(0,0,0,0.5); color:white; border:none; border-radius:4px;">-</button>
+                        </div>
+                    `;
+                });
+            });
+        };
+
+        // ================= 逻辑四：添加歌曲到合集 =================
+        window.addSongToCurrentAlbum = async () => {
+            const url = document.getElementById('youtube-url').value;
+            const videoId = extractVideoID(url);
+            if (videoId && currentAlbumId) {
+                try {
+                    const albumRef = doc(db, "albums", currentAlbumId);
+                    // 使用 arrayUnion 确保原子性添加
+                    await updateDoc(albumRef, {
+                        songs: arrayUnion(videoId)
+                    });
+                    document.getElementById('youtube-url').value = "";
+                    window.toggleModal('song-modal', false);
+                } catch (e) { alert("添加失败: " + e); }
+            } else { alert("链接无效或未选中合集"); }
+        };
+
+        // ================= 逻辑五：从合集移除歌曲 & 删除合集 =================
+        window.removeSongFromAlbum = async (event, videoId) => {
+            event.stopPropagation();
+            if(confirm("确定从合集中移除这首歌吗？")) {
+                const albumRef = doc(db, "albums", currentAlbumId);
+                await updateDoc(albumRef, {
+                    songs: arrayRemove(videoId)
+                });
+            }
+        };
+
+        window.deleteAlbum = async (event, docId) => {
+            event.stopPropagation();
+            if(confirm("确定删除整个合集吗？内部歌曲链接也将丢失！")) {
+                await deleteDoc(doc(db, "albums", docId));
+            }
+        };
+
+        // ================= 通用和辅助函数 =================
+        window.showHomePage = (event) => {
+            if(event) event.stopPropagation();
+            currentAlbumId = null; // 清空当前合集状态
+            document.getElementById('detail-page').classList.remove('active-page');
+            document.getElementById('home-page').classList.add('active-page');
+            document.getElementById('btn-back').style.display = "none";
+        };
+
+        window.toggleModal = (modalId, show) => document.getElementById(modalId).style.display = show ? 'flex' : 'none';
+
+        window.playSong = (id) => {
+            const container = document.getElementById('player-container');
+            container.style.display = 'block';
+            container.innerHTML = `<iframe width="100%" height="100%" src="https://www.youtube.com/embed/${id}?autoplay=1&modestbranding=1" frameborder="0" allow="autoplay; encrypted-media" allowfullscreen></iframe>`;
+            container.scrollIntoView({ behavior: 'smooth' });
+        };
+
         function extractVideoID(url) {
             const regExp = /^.*(youtu.be\/|v\/|u\/\w\/|embed\/|watch\?v=|\&v=)([^#\&\?]*).*/;
             const match = url.match(regExp);
             return (match && match[2].length === 11) ? match[2] : null;
-        }
-
-        // 保存歌曲到 LocalStorage
-        function saveSong() {
-            const url = document.getElementById('youtube-url').value;
-            const id = extractVideoID(url);
-
-            if (id) {
-                let songs = JSON.parse(localStorage.getItem('my_songs') || '[]');
-                // 检查是否已存在
-                if (!songs.includes(id)) {
-                    songs.push(id);
-                    localStorage.setItem('my_songs', JSON.stringify(songs));
-                }
-                
-                document.getElementById('youtube-url').value = '';
-                toggleModal(false);
-                displaySongs(); // 刷新列表
-            } else {
-                alert('请输入有效的 YouTube 链接！');
-            }
-        }
-
-        // 在主页渲染歌曲卡片
-        function displaySongs() {
-            const list = document.getElementById('music-list');
-            const songs = JSON.parse(localStorage.getItem('my_songs') || '[]');
-            
-            list.innerHTML = songs.map(id => `
-                <div class="music-card" onclick="playSong('${id}')">
-                    <img src="https://img.youtube.com/vi/${id}/mqdefault.jpg" alt="封面">
-                    <div class="info">点击播放歌曲</div>
-                    <button onclick="deleteSong(event, '${id}')" style="position:absolute; top:5px; right:5px; background:rgba(0,0,0,0.5); font-size:10px; padding:2px 5px;">删除</button>
-                </div>
-            `).join('');
-        }
-
-        // 播放歌曲
-        function playSong(id) {
-            const container = document.getElementById('player-container');
-            container.style.display = 'block';
-            container.innerHTML = `
-                <iframe width="100%" height="100%" 
-                    src="https://www.youtube.com/embed/${id}?autoplay=1" 
-                    frameborder="0" 
-                    allow="autoplay; encrypted-media" 
-                    allowfullscreen>
-                </iframe>
-            `;
-            // 自动滚动到播放器
-            container.scrollIntoView({ behavior: 'smooth' });
-        }
-
-        // 删除歌曲
-        function deleteSong(event, id) {
-            event.stopPropagation(); // 防止触发播放
-            let songs = JSON.parse(localStorage.getItem('my_songs') || '[]');
-            songs = songs.filter(s => s !== id);
-            localStorage.setItem('my_songs', JSON.stringify(songs));
-            displaySongs();
         }
     </script>
 </body>
