@@ -122,21 +122,27 @@
         }
 
         /* ------------------------------------------------ */
-        /* --- 手机端专项优化 (Media Queries) --- */
+        /* --- 手机端专项优化 (针对播放列表和黑格修复) --- */
         /* ------------------------------------------------ */
         @media (max-width: 800px) {
-            #player-content { flex-direction: column; height: 95%; width: 100%; border-left:none; border-right:none; }
-            .playlist-side { flex: 1; height: auto; border-left: none; border-top: 1px solid #333; }
+            #player-content { flex-direction: column; height: 100%; width: 100%; border: none; }
+            
+            /* 关键修复：去除黑格。让视频容器不强制填满 flex 空间，而是由列表自适应填满 */
+            .video-main { flex: none; width: 100%; } 
+            
+            /* 让列表部分占据剩余所有垂直空间，从而顶掉原本的黑格 */
+            .playlist-side { flex: 1; border-left: none; border-top: 1px solid #333; height: auto; }
+            
             header { padding: 10px 15px; }
             .logo-area { gap: 8px; }
             .logo-area img { width: 32px; height: 32px; }
             .logo-area div div:first-child { font-size: 13px !important; }
-            #status-tag { display: none; } /* 手机端隐藏状态标签以节省空间 */
+            #status-tag { display: none; }
             .btn-cyber { padding: 6px 12px; font-size: 10px; }
             
             .container { margin: 15px auto; height: calc(100vh - 80px); }
             
-            /* 网格在手机端改为双列 */
+            /* 手机端列表布局优化：2列 */
             .grid-list { grid-template-columns: repeat(2, 1fr) !important; gap: 12px; }
             .song-title { font-size: 12px; }
             .card-info { padding: 8px; }
@@ -144,22 +150,15 @@
             .modal-content { width: 85%; padding: 20px; }
             .delete-btn { padding: 1px 4px; font-size: 9px; }
 
-            /* 调整播放器页脚在手机端的排版 */
-            .player-footer { flex-direction: column; gap: 8px; align-items: flex-start; }
-            .player-footer span:last-child { align-self: flex-end; }
+            .player-footer { flex-direction: column; gap: 8px; align-items: center; text-align: center; }
         }
 
-        /* 针对非常窄的屏幕进一步优化 */
-        @media (max-width: 380px) {
-            .grid-list { grid-template-columns: 1fr !important; }
-        }
-
-        /* 增加触摸反馈效果 */
+        /* 增加交互感 */
         .card:active, .btn-cyber:active { opacity: 0.7; transform: scale(0.98); }
 
         .modal { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.85); justify-content: center; align-items: center; z-index: 2000; }
         .modal-content { background: var(--deep-blue); border: 2px solid var(--neon-blue); padding: 30px; width: 340px; }
-        input { width: 100%; padding: 12px; margin: 10px 0; background: rgba(0, 242, 255, 0.1); border: 1px solid var(--neon-blue); color: white; outline: none; box-sizing: border-box; font-size: 16px; /* 16px 防止 iOS 自动缩放 */ }
+        input { width: 100%; padding: 12px; margin: 10px 0; background: rgba(0, 242, 255, 0.1); border: 1px solid var(--neon-blue); color: white; outline: none; box-sizing: border-box; font-size: 16px; }
 
         .page { display: none; }
         .active-page { display: block; animation: fadeIn 0.5s ease; }
@@ -256,11 +255,9 @@
         let currentAlbumId = null;
         let currentAlbumSongs = [];
 
-        // 强行触发背景视频播放 (解决Chrome静音自动播放被拦截的问题)
         const bgVideo = document.getElementById('bgVideo');
         window.addEventListener('mousedown', () => { if(bgVideo.paused) bgVideo.play(); }, { once: true });
 
-        // 数据同步
         onSnapshot(query(albumsCol, orderBy("timestamp", "desc")), (snapshot) => {
             const grid = document.getElementById('album-grid');
             grid.innerHTML = "";
