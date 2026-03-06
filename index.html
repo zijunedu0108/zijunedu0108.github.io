@@ -10,28 +10,29 @@
             --neon-blue: #00f2ff;
             --deep-blue: #020b16;
             --cyber-black: #00050a;
-            --panel-bg: rgba(5, 15, 25, 0.8);
+            --panel-bg: rgba(5, 15, 25, 0.85);
             --border-glow: rgba(0, 242, 255, 0.3);
         }
 
-        /* 核心修复：确保背景画布可见 */
         body, html {
             margin: 0; padding: 0;
             width: 100%; height: 100%;
-            background-color: transparent; /* 必须透明，否则挡住画布 */
+            background-color: #000; /* 兜底背景 */
             color: #e0faff; font-family: 'Segoe UI', sans-serif;
+            overflow-x: hidden;
         }
 
+        /* 动态背景画布 */
         #waveCanvas {
             position: fixed; top: 0; left: 0;
             width: 100vw; height: 100vh;
-            z-index: -10; /* 放在最底层 */
-            background: linear-gradient(to bottom, #020b16, #000);
+            z-index: 0; /* 置于底层 */
+            pointer-events: none;
         }
 
         header {
             display: flex; justify-content: space-between; align-items: center;
-            padding: 15px 30px; background: rgba(0, 0, 0, 0.7);
+            padding: 15px 30px; background: rgba(0, 0, 0, 0.8);
             backdrop-filter: blur(10px); border-bottom: 1px solid var(--neon-blue);
             position: sticky; top: 0; z-index: 100;
         }
@@ -47,10 +48,9 @@
         }
         .btn-cyber:hover { background: var(--neon-blue); color: var(--deep-blue); box-shadow: 0 0 20px var(--neon-blue); }
 
-        .container { max-width: 1100px; margin: 30px auto; padding: 0 20px; position: relative; z-index: 1; }
+        .container { max-width: 1100px; margin: 30px auto; padding: 0 20px; position: relative; z-index: 10; }
         .grid-list { display: grid; grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); gap: 25px; }
 
-        /* 卡片样式优化：显示名字 */
         .card {
             background: var(--panel-bg); border: 1px solid var(--border-glow);
             border-radius: 4px; overflow: hidden; cursor: pointer; transition: 0.3s; position: relative;
@@ -60,9 +60,8 @@
         .cover-box img { width: 100%; height: 100%; object-fit: cover; opacity: 0.8; }
         .card-info { padding: 12px; border-top: 1px solid var(--border-glow); }
         .song-title { color: var(--neon-blue); font-size: 14px; font-weight: bold; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-        .album-info { font-size: 10px; color: #666; margin-top: 4px; }
+        .album-info { font-size: 10px; color: #888; margin-top: 4px; }
 
-        /* 悬浮播放器 */
         #player-wrapper {
             position: fixed; bottom: 20px; right: 20px;
             width: 320px; height: 180px; z-index: 1000;
@@ -71,7 +70,6 @@
         }
         .player-header { background: var(--neon-blue); color: var(--deep-blue); font-size: 10px; padding: 4px 10px; display: flex; justify-content: space-between; }
 
-        /* 弹窗 */
         .modal { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.85); justify-content: center; align-items: center; z-index: 2000; backdrop-filter: blur(8px); }
         .modal-content { background: var(--deep-blue); border: 2px solid var(--neon-blue); padding: 30px; width: 340px; clip-path: polygon(0 0, 90% 0, 100% 10%, 100% 100%, 10% 100%, 0 90%); }
         input { width: 100%; padding: 10px; margin: 10px 0; background: rgba(0, 242, 255, 0.1); border: 1px solid var(--neon-blue); color: white; outline: none; box-sizing: border-box; }
@@ -79,7 +77,9 @@
         .page { display: none; }
         .active-page { display: block; animation: fadeIn 0.5s ease; }
         @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
-        .delete-btn { position: absolute; top: 5px; right: 5px; color: #ff4d4d; font-size: 10px; background: rgba(0,0,0,0.6); border: none; cursor: pointer; padding: 2px 5px; z-index: 2; }
+        
+        .delete-btn { position: absolute; top: 5px; right: 5px; color: #ff4d4d; font-size: 10px; background: rgba(0,0,0,0.7); border: 1px solid #ff4d4d; cursor: pointer; padding: 2px 6px; z-index: 5; border-radius: 2px; }
+        .delete-btn:hover { background: #ff4d4d; color: white; }
     </style>
 </head>
 <body>
@@ -91,7 +91,7 @@
             <img src="zijunlogo.png" alt="Logo">
             <div>
                 <div style="font-size: 16px; letter-spacing: 2px; font-weight: bold;">ZIJUN TERMINAL</div>
-                <div style="font-size: 8px; color: var(--neon-blue);">// WAVE_SYSTEM_ACTIVE</div>
+                <div style="font-size: 8px; color: var(--neon-blue);">// STATUS: WAVE_SYNC_ON</div>
             </div>
         </div>
         <button class="btn-cyber" id="main-btn" onclick="triggerAction()">+ NEW COLLECTION</button>
@@ -99,7 +99,7 @@
 
     <div class="container">
         <div id="home-page" class="page active-page">
-            <h3 style="color: var(--neon-blue); margin-bottom: 25px;">> DATABASE / ALBUMS</h3>
+            <h3 style="color: var(--neon-blue); margin-bottom: 25px;">> CORE_DATABASE / ALBUMS</h3>
             <div id="album-grid" class="grid-list"></div>
         </div>
 
@@ -132,7 +132,7 @@
     <div id="song-modal" class="modal">
         <div class="modal-content">
             <h3 style="color:var(--neon-blue);">INJECT_SONG_DATA</h3>
-            <input type="text" id="song-name-input" placeholder="SONG NAME (e.g. My Favorite Song)">
+            <input type="text" id="song-name-input" placeholder="SONG NAME">
             <input type="text" id="song-url-input" placeholder="YOUTUBE URL...">
             <button class="btn-cyber" style="width: 100%;" onclick="addSong()">EXECUTE</button>
             <button class="btn-cyber" style="width: 100%; border:none; color:#666; margin-top:10px;" onclick="closeModals()">ABORT</button>
@@ -141,7 +141,7 @@
 
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/12.10.0/firebase-app.js";
-        import { getFirestore, collection, addDoc, onSnapshot, query, orderBy, doc, updateDoc, arrayUnion, arrayRemove, deleteDoc } from "https://www.gstatic.com/firebasejs/12.10.0/firebase-firestore.js";
+        import { getFirestore, collection, addDoc, onSnapshot, query, orderBy, doc, updateDoc, getDoc, arrayUnion, arrayRemove, deleteDoc } from "https://www.gstatic.com/firebasejs/12.10.0/firebase-firestore.js";
 
         const firebaseConfig = {
             apiKey: "AIzaSyBhc2JVAoxfk3wEsLee-Gr4I1StgqsPkBU",
@@ -158,7 +158,7 @@
         const albumsCol = collection(db, "albums");
         let currentAlbumId = null;
 
-        // --- 1. 动态背景：海浪逻辑 ---
+        // --- 1. 动态背景 (修正层级和颜色) ---
         const initWaves = () => {
             const canvas = document.getElementById('waveCanvas');
             const ctx = canvas.getContext('2d');
@@ -168,16 +168,23 @@
 
             const render = () => {
                 ctx.clearRect(0, 0, w, h);
-                step += 0.015;
+                // 绘制深蓝背景填充
+                const bgGrad = ctx.createLinearGradient(0, 0, 0, h);
+                bgGrad.addColorStop(0, "#020b16");
+                bgGrad.addColorStop(1, "#000000");
+                ctx.fillStyle = bgGrad;
+                ctx.fillRect(0,0,w,h);
+
+                step += 0.01;
                 for (let j = 0; j < 3; j++) {
                     ctx.beginPath();
                     ctx.strokeStyle = `rgba(0, 242, 255, ${0.1 + j * 0.05})`;
                     for (let i = 0; i <= w; i += 40) {
-                        const y = Math.sin(i * 0.005 + step + j) * 45 + (h * 0.85);
+                        const y = Math.sin(i * 0.005 + step + j) * 40 + (h * 0.85);
                         if (i === 0) ctx.moveTo(i, y); else ctx.lineTo(i, y);
                     }
                     ctx.lineTo(w, h); ctx.lineTo(0, h);
-                    ctx.fillStyle = `rgba(2, 11, 22, ${0.4 - j * 0.1})`;
+                    ctx.fillStyle = `rgba(0, 20, 40, ${0.3 - j * 0.1})`;
                     ctx.fill(); ctx.stroke();
                 }
                 requestAnimationFrame(render);
@@ -186,7 +193,7 @@
         };
         initWaves();
 
-        // --- 2. 数据处理 ---
+        // --- 2. 核心逻辑 ---
         onSnapshot(query(albumsCol, orderBy("timestamp", "desc")), (snapshot) => {
             const grid = document.getElementById('album-grid');
             grid.innerHTML = "";
@@ -198,9 +205,9 @@
                         <div class="cover-box"><img src="${cover}"></div>
                         <div class="card-info">
                             <div class="song-title">${album.title}</div>
-                            <div class="album-info">${album.songs?.length || 0} ITEMS</div>
+                            <div class="album-info">${album.songs?.length || 0} TRACKS STORED</div>
                         </div>
-                        <button class="delete-btn" onclick="window.delAlbum(event, '${d.id}')">X</button>
+                        <button class="delete-btn" onclick="window.delAlbum(event, '${d.id}')">ERASE</button>
                     </div>`;
             });
         });
@@ -209,11 +216,11 @@
             currentAlbumId = id;
             document.getElementById('home-page').classList.remove('active-page');
             document.getElementById('detail-page').classList.add('active-page');
-            document.getElementById('album-title-display').innerText = title;
+            document.getElementById('album-title-display').innerText = `ALBUM // ${title}`;
             document.getElementById('main-btn').innerText = "+ ADD SONG";
             
             onSnapshot(doc(db, "albums", id), (d) => {
-                if(!currentAlbumId) return;
+                if(!currentAlbumId || d.id !== currentAlbumId) return;
                 const songGrid = document.getElementById('song-grid');
                 songGrid.innerHTML = "";
                 const songs = d.data()?.songs || [];
@@ -224,7 +231,7 @@
                             <div class="card-info">
                                 <div class="song-title">${song.name}</div>
                             </div>
-                            <button class="delete-btn" onclick="window.removeSong(event, '${song.id}')">-</button>
+                            <button class="delete-btn" onclick="window.removeSong(event, '${song.id}')">REMOVE</button>
                         </div>`;
                 });
             });
@@ -252,31 +259,52 @@
             const url = document.getElementById('song-url-input').value;
             const match = url.match(/(?:v=|be\/|embed\/)(.{11})/);
             if(name && match && currentAlbumId) {
-                // 现在存储的是一个对象 {id, name}
                 await updateDoc(doc(db, "albums", currentAlbumId), { 
                     songs: arrayUnion({ id: match[1], name: name }) 
                 });
                 closeModals();
-            } else { alert("Please enter both Name and Valid URL"); }
+            } else { alert("Link Error or Missing Name"); }
         };
 
-        window.removeSong = async (e, sid) => {
+        // --- 修复：单曲删除逻辑 ---
+        window.removeSong = async (e, videoId) => {
             e.stopPropagation();
-            // 注意：因为现在存的是对象，移除时需要匹配整个对象。这里为了简化逻辑，建议实际开发中给每个歌曲加唯一ID。
-            // 简单处理：先获取文档再过滤。
-            const d = await (await doc(db, "albums", currentAlbumId)).get; // 此处逻辑略
-            alert("Delete function needs full object match in Firestore arrayRemove. For now, try deleting the album.");
+            if(!confirm("REMOVE THIS TRACK?")) return;
+
+            try {
+                const albumRef = doc(db, "albums", currentAlbumId);
+                const docSnap = await getDoc(albumRef);
+                
+                if (docSnap.exists()) {
+                    const songs = docSnap.data().songs;
+                    // 找到那个 id 匹配的对象
+                    const songToDelete = songs.find(s => s.id === videoId);
+                    
+                    if (songToDelete) {
+                        await updateDoc(albumRef, {
+                            songs: arrayRemove(songToDelete)
+                        });
+                    }
+                }
+            } catch (err) {
+                console.error("Delete failed: ", err);
+                alert("SYSTEM ERROR: UNABLE TO REMOVE TRACK");
+            }
         };
 
         window.delAlbum = async (e, id) => {
             e.stopPropagation();
-            if(confirm("DELETE ALBUM?")) await deleteDoc(doc(db, "albums", id));
+            if(confirm("PERMANENTLY ERASE THIS ALBUM?")) await deleteDoc(doc(db, "albums", id));
         };
 
         window.play = (id, name) => {
             document.getElementById('player-wrapper').style.display = 'block';
-            document.getElementById('now-playing-title').innerText = `PLAYING: ${name}`;
-            document.getElementById('iframe-target').innerHTML = `<iframe width="100%" height="100%" src="https://www.youtube.com/embed/${id}?autoplay=1" frameborder="0" allow="autoplay; encrypted-media"></iframe>`;
+            document.getElementById('now-playing-title').innerText = `STREAMING: ${name}`;
+            const origin = window.location.origin;
+            document.getElementById('iframe-target').innerHTML = `
+                <iframe width="100%" height="100%" 
+                src="https://www.youtube.com/embed/${id}?autoplay=1&origin=${origin}" 
+                frameborder="0" allow="autoplay; encrypted-media" allowfullscreen></iframe>`;
         };
 
         window.closeModals = () => {
