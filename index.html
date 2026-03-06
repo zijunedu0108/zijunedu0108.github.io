@@ -14,20 +14,18 @@
             --border-glow: rgba(0, 242, 255, 0.3);
         }
 
-        /* --- 参考旧项目修复背景视频布局 --- */
+        /* 1. 背景视频：修复 GitHub 路径及层级 */
         #video-background {
             position: fixed;
-            top: 50%;
-            left: 50%;
-            min-width: 100%;
-            min-height: 100%;
-            width: auto;
-            height: auto;
-            z-index: -100; /* 置于底层 */
+            top: 50%; left: 50%;
+            min-width: 100%; min-height: 100%;
+            width: auto; height: auto;
+            z-index: -100; 
             transform: translate(-50%, -50%);
             object-fit: cover;
-            filter: brightness(0.4); /* 调暗背景，让文字更亮 */
+            filter: brightness(0.4);
             pointer-events: none;
+            background: #000; /* 视频没加载出来时显示黑色 */
         }
 
         body, html {
@@ -38,23 +36,24 @@
             overflow-x: hidden;
         }
 
-        /* 覆盖一层淡淡的噪点或暗色，增加科幻感 */
+        /* 2. 遮罩层：确保层级在视频之上，但在内容之下 */
         body::before {
             content: "";
             position: fixed; top: 0; left: 0; width: 100%; height: 100%;
-            background: rgba(0, 5, 10, 0.3);
+            background: rgba(0, 5, 10, 0.4);
             z-index: -50; pointer-events: none;
         }
 
         header {
             display: flex; justify-content: space-between; align-items: center;
-            padding: 15px 30px; background: rgba(0, 0, 0, 0.8);
-            backdrop-filter: blur(10px); border-bottom: 1px solid var(--neon-blue);
+            padding: 15px 30px; background: rgba(0, 0, 0, 0.85);
+            backdrop-filter: blur(10px); -webkit-backdrop-filter: blur(10px);
+            border-bottom: 1px solid var(--neon-blue);
             position: sticky; top: 0; z-index: 100;
         }
 
         .logo-area { display: flex; align-items: center; gap: 12px; cursor: pointer; }
-        .logo-area img { width: 40px; height: 40px; border-radius: 50%; border: 2px solid var(--neon-blue); box-shadow: 0 0 10px var(--neon-blue); }
+        .logo-area img { width: 40px; height: 40px; border-radius: 50%; border: 2px solid var(--neon-blue); }
 
         .btn-cyber {
             background: transparent; color: var(--neon-blue); border: 1px solid var(--neon-blue);
@@ -62,7 +61,7 @@
             clip-path: polygon(10% 0, 100% 0, 100% 70%, 90% 100%, 0 100%, 0% 30%);
             transition: 0.3s; font-size: 12px;
         }
-        .btn-cyber:hover { background: var(--neon-blue); color: var(--deep-blue); box-shadow: 0 0 20px var(--neon-blue); }
+        .btn-cyber:hover { background: var(--neon-blue); color: var(--deep-blue); box-shadow: 0 0 15px var(--neon-blue); }
 
         .container { max-width: 1100px; margin: 30px auto; padding: 0 20px; position: relative; z-index: 10; }
         .grid-list { display: grid; grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); gap: 25px; }
@@ -71,47 +70,47 @@
             background: var(--panel-bg); border: 1px solid var(--border-glow);
             border-radius: 4px; overflow: hidden; cursor: pointer; transition: 0.3s; position: relative;
         }
-        .card:hover { border-color: var(--neon-blue); transform: translateY(-5px); box-shadow: 0 0 15px rgba(0,242,255,0.2); }
+        .card:hover { border-color: var(--neon-blue); transform: translateY(-5px); }
         .cover-box { width: 100%; aspect-ratio: 16/9; background: #000; overflow: hidden; }
         .cover-box img { width: 100%; height: 100%; object-fit: cover; opacity: 0.8; }
         .card-info { padding: 12px; border-top: 1px solid var(--border-glow); }
         .song-title { color: var(--neon-blue); font-size: 14px; font-weight: bold; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 
-        /* 播放器弹窗 */
+        /* 3. 播放器弹窗：确保 z-index 最高 */
         #player-overlay {
             display: none;
-            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
-            background: rgba(0, 0, 0, 0.9);
-            z-index: 3000; backdrop-filter: blur(10px);
+            position: fixed; inset: 0;
+            background: rgba(0, 0, 0, 0.95);
+            z-index: 5000; /* 调到最高 */
+            backdrop-filter: blur(15px); -webkit-backdrop-filter: blur(15px);
             justify-content: center; align-items: center;
         }
         #player-content {
-            width: 85%; max-width: 1000px;
-            background: #000; border: 2px solid var(--neon-blue);
-            box-shadow: 0 0 50px rgba(0, 242, 255, 0.3);
-            position: relative;
+            width: 90%; max-width: 900px;
+            background: #000; border: 1px solid var(--neon-blue);
+            box-shadow: 0 0 40px rgba(0, 242, 255, 0.2);
         }
         .video-container { width: 100%; aspect-ratio: 16/9; background: #000; }
         .player-footer { 
             background: var(--neon-blue); color: var(--deep-blue); 
-            padding: 8px 15px; display: flex; justify-content: space-between; align-items: center;
-            font-weight: bold; font-size: 14px;
+            padding: 10px 15px; display: flex; justify-content: space-between; align-items: center;
+            font-weight: bold; font-size: 13px;
         }
 
-        .modal { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.85); justify-content: center; align-items: center; z-index: 2000; backdrop-filter: blur(8px); }
-        .modal-content { background: var(--deep-blue); border: 2px solid var(--neon-blue); padding: 30px; width: 340px; clip-path: polygon(0 0, 90% 0, 100% 10%, 100% 100%, 10% 100%, 0 90%); }
-        input { width: 100%; padding: 10px; margin: 10px 0; background: rgba(0, 242, 255, 0.1); border: 1px solid var(--neon-blue); color: white; outline: none; box-sizing: border-box; }
+        .modal { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.8); justify-content: center; align-items: center; z-index: 2000; }
+        .modal-content { background: var(--deep-blue); border: 1px solid var(--neon-blue); padding: 25px; width: 320px; }
+        input { width: 100%; padding: 10px; margin: 10px 0; background: rgba(255,255,255,0.05); border: 1px solid #333; color: white; outline: none; box-sizing: border-box; }
+        input:focus { border-color: var(--neon-blue); }
 
         .page { display: none; }
-        .active-page { display: block; animation: fadeIn 0.5s ease; }
-        @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
-        
-        .delete-btn { position: absolute; top: 5px; right: 5px; color: #ff4d4d; font-size: 10px; background: rgba(0,0,0,0.7); border: 1px solid #ff4d4d; cursor: pointer; padding: 2px 6px; z-index: 5; border-radius: 2px; }
+        .active-page { display: block; }
+        .delete-btn { position: absolute; top: 5px; right: 5px; color: #ff4d4d; font-size: 10px; background: rgba(0,0,0,0.8); border: 1px solid #ff4d4d; cursor: pointer; padding: 2px 6px; z-index: 5; }
     </style>
 </head>
 <body>
 
-    <video autoplay muted loop playsinline id="video-background">
+    <video autoplay muted loop playsinline id="video-background" poster="zijunlogo.png">
+        <source src="https://zijunedu0108.github.io/zijunbg.mp4" type="video/mp4">
         <source src="zijunbg.mp4" type="video/mp4">
     </video>
 
@@ -119,8 +118,8 @@
         <div class="logo-area" onclick="showHome()">
             <img src="zijunlogo.png" alt="Logo">
             <div>
-                <div style="font-size: 16px; letter-spacing: 2px; font-weight: bold;">ZIJUN TERMINAL</div>
-                <div style="font-size: 8px; color: var(--neon-blue);">// STATUS: SYSTEM_READY</div>
+                <div style="font-size: 15px; letter-spacing: 1px; font-weight: bold;">ZIJUN TERMINAL</div>
+                <div id="status-light" style="font-size: 8px; color: var(--neon-blue);">● SYSTEM_ONLINE</div>
             </div>
         </div>
         <button class="btn-cyber" id="main-btn" onclick="triggerAction()">+ NEW COLLECTION</button>
@@ -128,14 +127,14 @@
 
     <div class="container">
         <div id="home-page" class="page active-page">
-            <h3 style="color: var(--neon-blue); margin-bottom: 25px;">> CORE_DATABASE / ALBUMS</h3>
+            <h3 style="color: var(--neon-blue); margin-bottom: 20px; font-size: 14px;">> ACCESSING_CORE_DATABASE...</h3>
             <div id="album-grid" class="grid-list"></div>
         </div>
 
         <div id="detail-page" class="page">
-            <div style="display: flex; align-items: center; margin-bottom: 25px;">
-                <button class="btn-cyber" onclick="showHome()" style="margin-right: 20px;">BACK</button>
-                <h3 id="album-title-display" style="color: var(--neon-blue); margin: 0;"></h3>
+            <div style="display: flex; align-items: center; margin-bottom: 20px;">
+                <button class="btn-cyber" onclick="showHome()" style="margin-right: 15px;">RETURN</button>
+                <h3 id="album-title-display" style="color: var(--neon-blue); margin: 0; font-size: 14px;"></h3>
             </div>
             <div id="song-grid" class="grid-list"></div>
         </div>
@@ -145,28 +144,28 @@
         <div id="player-content" onclick="event.stopPropagation()">
             <div id="iframe-target" class="video-container"></div>
             <div class="player-footer">
-                <span id="now-playing-title">INITIALIZING...</span>
-                <span style="cursor:pointer; background: rgba(0,0,0,0.2); padding: 2px 10px;" onclick="window.closePlayer()">[ ESC / CLOSE ]</span>
+                <span id="now-playing-title">LOADING STREAM...</span>
+                <span style="cursor:pointer;" onclick="window.closePlayer()">[ CLOSE_X ]</span>
             </div>
         </div>
     </div>
 
     <div id="album-modal" class="modal">
         <div class="modal-content">
-            <h3 style="color:var(--neon-blue);">INITIALIZE_ALBUM</h3>
-            <input type="text" id="album-input" placeholder="ALBUM NAME...">
+            <h4 style="margin-top:0; color:var(--neon-blue);">NEW ALBUM</h4>
+            <input type="text" id="album-input" placeholder="Enter title...">
             <button class="btn-cyber" style="width: 100%;" onclick="createAlbum()">CONFIRM</button>
-            <button class="btn-cyber" style="width: 100%; border:none; color:#666; margin-top:10px;" onclick="closeModals()">ABORT</button>
+            <button class="btn-cyber" style="width: 100%; border:none; margin-top:5px; font-size:10px;" onclick="closeModals()">CANCEL</button>
         </div>
     </div>
 
     <div id="song-modal" class="modal">
         <div class="modal-content">
-            <h3 style="color:var(--neon-blue);">INJECT_SONG_DATA</h3>
-            <input type="text" id="song-name-input" placeholder="SONG NAME">
-            <input type="text" id="song-url-input" placeholder="YOUTUBE URL...">
-            <button class="btn-cyber" style="width: 100%;" onclick="addSong()">EXECUTE</button>
-            <button class="btn-cyber" style="width: 100%; border:none; color:#666; margin-top:10px;" onclick="closeModals()">ABORT</button>
+            <h4 style="margin-top:0; color:var(--neon-blue);">ADD TRACK</h4>
+            <input type="text" id="song-name-input" placeholder="Track Name">
+            <input type="text" id="song-url-input" placeholder="YouTube Link">
+            <button class="btn-cyber" style="width: 100%;" onclick="addSong()">INJECT</button>
+            <button class="btn-cyber" style="width: 100%; border:none; margin-top:5px; font-size:10px;" onclick="closeModals()">CANCEL</button>
         </div>
     </div>
 
@@ -174,7 +173,6 @@
         import { initializeApp } from "https://www.gstatic.com/firebasejs/12.10.0/firebase-app.js";
         import { getFirestore, collection, addDoc, onSnapshot, query, orderBy, doc, updateDoc, getDoc, arrayUnion, arrayRemove, deleteDoc } from "https://www.gstatic.com/firebasejs/12.10.0/firebase-firestore.js";
 
-        // 配置保持不变
         const firebaseConfig = {
             apiKey: "AIzaSyBhc2JVAoxfk3wEsLee-Gr4I1StgqsPkBU",
             authDomain: "zijunblog.firebaseapp.com",
@@ -189,49 +187,46 @@
         const albumsCol = collection(db, "albums");
         let currentAlbumId = null;
 
-        // 核心修复：手动触发播放（处理浏览器静音自动播放限制）
-        window.addEventListener('mousedown', () => {
-            const v = document.getElementById('video-background');
-            if (v.paused) v.play();
-        }, { once: true });
+        // 1. 视频加载监控与强制播放
+        const v = document.getElementById('video-background');
+        v.addEventListener('error', () => { document.getElementById('status-light').innerText = "● VIDEO_LOAD_ERROR"; document.getElementById('status-light').style.color = "red"; });
+        window.addEventListener('mousedown', () => { if (v.paused) v.play(); }, { once: true });
 
-        // 数据监听
-        onSnapshot(query(albumsCol, orderBy("timestamp", "desc")), (snapshot) => {
+        // 2. 核心逻辑
+        onSnapshot(query(albumsCol, orderBy("timestamp", "desc")), (snap) => {
             const grid = document.getElementById('album-grid');
             grid.innerHTML = "";
-            snapshot.forEach(d => {
+            snap.forEach(d => {
                 const album = d.data();
-                const cover = (album.songs && album.songs.length > 0) ? `https://img.youtube.com/vi/${album.songs[0].id}/mqdefault.jpg` : 'zijunlogo.png';
+                const cover = (album.songs?.length > 0) ? `https://img.youtube.com/vi/${album.songs[0].id}/mqdefault.jpg` : 'zijunlogo.png';
                 grid.innerHTML += `
                     <div class="card" onclick="window.viewAlbum('${d.id}', '${album.title}')">
                         <div class="cover-box"><img src="${cover}"></div>
                         <div class="card-info">
                             <div class="song-title">${album.title}</div>
-                            <div style="font-size:10px;color:#888;margin-top:4px;">${album.songs?.length || 0} TRACKS</div>
+                            <div style="font-size:10px;color:#666;">${album.songs?.length || 0} TRACKS</div>
                         </div>
-                        <button class="delete-btn" onclick="window.delAlbum(event, '${d.id}')">ERASE</button>
+                        <button class="delete-btn" onclick="window.delAlbum(event, '${d.id}')">×</button>
                     </div>`;
             });
         });
 
-        // 页面切换逻辑
         window.viewAlbum = (id, title) => {
             currentAlbumId = id;
             document.getElementById('home-page').classList.remove('active-page');
             document.getElementById('detail-page').classList.add('active-page');
-            document.getElementById('album-title-display').innerText = `ALBUM // ${title}`;
-            document.getElementById('main-btn').innerText = "+ ADD SONG";
+            document.getElementById('album-title-display').innerText = title;
+            document.getElementById('main-btn').innerText = "+ ADD TRACK";
             onSnapshot(doc(db, "albums", id), (d) => {
                 if(!currentAlbumId || d.id !== currentAlbumId) return;
                 const songGrid = document.getElementById('song-grid');
                 songGrid.innerHTML = "";
-                const songs = d.data()?.songs || [];
-                songs.forEach(song => {
+                (d.data()?.songs || []).forEach(song => {
                     songGrid.innerHTML += `
                         <div class="card" onclick="window.play('${song.id}', '${song.name}')">
                             <div class="cover-box"><img src="https://img.youtube.com/vi/${song.id}/mqdefault.jpg"></div>
                             <div class="card-info"><div class="song-title">${song.name}</div></div>
-                            <button class="delete-btn" onclick="window.removeSong(event, '${song.id}')">REMOVE</button>
+                            <button class="delete-btn" onclick="window.removeSong(event, '${song.id}')">×</button>
                         </div>`;
                 });
             });
@@ -244,17 +239,29 @@
             document.getElementById('main-btn').innerText = "+ NEW COLLECTION";
         };
 
+        window.play = (id, name) => {
+            const overlay = document.getElementById('player-overlay');
+            const target = document.getElementById('iframe-target');
+            document.getElementById('now-playing-title').innerText = `PLAYING: ${name}`;
+            overlay.style.display = 'flex';
+            // 修复 YouTube 播放器不见的问题：确保 iframe 正常生成
+            target.innerHTML = `<iframe width="100%" height="100%" src="https://www.youtube.com/embed/${id}?autoplay=1&rel=0&modestbranding=1" frameborder="0" allow="autoplay; encrypted-media" allowfullscreen></iframe>`;
+        };
+
+        window.closePlayer = () => {
+            document.getElementById('player-overlay').style.display = 'none';
+            document.getElementById('iframe-target').innerHTML = "";
+        };
+
+        // 其余 Firebase 函数 (createAlbum, addSong, delAlbum等) 保持不变...
         window.triggerAction = () => {
             if(currentAlbumId) document.getElementById('song-modal').style.display = 'flex';
             else document.getElementById('album-modal').style.display = 'flex';
         };
-
-        // Firebase 增删改查
         window.createAlbum = async () => {
             const val = document.getElementById('album-input').value;
             if(val) { await addDoc(albumsCol, { title: val, songs: [], timestamp: Date.now() }); closeModals(); }
         };
-
         window.addSong = async () => {
             const name = document.getElementById('song-name-input').value;
             const url = document.getElementById('song-url-input').value;
@@ -264,10 +271,9 @@
                 closeModals();
             }
         };
-
+        window.delAlbum = async (e, id) => { e.stopPropagation(); if(confirm("Delete album?")) await deleteDoc(doc(db, "albums", id)); };
         window.removeSong = async (e, videoId) => {
             e.stopPropagation();
-            if(!confirm("REMOVE TRACK?")) return;
             const albumRef = doc(db, "albums", currentAlbumId);
             const docSnap = await getDoc(albumRef);
             if (docSnap.exists()) {
@@ -275,33 +281,7 @@
                 if (songToDelete) await updateDoc(albumRef, { songs: arrayRemove(songToDelete) });
             }
         };
-
-        window.delAlbum = async (e, id) => {
-            e.stopPropagation();
-            if(confirm("DELETE ALBUM?")) await deleteDoc(doc(db, "albums", id));
-        };
-
-        // 播放与关闭逻辑
-        window.play = (id, name) => {
-            const overlay = document.getElementById('player-overlay');
-            const target = document.getElementById('iframe-target');
-            const title = document.getElementById('now-playing-title');
-            title.innerText = `STREAMING // ${name}`;
-            overlay.style.display = 'flex';
-            target.innerHTML = `<iframe width="100%" height="100%" src="https://www.youtube.com/embed/${id}?autoplay=1&rel=0" frameborder="0" allow="autoplay; encrypted-media" allowfullscreen></iframe>`;
-        };
-
-        window.closePlayer = () => {
-            document.getElementById('player-overlay').style.display = 'none';
-            document.getElementById('iframe-target').innerHTML = "";
-        };
-
-        window.closeModals = () => {
-            document.querySelectorAll('.modal').forEach(m => m.style.display = 'none');
-            document.querySelectorAll('input').forEach(i => i.value = "");
-        };
-
-        window.addEventListener('keydown', (e) => { if(e.key === "Escape") window.closePlayer(); });
+        window.closeModals = () => { document.querySelectorAll('.modal').forEach(m => m.style.display = 'none'); };
     </script>
 </body>
 </html>
