@@ -24,24 +24,24 @@
 
         /* --- 核心修复：视频背景层 --- */
         .video-bg {
-            position: fixed; top: 0; left: 0;
+            position: fixed;
+            top: 0; left: 0;
             width: 100%; height: 100%;
-            z-index: -100; /* 确保在最底层 */
+            z-index: -100; /* 必须是负值且最小 */
             overflow: hidden;
-            background: #000; /* 视频未加载时显示纯黑 */
+            background: #000; /* 视频未加载时的底色 */
         }
         .video-bg video {
             width: 100%; height: 100%;
             object-fit: cover;
-            filter: brightness(0.4) contrast(1.1);
-            pointer-events: none; /* 防止右键视频 */
+            filter: brightness(0.4) contrast(1.1); /* 压暗背景突出UI */
+            pointer-events: none;
         }
-        /* 增加一个半透明装饰层，增加科技感并压暗背景 */
+        /* 增加一层渐变阴影，防止视频边缘生硬 */
         .video-bg::after {
             content: ""; position: absolute; top: 0; left: 0;
             width: 100%; height: 100%;
-            background: radial-gradient(circle, transparent 20%, rgba(0,0,0,0.5) 100%);
-            pointer-events: none;
+            background: radial-gradient(circle, transparent 20%, rgba(0,0,0,0.4) 100%);
         }
 
         header {
@@ -67,6 +67,7 @@
             max-width: 1200px; margin: 30px auto; padding: 0 20px; 
             position: relative; z-index: 10; height: calc(100vh - 120px); overflow-y: auto;
         }
+        /* 滚动条美化 */
         .container::-webkit-scrollbar { width: 4px; }
         .container::-webkit-scrollbar-thumb { background: var(--neon-blue); }
 
@@ -82,7 +83,7 @@
         .card-info { padding: 12px; border-top: 1px solid var(--border-glow); }
         .song-title { color: var(--neon-blue); font-size: 14px; font-weight: bold; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 
-        /* --- YouTube 风格播放器层级修复 --- */
+        /* --- 播放器样式修复 --- */
         #player-overlay {
             display: none;
             position: fixed; top: 0; left: 0; width: 100%; height: 100%;
@@ -96,10 +97,8 @@
             display: flex; flex-direction: row;
             box-shadow: 0 0 50px rgba(0, 242, 255, 0.2);
         }
-
         .video-main { flex: 3; display: flex; flex-direction: column; background: #000; }
         .video-wrapper { width: 100%; aspect-ratio: 16/9; }
-        
         .playlist-side { 
             flex: 1; border-left: 1px solid #333; 
             display: flex; flex-direction: column; background: rgba(10,10,10,0.8);
@@ -121,6 +120,7 @@
             font-weight: bold; font-size: 12px;
         }
 
+        /* 移动端适配 */
         @media (max-width: 800px) {
             #player-content { flex-direction: column; height: 95%; }
             .playlist-side { flex: none; height: 250px; border-left: none; border-top: 1px solid #333; }
@@ -140,10 +140,9 @@
 <body>
 
     <div class="video-bg">
-        <video autoplay muted loop playsinline id="bgVideo" poster="zijunlogo.png">
-            <source src="./zijunbg.mp4" type="video/mp4">
+        <video autoplay muted loop playsinline id="bgVideo">
             <source src="zijunbg.mp4" type="video/mp4">
-        </video>
+            </video>
     </div>
 
     <header>
@@ -173,7 +172,7 @@
     </div>
 
     <div id="player-overlay">
-        <div id="player-content">
+        <div id="player-content" onclick="event.stopPropagation()">
             <div class="video-main">
                 <div id="iframe-target" class="video-wrapper"></div>
                 <div class="player-footer">
@@ -226,22 +225,11 @@
         let currentAlbumId = null;
         let currentAlbumSongs = [];
 
-        /* --- 视频背景强化逻辑 --- */
+        // 强行触发背景视频播放 (解决Chrome静音自动播放被拦截的问题)
         const bgVideo = document.getElementById('bgVideo');
-        const statusTag = document.getElementById('status-tag');
-        
-        // 监听视频加载错误
-        bgVideo.addEventListener('error', () => {
-            statusTag.innerText = "// STATUS: BG_VIDEO_LOAD_FAILED";
-            statusTag.style.color = "#ff4d4d";
-        });
+        window.addEventListener('mousedown', () => { if(bgVideo.paused) bgVideo.play(); }, { once: true });
 
-        // 强行触发播放（解决部分浏览器静音自动播放被拦截的问题）
-        window.addEventListener('click', () => {
-            if (bgVideo.paused) bgVideo.play();
-        }, { once: true });
-
-        // Firebase 监听与 UI 逻辑
+        // 数据同步
         onSnapshot(query(albumsCol, orderBy("timestamp", "desc")), (snapshot) => {
             const grid = document.getElementById('album-grid');
             grid.innerHTML = "";
@@ -291,7 +279,7 @@
             
             overlay.style.display = 'flex';
             title.innerText = `NOW STREAMING: ${songName}`;
-            target.innerHTML = `<iframe width="100%" height="100%" src="https://www.youtube.com/embed/${videoId}?autoplay=1&rel=0&modestbranding=1" frameborder="0" allow="autoplay; encrypted-media" allowfullscreen></iframe>`;
+            target.innerHTML = `<iframe width="100%" height="100%" src="https://www.youtube.com/embed/${videoId}?autoplay=1&rel=0" frameborder="0" allow="autoplay; encrypted-media" allowfullscreen></iframe>`;
             
             playlistBox.innerHTML = "";
             currentAlbumSongs.forEach(song => {
@@ -301,7 +289,7 @@
                         <img src="https://img.youtube.com/vi/${song.id}/mqdefault.jpg">
                         <div class="playlist-item-info">
                             <div style="color:${song.id === videoId ? 'var(--neon-blue)' : '#fff'}; font-weight:bold;">${song.name}</div>
-                            <div style="color:#666; font-size:10px; margin-top:4px;">ZIJUN_SYSTEM_DATA</div>
+                            <div style="color:#666; font-size:10px; margin-top:4px;">YOUTUBE_DATA</div>
                         </div>
                     </div>`;
             });
