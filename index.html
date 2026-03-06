@@ -3,471 +3,187 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>STPM 科目选择器与考试倒计时</title>
-    <link rel="icon" href="zijunlogo.png" type="image/png">
-    
-    <link href="https://fonts.googleapis.com/css2?family=Luckiest+Guy&family=Zhi+Mang+Xing&display=swap" rel="stylesheet">
+    <title>我的音乐收藏盒</title>
     <style>
-        /* --- 1. 基础布局和主题 --- */
+        :root {
+            --primary-color: #ff0000;
+            --dark-bg: #1a1a1a;
+        }
         body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: var(--dark-bg);
+            color: white;
             display: flex;
             flex-direction: column;
             align-items: center;
-            min-height: 100vh;
-            margin: 0;
-            background: linear-gradient(135deg, #1e3a8a, #0c4a6e); /* 深蓝色渐变背景 */
-            font-family: 'Zhi Mang Xing', cursive, Arial, sans-serif;
-            color: #fff;
-            padding: 20px 20px 80px 20px; /* 底部留出空间给版权声明 */
-            position: relative; 
+            padding: 20px;
         }
+        h1 { margin-bottom: 30px; }
 
-        /* --- 2. Logo 和 标题 --- */
-        .header-container {
-            width: 90%;
-            max-width: 1200px;
-            display: flex;
-            align-items: center;
-            justify-content: center; 
-            position: relative;
-            margin-bottom: 40px;
-        }
-
-        .site-logo {
-            position: absolute;
-            left: 0; /* 放在左上角 */
-            width: 60px; 
-            height: 60px;
-            border-radius: 50%; /* 圆形 */
-            object-fit: cover;
-            border: 3px solid #ffd700;
-            box-shadow: 0 0 10px rgba(0, 0, 0, 0.5);
-            z-index: 20;
-        }
-        
-        h1 {
-            font-family: 'Luckiest Guy', cursive;
-            font-size: 3em;
-            color: #ffd700; 
-            text-shadow: 4px 4px 0 #8b4513, 6px 6px 0 #000;
-            margin: 0;
-            text-align: center;
-        }
-        
-        /* --- 3. 版权声明样式 --- */
-        .footer-copyright {
-            position: fixed; /* 固定在底部 */
-            bottom: 0;
+        /* 主页歌曲展示区 */
+        #music-list {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+            gap: 20px;
             width: 100%;
-            background-color: rgba(0, 0, 0, 0.6); /* 稍微深一点的背景 */
-            color: #ccc;
-            text-align: center;
-            padding: 15px 0;
-            font-size: 1em;
-            font-family: Arial, sans-serif;
-            border-top: 1px solid rgba(255, 255, 255, 0.1);
+            max-width: 1000px;
+        }
+        .music-card {
+            background: #333;
+            border-radius: 12px;
+            overflow: hidden;
+            cursor: pointer;
+            transition: transform 0.2s;
+            position: relative;
+        }
+        .music-card:hover { transform: scale(1.05); }
+        .music-card img { width: 100%; display: block; }
+        .music-card .info { padding: 10px; text-align: center; font-size: 14px; }
+
+        /* 弹窗样式 */
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(0,0,0,0.8);
+            justify-content: center;
+            align-items: center;
             z-index: 100;
         }
-
-        /* --- 4. 主内容区域布局 (左右分栏) --- */
-        .main-content {
-            display: flex;
-            width: 90%;
-            max-width: 1200px;
-            justify-content: center;
-            gap: 50px; 
-            flex-wrap: wrap;
-        }
-        
-        .wheel-section {
-            flex: 1;
-            min-width: 450px;
-            max-width: 480px; /* 限制最大宽度，保持转盘居中 */
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-        }
-
-        .countdown-section {
-            flex: 1;
-            min-width: 350px;
-            max-width: 480px;
-            padding: 20px;
-            background-color: rgba(0, 0, 0, 0.3);
+        .modal-content {
+            background: #222;
+            padding: 30px;
             border-radius: 15px;
-            box-shadow: 0 0 20px rgba(255, 255, 255, 0.1);
-        }
-
-        /* --- 5. 倒计时样式 --- */
-        .countdown-section h2 {
-            font-family: 'Luckiest Guy', cursive;
-            color: #ffcc00;
-            font-size: 2.5em;
+            width: 90%;
+            max-width: 400px;
             text-align: center;
-            margin-top: 0;
-            border-bottom: 3px solid #ffcc00;
-            padding-bottom: 10px;
-            margin-bottom: 20px;
         }
-
-        .exam-item {
-            background-color: rgba(255, 255, 255, 0.1);
-            padding: 15px;
-            margin-bottom: 15px;
-            border-radius: 8px;
-            border-left: 5px solid var(--exam-color, #00ffff);
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-        }
-        
-        .exam-info {
-            flex-grow: 1;
-        }
-        
-        .exam-subject {
-            font-family: 'Luckiest Guy', cursive;
-            font-size: 1.5em;
-            color: var(--exam-color, #00ffff);
-            margin: 0;
-        }
-        
-        .exam-date-label {
-             font-size: 0.9em;
-             color: #aaa;
-             margin: 0;
-        }
-        
-        .countdown-value {
-            font-family: 'Luckiest Guy', cursive;
-            font-size: 3em;
-            color: #fff;
-            text-shadow: 1px 1px 5px #000;
-            min-width: 100px;
-            text-align: right;
-        }
-
-
-        /* --- 6. 转盘样式 --- */
-        .wheel-container {
-            position: relative;
-            width: 450px;
-            height: 450px;
-            margin-bottom: 40px;
-        }
-
-        .indicator {
-            position: absolute;
-            top: 50%;
-            right: -30px; 
-            transform: translateY(-50%);
-            width: 0;
-            height: 0;
-            border-top: 20px solid transparent;
-            border-bottom: 20px solid transparent;
-            border-left: 30px solid #ff4500; 
-            z-index: 10;
-            filter: drop-shadow(0 0 5px rgba(255, 69, 0, 0.8));
-        }
-
-        .wheel {
-            position: absolute;
+        input {
             width: 100%;
-            height: 100%;
-            border-radius: 50%;
-            overflow: hidden;
-            box-shadow: 0 0 50px rgba(255, 255, 255, 0.3), 0 0 0 10px #8b4513, 0 0 0 15px #ffd700;
-            transform: rotate(var(--rotation-degree, 0deg));
-            transition: transform 5s cubic-bezier(0.68, -0.55, 0.27, 1.55); 
-        }
-
-        .segment {
-            position: absolute;
-            top: 0;
-            left: 0;
-            width: 50%;
-            height: 50%;
-            clip-path: polygon(0 0, 100% 0, 100% 100%, 0 100%); 
-            transform-origin: 100% 100%; 
-            transform: rotate(calc(var(--segment-angle) * var(--segment-index)));
-            display: flex;
-            justify-content: center;
-            align-items: center; 
+            padding: 10px;
+            margin: 15px 0;
+            border-radius: 5px;
+            border: none;
             box-sizing: border-box;
-            border-right: 2px solid #333; 
-            opacity: 1;
-            transition: opacity 0.8s ease-out; 
-            cursor: default;
         }
-        
-        .segment.removed {
-            opacity: 0.1; 
-            pointer-events: none;
-        }
-
-        .segment:nth-child(1) { background-color: #ff5733; }
-        .segment:nth-child(2) { background-color: #33ff57; }
-        .segment:nth-child(3) { background-color: #3357ff; }
-        .segment:nth-child(4) { background-color: #ff33ff; }
-
-        .segment-text {
-            color: #fff;
-            font-family: 'Luckiest Guy', cursive;
-            font-size: 1.5em;
-            text-shadow: 2px 2px #000;
-            text-align: center;
-            max-width: 80%;
-            transform: rotate(calc(90deg + 360deg / var(--segments-count) * -1 / 2)); 
-        }
-
-        #spinButton {
-            font-family: 'Luckiest Guy', cursive;
-            padding: 15px 35px;
-            font-size: 1.8em;
+        button {
+            padding: 10px 20px;
+            border: none;
+            border-radius: 5px;
             cursor: pointer;
-            background-color: #ffd700;
-            color: #8b4513; 
-            border: 5px solid #8b4513;
-            border-radius: 10px;
-            box-shadow: 0 8px #a0522d;
-            transition: all 0.1s;
+            font-weight: bold;
         }
+        .btn-add { background: var(--primary-color); color: white; margin-bottom: 20px; }
+        .btn-save { background: #28a745; color: white; width: 100%; }
+        .btn-cancel { background: #666; color: white; margin-top: 10px; width: 100%; }
 
-        #spinButton:active {
-            box-shadow: 0 3px #a0522d;
-            transform: translateY(5px);
-        }
-
-        #spinButton:disabled {
-            background-color: #ccc;
-            color: #666;
-            border-color: #666;
-            box-shadow: none;
-            cursor: not-allowed;
-        }
-        
-        #result {
+        /* 播放器容器 */
+        #player-container {
             margin-top: 30px;
-            font-size: 2.2em;
-            color: #ffeb3b;
-            font-family: 'Luckiest Guy', cursive;
-            text-shadow: 2px 2px 0 #000;
-        }
-
-        /* 响应式调整 */
-        @media (max-width: 900px) {
-            .main-content {
-                flex-direction: column;
-                align-items: center;
-            }
-            .wheel-section, .countdown-section {
-                min-width: auto;
-                width: 100%;
-                max-width: 450px; /* 保持在移动设备上的美观 */
-            }
-            .site-logo {
-                position: static; /* 移动设备上 Logo 靠左对齐 */
-                margin-right: 15px;
-            }
-            .header-container {
-                justify-content: flex-start;
-            }
-            h1 {
-                font-size: 2.2em;
-                text-align: left;
-            }
+            width: 100%;
+            max-width: 800px;
+            aspect-ratio: 16 / 9;
+            background: #000;
+            display: none; /* 初始隐藏 */
         }
     </style>
 </head>
 <body>
 
-    <div class="header-container">
-        <img src="zijunlogo.png" alt="ZiJun Logo" class="site-logo">
-        <h1>STPM 科目选择器与考试倒计时 📅</h1>
-    </div>
-    
-    <div class="main-content">
-        <div class="wheel-section">
-            <div class="wheel-container">
-                <div class="indicator"></div>
-                <div class="wheel" id="wheel">
-                    </div>
-            </div>
-            <button id="spinButton">🧙‍♂️ 启动魔法旋转 🚀</button>
-            <p id="result">决定你命运的时刻！</p>
+    <h1>🎵 我的私家音乐库</h1>
+
+    <button class="btn-add" onclick="toggleModal(true)">+ 添加 YouTube 歌曲</button>
+
+    <div id="music-list">
         </div>
 
-        <div class="countdown-section">
-            <h2>STPM 倒计时：2026</h2>
-            
-            <div id="countdown-list">
-                </div>
-            
-            <p style="font-size: 1.2em; text-align: center; margin-top: 30px; color: #aaa;">距离考试日期的剩余天数</p>
+    <div id="player-container" id="video-player"></div>
+
+    <div id="modal" class="modal">
+        <div class="modal-content">
+            <h3>添加新音乐</h3>
+            <p style="font-size: 12px; color: #aaa;">粘贴 YouTube 视频链接</p>
+            <input type="text" id="youtube-url" placeholder="https://www.youtube.com/watch?v=...">
+            <button class="btn-save" onclick="saveSong()">保存到主页</button>
+            <button class="btn-cancel" onclick="toggleModal(false)">取消</button>
         </div>
     </div>
-
-    <footer class="footer-copyright">
-        © Copyright by ZiJun 2025
-    </footer>
 
     <script>
-        /* --- 转盘游戏逻辑 --- */
-        const initialOptions = ["Pengajian Am", "Biology", "Mathematic", "ICT"];
-        let currentOptions = [...initialOptions];
-        const wheel = document.getElementById('wheel');
-        const spinButton = document.getElementById('spinButton');
-        const resultText = document.getElementById('result');
+        // 初始化加载
+        document.addEventListener('DOMContentLoaded', displaySongs);
 
-        let totalRotation = 0; 
-        let isSpinning = false; 
-
-        function renderWheel() {
-            wheel.innerHTML = '';
-            const numTotalSegments = initialOptions.length;
-            const segmentAngle = 360 / numTotalSegments;
-            
-            if (currentOptions.length === 0) {
-                resultText.textContent = "🏆 所有科目都已选中！魔法已完成！ 🏆";
-                spinButton.disabled = true;
-                return;
-            }
-
-            wheel.style.setProperty('--segments-count', numTotalSegments); 
-
-            initialOptions.forEach((option, index) => {
-                const segment = document.createElement('div');
-                segment.classList.add('segment');
-                segment.dataset.option = option;
-                
-                segment.style.setProperty('--segment-angle', segmentAngle + 'deg');
-                segment.style.setProperty('--segment-index', index);
-                
-                const text = document.createElement('div');
-                text.classList.add('segment-text');
-                text.textContent = option;
-                segment.appendChild(text);
-
-                if (!currentOptions.includes(option)) {
-                    segment.classList.add('removed');
-                }
-                
-                wheel.appendChild(segment);
-            });
+        // 控制弹窗显示/隐藏
+        function toggleModal(show) {
+            document.getElementById('modal').style.display = show ? 'flex' : 'none';
         }
 
-        function spinWheel() {
-            if (isSpinning || currentOptions.length === 0) return;
-            isSpinning = true;
-            spinButton.disabled = true;
-            resultText.textContent = "🚀 魔法能量充能中... 🚀";
-            
-            const numTotalSegments = initialOptions.length;
-            const segmentAngle = 360 / numTotalSegments;
-            
-            const selectedIndexInCurrent = Math.floor(Math.random() * currentOptions.length);
-            const selectedOption = currentOptions[selectedIndexInCurrent];
-
-            const originalIndex = initialOptions.indexOf(selectedOption);
-
-            let targetCenterAngle = (originalIndex * segmentAngle) + (segmentAngle / 2);
-            let offsetAngle = 360 - targetCenterAngle;
-            
-            const extraRotations = 8 * 360; 
-            const randomOffset = Math.random() * (segmentAngle * 0.8) - (segmentAngle * 0.4); 
-            
-            totalRotation += extraRotations + offsetAngle + randomOffset;
-
-            wheel.style.setProperty('--rotation-degree', `${totalRotation}deg`);
-
-            setTimeout(() => {
-                resultText.textContent = `🎉 恭喜选中: ${selectedOption} 🎉`;
-                removeSegment(selectedOption);
-                
-                isSpinning = false;
-                if (currentOptions.length > 0) {
-                    spinButton.disabled = false;
-                } else {
-                    spinButton.disabled = true;
-                }
-            }, 5000 + 200); 
+        // 提取 YouTube ID 的核心正则
+        function extractVideoID(url) {
+            const regExp = /^.*(youtu.be\/|v\/|u\/\w\/|embed\/|watch\?v=|\&v=)([^#\&\?]*).*/;
+            const match = url.match(regExp);
+            return (match && match[2].length === 11) ? match[2] : null;
         }
 
-        function removeSegment(option) {
-            currentOptions = currentOptions.filter(item => item !== option);
-            const segment = wheel.querySelector(`.segment[data-option="${option}"]`);
-            if (segment) {
-                segment.classList.add('removed');
-            }
-            if (currentOptions.length === 0) {
-                resultText.textContent = "🏆 所有科目都已选中！魔法已完成！ 🏆";
-                spinButton.disabled = true;
+        // 保存歌曲到 LocalStorage
+        function saveSong() {
+            const url = document.getElementById('youtube-url').value;
+            const id = extractVideoID(url);
+
+            if (id) {
+                let songs = JSON.parse(localStorage.getItem('my_songs') || '[]');
+                // 检查是否已存在
+                if (!songs.includes(id)) {
+                    songs.push(id);
+                    localStorage.setItem('my_songs', JSON.stringify(songs));
+                }
+                
+                document.getElementById('youtube-url').value = '';
+                toggleModal(false);
+                displaySongs(); // 刷新列表
+            } else {
+                alert('请输入有效的 YouTube 链接！');
             }
         }
 
-        /* --- 倒计时逻辑 --- */
-        
-        const examDates = [
-            { subjects: "Pengajian Am", date: "2026-01-21", color: "#ff5733" },
-            { subjects: "Biology & ICT", date: "2026-01-22", color: "#33ff57" },
-            { subjects: "Mathematic", date: "2026-01-23", color: "#3357ff" }
-        ];
-
-        function updateCountdown() {
-            const now = new Date();
-            const countdownList = document.getElementById('countdown-list');
-            countdownList.innerHTML = '';
-
-            examDates.forEach(exam => {
-                // 确保时间戳从当天的午夜开始计算，避免时区和小时分钟的影响
-                const targetDate = new Date(exam.date + "T00:00:00"); 
-                
-                // 计算时间差 (毫秒)
-                const difference = targetDate.getTime() - now.getTime();
-                
-                if (difference < 0) {
-                    // 已考完
-                    const item = document.createElement('div');
-                    item.classList.add('exam-item');
-                    item.style.setProperty('--exam-color', exam.color);
-                    item.innerHTML = `
-                        <div class="exam-info">
-                            <p class="exam-subject">【${exam.subjects}】</p>
-                            <p class="exam-date-label">日期: ${exam.date.replace(/-/g, '/')}</p>
-                        </div>
-                        <p class="countdown-value" style="font-size: 2em; color: #aaa;">已考完 🎉</p>
-                    `;
-                    countdownList.appendChild(item);
-                    return;
-                }
-
-                // 转换为天数 (向下取整，表示还剩下多少个完整的24小时)
-                const days = Math.floor(difference / (1000 * 60 * 60 * 24));
-                
-                const item = document.createElement('div');
-                item.classList.add('exam-item');
-                item.style.setProperty('--exam-color', exam.color);
-                
-                item.innerHTML = `
-                    <div class="exam-info">
-                        <p class="exam-subject">【${exam.subjects}】</p>
-                        <p class="exam-date-label">日期: ${exam.date.replace(/-/g, '/')}</p>
-                    </div>
-                    <p class="countdown-value">${days} <span style="font-size: 0.5em;">天</span></p>
-                `;
-                
-                countdownList.appendChild(item);
-            });
+        // 在主页渲染歌曲卡片
+        function displaySongs() {
+            const list = document.getElementById('music-list');
+            const songs = JSON.parse(localStorage.getItem('my_songs') || '[]');
+            
+            list.innerHTML = songs.map(id => `
+                <div class="music-card" onclick="playSong('${id}')">
+                    <img src="https://img.youtube.com/vi/${id}/mqdefault.jpg" alt="封面">
+                    <div class="info">点击播放歌曲</div>
+                    <button onclick="deleteSong(event, '${id}')" style="position:absolute; top:5px; right:5px; background:rgba(0,0,0,0.5); font-size:10px; padding:2px 5px;">删除</button>
+                </div>
+            `).join('');
         }
 
-        /* --- 初始化调用 --- */
-        spinButton.addEventListener('click', spinWheel);
-        renderWheel();
-        
-        updateCountdown();
-        // 倒计时只需要每天更新一次天数，但为了精确，我们设置为每小时更新一次（以防用户长时间挂着页面）
-        setInterval(updateCountdown, 1000 * 60 * 60); 
+        // 播放歌曲
+        function playSong(id) {
+            const container = document.getElementById('player-container');
+            container.style.display = 'block';
+            container.innerHTML = `
+                <iframe width="100%" height="100%" 
+                    src="https://www.youtube.com/embed/${id}?autoplay=1" 
+                    frameborder="0" 
+                    allow="autoplay; encrypted-media" 
+                    allowfullscreen>
+                </iframe>
+            `;
+            // 自动滚动到播放器
+            container.scrollIntoView({ behavior: 'smooth' });
+        }
+
+        // 删除歌曲
+        function deleteSong(event, id) {
+            event.stopPropagation(); // 防止触发播放
+            let songs = JSON.parse(localStorage.getItem('my_songs') || '[]');
+            songs = songs.filter(s => s !== id);
+            localStorage.setItem('my_songs', JSON.stringify(songs));
+            displaySongs();
+        }
     </script>
-
 </body>
 </html>
