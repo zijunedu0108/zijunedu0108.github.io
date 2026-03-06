@@ -22,22 +22,21 @@
             overflow: hidden; 
         }
 
-        /* --- 核心修复：视频背景层 --- */
+        /* --- 背景视频 --- */
         .video-bg {
             position: fixed;
             top: 0; left: 0;
             width: 100%; height: 100%;
-            z-index: -100; /* 必须是负值且最小 */
+            z-index: -100;
             overflow: hidden;
-            background: #000; /* 视频未加载时的底色 */
+            background: #000;
         }
         .video-bg video {
             width: 100%; height: 100%;
             object-fit: cover;
-            filter: brightness(0.4) contrast(1.1); /* 压暗背景突出UI */
+            filter: brightness(0.4) contrast(1.1);
             pointer-events: none;
         }
-        /* 增加一层渐变阴影，防止视频边缘生硬 */
         .video-bg::after {
             content: ""; position: absolute; top: 0; left: 0;
             width: 100%; height: 100%;
@@ -68,7 +67,6 @@
             position: relative; z-index: 10; height: calc(100vh - 120px); overflow-y: auto;
             -webkit-overflow-scrolling: touch;
         }
-        /* 滚动条美化 */
         .container::-webkit-scrollbar { width: 4px; }
         .container::-webkit-scrollbar-thumb { background: var(--neon-blue); }
 
@@ -84,7 +82,7 @@
         .card-info { padding: 12px; border-top: 1px solid var(--border-glow); }
         .song-title { color: var(--neon-blue); font-size: 14px; font-weight: bold; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 
-        /* --- 播放器样式 --- */
+        /* --- 播放器核心样式 --- */
         #player-overlay {
             display: none;
             position: fixed; top: 0; left: 0; width: 100%; height: 100%;
@@ -97,12 +95,14 @@
             background: #000; border: 1px solid var(--neon-blue);
             display: flex; flex-direction: row;
             box-shadow: 0 0 50px rgba(0, 242, 255, 0.2);
+            overflow: hidden;
         }
         .video-main { flex: 3; display: flex; flex-direction: column; background: #000; }
         .video-wrapper { width: 100%; aspect-ratio: 16/9; }
         .playlist-side { 
             flex: 1; border-left: 1px solid #333; 
             display: flex; flex-direction: column; background: rgba(10,10,10,0.8);
+            min-width: 0;
         }
         .playlist-header { padding: 15px; background: #111; font-size: 14px; border-bottom: 1px solid #333; color: var(--neon-blue); }
         .playlist-items { flex: 1; overflow-y: auto; -webkit-overflow-scrolling: touch;}
@@ -122,27 +122,35 @@
         }
 
         /* ------------------------------------------------ */
-        /* --- 手机端专项优化 (针对播放列表和黑格修复) --- */
+        /* --- 手机端专项优化：解决中间黑块问题 --- */
         /* ------------------------------------------------ */
         @media (max-width: 800px) {
-            #player-content { flex-direction: column; height: 100%; width: 100%; border: none; }
+            #player-content { 
+                flex-direction: column; 
+                height: 95%; 
+                width: 100%; 
+                border-left: none; border-right: none; 
+            }
             
-            /* 关键修复：去除黑格。让视频容器不强制填满 flex 空间，而是由列表自适应填满 */
-            .video-main { flex: none; width: 100%; } 
+            /* 关键：视频区域不自动拉伸，仅保持 16:9 比例 */
+            .video-main { flex: 0 0 auto; width: 100%; }
             
-            /* 让列表部分占据剩余所有垂直空间，从而顶掉原本的黑格 */
-            .playlist-side { flex: 1; border-left: none; border-top: 1px solid #333; height: auto; }
-            
+            /* 关键：播放列表区域占据所有剩余空间，消除黑格 */
+            .playlist-side { 
+                flex: 1; 
+                height: auto; 
+                border-left: none; 
+                border-top: 1px solid #333;
+                min-height: 0; /* 允许 flex 项目缩小以适应容器 */
+            }
+
             header { padding: 10px 15px; }
-            .logo-area { gap: 8px; }
             .logo-area img { width: 32px; height: 32px; }
             .logo-area div div:first-child { font-size: 13px !important; }
             #status-tag { display: none; }
             .btn-cyber { padding: 6px 12px; font-size: 10px; }
             
             .container { margin: 15px auto; height: calc(100vh - 80px); }
-            
-            /* 手机端列表布局优化：2列 */
             .grid-list { grid-template-columns: repeat(2, 1fr) !important; gap: 12px; }
             .song-title { font-size: 12px; }
             .card-info { padding: 8px; }
@@ -153,17 +161,13 @@
             .player-footer { flex-direction: column; gap: 8px; align-items: center; text-align: center; }
         }
 
-        /* 增加交互感 */
-        .card:active, .btn-cyber:active { opacity: 0.7; transform: scale(0.98); }
-
+        /* 模态框与通用样式 */
         .modal { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.85); justify-content: center; align-items: center; z-index: 2000; }
         .modal-content { background: var(--deep-blue); border: 2px solid var(--neon-blue); padding: 30px; width: 340px; }
         input { width: 100%; padding: 12px; margin: 10px 0; background: rgba(0, 242, 255, 0.1); border: 1px solid var(--neon-blue); color: white; outline: none; box-sizing: border-box; font-size: 16px; }
-
         .page { display: none; }
         .active-page { display: block; animation: fadeIn 0.5s ease; }
         @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
-        
         .delete-btn { position: absolute; top: 5px; right: 5px; color: #ff4d4d; font-size: 10px; background: rgba(0,0,0,0.7); border: 1px solid #ff4d4d; cursor: pointer; padding: 2px 6px; z-index: 5; }
     </style>
 </head>
@@ -172,7 +176,7 @@
     <div class="video-bg">
         <video autoplay muted loop playsinline id="bgVideo">
             <source src="zijunbg.mp4" type="video/mp4">
-            </video>
+        </video>
     </div>
 
     <header>
@@ -255,9 +259,11 @@
         let currentAlbumId = null;
         let currentAlbumSongs = [];
 
+        // 背景视频点击激活
         const bgVideo = document.getElementById('bgVideo');
         window.addEventListener('mousedown', () => { if(bgVideo.paused) bgVideo.play(); }, { once: true });
 
+        // 获取相册列表
         onSnapshot(query(albumsCol, orderBy("timestamp", "desc")), (snapshot) => {
             const grid = document.getElementById('album-grid');
             grid.innerHTML = "";
@@ -276,6 +282,7 @@
             });
         });
 
+        // 查看相册详情
         window.viewAlbum = (id, title) => {
             currentAlbumId = id;
             document.getElementById('home-page').classList.remove('active-page');
@@ -299,6 +306,7 @@
             });
         };
 
+        // 播放控制
         window.play = (videoId, songName) => {
             const overlay = document.getElementById('player-overlay');
             const target = document.getElementById('iframe-target');
