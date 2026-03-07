@@ -22,6 +22,16 @@
             overflow: hidden; 
         }
 
+        /* --- 粒子层 --- */
+        #particle-canvas {
+            position: fixed;
+            top: 0; left: 0;
+            width: 100%; height: 100%;
+            z-index: -50; /* 位于视频之上，UI之下 */
+            pointer-events: none; /* 不干扰点击 */
+            opacity: 0.6;
+        }
+
         /* --- 背景视频 --- */
         .video-bg {
             position: fixed;
@@ -146,6 +156,8 @@
 </head>
 <body>
 
+    <canvas id="particle-canvas"></canvas>
+
     <div class="video-bg">
         <video autoplay muted loop playsinline id="bgVideo">
             <source src="zijunbg.mp4" type="video/mp4">
@@ -213,6 +225,65 @@
         </div>
     </div>
 
+    <script>
+        const canvas = document.getElementById('particle-canvas');
+        const ctx = canvas.getContext('2d');
+        let particles = [];
+
+        function initCanvas() {
+            canvas.width = window.innerWidth;
+            canvas.height = window.innerHeight;
+        }
+
+        class Particle {
+            constructor() {
+                this.reset();
+            }
+            reset() {
+                this.x = Math.random() * canvas.width;
+                this.y = Math.random() * canvas.height;
+                this.size = Math.random() * 2 + 0.5;
+                this.speedX = Math.random() * 0.5 - 0.25;
+                this.speedY = Math.random() * 0.5 - 1.5; // 向上流动
+                this.opacity = Math.random() * 0.5 + 0.2;
+            }
+            update() {
+                this.y += this.speedY;
+                this.x += this.speedX;
+                if (this.y < -10) this.reset();
+            }
+            draw() {
+                ctx.fillStyle = `rgba(0, 242, 255, ${this.opacity})`;
+                ctx.shadowBlur = 5;
+                ctx.shadowColor = '#00f2ff';
+                ctx.beginPath();
+                ctx.arc(this.x, this.y, this.size, 0, Math.PI * 2);
+                ctx.fill();
+            }
+        }
+
+        function createParticles() {
+            const count = window.innerWidth < 800 ? 50 : 120;
+            for (let i = 0; i < count; i++) {
+                particles.push(new Particle());
+            }
+        }
+
+        function animate() {
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            particles.forEach(p => {
+                p.update();
+                p.draw();
+            });
+            requestAnimationFrame(animate);
+        }
+
+        window.addEventListener('resize', initCanvas);
+        initCanvas();
+        createParticles();
+        animate();
+    </script>
+
     <script src="https://www.youtube.com/iframe_api"></script>
 
     <script type="module">
@@ -237,7 +308,6 @@
         let ytPlayer = null; 
         let currentVideoId = null;
 
-        // 核心：连播逻辑
         const playNext = () => {
             const currentIndex = currentAlbumSongs.findIndex(s => s.id === currentVideoId);
             if (currentIndex !== -1 && currentIndex < currentAlbumSongs.length - 1) {
@@ -246,7 +316,6 @@
             }
         };
 
-        // 增强的播放函数（使用无 Cookie 域名并压制广告参数）
         window.play = (videoId, songName) => {
             currentVideoId = videoId;
             const overlay = document.getElementById('player-overlay');
@@ -257,17 +326,16 @@
             title.innerText = `NOW STREAMING: ${songName}`;
 
             if (!ytPlayer) {
-                // 初始化播放器
                 ytPlayer = new YT.Player('youtube-player-container', {
                     height: '100%',
                     width: '100%',
                     videoId: videoId,
-                    host: 'https://www.youtube-nocookie.com', // 关键：使用去广告增强域名
+                    host: 'https://www.youtube-nocookie.com', 
                     playerVars: {
                         'autoplay': 1,
-                        'rel': 0,            // 禁用相关推荐
-                        'modestbranding': 1, // 隐藏 YouTube Logo
-                        'iv_load_policy': 3, // 隐藏注释/贴片
+                        'rel': 0,
+                        'modestbranding': 1,
+                        'iv_load_policy': 3,
                         'controls': 1,
                         'showinfo': 0,
                         'origin': window.location.origin
@@ -280,11 +348,9 @@
                     }
                 });
             } else {
-                // 已有实例则直接载入新 ID，避免重新渲染 iframe 触发新的片头广告
                 ytPlayer.loadVideoById(videoId);
             }
             
-            // 更新右侧列表 UI
             playlistBox.innerHTML = "";
             currentAlbumSongs.forEach(song => {
                 const isActive = song.id === videoId ? 'active' : '';
@@ -304,7 +370,6 @@
             if (ytPlayer) ytPlayer.stopVideo();
         };
 
-        // Firebase 监听与数据处理
         onSnapshot(query(albumsCol, orderBy("timestamp", "desc")), (snapshot) => {
             const grid = document.getElementById('album-grid');
             grid.innerHTML = "";
@@ -346,7 +411,6 @@
             });
         };
 
-        // 基础交互逻辑
         window.showHome = () => {
             currentAlbumId = null;
             document.getElementById('detail-page').classList.remove('active-page');
