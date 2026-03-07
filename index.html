@@ -22,25 +22,17 @@
             overflow: hidden; 
         }
 
-        /* --- 粒子层 --- */
-        #particle-canvas {
-            position: fixed;
-            top: 0; left: 0;
-            width: 100%; height: 100%;
-            z-index: -40;
-            pointer-events: none;
-            opacity: 0.4;
-        }
-
-        /* --- 环境光模式层 (Ambient Mode) --- */
+        /* --- Ambient Mode 画布 --- */
         #ambient-canvas {
             position: fixed;
-            top: -10%; left: -10%;
-            width: 120%; height: 120%;
-            z-index: -60;
-            filter: blur(100px) brightness(0.6) saturate(1.5);
+            top: 50%; left: 50%;
+            transform: translate(-50%, -50%);
+            width: 110vw; height: 110vh;
+            z-index: 2500; /* 位于背景之上，播放器之下 */
+            filter: blur(80px) brightness(0.7) saturate(1.5);
             opacity: 0;
-            transition: opacity 2s ease;
+            transition: opacity 1.5s ease;
+            pointer-events: none;
         }
 
         /* --- 背景视频 --- */
@@ -57,6 +49,7 @@
             width: 100%; height: 100%;
             object-fit: cover;
             filter: brightness(0.4) contrast(1.1);
+            pointer-events: none;
         }
 
         header {
@@ -101,42 +94,36 @@
         #player-overlay {
             display: none;
             position: fixed; top: 0; left: 0; width: 100%; height: 100%;
-            background: rgba(0, 0, 0, 0.6); /* 调低透明度以展示环境光 */
+            background: rgba(0, 0, 0, 0.7); /* 降低透明度以透出环境光 */
             z-index: 3000; backdrop-filter: blur(5px);
             justify-content: center; align-items: center;
         }
         #player-content {
             width: 95%; height: 85%; max-width: 1200px;
-            background: rgba(0,0,0,0.9); border: 1px solid var(--neon-blue);
+            background: #000; border: 1px solid var(--neon-blue);
             display: flex; flex-direction: row;
             box-shadow: 0 0 50px rgba(0, 242, 255, 0.2);
             overflow: hidden;
         }
-        .video-main { flex: 3; display: flex; flex-direction: column; background: #000; position: relative; }
+        .video-main { flex: 3; display: flex; flex-direction: column; background: #000; }
         .video-wrapper { width: 100%; aspect-ratio: 16/9; }
-        
-        /* 隐藏的原生捕获容器 */
-        #canvas-capture { display: none; }
-
         .playlist-side { 
             flex: 1; border-left: 1px solid #333; 
-            display: flex; flex-direction: column; background: rgba(10,10,10,0.8);
+            display: flex; flex-direction: column; background: rgba(10,10,10,0.9);
             min-width: 0;
         }
         .playlist-header { padding: 15px; background: #111; font-size: 14px; border-bottom: 1px solid #333; color: var(--neon-blue); }
         .playlist-items { flex: 1; overflow-y: auto; }
-        .playlist-item { display: flex; gap: 10px; padding: 10px; cursor: pointer; border-bottom: 1px solid #222; }
+        .playlist-item { 
+            display: flex; gap: 10px; padding: 10px; cursor: pointer; border-bottom: 1px solid #222; 
+        }
+        .playlist-item.active { background: rgba(0, 242, 255, 0.15); }
         .playlist-item img { width: 80px; height: 45px; object-fit: cover; border-radius: 2px; }
 
         .player-footer { 
             background: var(--neon-blue); color: var(--deep-blue); 
             padding: 8px 15px; display: flex; justify-content: space-between; align-items: center;
             font-weight: bold; font-size: 12px;
-        }
-
-        @media (max-width: 800px) {
-            #player-content { flex-direction: column; height: 95%; width: 100%; }
-            .grid-list { grid-template-columns: repeat(2, 1fr) !important; gap: 12px; }
         }
 
         .modal { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.85); justify-content: center; align-items: center; z-index: 4000; }
@@ -150,7 +137,6 @@
 <body>
 
     <canvas id="ambient-canvas"></canvas>
-    <canvas id="particle-canvas"></canvas>
 
     <div class="video-bg" id="bg-container">
         <video autoplay muted loop playsinline id="bgVideo">
@@ -163,7 +149,7 @@
             <img src="zijunlogo.png" alt="Logo">
             <div>
                 <div style="font-size: 16px; letter-spacing: 2px; font-weight: bold;">ZIJUN TERMINAL</div>
-                <div id="status-tag" style="font-size: 8px; color: var(--neon-blue);">// STATUS: AMBIENT_MODE_ACTIVE</div>
+                <div id="status-tag" style="font-size: 8px; color: var(--neon-blue);">// STATUS: AMBIENT_SYNC_ACTIVE</div>
             </div>
         </div>
         <button class="btn-cyber" id="main-btn" onclick="triggerAction()">+ NEW COLLECTION</button>
@@ -188,8 +174,6 @@
         <div id="player-content" onclick="event.stopPropagation()">
             <div class="video-main">
                 <div id="youtube-player-container" class="video-wrapper"></div>
-                <canvas id="canvas-capture" width="64" height="36"></canvas> 
-                
                 <div class="player-footer">
                     <span id="now-playing-title">STREAMING...</span>
                     <span style="cursor:pointer; background: rgba(0,0,0,0.3); padding: 4px 12px; border: 1px solid #000;" onclick="window.closePlayer()">CLOSE TERMINAL</span>
@@ -243,40 +227,32 @@
         let currentAlbumId = null;
         let currentAlbumSongs = [];
         let ytPlayer = null; 
+        let currentVideoId = null;
         let ambientInterval = null;
 
-        // --- Ambient Mode Engine ---
+        // --- Ambient Mode 引擎 ---
         const ambCanvas = document.getElementById('ambient-canvas');
-        const ambCtx = ambCanvas.getContext('2d', {willReadFrequently: true});
-        const capCanvas = document.getElementById('canvas-capture');
-        const capCtx = capCanvas.getContext('2d', {willReadFrequently: true});
+        const ambCtx = ambCanvas.getContext('2d');
+        ambCanvas.width = 16; ambCanvas.height = 9; // 低分辨率采样提高性能
 
-        function updateAmbient() {
-            if (!ytPlayer || ytPlayer.getPlayerState() !== 1) return;
-            
-            try {
-                // 尝试从 iframe 捕获画面（注意：由于跨域限制，标准的 YouTube Iframe 不支持直接用 drawImage）
-                // 替代方案：YouTube API 不允许直接像素访问。
-                // 这里的 Ambient 模式我们将采用“主色调平滑过渡”逻辑
-                // 由于无法获取跨域像素，我们使用基于缩略图的色调模拟（YouTube Ambient 的通用方案）
-                const videoId = ytPlayer.getVideoData().video_id;
-                const img = new Image();
-                img.crossOrigin = "Anonymous";
-                img.src = `https://img.youtube.com/vi/${videoId}/mqdefault.jpg`;
-                
-                img.onload = () => {
-                    capCtx.drawImage(img, 0, 0, capCanvas.width, capCanvas.height);
-                    ambCtx.clearRect(0, 0, ambCanvas.width, ambCanvas.height);
-                    ambCtx.drawImage(capCanvas, 0, 0, ambCanvas.width, ambCanvas.height);
-                };
-            } catch (e) {
-                console.log("Ambient sync pause");
-            }
+        function updateAmbientEffect() {
+            if (!ytPlayer || typeof ytPlayer.getVideoData !== 'function') return;
+            const vid = ytPlayer.getVideoData().video_id;
+            if (!vid) return;
+
+            const img = new Image();
+            img.crossOrigin = "Anonymous";
+            // 使用中等质量缩略图作为色源
+            img.src = `https://img.youtube.com/vi/${vid}/mqdefault.jpg`;
+            img.onload = () => {
+                ambCtx.drawImage(img, 0, 0, ambCanvas.width, ambCanvas.height);
+            };
         }
 
         window.play = (videoId, songName) => {
+            currentVideoId = videoId;
             document.getElementById('player-overlay').style.display = 'flex';
-            document.getElementById('bg-container').style.opacity = '0';
+            document.getElementById('bg-container').style.opacity = '0.2'; // 调暗原视频背景
             document.getElementById('ambient-canvas').style.opacity = '1';
             document.getElementById('now-playing-title').innerText = `NOW STREAMING: ${songName}`;
 
@@ -284,12 +260,19 @@
                 ytPlayer = new YT.Player('youtube-player-container', {
                     height: '100%', width: '100%',
                     videoId: videoId,
-                    playerVars: { 'autoplay': 1, 'rel': 0, 'modestbranding': 1, 'origin': window.location.origin },
+                    host: 'https://www.youtube-nocookie.com', // 强化屏蔽广告
+                    playerVars: { 
+                        'autoplay': 1, 
+                        'rel': 0, 
+                        'modestbranding': 1, 
+                        'iv_load_policy': 3, 
+                        'origin': window.location.origin 
+                    },
                     events: {
                         'onStateChange': (e) => {
                             if (e.data === YT.PlayerState.ENDED) playNext();
                             if (e.data === YT.PlayerState.PLAYING) {
-                                if(!ambientInterval) ambientInterval = setInterval(updateAmbient, 2000);
+                                if(!ambientInterval) ambientInterval = setInterval(updateAmbientEffect, 3000);
                             }
                         }
                     }
@@ -298,7 +281,7 @@
                 ytPlayer.loadVideoById(videoId);
             }
             
-            // 更新播放列表 UI
+            // UI 更新
             const playlistBox = document.getElementById('playlist-items');
             playlistBox.innerHTML = "";
             currentAlbumSongs.forEach(song => {
@@ -308,15 +291,14 @@
                         <img src="https://img.youtube.com/vi/${song.id}/mqdefault.jpg">
                         <div style="font-size:12px; margin-left:10px;">
                             <div style="color:${song.id === videoId ? 'var(--neon-blue)' : '#fff'}; font-weight:bold;">${song.name}</div>
-                            <div style="color:#666; font-size:10px;">STREAM_READY</div>
+                            <div style="color:#666; font-size:10px;">SECURE_TUNNEL_ESTABLISHED</div>
                         </div>
                     </div>`;
             });
         };
 
         const playNext = () => {
-            const currentId = ytPlayer.getVideoData().video_id;
-            const idx = currentAlbumSongs.findIndex(s => s.id === currentId);
+            const idx = currentAlbumSongs.findIndex(s => s.id === currentVideoId);
             if (idx !== -1 && idx < currentAlbumSongs.length - 1) {
                 const next = currentAlbumSongs[idx + 1];
                 window.play(next.id, next.name);
@@ -332,7 +314,7 @@
             ambientInterval = null;
         };
 
-        // --- 原有逻辑保持 ---
+        // --- Firebase 逻辑保持不变 ---
         onSnapshot(query(albumsCol, orderBy("timestamp", "desc")), (snapshot) => {
             const grid = document.getElementById('album-grid');
             grid.innerHTML = "";
@@ -422,33 +404,6 @@
             document.querySelectorAll('input').forEach(i => i.value = "");
         };
 
-        // --- 粒子动画 ---
-        const canvas = document.getElementById('particle-canvas');
-        const ctx = canvas.getContext('2d');
-        let particles = [];
-        const initCanvas = () => { canvas.width = window.innerWidth; canvas.height = window.innerHeight; ambCanvas.width = 100; ambCanvas.height = 100; };
-        class Particle {
-            constructor() { this.reset(); }
-            reset() {
-                this.x = Math.random() * canvas.width;
-                this.y = Math.random() * canvas.height;
-                this.speedY = Math.random() * 0.5 - 1.0;
-                this.opacity = Math.random() * 0.5;
-            }
-            update() { this.y += this.speedY; if(this.y < 0) this.reset(); }
-            draw() {
-                ctx.fillStyle = `rgba(0, 242, 255, ${this.opacity})`;
-                ctx.beginPath(); ctx.arc(this.x, this.y, 1, 0, Math.PI*2); ctx.fill();
-            }
-        }
-        for(let i=0; i<80; i++) particles.push(new Particle());
-        function animate() {
-            ctx.clearRect(0,0,canvas.width, canvas.height);
-            particles.forEach(p => { p.update(); p.draw(); });
-            requestAnimationFrame(animate);
-        }
-        window.addEventListener('resize', initCanvas);
-        initCanvas(); animate();
         window.addEventListener('keydown', (e) => { if(e.key === "Escape") window.closePlayer(); });
     </script>
 </body>
