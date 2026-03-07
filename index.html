@@ -234,26 +234,19 @@
         
         let currentAlbumId = null;
         let currentAlbumSongs = [];
-        let ytPlayer = null; // YouTube 播放器实例
+        let ytPlayer = null; 
         let currentVideoId = null;
 
-        // 1. YouTube API 准备就绪回调
-        window.onYouTubeIframeAPIReady = () => {
-            console.log("YouTube API Ready");
-        };
-
-        // 2. 核心：播放下一首的逻辑
+        // 核心：连播逻辑
         const playNext = () => {
             const currentIndex = currentAlbumSongs.findIndex(s => s.id === currentVideoId);
             if (currentIndex !== -1 && currentIndex < currentAlbumSongs.length - 1) {
                 const nextSong = currentAlbumSongs[currentIndex + 1];
                 window.play(nextSong.id, nextSong.name);
-            } else {
-                console.log("End of collection");
             }
         };
 
-        // 3. 增强的播放函数
+        // 增强的播放函数（使用无 Cookie 域名并压制广告参数）
         window.play = (videoId, songName) => {
             currentVideoId = videoId;
             const overlay = document.getElementById('player-overlay');
@@ -263,31 +256,35 @@
             overlay.style.display = 'flex';
             title.innerText = `NOW STREAMING: ${songName}`;
 
-            // 如果播放器不存在，初始化；如果已存在，载入新视频
             if (!ytPlayer) {
+                // 初始化播放器
                 ytPlayer = new YT.Player('youtube-player-container', {
                     height: '100%',
                     width: '100%',
                     videoId: videoId,
+                    host: 'https://www.youtube-nocookie.com', // 关键：使用去广告增强域名
                     playerVars: {
                         'autoplay': 1,
-                        'rel': 0,          // 强制不显示相关视频
-                        'modestbranding': 1, // 最小化 YouTube 标志
-                        'iv_load_policy': 3, // 禁用注释
+                        'rel': 0,            // 禁用相关推荐
+                        'modestbranding': 1, // 隐藏 YouTube Logo
+                        'iv_load_policy': 3, // 隐藏注释/贴片
+                        'controls': 1,
+                        'showinfo': 0,
                         'origin': window.location.origin
                     },
                     events: {
                         'onStateChange': (event) => {
-                            // event.data == 0 代表视频结束
-                            if (event.data === 0) playNext();
-                        }
+                            if (event.data === YT.PlayerState.ENDED) playNext();
+                        },
+                        'onError': (e) => console.error("Playback Error", e)
                     }
                 });
             } else {
+                // 已有实例则直接载入新 ID，避免重新渲染 iframe 触发新的片头广告
                 ytPlayer.loadVideoById(videoId);
             }
             
-            // 更新播放列表 UI
+            // 更新右侧列表 UI
             playlistBox.innerHTML = "";
             currentAlbumSongs.forEach(song => {
                 const isActive = song.id === videoId ? 'active' : '';
@@ -296,7 +293,7 @@
                         <img src="https://img.youtube.com/vi/${song.id}/mqdefault.jpg">
                         <div class="playlist-item-info">
                             <div style="color:${song.id === videoId ? 'var(--neon-blue)' : '#fff'}; font-weight:bold;">${song.name}</div>
-                            <div style="color:#666; font-size:10px; margin-top:4px;">YOUTUBE_DATA</div>
+                            <div style="color:#666; font-size:10px; margin-top:4px;">SECURE_STREAM</div>
                         </div>
                     </div>`;
             });
@@ -307,7 +304,7 @@
             if (ytPlayer) ytPlayer.stopVideo();
         };
 
-        // Firebase 逻辑 (保持原样)
+        // Firebase 监听与数据处理
         onSnapshot(query(albumsCol, orderBy("timestamp", "desc")), (snapshot) => {
             const grid = document.getElementById('album-grid');
             grid.innerHTML = "";
@@ -349,7 +346,7 @@
             });
         };
 
-        // 基础 UI 功能
+        // 基础交互逻辑
         window.showHome = () => {
             currentAlbumId = null;
             document.getElementById('detail-page').classList.remove('active-page');
