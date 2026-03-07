@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Zijun Sci-Fi Terminal</title>
+    <title>Zijun Sci-Fi Terminal | Ambient</title>
     <link rel="icon" href="zijunlogo.png" type="image/png">
     <style>
         :root {
@@ -27,9 +27,20 @@
             position: fixed;
             top: 0; left: 0;
             width: 100%; height: 100%;
-            z-index: -50; /* 位于视频之上，UI之下 */
-            pointer-events: none; /* 不干扰点击 */
-            opacity: 0.6;
+            z-index: -40;
+            pointer-events: none;
+            opacity: 0.4;
+        }
+
+        /* --- 环境光模式层 (Ambient Mode) --- */
+        #ambient-canvas {
+            position: fixed;
+            top: -10%; left: -10%;
+            width: 120%; height: 120%;
+            z-index: -60;
+            filter: blur(100px) brightness(0.6) saturate(1.5);
+            opacity: 0;
+            transition: opacity 2s ease;
         }
 
         /* --- 背景视频 --- */
@@ -40,17 +51,12 @@
             z-index: -100;
             overflow: hidden;
             background: #000;
+            transition: opacity 1s;
         }
         .video-bg video {
             width: 100%; height: 100%;
             object-fit: cover;
             filter: brightness(0.4) contrast(1.1);
-            pointer-events: none;
-        }
-        .video-bg::after {
-            content: ""; position: absolute; top: 0; left: 0;
-            width: 100%; height: 100%;
-            background: radial-gradient(circle, transparent 20%, rgba(0,0,0,0.4) 100%);
         }
 
         header {
@@ -75,7 +81,6 @@
         .container { 
             max-width: 1200px; margin: 30px auto; padding: 0 20px; 
             position: relative; z-index: 10; height: calc(100vh - 120px); overflow-y: auto;
-            -webkit-overflow-scrolling: touch;
         }
         .container::-webkit-scrollbar { width: 4px; }
         .container::-webkit-scrollbar-thumb { background: var(--neon-blue); }
@@ -96,34 +101,32 @@
         #player-overlay {
             display: none;
             position: fixed; top: 0; left: 0; width: 100%; height: 100%;
-            background: rgba(0, 0, 0, 0.95);
-            z-index: 3000; backdrop-filter: blur(15px); -webkit-backdrop-filter: blur(15px);
+            background: rgba(0, 0, 0, 0.6); /* 调低透明度以展示环境光 */
+            z-index: 3000; backdrop-filter: blur(5px);
             justify-content: center; align-items: center;
         }
         #player-content {
             width: 95%; height: 85%; max-width: 1200px;
-            background: #000; border: 1px solid var(--neon-blue);
+            background: rgba(0,0,0,0.9); border: 1px solid var(--neon-blue);
             display: flex; flex-direction: row;
             box-shadow: 0 0 50px rgba(0, 242, 255, 0.2);
             overflow: hidden;
         }
-        .video-main { flex: 3; display: flex; flex-direction: column; background: #000; }
+        .video-main { flex: 3; display: flex; flex-direction: column; background: #000; position: relative; }
         .video-wrapper { width: 100%; aspect-ratio: 16/9; }
+        
+        /* 隐藏的原生捕获容器 */
+        #canvas-capture { display: none; }
+
         .playlist-side { 
             flex: 1; border-left: 1px solid #333; 
             display: flex; flex-direction: column; background: rgba(10,10,10,0.8);
             min-width: 0;
         }
         .playlist-header { padding: 15px; background: #111; font-size: 14px; border-bottom: 1px solid #333; color: var(--neon-blue); }
-        .playlist-items { flex: 1; overflow-y: auto; -webkit-overflow-scrolling: touch;}
-        .playlist-item { 
-            display: flex; gap: 10px; padding: 10px; cursor: pointer; border-bottom: 1px solid #222;
-            transition: 0.2s;
-        }
-        .playlist-item:hover { background: rgba(0, 242, 255, 0.1); }
-        .playlist-item.active { background: rgba(0, 242, 255, 0.2); border-left: 3px solid var(--neon-blue); }
+        .playlist-items { flex: 1; overflow-y: auto; }
+        .playlist-item { display: flex; gap: 10px; padding: 10px; cursor: pointer; border-bottom: 1px solid #222; }
         .playlist-item img { width: 80px; height: 45px; object-fit: cover; border-radius: 2px; }
-        .playlist-item-info { font-size: 12px; overflow: hidden; }
 
         .player-footer { 
             background: var(--neon-blue); color: var(--deep-blue); 
@@ -133,32 +136,23 @@
 
         @media (max-width: 800px) {
             #player-content { flex-direction: column; height: 95%; width: 100%; }
-            .video-main { flex: 0 0 auto; width: 100%; }
-            .playlist-side { flex: 1; border-left: none; border-top: 1px solid #333; height: auto; min-height: 0; }
-            header { padding: 10px 15px; }
-            .logo-area img { width: 32px; height: 32px; }
-            .logo-area div div:first-child { font-size: 13px !important; }
-            #status-tag { display: none; }
-            .btn-cyber { padding: 6px 12px; font-size: 10px; }
-            .container { margin: 15px auto; height: calc(100vh - 80px); }
             .grid-list { grid-template-columns: repeat(2, 1fr) !important; gap: 12px; }
-            .player-footer { flex-direction: column; gap: 8px; align-items: center; text-align: center; }
         }
 
-        .modal { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.85); justify-content: center; align-items: center; z-index: 2000; }
+        .modal { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.85); justify-content: center; align-items: center; z-index: 4000; }
         .modal-content { background: var(--deep-blue); border: 2px solid var(--neon-blue); padding: 30px; width: 340px; }
-        input { width: 100%; padding: 12px; margin: 10px 0; background: rgba(0, 242, 255, 0.1); border: 1px solid var(--neon-blue); color: white; outline: none; box-sizing: border-box; font-size: 16px; }
+        input { width: 100%; padding: 12px; margin: 10px 0; background: rgba(0, 242, 255, 0.1); border: 1px solid var(--neon-blue); color: white; outline: none; box-sizing: border-box; }
         .page { display: none; }
-        .active-page { display: block; animation: fadeIn 0.5s ease; }
-        @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+        .active-page { display: block; }
         .delete-btn { position: absolute; top: 5px; right: 5px; color: #ff4d4d; font-size: 10px; background: rgba(0,0,0,0.7); border: 1px solid #ff4d4d; cursor: pointer; padding: 2px 6px; z-index: 5; }
     </style>
 </head>
 <body>
 
+    <canvas id="ambient-canvas"></canvas>
     <canvas id="particle-canvas"></canvas>
 
-    <div class="video-bg">
+    <div class="video-bg" id="bg-container">
         <video autoplay muted loop playsinline id="bgVideo">
             <source src="zijunbg.mp4" type="video/mp4">
         </video>
@@ -169,7 +163,7 @@
             <img src="zijunlogo.png" alt="Logo">
             <div>
                 <div style="font-size: 16px; letter-spacing: 2px; font-weight: bold;">ZIJUN TERMINAL</div>
-                <div id="status-tag" style="font-size: 8px; color: var(--neon-blue);">// STATUS: SYSTEM_READY</div>
+                <div id="status-tag" style="font-size: 8px; color: var(--neon-blue);">// STATUS: AMBIENT_MODE_ACTIVE</div>
             </div>
         </div>
         <button class="btn-cyber" id="main-btn" onclick="triggerAction()">+ NEW COLLECTION</button>
@@ -194,6 +188,8 @@
         <div id="player-content" onclick="event.stopPropagation()">
             <div class="video-main">
                 <div id="youtube-player-container" class="video-wrapper"></div>
+                <canvas id="canvas-capture" width="64" height="36"></canvas> 
+                
                 <div class="player-footer">
                     <span id="now-playing-title">STREAMING...</span>
                     <span style="cursor:pointer; background: rgba(0,0,0,0.3); padding: 4px 12px; border: 1px solid #000;" onclick="window.closePlayer()">CLOSE TERMINAL</span>
@@ -225,65 +221,6 @@
         </div>
     </div>
 
-    <script>
-        const canvas = document.getElementById('particle-canvas');
-        const ctx = canvas.getContext('2d');
-        let particles = [];
-
-        function initCanvas() {
-            canvas.width = window.innerWidth;
-            canvas.height = window.innerHeight;
-        }
-
-        class Particle {
-            constructor() {
-                this.reset();
-            }
-            reset() {
-                this.x = Math.random() * canvas.width;
-                this.y = Math.random() * canvas.height;
-                this.size = Math.random() * 2 + 0.5;
-                this.speedX = Math.random() * 0.5 - 0.25;
-                this.speedY = Math.random() * 0.5 - 1.5; // 向上流动
-                this.opacity = Math.random() * 0.5 + 0.2;
-            }
-            update() {
-                this.y += this.speedY;
-                this.x += this.speedX;
-                if (this.y < -10) this.reset();
-            }
-            draw() {
-                ctx.fillStyle = `rgba(0, 242, 255, ${this.opacity})`;
-                ctx.shadowBlur = 5;
-                ctx.shadowColor = '#00f2ff';
-                ctx.beginPath();
-                ctx.arc(this.x, this.y, this.size, 0, Math.PI * 2);
-                ctx.fill();
-            }
-        }
-
-        function createParticles() {
-            const count = window.innerWidth < 800 ? 50 : 120;
-            for (let i = 0; i < count; i++) {
-                particles.push(new Particle());
-            }
-        }
-
-        function animate() {
-            ctx.clearRect(0, 0, canvas.width, canvas.height);
-            particles.forEach(p => {
-                p.update();
-                p.draw();
-            });
-            requestAnimationFrame(animate);
-        }
-
-        window.addEventListener('resize', initCanvas);
-        initCanvas();
-        createParticles();
-        animate();
-    </script>
-
     <script src="https://www.youtube.com/iframe_api"></script>
 
     <script type="module">
@@ -306,70 +243,96 @@
         let currentAlbumId = null;
         let currentAlbumSongs = [];
         let ytPlayer = null; 
-        let currentVideoId = null;
+        let ambientInterval = null;
 
-        const playNext = () => {
-            const currentIndex = currentAlbumSongs.findIndex(s => s.id === currentVideoId);
-            if (currentIndex !== -1 && currentIndex < currentAlbumSongs.length - 1) {
-                const nextSong = currentAlbumSongs[currentIndex + 1];
-                window.play(nextSong.id, nextSong.name);
+        // --- Ambient Mode Engine ---
+        const ambCanvas = document.getElementById('ambient-canvas');
+        const ambCtx = ambCanvas.getContext('2d', {willReadFrequently: true});
+        const capCanvas = document.getElementById('canvas-capture');
+        const capCtx = capCanvas.getContext('2d', {willReadFrequently: true});
+
+        function updateAmbient() {
+            if (!ytPlayer || ytPlayer.getPlayerState() !== 1) return;
+            
+            try {
+                // 尝试从 iframe 捕获画面（注意：由于跨域限制，标准的 YouTube Iframe 不支持直接用 drawImage）
+                // 替代方案：YouTube API 不允许直接像素访问。
+                // 这里的 Ambient 模式我们将采用“主色调平滑过渡”逻辑
+                // 由于无法获取跨域像素，我们使用基于缩略图的色调模拟（YouTube Ambient 的通用方案）
+                const videoId = ytPlayer.getVideoData().video_id;
+                const img = new Image();
+                img.crossOrigin = "Anonymous";
+                img.src = `https://img.youtube.com/vi/${videoId}/mqdefault.jpg`;
+                
+                img.onload = () => {
+                    capCtx.drawImage(img, 0, 0, capCanvas.width, capCanvas.height);
+                    ambCtx.clearRect(0, 0, ambCanvas.width, ambCanvas.height);
+                    ambCtx.drawImage(capCanvas, 0, 0, ambCanvas.width, ambCanvas.height);
+                };
+            } catch (e) {
+                console.log("Ambient sync pause");
             }
-        };
+        }
 
         window.play = (videoId, songName) => {
-            currentVideoId = videoId;
-            const overlay = document.getElementById('player-overlay');
-            const title = document.getElementById('now-playing-title');
-            const playlistBox = document.getElementById('playlist-items');
-            
-            overlay.style.display = 'flex';
-            title.innerText = `NOW STREAMING: ${songName}`;
+            document.getElementById('player-overlay').style.display = 'flex';
+            document.getElementById('bg-container').style.opacity = '0';
+            document.getElementById('ambient-canvas').style.opacity = '1';
+            document.getElementById('now-playing-title').innerText = `NOW STREAMING: ${songName}`;
 
             if (!ytPlayer) {
                 ytPlayer = new YT.Player('youtube-player-container', {
-                    height: '100%',
-                    width: '100%',
+                    height: '100%', width: '100%',
                     videoId: videoId,
-                    host: 'https://www.youtube-nocookie.com', 
-                    playerVars: {
-                        'autoplay': 1,
-                        'rel': 0,
-                        'modestbranding': 1,
-                        'iv_load_policy': 3,
-                        'controls': 1,
-                        'showinfo': 0,
-                        'origin': window.location.origin
-                    },
+                    playerVars: { 'autoplay': 1, 'rel': 0, 'modestbranding': 1, 'origin': window.location.origin },
                     events: {
-                        'onStateChange': (event) => {
-                            if (event.data === YT.PlayerState.ENDED) playNext();
-                        },
-                        'onError': (e) => console.error("Playback Error", e)
+                        'onStateChange': (e) => {
+                            if (e.data === YT.PlayerState.ENDED) playNext();
+                            if (e.data === YT.PlayerState.PLAYING) {
+                                if(!ambientInterval) ambientInterval = setInterval(updateAmbient, 2000);
+                            }
+                        }
                     }
                 });
             } else {
                 ytPlayer.loadVideoById(videoId);
             }
             
+            // 更新播放列表 UI
+            const playlistBox = document.getElementById('playlist-items');
             playlistBox.innerHTML = "";
             currentAlbumSongs.forEach(song => {
                 const isActive = song.id === videoId ? 'active' : '';
                 playlistBox.innerHTML += `
                     <div class="playlist-item ${isActive}" onclick="window.play('${song.id}', '${song.name}')">
                         <img src="https://img.youtube.com/vi/${song.id}/mqdefault.jpg">
-                        <div class="playlist-item-info">
+                        <div style="font-size:12px; margin-left:10px;">
                             <div style="color:${song.id === videoId ? 'var(--neon-blue)' : '#fff'}; font-weight:bold;">${song.name}</div>
-                            <div style="color:#666; font-size:10px; margin-top:4px;">SECURE_STREAM</div>
+                            <div style="color:#666; font-size:10px;">STREAM_READY</div>
                         </div>
                     </div>`;
             });
         };
 
-        window.closePlayer = () => {
-            document.getElementById('player-overlay').style.display = 'none';
-            if (ytPlayer) ytPlayer.stopVideo();
+        const playNext = () => {
+            const currentId = ytPlayer.getVideoData().video_id;
+            const idx = currentAlbumSongs.findIndex(s => s.id === currentId);
+            if (idx !== -1 && idx < currentAlbumSongs.length - 1) {
+                const next = currentAlbumSongs[idx + 1];
+                window.play(next.id, next.name);
+            }
         };
 
+        window.closePlayer = () => {
+            document.getElementById('player-overlay').style.display = 'none';
+            document.getElementById('bg-container').style.opacity = '1';
+            document.getElementById('ambient-canvas').style.opacity = '0';
+            if (ytPlayer) ytPlayer.stopVideo();
+            clearInterval(ambientInterval);
+            ambientInterval = null;
+        };
+
+        // --- 原有逻辑保持 ---
         onSnapshot(query(albumsCol, orderBy("timestamp", "desc")), (snapshot) => {
             const grid = document.getElementById('album-grid');
             grid.innerHTML = "";
@@ -417,14 +380,17 @@
             document.getElementById('home-page').classList.add('active-page');
             document.getElementById('main-btn').innerText = "+ NEW COLLECTION";
         };
+
         window.triggerAction = () => {
             if(currentAlbumId) document.getElementById('song-modal').style.display = 'flex';
             else document.getElementById('album-modal').style.display = 'flex';
         };
+
         window.createAlbum = async () => {
             const val = document.getElementById('album-input').value;
             if(val) { await addDoc(albumsCol, { title: val, songs: [], timestamp: Date.now() }); closeModals(); }
         };
+
         window.addSong = async () => {
             const name = document.getElementById('song-name-input').value;
             const url = document.getElementById('song-url-input').value;
@@ -434,6 +400,7 @@
                 closeModals();
             }
         };
+
         window.removeSong = async (e, videoId) => {
             e.stopPropagation();
             if(!confirm("REMOVE TRACK?")) return;
@@ -444,17 +411,44 @@
                 if (songToDelete) await updateDoc(albumRef, { songs: arrayRemove(songToDelete) });
             }
         };
+
         window.delAlbum = async (e, id) => {
             e.stopPropagation();
             if(confirm("DELETE ALBUM?")) await deleteDoc(doc(db, "albums", id));
         };
+
         window.closeModals = () => {
             document.querySelectorAll('.modal').forEach(m => m.style.display = 'none');
             document.querySelectorAll('input').forEach(i => i.value = "");
         };
 
-        const bgVideo = document.getElementById('bgVideo');
-        window.addEventListener('mousedown', () => { if(bgVideo.paused) bgVideo.play(); }, { once: true });
+        // --- 粒子动画 ---
+        const canvas = document.getElementById('particle-canvas');
+        const ctx = canvas.getContext('2d');
+        let particles = [];
+        const initCanvas = () => { canvas.width = window.innerWidth; canvas.height = window.innerHeight; ambCanvas.width = 100; ambCanvas.height = 100; };
+        class Particle {
+            constructor() { this.reset(); }
+            reset() {
+                this.x = Math.random() * canvas.width;
+                this.y = Math.random() * canvas.height;
+                this.speedY = Math.random() * 0.5 - 1.0;
+                this.opacity = Math.random() * 0.5;
+            }
+            update() { this.y += this.speedY; if(this.y < 0) this.reset(); }
+            draw() {
+                ctx.fillStyle = `rgba(0, 242, 255, ${this.opacity})`;
+                ctx.beginPath(); ctx.arc(this.x, this.y, 1, 0, Math.PI*2); ctx.fill();
+            }
+        }
+        for(let i=0; i<80; i++) particles.push(new Particle());
+        function animate() {
+            ctx.clearRect(0,0,canvas.width, canvas.height);
+            particles.forEach(p => { p.update(); p.draw(); });
+            requestAnimationFrame(animate);
+        }
+        window.addEventListener('resize', initCanvas);
+        initCanvas(); animate();
         window.addEventListener('keydown', (e) => { if(e.key === "Escape") window.closePlayer(); });
     </script>
 </body>
