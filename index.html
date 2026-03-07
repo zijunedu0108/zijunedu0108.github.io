@@ -5,6 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>Zijun Sci-Fi Terminal | Ambient</title>
     <link rel="icon" href="zijunlogo.png" type="image/png">
+    <script src="https://cdn.jsdelivr.net/npm/sortablejs@1.15.0/Sortable.min.js"></script>
     <style>
         :root {
             --neon-blue: #00f2ff;
@@ -28,7 +29,7 @@
             top: 50%; left: 50%;
             transform: translate(-50%, -50%);
             width: 110vw; height: 110vh;
-            z-index: 2500; /* 位于背景之上，播放器之下 */
+            z-index: 2500; 
             filter: blur(80px) brightness(0.7) saturate(1.5);
             opacity: 0;
             transition: opacity 1.5s ease;
@@ -80,21 +81,27 @@
 
         .grid-list { display: grid; grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); gap: 25px; }
 
+        /* 拖拽中的样式 */
+        .sortable-ghost { opacity: 0.4; border: 2px dashed var(--neon-blue); }
+        .sortable-chosen { cursor: grabbing; }
+
         .card {
             background: var(--panel-bg); border: 1px solid var(--border-glow);
-            border-radius: 4px; overflow: hidden; cursor: pointer; transition: 0.3s; position: relative;
+            border-radius: 4px; overflow: hidden; cursor: grab; transition: 0.3s; position: relative;
+            touch-action: none; /* 优化移动端拖拽 */
         }
+        .card:active { cursor: grabbing; }
         .card:hover { border-color: var(--neon-blue); transform: translateY(-5px); box-shadow: 0 0 15px rgba(0,242,255,0.2); }
-        .cover-box { width: 100%; aspect-ratio: 16/9; background: #000; overflow: hidden; }
+        .cover-box { width: 100%; aspect-ratio: 16/9; background: #000; overflow: hidden; pointer-events: none; }
         .cover-box img { width: 100%; height: 100%; object-fit: cover; opacity: 0.8; }
-        .card-info { padding: 12px; border-top: 1px solid var(--border-glow); }
+        .card-info { padding: 12px; border-top: 1px solid var(--border-glow); pointer-events: none; }
         .song-title { color: var(--neon-blue); font-size: 14px; font-weight: bold; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 
         /* --- 播放器 --- */
         #player-overlay {
             display: none;
             position: fixed; top: 0; left: 0; width: 100%; height: 100%;
-            background: rgba(0, 0, 0, 0.7); /* 降低透明度以透出环境光 */
+            background: rgba(0, 0, 0, 0.7);
             z-index: 3000; backdrop-filter: blur(5px);
             justify-content: center; align-items: center;
         }
@@ -157,7 +164,7 @@
 
     <div class="container">
         <div id="home-page" class="page active-page">
-            <h3 style="color: var(--neon-blue); margin-bottom: 20px; font-size: 14px;">> CORE_DATABASE / ALBUMS</h3>
+            <h3 style="color: var(--neon-blue); margin-bottom: 20px; font-size: 14px;">> CORE_DATABASE / ALBUMS (DRAG TO SORT)</h3>
             <div id="album-grid" class="grid-list"></div>
         </div>
 
@@ -230,10 +237,21 @@
         let currentVideoId = null;
         let ambientInterval = null;
 
+        // --- 初始化拖拽引擎 ---
+        const initDraggable = (elementId, onEndCallback) => {
+            const el = document.getElementById(elementId);
+            Sortable.create(el, {
+                animation: 150,
+                ghostClass: 'sortable-ghost',
+                chosenClass: 'sortable-chosen',
+                onEnd: onEndCallback
+            });
+        };
+
         // --- Ambient Mode 引擎 ---
         const ambCanvas = document.getElementById('ambient-canvas');
         const ambCtx = ambCanvas.getContext('2d');
-        ambCanvas.width = 16; ambCanvas.height = 9; // 低分辨率采样提高性能
+        ambCanvas.width = 16; ambCanvas.height = 9;
 
         function updateAmbientEffect() {
             if (!ytPlayer || typeof ytPlayer.getVideoData !== 'function') return;
@@ -242,7 +260,6 @@
 
             const img = new Image();
             img.crossOrigin = "Anonymous";
-            // 使用中等质量缩略图作为色源
             img.src = `https://img.youtube.com/vi/${vid}/mqdefault.jpg`;
             img.onload = () => {
                 ambCtx.drawImage(img, 0, 0, ambCanvas.width, ambCanvas.height);
@@ -252,7 +269,7 @@
         window.play = (videoId, songName) => {
             currentVideoId = videoId;
             document.getElementById('player-overlay').style.display = 'flex';
-            document.getElementById('bg-container').style.opacity = '0.2'; // 调暗原视频背景
+            document.getElementById('bg-container').style.opacity = '0.2';
             document.getElementById('ambient-canvas').style.opacity = '1';
             document.getElementById('now-playing-title').innerText = `NOW STREAMING: ${songName}`;
 
@@ -260,7 +277,7 @@
                 ytPlayer = new YT.Player('youtube-player-container', {
                     height: '100%', width: '100%',
                     videoId: videoId,
-                    host: 'https://www.youtube-nocookie.com', // 强化屏蔽广告
+                    host: 'https://www.youtube-nocookie.com',
                     playerVars: { 
                         'autoplay': 1, 
                         'rel': 0, 
@@ -281,7 +298,6 @@
                 ytPlayer.loadVideoById(videoId);
             }
             
-            // UI 更新
             const playlistBox = document.getElementById('playlist-items');
             playlistBox.innerHTML = "";
             currentAlbumSongs.forEach(song => {
@@ -314,7 +330,9 @@
             ambientInterval = null;
         };
 
-        // --- Firebase 逻辑保持不变 ---
+        // --- 核心 Firebase 逻辑 ---
+        
+        // 渲染首页合集并初始化合集拖拽
         onSnapshot(query(albumsCol, orderBy("timestamp", "desc")), (snapshot) => {
             const grid = document.getElementById('album-grid');
             grid.innerHTML = "";
@@ -322,7 +340,7 @@
                 const album = d.data();
                 const cover = (album.songs && album.songs.length > 0) ? `https://img.youtube.com/vi/${album.songs[0].id}/mqdefault.jpg` : 'zijunlogo.png';
                 grid.innerHTML += `
-                    <div class="card" onclick="window.viewAlbum('${d.id}', '${album.title}')">
+                    <div class="card" data-id="${d.id}" onclick="window.viewAlbum('${d.id}', '${album.title}')">
                         <div class="cover-box"><img src="${cover}"></div>
                         <div class="card-info">
                             <div class="song-title">${album.title}</div>
@@ -330,6 +348,17 @@
                         </div>
                         <button class="delete-btn" onclick="window.delAlbum(event, '${d.id}')">ERASE</button>
                     </div>`;
+            });
+
+            // 初始化合集拖拽：通过改变 timestamp 权重实现持久化排序
+            initDraggable('album-grid', async () => {
+                const items = document.querySelectorAll('#album-grid .card');
+                let now = Date.now();
+                for (let i = 0; i < items.length; i++) {
+                    const id = items[i].getAttribute('data-id');
+                    // 倒序时间戳保证 UI 顺序
+                    await updateDoc(doc(db, "albums", id), { timestamp: now - (i * 1000) });
+                }
             });
         });
 
@@ -345,13 +374,24 @@
                 const songGrid = document.getElementById('song-grid');
                 songGrid.innerHTML = "";
                 currentAlbumSongs = d.data()?.songs || [];
-                currentAlbumSongs.forEach(song => {
+                currentAlbumSongs.forEach((song, index) => {
                     songGrid.innerHTML += `
-                        <div class="card" onclick="window.play('${song.id}', '${song.name}')">
+                        <div class="card" data-index="${index}" onclick="window.play('${song.id}', '${song.name}')">
                             <div class="cover-box"><img src="https://img.youtube.com/vi/${song.id}/mqdefault.jpg"></div>
                             <div class="card-info"><div class="song-title">${song.name}</div></div>
                             <button class="delete-btn" onclick="window.removeSong(event, '${song.id}')">REMOVE</button>
                         </div>`;
+                });
+
+                // 初始化歌曲拖拽：直接重新排列数组
+                initDraggable('song-grid', async () => {
+                    const items = document.querySelectorAll('#song-grid .card');
+                    let newSongs = [];
+                    items.forEach(item => {
+                        const idx = item.getAttribute('data-index');
+                        newSongs.push(currentAlbumSongs[idx]);
+                    });
+                    await updateDoc(doc(db, "albums", currentAlbumId), { songs: newSongs });
                 });
             });
         };
