@@ -82,7 +82,7 @@
         .card-info { padding: 12px; border-top: 1px solid var(--border-glow); }
         .song-title { color: var(--neon-blue); font-size: 14px; font-weight: bold; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 
-        /* --- 播放器核心样式 --- */
+        /* --- 播放器 --- */
         #player-overlay {
             display: none;
             position: fixed; top: 0; left: 0; width: 100%; height: 100%;
@@ -121,47 +121,20 @@
             font-weight: bold; font-size: 12px;
         }
 
-        /* ------------------------------------------------ */
-        /* --- 手机端专项优化：解决中间黑块问题 --- */
-        /* ------------------------------------------------ */
         @media (max-width: 800px) {
-            #player-content { 
-                flex-direction: column; 
-                height: 95%; 
-                width: 100%; 
-                border-left: none; border-right: none; 
-            }
-            
-            /* 关键：视频区域不自动拉伸，仅保持 16:9 比例 */
+            #player-content { flex-direction: column; height: 95%; width: 100%; }
             .video-main { flex: 0 0 auto; width: 100%; }
-            
-            /* 关键：播放列表区域占据所有剩余空间，消除黑格 */
-            .playlist-side { 
-                flex: 1; 
-                height: auto; 
-                border-left: none; 
-                border-top: 1px solid #333;
-                min-height: 0; /* 允许 flex 项目缩小以适应容器 */
-            }
-
+            .playlist-side { flex: 1; border-left: none; border-top: 1px solid #333; height: auto; min-height: 0; }
             header { padding: 10px 15px; }
             .logo-area img { width: 32px; height: 32px; }
             .logo-area div div:first-child { font-size: 13px !important; }
             #status-tag { display: none; }
             .btn-cyber { padding: 6px 12px; font-size: 10px; }
-            
             .container { margin: 15px auto; height: calc(100vh - 80px); }
             .grid-list { grid-template-columns: repeat(2, 1fr) !important; gap: 12px; }
-            .song-title { font-size: 12px; }
-            .card-info { padding: 8px; }
-            
-            .modal-content { width: 85%; padding: 20px; }
-            .delete-btn { padding: 1px 4px; font-size: 9px; }
-
             .player-footer { flex-direction: column; gap: 8px; align-items: center; text-align: center; }
         }
 
-        /* 模态框与通用样式 */
         .modal { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.85); justify-content: center; align-items: center; z-index: 2000; }
         .modal-content { background: var(--deep-blue); border: 2px solid var(--neon-blue); padding: 30px; width: 340px; }
         input { width: 100%; padding: 12px; margin: 10px 0; background: rgba(0, 242, 255, 0.1); border: 1px solid var(--neon-blue); color: white; outline: none; box-sizing: border-box; font-size: 16px; }
@@ -208,7 +181,7 @@
     <div id="player-overlay">
         <div id="player-content" onclick="event.stopPropagation()">
             <div class="video-main">
-                <div id="iframe-target" class="video-wrapper"></div>
+                <div id="youtube-player-container" class="video-wrapper"></div>
                 <div class="player-footer">
                     <span id="now-playing-title">STREAMING...</span>
                     <span style="cursor:pointer; background: rgba(0,0,0,0.3); padding: 4px 12px; border: 1px solid #000;" onclick="window.closePlayer()">CLOSE TERMINAL</span>
@@ -240,6 +213,8 @@
         </div>
     </div>
 
+    <script src="https://www.youtube.com/iframe_api"></script>
+
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/12.10.0/firebase-app.js";
         import { getFirestore, collection, addDoc, onSnapshot, query, orderBy, doc, updateDoc, getDoc, arrayUnion, arrayRemove, deleteDoc } from "https://www.gstatic.com/firebasejs/12.10.0/firebase-firestore.js";
@@ -256,14 +231,83 @@
         const app = initializeApp(firebaseConfig);
         const db = getFirestore(app);
         const albumsCol = collection(db, "albums");
+        
         let currentAlbumId = null;
         let currentAlbumSongs = [];
+        let ytPlayer = null; // YouTube 播放器实例
+        let currentVideoId = null;
 
-        // 背景视频点击激活
-        const bgVideo = document.getElementById('bgVideo');
-        window.addEventListener('mousedown', () => { if(bgVideo.paused) bgVideo.play(); }, { once: true });
+        // 1. YouTube API 准备就绪回调
+        window.onYouTubeIframeAPIReady = () => {
+            console.log("YouTube API Ready");
+        };
 
-        // 获取相册列表
+        // 2. 核心：播放下一首的逻辑
+        const playNext = () => {
+            const currentIndex = currentAlbumSongs.findIndex(s => s.id === currentVideoId);
+            if (currentIndex !== -1 && currentIndex < currentAlbumSongs.length - 1) {
+                const nextSong = currentAlbumSongs[currentIndex + 1];
+                window.play(nextSong.id, nextSong.name);
+            } else {
+                console.log("End of collection");
+            }
+        };
+
+        // 3. 增强的播放函数
+        window.play = (videoId, songName) => {
+            currentVideoId = videoId;
+            const overlay = document.getElementById('player-overlay');
+            const title = document.getElementById('now-playing-title');
+            const playlistBox = document.getElementById('playlist-items');
+            
+            overlay.style.display = 'flex';
+            title.innerText = `NOW STREAMING: ${songName}`;
+
+            // 如果播放器不存在，初始化；如果已存在，载入新视频
+            if (!ytPlayer) {
+                ytPlayer = new YT.Player('youtube-player-container', {
+                    height: '100%',
+                    width: '100%',
+                    videoId: videoId,
+                    playerVars: {
+                        'autoplay': 1,
+                        'rel': 0,          // 强制不显示相关视频
+                        'modestbranding': 1, // 最小化 YouTube 标志
+                        'iv_load_policy': 3, // 禁用注释
+                        'origin': window.location.origin
+                    },
+                    events: {
+                        'onStateChange': (event) => {
+                            // event.data == 0 代表视频结束
+                            if (event.data === 0) playNext();
+                        }
+                    }
+                });
+            } else {
+                ytPlayer.loadVideoById(videoId);
+            }
+            
+            // 更新播放列表 UI
+            playlistBox.innerHTML = "";
+            currentAlbumSongs.forEach(song => {
+                const isActive = song.id === videoId ? 'active' : '';
+                playlistBox.innerHTML += `
+                    <div class="playlist-item ${isActive}" onclick="window.play('${song.id}', '${song.name}')">
+                        <img src="https://img.youtube.com/vi/${song.id}/mqdefault.jpg">
+                        <div class="playlist-item-info">
+                            <div style="color:${song.id === videoId ? 'var(--neon-blue)' : '#fff'}; font-weight:bold;">${song.name}</div>
+                            <div style="color:#666; font-size:10px; margin-top:4px;">YOUTUBE_DATA</div>
+                        </div>
+                    </div>`;
+            });
+        };
+
+        window.closePlayer = () => {
+            document.getElementById('player-overlay').style.display = 'none';
+            if (ytPlayer) ytPlayer.stopVideo();
+        };
+
+        // Firebase 逻辑 (保持原样)
         onSnapshot(query(albumsCol, orderBy("timestamp", "desc")), (snapshot) => {
             const grid = document.getElementById('album-grid');
             grid.innerHTML = "";
@@ -282,7 +326,6 @@
             });
         });
 
-        // 查看相册详情
         window.viewAlbum = (id, title) => {
             currentAlbumId = id;
             document.getElementById('home-page').classList.remove('active-page');
@@ -306,53 +349,21 @@
             });
         };
 
-        // 播放控制
-        window.play = (videoId, songName) => {
-            const overlay = document.getElementById('player-overlay');
-            const target = document.getElementById('iframe-target');
-            const title = document.getElementById('now-playing-title');
-            const playlistBox = document.getElementById('playlist-items');
-            
-            overlay.style.display = 'flex';
-            title.innerText = `NOW STREAMING: ${songName}`;
-            target.innerHTML = `<iframe width="100%" height="100%" src="https://www.youtube.com/embed/${videoId}?autoplay=1&rel=0" frameborder="0" allow="autoplay; encrypted-media" allowfullscreen></iframe>`;
-            
-            playlistBox.innerHTML = "";
-            currentAlbumSongs.forEach(song => {
-                const isActive = song.id === videoId ? 'active' : '';
-                playlistBox.innerHTML += `
-                    <div class="playlist-item ${isActive}" onclick="window.play('${song.id}', '${song.name}')">
-                        <img src="https://img.youtube.com/vi/${song.id}/mqdefault.jpg">
-                        <div class="playlist-item-info">
-                            <div style="color:${song.id === videoId ? 'var(--neon-blue)' : '#fff'}; font-weight:bold;">${song.name}</div>
-                            <div style="color:#666; font-size:10px; margin-top:4px;">YOUTUBE_DATA</div>
-                        </div>
-                    </div>`;
-            });
-        };
-
-        window.closePlayer = () => {
-            document.getElementById('player-overlay').style.display = 'none';
-            document.getElementById('iframe-target').innerHTML = "";
-        };
-
+        // 基础 UI 功能
         window.showHome = () => {
             currentAlbumId = null;
             document.getElementById('detail-page').classList.remove('active-page');
             document.getElementById('home-page').classList.add('active-page');
             document.getElementById('main-btn').innerText = "+ NEW COLLECTION";
         };
-
         window.triggerAction = () => {
             if(currentAlbumId) document.getElementById('song-modal').style.display = 'flex';
             else document.getElementById('album-modal').style.display = 'flex';
         };
-
         window.createAlbum = async () => {
             const val = document.getElementById('album-input').value;
             if(val) { await addDoc(albumsCol, { title: val, songs: [], timestamp: Date.now() }); closeModals(); }
         };
-
         window.addSong = async () => {
             const name = document.getElementById('song-name-input').value;
             const url = document.getElementById('song-url-input').value;
@@ -362,7 +373,6 @@
                 closeModals();
             }
         };
-
         window.removeSong = async (e, videoId) => {
             e.stopPropagation();
             if(!confirm("REMOVE TRACK?")) return;
@@ -373,17 +383,17 @@
                 if (songToDelete) await updateDoc(albumRef, { songs: arrayRemove(songToDelete) });
             }
         };
-
         window.delAlbum = async (e, id) => {
             e.stopPropagation();
             if(confirm("DELETE ALBUM?")) await deleteDoc(doc(db, "albums", id));
         };
-
         window.closeModals = () => {
             document.querySelectorAll('.modal').forEach(m => m.style.display = 'none');
             document.querySelectorAll('input').forEach(i => i.value = "");
         };
 
+        const bgVideo = document.getElementById('bgVideo');
+        window.addEventListener('mousedown', () => { if(bgVideo.paused) bgVideo.play(); }, { once: true });
         window.addEventListener('keydown', (e) => { if(e.key === "Escape") window.closePlayer(); });
     </script>
 </body>
