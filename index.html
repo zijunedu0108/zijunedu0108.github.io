@@ -100,8 +100,44 @@
 
         .poster-box img {
             width: 100%; height: 100%; object-fit: cover;
-            transition: opacity 0.4s ease-in-out;
+            display: block;
+            opacity: 0; /* 初始透明，由脚本控制 */
+            transition: opacity 0.5s ease;
         }
+
+        /* --- 加载动画样式 --- */
+        .loading-overlay {
+            position: absolute;
+            top: 0; left: 0; width: 100%; height: 100%;
+            background: #000;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            z-index: 8;
+            transition: opacity 0.4s ease;
+        }
+
+        .loader-ring {
+            width: 60px; height: 60px;
+            border: 2px solid transparent;
+            border-top: 2px solid var(--neon-blue);
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+            margin-bottom: 15px;
+            box-shadow: 0 0 15px var(--neon-blue);
+        }
+
+        .loader-text {
+            color: var(--neon-blue);
+            font-size: 10px;
+            letter-spacing: 4px;
+            text-transform: uppercase;
+            animation: pulse 1.5s ease infinite;
+        }
+
+        @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
+        @keyframes pulse { 0%, 100% { opacity: 0.3; } 50% { opacity: 1; } }
 
         /* 翻页按钮 */
         .nav-arrow {
@@ -210,8 +246,12 @@
 
         <div class="display-panel">
             <div class="poster-box" id="poster-container">
+                <div class="loading-overlay" id="poster-loader">
+                    <div class="loader-ring"></div>
+                    <div class="loader-text">Downloading Data...</div>
+                </div>
                 <div class="nav-arrow arrow-left" onclick="changePoster(-1)"></div>
-                <img id="poster-img" src="zijunlogo.png" alt="Terminal Loading...">
+                <img id="poster-img" src="" alt="Terminal Loading...">
                 <div class="nav-arrow arrow-right" onclick="changePoster(1)"></div>
                 <div class="poster-label" id="poster-counter">0 / 0</div>
             </div>
@@ -231,6 +271,15 @@
 
         let posterData = [];
         let currentIdx = 0;
+        const posterImg = document.getElementById('poster-img');
+        const loader = document.getElementById('poster-loader');
+
+        // 图片加载完成的处理函数
+        posterImg.onload = () => {
+            posterImg.style.opacity = 1;
+            loader.style.opacity = 0;
+            setTimeout(() => { loader.style.visibility = 'hidden'; }, 400);
+        };
 
         async function fetchPosters() {
             const GITHUB_REPO = "zijunedu0108/zijunedu0108.github.io";
@@ -238,11 +287,9 @@
             const desc = document.getElementById('poster-desc');
 
             try {
-                // 请求带有标签的 Issue
                 const response = await fetch(`https://api.github.com/repos/${GITHUB_REPO}/issues?labels=${LABEL}&state=open`);
                 const issues = await response.json();
 
-                // 强大的图片 URL 抓取正则：匹配普通图片后缀 或 GitHub 附件路径
                 const imgRegex = /https?:\/\/[^\s\)\"\'<>]+(?:\.(?:png|jpg|jpeg|gif|webp|svg)|(?:\/assets\/[^\s\)\"\'<>]+))/gi;
 
                 issues.forEach(issue => {
@@ -259,28 +306,33 @@
                 if (posterData.length > 0) {
                     updateDisplay();
                 } else {
+                    loader.innerHTML = '<div class="loader-text" style="color:#ff4e4e">No Assets Found</div>';
                     desc.innerText = "> ERROR: NO_IMAGE_LINK_FOUND_IN_ISSUES";
                     desc.style.color = "#ff4e4e";
                 }
             } catch (e) {
+                loader.innerHTML = '<div class="loader-text" style="color:#ff4e4e">Uplink Error</div>';
                 desc.innerText = "> CRITICAL: CONNECTION_FAILED";
                 desc.style.color = "#ff4e4e";
             }
         }
 
         function updateDisplay() {
-            const img = document.getElementById('poster-img');
             const desc = document.getElementById('poster-desc');
             const counter = document.getElementById('poster-counter');
 
-            img.style.opacity = 0;
+            // 切换图片前开启加载动画
+            loader.style.visibility = 'visible';
+            loader.style.opacity = 1;
+            posterImg.style.opacity = 0;
+
+            // 延迟一点点设置 SRC 避免闪烁过快
             setTimeout(() => {
-                img.src = posterData[currentIdx].url;
+                posterImg.src = posterData[currentIdx].url;
                 desc.innerText = `> DATA_FOUND: ${posterData[currentIdx].title}`;
                 desc.style.color = "var(--neon-blue)";
                 counter.innerText = `${currentIdx + 1} / ${posterData.length}`;
-                img.style.opacity = 1;
-            }, 300);
+            }, 100);
         }
 
         window.changePoster = (direction) => {
@@ -289,13 +341,11 @@
             updateDisplay();
         }
 
-        // 键盘支持
         window.addEventListener('keydown', (e) => {
             if (e.key === "ArrowLeft") changePoster(-1);
             if (e.key === "ArrowRight") changePoster(1);
         });
 
-        // 启动
         fetchPosters();
     </script>
 </body>
