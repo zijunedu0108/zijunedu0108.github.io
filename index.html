@@ -38,7 +38,7 @@
             content: " ";
             position: fixed; top: 0; left: 0; bottom: 0; right: 0;
             background: linear-gradient(rgba(18, 16, 16, 0) 50%, rgba(0, 0, 0, 0.25) 50%), 
-                        linear-gradient(90deg, rgba(255, 0, 0, 0.06), rgba(0, 255, 0, 0.02), rgba(0, 0, 255, 0.06));
+                        linear-gradient(90deg, rgba(255, 0, 0, 0.06), rgba(0, 255, 0, 0.02), rgba(0, 255, 0, 0.06));
             z-index: 100;
             background-size: 100% 2px, 3px 100%;
             pointer-events: none;
@@ -248,10 +248,10 @@
             <div class="poster-box" id="poster-container">
                 <div class="loading-overlay" id="poster-loader">
                     <div class="loader-ring"></div>
-                    <div class="loader-text">Loading...</div>
+                    <div class="loader-text">Uplinking...</div>
                 </div>
                 <div class="nav-arrow arrow-left" onclick="changePoster(-1)"></div>
-                <img id="poster-img" src="" alt="Terminal Loading...">
+                <img id="poster-img" src="" alt="Terminal Core">
                 <div class="nav-arrow arrow-right" onclick="changePoster(1)"></div>
                 <div class="poster-label" id="poster-counter">0 / 0</div>
             </div>
@@ -262,6 +262,7 @@
     </div>
 
     <script>
+        // 时钟功能
         function updateClock() {
             const now = new Date();
             document.getElementById('clock').innerText = now.toTimeString().split(' ')[0];
@@ -270,15 +271,18 @@
 
         let posterData = [];
         let currentIdx = 0;
+        let autoPlayTimer = null; // 自动切换计时器
+        
         const posterImg = document.getElementById('poster-img');
         const loader = document.getElementById('poster-loader');
         const desc = document.getElementById('poster-desc');
 
-        // 图片下载完成后关闭加载层
+        // 图片下载完成后关闭加载动画层
         posterImg.onload = () => {
             posterImg.style.opacity = 1;
             loader.style.opacity = 0;
             setTimeout(() => { loader.style.visibility = 'hidden'; }, 400);
+            resetAutoPlay(); // 加载完后重新倒计时
         };
 
         async function fetchPosters() {
@@ -312,8 +316,8 @@
 
         function updateDisplay() {
             const counter = document.getElementById('poster-counter');
-
-            // 切换时重新开启加载动画
+            
+            // 每次切换时开启加载视觉效果
             loader.style.visibility = 'visible';
             loader.style.opacity = 1;
             posterImg.style.opacity = 0;
@@ -324,17 +328,34 @@
             }, 100);
         }
 
+        // 核心：重置自动播放计时器
+        function resetAutoPlay() {
+            if (autoPlayTimer) clearInterval(autoPlayTimer);
+            if (posterData.length > 1) {
+                autoPlayTimer = setInterval(() => {
+                    changePoster(1);
+                }, 5000); // 5000ms = 5秒切换一次
+            }
+        }
+
         window.changePoster = (direction) => {
             if (posterData.length <= 1) return;
             currentIdx = (currentIdx + direction + posterData.length) % posterData.length;
             updateDisplay();
         }
 
+        // 键盘支持
         window.addEventListener('keydown', (e) => {
             if (e.key === "ArrowLeft") changePoster(-1);
             if (e.key === "ArrowRight") changePoster(1);
         });
 
+        // 鼠标悬停暂停轮播
+        const container = document.getElementById('poster-container');
+        container.addEventListener('mouseenter', () => clearInterval(autoPlayTimer));
+        container.addEventListener('mouseleave', () => resetAutoPlay());
+
+        // 初始化抓取
         fetchPosters();
     </script>
 </body>
