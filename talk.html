@@ -8,7 +8,7 @@
     <style>
         :root {
             --neon-blue: #00f2ff;
-            --panel-bg: rgba(5, 15, 25, 0.9);
+            --panel-bg: rgba(5, 15, 25, 0.95);
             --border-glow: rgba(0, 242, 255, 0.3);
             --text-main: #e0faff;
         }
@@ -27,6 +27,7 @@
             padding: 20px 40px; border-bottom: 1px solid var(--neon-blue);
             display: flex; justify-content: space-between; align-items: center;
             background: rgba(0,0,0,0.8); backdrop-filter: blur(10px);
+            position: sticky; top: 0; z-index: 100;
         }
 
         .container { max-width: 800px; margin: 40px auto; padding: 0 20px; }
@@ -34,19 +35,20 @@
         /* 发送面板 */
         .input-panel {
             background: var(--panel-bg); border: 1px solid var(--neon-blue);
-            padding: 25px; margin-bottom: 30px;
+            padding: 25px; margin-bottom: 40px;
             clip-path: polygon(0 0, 100% 0, 100% 90%, 95% 100%, 0 100%);
+            box-shadow: 0 0 15px rgba(0, 242, 255, 0.1);
         }
 
         .terminal-label { font-size: 12px; color: var(--neon-blue); margin-bottom: 15px; font-family: monospace; }
 
         input, textarea {
-            width: 100%; background: rgba(0,0,0,0.6); border: 1px solid var(--border-glow);
+            width: 100%; background: rgba(0,0,0,0.7); border: 1px solid var(--border-glow);
             color: #fff; padding: 12px; margin-bottom: 15px; box-sizing: border-box;
             font-family: inherit; transition: 0.3s;
         }
 
-        input:focus, textarea:focus { outline: none; border-color: var(--neon-blue); box-shadow: 0 0 10px rgba(0, 242, 255, 0.2); }
+        input:focus, textarea:focus { outline: none; border-color: var(--neon-blue); background: rgba(0, 242, 255, 0.05); }
 
         .btn-send {
             background: transparent; color: var(--neon-blue); border: 1px solid var(--neon-blue);
@@ -56,19 +58,20 @@
 
         .btn-send:hover { background: var(--neon-blue); color: #000; box-shadow: 0 0 20px var(--neon-blue); }
 
-        /* 消息卡片 */
-        #messageDisplay { display: flex; flex-direction: column; gap: 15px; }
+        /* 消息展示区 */
+        #messageDisplay { display: flex; flex-direction: column; gap: 20px; }
 
         .msg-card {
             background: var(--panel-bg); border-left: 4px solid var(--neon-blue);
             padding: 20px; position: relative;
             animation: slideIn 0.5s ease-out forwards;
+            backdrop-filter: blur(5px);
         }
 
-        .msg-header { display: flex; justify-content: space-between; margin-bottom: 10px; font-size: 13px; }
-        .user-name { color: var(--neon-blue); font-weight: bold; text-transform: uppercase; }
+        .msg-header { display: flex; justify-content: space-between; margin-bottom: 12px; font-size: 13px; }
+        .user-name { color: var(--neon-blue); font-weight: bold; letter-spacing: 1px; }
         .msg-time { opacity: 0.5; font-family: monospace; }
-        .msg-content { line-height: 1.6; word-wrap: break-word; color: #fff; }
+        .msg-content { line-height: 1.6; word-wrap: break-word; color: #fff; white-space: pre-wrap; }
 
         @keyframes slideIn { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }
         
@@ -83,28 +86,35 @@
     </video>
 
     <header>
-        <div style="font-size: 22px; letter-spacing: 5px; font-weight: bold; color: #fff;">COMM_CENTER</div>
+        <div style="font-size: 22px; letter-spacing: 5px; font-weight: bold;">COMM_CHANNEL_V2</div>
         <a href="index.html" class="btn-back">RETURN_TO_CORE</a>
     </header>
 
     <div class="container">
         <div class="input-panel">
-            <div class="terminal-label">> OPEN_ENCRYPTED_CHANNEL... READY</div>
-            <input type="text" id="userName" placeholder="IDENTITY_NAME (Optional)">
-            <textarea id="userMsg" rows="3" placeholder="TYPE_MESSAGE_HERE..."></textarea>
+            <div class="terminal-label">> FIRESTORE_UPLINK_STATUS: CONNECTED</div>
+            <input type="text" id="userName" placeholder="IDENTITY_CALLSIGN (Leave blank for Anonymous)">
+            <textarea id="userMsg" rows="3" placeholder="ENTER_MESSAGE_DATA..."></textarea>
             <button class="btn-send" id="sendBtn">Transmit Data</button>
         </div>
 
         <div id="messageDisplay">
-            <div style="text-align: center; opacity: 0.6; font-family: monospace;">UPLINKING_TO_DATABASE...</div>
+            <div style="text-align: center; opacity: 0.6; font-family: monospace;">INITIALIZING_NEURAL_LINK...</div>
         </div>
     </div>
 
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
-        import { getDatabase, ref, push, onValue, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-database.js";
+        import { 
+            getFirestore, 
+            collection, 
+            addDoc, 
+            query, 
+            orderBy, 
+            onSnapshot, 
+            serverTimestamp 
+        } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
 
-        // 你的 Firebase 配置
         const firebaseConfig = {
             apiKey: "AIzaSyC14M7TONHKoEKX3zvUs8ANf2FJ_-CNQ64",
             authDomain: "zijuntalk.firebaseapp.com",
@@ -112,62 +122,67 @@
             storageBucket: "zijuntalk.firebasestorage.app",
             messagingSenderId: "342287590121",
             appId: "1:342287590121:web:2b4519e0f870807cc30678",
-            measurementId: "G-21RCW5NHBZ",
-            databaseURL: "https://zijuntalk-default-rtdb.firebaseio.com" // 关键：请确保此链接正确
+            measurementId: "G-21RCW5NHBZ"
         };
 
-        // 初始化
+        // 初始化 Firebase 与 Firestore
         const app = initializeApp(firebaseConfig);
-        const db = getDatabase(app);
-        const chatRef = ref(db, 'chats');
+        const db = getFirestore(app);
+        const messagesCol = collection(db, "chats");
 
-        // 发送功能
+        // 发送数据逻辑
         const sendBtn = document.getElementById('sendBtn');
         sendBtn.onclick = async () => {
-            const name = document.getElementById('userName').value.trim();
-            const message = document.getElementById('userMsg').value.trim();
+            const nameField = document.getElementById('userName');
+            const msgField = document.getElementById('userMsg');
+            
+            const nameValue = nameField.value.trim();
+            const msgValue = msgField.value.trim();
 
-            if (!message) return alert("NO_DATA_TO_TRANSMIT: Message is empty.");
+            if (!msgValue) {
+                alert("CRITICAL_ERROR: NO_DATA_TO_SEND");
+                return;
+            }
 
             try {
-                await push(chatRef, {
-                    name: name || "Anonymous_Agent",
-                    message: message,
+                await addDoc(messagesCol, {
+                    name: nameValue || "Anonymous_Agent",
+                    message: msgValue,
                     timestamp: serverTimestamp()
                 });
-                document.getElementById('userMsg').value = ''; // 清空输入框
-            } catch (error) {
-                console.error("Transmission Error:", error);
-                alert("CRITICAL_ERROR: Data transmission failed.");
+                msgField.value = ''; // 发送成功后清空消息框
+            } catch (e) {
+                console.error("Transmission failed: ", e);
+                alert("UPLINK_FAILURE: Check connection or Firestore Rules.");
             }
         };
 
-        // 实时接收与渲染
-        onValue(chatRef, (snapshot) => {
+        // 实时获取数据并按时间排序 (最新消息置顶)
+        const q = query(messagesCol, orderBy("timestamp", "desc"));
+
+        onSnapshot(q, (snapshot) => {
             const display = document.getElementById('messageDisplay');
-            display.innerHTML = '';
-            const data = snapshot.val();
+            display.innerHTML = ''; // 清除加载提示
 
-            if (data) {
-                // 将数据转为数组并按时间倒序排列（最新的在最上面）
-                const messages = Object.keys(data).map(key => data[key]);
-                messages.sort((a, b) => b.timestamp - a.timestamp);
+            snapshot.forEach((doc) => {
+                const data = doc.data();
+                // 处理时间戳，如果是刚发送还没同步完成，显示 Syncing...
+                const date = data.timestamp ? new Date(data.timestamp.seconds * 1000).toLocaleString() : "Syncing...";
+                
+                const card = document.createElement('div');
+                card.className = 'msg-card';
+                card.innerHTML = `
+                    <div class="msg-header">
+                        <span class="user-name">> ${data.name}</span>
+                        <span class="msg-time">${date}</span>
+                    </div>
+                    <div class="msg-content">${data.message}</div>
+                `;
+                display.appendChild(card);
+            });
 
-                messages.forEach(msg => {
-                    const time = msg.timestamp ? new Date(msg.timestamp).toLocaleString() : "Syncing...";
-                    const card = document.createElement('div');
-                    card.className = 'msg-card';
-                    card.innerHTML = `
-                        <div class="msg-header">
-                            <span class="user-name">> ${msg.name}</span>
-                            <span class="msg-time">${time}</span>
-                        </div>
-                        <div class="msg-content">${msg.message}</div>
-                    `;
-                    display.appendChild(card);
-                });
-            } else {
-                display.innerHTML = '<div style="text-align:center; opacity:0.5;">ARCHIVES_EMPTY: No logs found.</div>';
+            if (snapshot.empty) {
+                display.innerHTML = '<div style="text-align:center; opacity:0.5;">DATABASE_EMPTY: No logs recorded.</div>';
             }
         });
     </script>
