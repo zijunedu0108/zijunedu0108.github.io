@@ -23,7 +23,6 @@
             overflow: hidden; 
         }
 
-        /* --- Ambient Mode 画布 --- */
         #ambient-canvas {
             position: fixed;
             top: 50%; left: 50%;
@@ -36,22 +35,11 @@
             pointer-events: none;
         }
 
-        /* --- 背景视频 --- */
         .video-bg {
-            position: fixed;
-            top: 0; left: 0;
-            width: 100%; height: 100%;
-            z-index: -100;
-            overflow: hidden;
-            background: #000;
-            transition: opacity 1s;
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            z-index: -100; overflow: hidden; background: #000; transition: opacity 1s;
         }
-        .video-bg video {
-            width: 100%; height: 100%;
-            object-fit: cover;
-            filter: brightness(0.4) contrast(1.1);
-            pointer-events: none;
-        }
+        .video-bg video { width: 100%; height: 100%; object-fit: cover; filter: brightness(0.4); pointer-events: none; }
 
         header {
             display: flex; justify-content: space-between; align-items: center;
@@ -63,8 +51,6 @@
 
         .logo-area { display: flex; align-items: center; gap: 12px; cursor: pointer; }
         .logo-area img { width: 40px; height: 40px; border-radius: 50%; border: 2px solid var(--neon-blue); box-shadow: 0 0 10px var(--neon-blue); }
-
-        .nav-controls { display: flex; gap: 10px; align-items: center; }
 
         .btn-cyber {
             background: transparent; color: var(--neon-blue); border: 1px solid var(--neon-blue);
@@ -78,88 +64,49 @@
             max-width: 1200px; margin: 30px auto; padding: 0 20px; 
             position: relative; z-index: 10; height: calc(100vh - 180px); overflow-y: auto;
         }
-        .container::-webkit-scrollbar { width: 4px; }
-        .container::-webkit-scrollbar-thumb { background: var(--neon-blue); }
-
         .grid-list { display: grid; grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); gap: 25px; }
-
-        /* 拖拽中的样式 */
-        .sortable-ghost { opacity: 0.4; border: 2px dashed var(--neon-blue); }
-        .sortable-chosen { cursor: grabbing; }
 
         .card {
             background: var(--panel-bg); border: 1px solid var(--border-glow);
             border-radius: 4px; overflow: hidden; cursor: pointer; transition: 0.3s; position: relative;
-            touch-action: none;
         }
-        .card:hover { border-color: var(--neon-blue); transform: translateY(-5px); box-shadow: 0 0 15px rgba(0,242,255,0.2); }
-        
-        /* 仅在登录后允许拖拽指针 */
-        body.is-admin .card { cursor: grab; }
-        body.is-admin .card:active { cursor: grabbing; }
+        .card:hover { border-color: var(--neon-blue); transform: translateY(-5px); }
 
-        .cover-box { width: 100%; aspect-ratio: 16/9; background: #000; overflow: hidden; pointer-events: none; }
+        .cover-box { width: 100%; aspect-ratio: 16/9; background: #000; overflow: hidden; }
         .cover-box img { width: 100%; height: 100%; object-fit: cover; opacity: 0.8; }
-        .card-info { padding: 12px; border-top: 1px solid var(--border-glow); pointer-events: none; }
+        .card-info { padding: 12px; border-top: 1px solid var(--border-glow); }
         .song-title { color: var(--neon-blue); font-size: 14px; font-weight: bold; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 
-        /* --- 播放器 --- */
         #player-overlay {
-            display: none;
-            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
-            background: rgba(0, 0, 0, 0.7);
-            z-index: 3000; backdrop-filter: blur(5px);
+            display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(0, 0, 0, 0.7); z-index: 3000; backdrop-filter: blur(5px);
             justify-content: center; align-items: center;
         }
         #player-content {
-            width: 95%; height: 85%; max-width: 1200px;
-            background: #000; border: 1px solid var(--neon-blue);
-            display: flex; flex-direction: row;
-            box-shadow: 0 0 50px rgba(0, 242, 255, 0.2);
-            overflow: hidden;
+            width: 95%; height: 85%; max-width: 1200px; background: #000; border: 1px solid var(--neon-blue);
+            display: flex; box-shadow: 0 0 50px rgba(0, 242, 255, 0.2); overflow: hidden;
         }
-        .video-main { flex: 3; display: flex; flex-direction: column; background: #000; }
+        .video-main { flex: 3; display: flex; flex-direction: column; }
         .video-wrapper { width: 100%; aspect-ratio: 16/9; }
-        .playlist-side { 
-            flex: 1; border-left: 1px solid #333; 
-            display: flex; flex-direction: column; background: rgba(10,10,10,0.9);
-            min-width: 0;
-        }
-        .playlist-header { padding: 15px; background: #111; font-size: 14px; border-bottom: 1px solid #333; color: var(--neon-blue); }
+        .playlist-side { flex: 1; border-left: 1px solid #333; display: flex; flex-direction: column; background: rgba(10,10,10,0.9); }
         .playlist-items { flex: 1; overflow-y: auto; }
-        .playlist-item { 
-            display: flex; gap: 10px; padding: 10px; cursor: pointer; border-bottom: 1px solid #222; 
-        }
+        .playlist-item { display: flex; gap: 10px; padding: 10px; cursor: pointer; border-bottom: 1px solid #222; }
         .playlist-item.active { background: rgba(0, 242, 255, 0.15); }
-        .playlist-item img { width: 80px; height: 45px; object-fit: cover; border-radius: 2px; }
+        .playlist-item img { width: 80px; height: 45px; object-fit: cover; }
 
-        .player-footer { 
-            background: var(--neon-blue); color: var(--deep-blue); 
-            padding: 8px 15px; display: flex; justify-content: space-between; align-items: center;
-            font-weight: bold; font-size: 12px;
-        }
-
-        /* 模态框 */
         .modal { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.85); justify-content: center; align-items: center; z-index: 4000; }
         .modal-content { background: var(--deep-blue); border: 2px solid var(--neon-blue); padding: 30px; width: 340px; }
-        input { width: 100%; padding: 12px; margin: 10px 0; background: rgba(0, 242, 255, 0.1); border: 1px solid var(--neon-blue); color: white; outline: none; box-sizing: border-box; }
+        input { width: 100%; padding: 12px; margin: 10px 0; background: rgba(0, 242, 255, 0.1); border: 1px solid var(--neon-blue); color: white; box-sizing: border-box; }
         
         .page { display: none; }
         .active-page { display: block; }
         
-        /* 权限控制：默认隐藏管理按钮 */
         .admin-only { display: none !important; }
         body.is-admin .admin-only { display: block !important; }
-        body.is-admin button.admin-only { display: inline-block !important; }
 
-        .delete-btn { position: absolute; top: 5px; right: 5px; color: #ff4d4d; font-size: 10px; background: rgba(0,0,0,0.7); border: 1px solid #ff4d4d; cursor: pointer; padding: 2px 6px; z-index: 5; }
+        .delete-btn { position: absolute; top: 5px; right: 5px; color: #ff4d4d; font-size: 10px; background: rgba(0,0,0,0.7); border: 1px solid #ff4d4d; cursor: pointer; padding: 2px 6px; }
 
-        /* 页脚 */
-        footer {
-            position: fixed; bottom: 0; width: 100%; padding: 15px 0;
-            background: rgba(0,0,0,0.8); border-top: 1px solid rgba(0, 242, 255, 0.1);
-            text-align: center; font-size: 10px; color: #555; letter-spacing: 1px;
-        }
+        footer { position: fixed; bottom: 0; width: 100%; padding: 15px 0; background: rgba(0,0,0,0.8); text-align: center; font-size: 10px; color: #555; }
     </style>
 </head>
 <body id="main-body">
@@ -206,17 +153,16 @@
         CLEAN AND AD-FREE MUSIC experience. COPYRIGHT © ZIJUN. ALL RIGHTS RESERVED.
     </footer>
 
-    <div id="player-overlay">
+    <div id="player-overlay" onclick="closePlayer()">
         <div id="player-content" onclick="event.stopPropagation()">
             <div class="video-main">
                 <div id="youtube-player-container" class="video-wrapper"></div>
-                <div class="player-footer">
-                    <span id="now-playing-title">STREAMING...</span>
-                    <span style="cursor:pointer; background: rgba(0,0,0,0.3); padding: 4px 12px; border: 1px solid #000;" onclick="window.closePlayer()">CLOSE TERMINAL</span>
+                <div style="background: var(--neon-blue); color: #000; padding: 10px; display: flex; justify-content: space-between;">
+                    <span id="now-playing-title" style="font-weight: bold;">STREAMING...</span>
+                    <span style="cursor:pointer; font-weight: bold;" onclick="closePlayer()">[X] CLOSE</span>
                 </div>
             </div>
             <div class="playlist-side">
-                <div class="playlist-header">UP NEXT / COLLECTION</div>
                 <div id="playlist-items" class="playlist-items"></div>
             </div>
         </div>
@@ -224,30 +170,30 @@
 
     <div id="login-modal" class="modal">
         <div class="modal-content">
-            <h3 style="color:var(--neon-blue); margin-top:0;">ADMIN_LOGIN</h3>
+            <h3 style="color:var(--neon-blue);">ADMIN_LOGIN</h3>
             <input type="email" id="login-email" placeholder="ADMIN EMAIL">
             <input type="password" id="login-password" placeholder="PASSWORD">
-            <button class="btn-cyber" style="width: 100%; margin-top:10px;" id="do-login-btn">ACCESS_GRANTED</button>
-            <button class="btn-cyber" style="width: 100%; border:none; color:#666; margin-top:10px;" onclick="closeModals()">ABORT</button>
+            <button class="btn-cyber" style="width: 100%;" id="do-login-btn">ACCESS_GRANTED</button>
+            <button class="btn-cyber" style="width: 100%; margin-top:10px; border:none;" onclick="closeModals()">ABORT</button>
         </div>
     </div>
 
     <div id="album-modal" class="modal">
         <div class="modal-content">
-            <h3 style="color:var(--neon-blue); margin-top:0;">INITIALIZE_ALBUM</h3>
+            <h3 style="color:var(--neon-blue);">INITIALIZE_ALBUM</h3>
             <input type="text" id="album-input" placeholder="ALBUM NAME...">
-            <button class="btn-cyber" style="width: 100%; margin-top:10px;" onclick="createAlbum()">CONFIRM</button>
-            <button class="btn-cyber" style="width: 100%; border:none; color:#666; margin-top:10px;" onclick="closeModals()">ABORT</button>
+            <button class="btn-cyber" style="width: 100%;" onclick="createAlbum()">CONFIRM</button>
+            <button class="btn-cyber" style="width: 100%; margin-top:10px; border:none;" onclick="closeModals()">ABORT</button>
         </div>
     </div>
 
     <div id="song-modal" class="modal">
         <div class="modal-content">
-            <h3 style="color:var(--neon-blue); margin-top:0;">INJECT_SONG_DATA</h3>
+            <h3 style="color:var(--neon-blue);">INJECT_SONG_DATA</h3>
             <input type="text" id="song-name-input" placeholder="SONG NAME">
             <input type="text" id="song-url-input" placeholder="YOUTUBE URL...">
-            <button class="btn-cyber" style="width: 100%; margin-top:10px;" onclick="addSong()">EXECUTE</button>
-            <button class="btn-cyber" style="width: 100%; border:none; color:#666; margin-top:10px;" onclick="closeModals()">ABORT</button>
+            <button class="btn-cyber" style="width: 100%;" onclick="addSong()">EXECUTE</button>
+            <button class="btn-cyber" style="width: 100%; margin-top:10px; border:none;" onclick="closeModals()">ABORT</button>
         </div>
     </div>
 
@@ -264,27 +210,26 @@
             projectId: "zijunblog",
             storageBucket: "zijunblog.firebasestorage.app",
             messagingSenderId: "689359220073",
-            appId: "1:689359220073:web:be9d4a467f438b6e8de1f8"
+            appId: "1:689359220073:web:be9d4a467f438b6e8de1f8",
+            measurementId: "G-M8540FQZQD"
         };
 
         const app = initializeApp(firebaseConfig);
         const auth = getAuth(app);
         const db = getFirestore(app);
         const albumsCol = collection(db, "albums");
-        
+
         let currentAlbumId = null;
         let currentAlbumSongs = [];
         let ytPlayer = null; 
-        let currentVideoId = null;
-        let ambientInterval = null;
         let isUserAdmin = false;
+        let ambientInterval = null;
 
-        // --- 权限管理逻辑 ---
+        // --- Auth Logic ---
         onAuthStateChanged(auth, (user) => {
             const body = document.getElementById('main-body');
             const loginBtn = document.getElementById('login-btn');
             const statusTag = document.getElementById('status-tag');
-            
             if (user) {
                 isUserAdmin = true;
                 body.classList.add('is-admin');
@@ -296,7 +241,7 @@
                 body.classList.remove('is-admin');
                 loginBtn.innerText = "LOGIN";
                 statusTag.innerText = "// STATUS: GUEST_MODE_ACTIVE";
-                statusTag.style.color = var(--neon-blue);
+                statusTag.style.color = "var(--neon-blue)";
             }
         });
 
@@ -314,100 +259,10 @@
             try {
                 await signInWithEmailAndPassword(auth, email, pass);
                 window.closeModals();
-            } catch (e) {
-                alert("ACCESS_DENIED: Invalid credentials.");
-            }
+            } catch (e) { alert("ACCESS_DENIED"); }
         };
 
-        // --- 初始化拖拽引擎 ---
-        const initDraggable = (elementId, onEndCallback) => {
-            if (!isUserAdmin) return; // 游客禁止初始化拖拽
-            const el = document.getElementById(elementId);
-            Sortable.create(el, {
-                animation: 150,
-                ghostClass: 'sortable-ghost',
-                chosenClass: 'sortable-chosen',
-                onEnd: onEndCallback
-            });
-        };
-
-        // --- Ambient Mode 引擎 ---
-        const ambCanvas = document.getElementById('ambient-canvas');
-        const ambCtx = ambCanvas.getContext('2d');
-        ambCanvas.width = 16; ambCanvas.height = 9;
-
-        function updateAmbientEffect() {
-            if (!ytPlayer || typeof ytPlayer.getVideoData !== 'function') return;
-            const vid = ytPlayer.getVideoData().video_id;
-            if (!vid) return;
-
-            const img = new Image();
-            img.crossOrigin = "Anonymous";
-            img.src = `https://img.youtube.com/vi/${vid}/mqdefault.jpg`;
-            img.onload = () => {
-                ambCtx.drawImage(img, 0, 0, ambCanvas.width, ambCanvas.height);
-            };
-        }
-
-        window.play = (videoId, songName) => {
-            currentVideoId = videoId;
-            document.getElementById('player-overlay').style.display = 'flex';
-            document.getElementById('bg-container').style.opacity = '0.2';
-            document.getElementById('ambient-canvas').style.opacity = '1';
-            document.getElementById('now-playing-title').innerText = `NOW STREAMING: ${songName}`;
-
-            if (!ytPlayer) {
-                ytPlayer = new YT.Player('youtube-player-container', {
-                    height: '100%', width: '100%',
-                    videoId: videoId,
-                    host: 'https://www.youtube-nocookie.com',
-                    playerVars: { 'autoplay': 1, 'rel': 0, 'modestbranding': 1, 'origin': window.location.origin },
-                    events: {
-                        'onStateChange': (e) => {
-                            if (e.data === YT.PlayerState.ENDED) playNext();
-                            if (e.data === YT.PlayerState.PLAYING) {
-                                if(!ambientInterval) ambientInterval = setInterval(updateAmbientEffect, 3000);
-                            }
-                        }
-                    }
-                });
-            } else {
-                ytPlayer.loadVideoById(videoId);
-            }
-            
-            const playlistBox = document.getElementById('playlist-items');
-            playlistBox.innerHTML = "";
-            currentAlbumSongs.forEach(song => {
-                const isActive = song.id === videoId ? 'active' : '';
-                playlistBox.innerHTML += `
-                    <div class="playlist-item ${isActive}" onclick="window.play('${song.id}', '${song.name}')">
-                        <img src="https://img.youtube.com/vi/${song.id}/mqdefault.jpg">
-                        <div style="font-size:12px; margin-left:10px;">
-                            <div style="color:${song.id === videoId ? 'var(--neon-blue)' : '#fff'}; font-weight:bold;">${song.name}</div>
-                            <div style="color:#666; font-size:10px;">SECURE_TUNNEL_ESTABLISHED</div>
-                        </div>
-                    </div>`;
-            });
-        };
-
-        const playNext = () => {
-            const idx = currentAlbumSongs.findIndex(s => s.id === currentVideoId);
-            if (idx !== -1 && idx < currentAlbumSongs.length - 1) {
-                const next = currentAlbumSongs[idx + 1];
-                window.play(next.id, next.name);
-            }
-        };
-
-        window.closePlayer = () => {
-            document.getElementById('player-overlay').style.display = 'none';
-            document.getElementById('bg-container').style.opacity = '1';
-            document.getElementById('ambient-canvas').style.opacity = '0';
-            if (ytPlayer) ytPlayer.stopVideo();
-            clearInterval(ambientInterval);
-            ambientInterval = null;
-        };
-
-        // --- 核心 Firebase 逻辑 ---
+        // --- Core Data Logic ---
         onSnapshot(query(albumsCol, orderBy("timestamp", "desc")), (snapshot) => {
             const grid = document.getElementById('album-grid');
             grid.innerHTML = "";
@@ -415,26 +270,15 @@
                 const album = d.data();
                 const cover = (album.songs && album.songs.length > 0) ? `https://img.youtube.com/vi/${album.songs[0].id}/mqdefault.jpg` : 'zijunlogo.png';
                 grid.innerHTML += `
-                    <div class="card" data-id="${d.id}" onclick="window.viewAlbum('${d.id}', '${album.title}')">
+                    <div class="card" onclick="viewAlbum('${d.id}', '${album.title}')">
                         <div class="cover-box"><img src="${cover}"></div>
                         <div class="card-info">
                             <div class="song-title">${album.title}</div>
-                            <div style="font-size:10px;color:#888;margin-top:4px;">${album.songs?.length || 0} TRACKS</div>
+                            <div style="font-size:10px;color:#888;">${album.songs?.length || 0} TRACKS</div>
                         </div>
-                        <button class="delete-btn admin-only" onclick="window.delAlbum(event, '${d.id}')">ERASE</button>
+                        <button class="delete-btn admin-only" onclick="event.stopPropagation(); delAlbum('${d.id}')">ERASE</button>
                     </div>`;
             });
-
-            if (isUserAdmin) {
-                initDraggable('album-grid', async () => {
-                    const items = document.querySelectorAll('#album-grid .card');
-                    let now = Date.now();
-                    for (let i = 0; i < items.length; i++) {
-                        const id = items[i].getAttribute('data-id');
-                        await updateDoc(doc(db, "albums", id), { timestamp: now - (i * 1000) });
-                    }
-                });
-            }
         });
 
         window.viewAlbum = (id, title) => {
@@ -451,24 +295,12 @@
                 currentAlbumSongs = d.data()?.songs || [];
                 currentAlbumSongs.forEach((song, index) => {
                     songGrid.innerHTML += `
-                        <div class="card" data-index="${index}" onclick="window.play('${song.id}', '${song.name}')">
+                        <div class="card" onclick="play('${song.id}', '${song.name}')">
                             <div class="cover-box"><img src="https://img.youtube.com/vi/${song.id}/mqdefault.jpg"></div>
                             <div class="card-info"><div class="song-title">${song.name}</div></div>
-                            <button class="delete-btn admin-only" onclick="window.removeSong(event, '${song.id}')">REMOVE</button>
+                            <button class="delete-btn admin-only" onclick="event.stopPropagation(); removeSong('${song.id}')">REMOVE</button>
                         </div>`;
                 });
-
-                if (isUserAdmin) {
-                    initDraggable('song-grid', async () => {
-                        const items = document.querySelectorAll('#song-grid .card');
-                        let newSongs = [];
-                        items.forEach(item => {
-                            const idx = item.getAttribute('data-index');
-                            newSongs.push(currentAlbumSongs[idx]);
-                        });
-                        await updateDoc(doc(db, "albums", currentAlbumId), { songs: newSongs });
-                    });
-                }
             });
         };
 
@@ -479,6 +311,7 @@
             document.getElementById('main-btn').innerText = "+ NEW COLLECTION";
         };
 
+        // --- Action Logic ---
         window.triggerAction = () => {
             if(!isUserAdmin) return;
             if(currentAlbumId) document.getElementById('song-modal').style.display = 'flex';
@@ -486,13 +319,11 @@
         };
 
         window.createAlbum = async () => {
-            if(!isUserAdmin) return;
             const val = document.getElementById('album-input').value;
             if(val) { await addDoc(albumsCol, { title: val, songs: [], timestamp: Date.now() }); closeModals(); }
         };
 
         window.addSong = async () => {
-            if(!isUserAdmin) return;
             const name = document.getElementById('song-name-input').value;
             const url = document.getElementById('song-url-input').value;
             const match = url.match(/(?:v=|be\/|embed\/)(.{11})/);
@@ -502,21 +333,56 @@
             }
         };
 
-        window.removeSong = async (e, videoId) => {
-            e.stopPropagation();
-            if(!isUserAdmin || !confirm("REMOVE TRACK?")) return;
+        window.removeSong = async (videoId) => {
+            if(!confirm("REMOVE TRACK?")) return;
             const albumRef = doc(db, "albums", currentAlbumId);
             const docSnap = await getDoc(albumRef);
-            if (docSnap.exists()) {
-                const songToDelete = docSnap.data().songs.find(s => s.id === videoId);
-                if (songToDelete) await updateDoc(albumRef, { songs: arrayRemove(songToDelete) });
+            const songToDelete = docSnap.data().songs.find(s => s.id === videoId);
+            if (songToDelete) await updateDoc(albumRef, { songs: arrayRemove(songToDelete) });
+        };
+
+        window.delAlbum = async (id) => {
+            if(!confirm("DELETE ALBUM?")) return;
+            await deleteDoc(doc(db, "albums", id));
+        };
+
+        // --- Player Logic ---
+        window.play = (videoId, songName) => {
+            document.getElementById('player-overlay').style.display = 'flex';
+            document.getElementById('now-playing-title').innerText = `STREAMING: ${songName}`;
+            document.getElementById('ambient-canvas').style.opacity = '1';
+            
+            if (!ytPlayer) {
+                ytPlayer = new YT.Player('youtube-player-container', {
+                    height: '100%', width: '100%', videoId: videoId,
+                    playerVars: { 'autoplay': 1, 'modestbranding': 1 },
+                    events: { 'onStateChange': (e) => { if(e.data === YT.PlayerState.ENDED) playNext(videoId); } }
+                });
+            } else { ytPlayer.loadVideoById(videoId); }
+
+            const playlistBox = document.getElementById('playlist-items');
+            playlistBox.innerHTML = "";
+            currentAlbumSongs.forEach(song => {
+                playlistBox.innerHTML += `
+                    <div class="playlist-item ${song.id === videoId ? 'active' : ''}" onclick="play('${song.id}', '${song.name}')">
+                        <img src="https://img.youtube.com/vi/${song.id}/mqdefault.jpg">
+                        <div style="font-size:12px; color:#fff;">${song.name}</div>
+                    </div>`;
+            });
+        };
+
+        const playNext = (currentId) => {
+            const idx = currentAlbumSongs.findIndex(s => s.id === currentId);
+            if (idx !== -1 && idx < currentAlbumSongs.length - 1) {
+                const next = currentAlbumSongs[idx+1];
+                window.play(next.id, next.name);
             }
         };
 
-        window.delAlbum = async (e, id) => {
-            e.stopPropagation();
-            if(!isUserAdmin || !confirm("DELETE ALBUM?")) return;
-            await deleteDoc(doc(db, "albums", id));
+        window.closePlayer = () => {
+            document.getElementById('player-overlay').style.display = 'none';
+            document.getElementById('ambient-canvas').style.opacity = '0';
+            if(ytPlayer) ytPlayer.stopVideo();
         };
 
         window.closeModals = () => {
@@ -524,7 +390,7 @@
             document.querySelectorAll('input').forEach(i => i.value = "");
         };
 
-        window.addEventListener('keydown', (e) => { if(e.key === "Escape") window.closePlayer(); });
+        window.addEventListener('keydown', (e) => { if(e.key === "Escape") closePlayer(); });
     </script>
 </body>
 </html>
