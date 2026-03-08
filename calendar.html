@@ -26,7 +26,6 @@
             overflow-x: hidden;
         }
 
-        /* 扫描线效果 */
         body::before {
             content: " ";
             position: fixed; top: 0; left: 0; bottom: 0; right: 0;
@@ -50,12 +49,9 @@
         }
         .btn-cyber:hover { background: var(--neon-blue); color: #000; box-shadow: 0 0 15px var(--neon-blue); }
 
-        /* Calendar Card */
-        .calendar-card { background: var(--panel-bg); border: 1px solid var(--border-glow); padding: 20px; backdrop-filter: blur(10px); }
+        .calendar-card { background: var(--panel-bg); border: 1px solid var(--border-glow); padding: 20px; backdrop-filter: blur(10px); min-height: 400px; }
 
-        .calendar-nav {
-            display: flex; justify-content: center; align-items: center; gap: 10px; margin-bottom: 20px;
-        }
+        .calendar-nav { display: flex; justify-content: center; align-items: center; gap: 10px; margin-bottom: 25px; }
 
         select {
             background: #000; color: var(--neon-blue); border: 1px solid var(--neon-blue);
@@ -72,21 +68,17 @@
         .day-cell {
             aspect-ratio: 1/1; border: 1px solid rgba(0, 242, 255, 0.1);
             display: flex; flex-direction: column; justify-content: center; align-items: center;
-            background: rgba(255, 255, 255, 0.02); transition: 0.2s; position: relative;
+            background: rgba(255, 255, 255, 0.05); transition: 0.2s; position: relative;
         }
 
-        /* 访客模式下的提示 */
-        .day-cell { cursor: default; }
         .auth-active .day-cell { cursor: pointer; }
         .auth-active .day-cell:hover { background: rgba(0, 242, 255, 0.15); border-color: var(--neon-blue); }
 
         .day-cell.today { border: 2px solid var(--neon-blue); box-shadow: inset 0 0 10px rgba(0, 242, 255, 0.3); }
-        .day-cell.other-month { opacity: 0.2; }
 
         .day-num { font-size: 16px; font-weight: bold; }
         .day-emoji { font-size: 14px; margin-top: 5px; }
 
-        /* Modal */
         #modal-overlay {
             position: fixed; top: 0; left: 0; width: 100%; height: 100%;
             background: rgba(0, 0, 0, 0.9); display: none; justify-content: center; align-items: center;
@@ -135,15 +127,12 @@
             <button class="btn-action" onclick="login()">VERIFY</button>
             <button class="btn-cyber" style="width:100%; border:none; margin-top:10px;" onclick="closeModal()">CLOSE</button>
         </div>
-
         <div id="edit-modal" class="modal-box" style="display:none;">
             <div id="edit-date-label" style="color:var(--neon-blue); margin-bottom:15px;">DATE: 0000.00.00</div>
             <div class="emoji-list">
                 <span class="emoji-opt" onclick="setEmoji('🚀')">🚀</span>
                 <span class="emoji-opt" onclick="setEmoji('💻')">💻</span>
-                <span class="emoji-opt" onclick="setEmoji('📚')">📚</span>
                 <span class="emoji-opt" onclick="setEmoji('✅')">✅</span>
-                <span class="emoji-opt" onclick="setEmoji('🔥')">🔥</span>
                 <span class="emoji-opt" onclick="setEmoji('💤')">💤</span>
             </div>
             <textarea id="edit-note" placeholder="Write logs..."></textarea>
@@ -153,7 +142,7 @@
     </div>
 
     <script>
-        // --- 1. FIREBASE SETUP ---
+        // --- 1. 配置 (请务必填写正确) ---
         const firebaseConfig = {
             apiKey: "你的ApiKey",
             authDomain: "你的Domain",
@@ -163,60 +152,26 @@
             messagingSenderId: "你的SenderId",
             appId: "你的AppId"
         };
-        firebase.initializeApp(firebaseConfig);
-        const auth = firebase.auth();
-        const db = firebase.database();
 
-        // --- 2. VARS ---
-        let viewDate = new Date(); // 当前查看的日期
+        let viewDate = new Date();
         let user = null;
         let cloudData = {};
         let activeKey = "";
         let activeEmoji = "";
-
         const months = ["January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"];
-        
-        // --- 3. INIT UI ---
+
+        // 初始化下拉框
         const monthSel = document.getElementById('sel-month');
         const yearSel = document.getElementById('sel-year');
         months.forEach((m, i) => monthSel.add(new Option(m, i)));
         for(let y=2024; y<=2030; y++) yearSel.add(new Option(y, y));
 
-        auth.onAuthStateChanged(u => {
-            user = u;
-            const status = document.getElementById('status-tag');
-            const btn = document.getElementById('auth-btn');
-            const container = document.getElementById('cal-container');
-
-            if(u) {
-                status.innerText = `ADMIN // ${u.email}`;
-                status.style.color = "var(--neon-blue)";
-                btn.innerText = "LOGOUT";
-                container.classList.add('auth-active');
-                loadCloudData();
-            } else {
-                status.innerText = "GUEST_READ_ONLY";
-                status.style.color = "#666";
-                btn.innerText = "LOGIN";
-                container.classList.remove('auth-active');
-                cloudData = {};
-                render();
-            }
-        });
-
-        // --- 4. CORE LOGIC ---
-        async function loadCloudData() {
-            if(!user) return;
-            const snap = await db.ref('calendar_logs/' + user.uid).once('value');
-            cloudData = snap.val() || {};
-            render();
-        }
-
+        // --- 2. 核心渲染函数 (放在最前面，确保报错前能运行一次) ---
         function render() {
             const grid = document.getElementById('cal-grid');
-            grid.innerHTML = ""; // 清空
+            if(!grid) return;
+            grid.innerHTML = "";
 
-            // 重新添加星期头
             ["SUN", "MON", "TUE", "WED", "THU", "FRI", "SAT"].forEach(day => {
                 const h = document.createElement('div');
                 h.className = 'day-header';
@@ -226,97 +181,97 @@
 
             const year = viewDate.getFullYear();
             const month = viewDate.getMonth();
-            
-            // 同步下拉菜单
             monthSel.value = month;
             yearSel.value = year;
 
             const firstDayIndex = new Date(year, month, 1).getDay();
             const lastDayDate = new Date(year, month + 1, 0).getDate();
 
-            // 填充空白日期
             for(let x=0; x<firstDayIndex; x++) {
                 const empty = document.createElement('div');
-                empty.className = 'day-cell other-month';
+                empty.className = 'day-cell';
+                empty.style.opacity = "0";
                 grid.appendChild(empty);
             }
 
-            // 填充真实日期
             const today = new Date();
             for(let d=1; d<=lastDayDate; d++) {
                 const key = `${year}-${month+1}-${d}`;
                 const cell = document.createElement('div');
                 cell.className = 'day-cell';
-                
-                if(d === today.getDate() && month === today.getMonth() && year === today.getFullYear()) {
-                    cell.classList.add('today');
-                }
+                if(d === today.getDate() && month === today.getMonth() && year === today.getFullYear()) cell.classList.add('today');
 
                 const data = cloudData[key] || {};
-                cell.innerHTML = `
-                    <div class="day-num">${d}</div>
-                    <div class="day-emoji">${data.emoji || ''}</div>
-                `;
-
+                cell.innerHTML = `<div class="day-num">${d}</div><div class="day-emoji">${data.emoji || ''}</div>`;
                 if(user) cell.onclick = () => openEditor(key);
                 grid.appendChild(cell);
             }
         }
 
-        // --- 5. INTERACTION ---
+        // 立即执行一次渲染
+        render();
+
+        // --- 3. FIREBASE 初始化 (带错误处理) ---
+        try {
+            firebase.initializeApp(firebaseConfig);
+            const auth = firebase.auth();
+            const db = firebase.database();
+
+            auth.onAuthStateChanged(u => {
+                user = u;
+                document.getElementById('status-tag').innerText = u ? `ADMIN // ${u.email}` : "GUEST_READ_ONLY";
+                document.getElementById('auth-btn').innerText = u ? "LOGOUT" : "LOGIN";
+                if(u) loadCloudData(db);
+                else render();
+            });
+
+            async function loadCloudData(database) {
+                const snap = await database.ref('calendar_logs/' + user.uid).once('value');
+                cloudData = snap.val() || {};
+                render();
+            }
+
+            window.login = () => {
+                const e = document.getElementById('email-in').value;
+                const p = document.getElementById('pass-in').value;
+                auth.signInWithEmailAndPassword(e, p).then(() => closeModal()).catch(err => alert(err.message));
+            };
+
+            window.save = () => {
+                const note = document.getElementById('edit-note').value;
+                db.ref(`calendar_logs/${user.uid}/${activeKey}`).set({ emoji: activeEmoji, note: note }).then(() => {
+                    cloudData[activeKey] = { emoji: activeEmoji, note: note };
+                    closeModal(); render();
+                });
+            };
+
+            window.handleAuthClick = () => user ? auth.signOut() : showModal('login-modal');
+
+        } catch (e) {
+            console.error("Firebase Init Failed. Running in Offline Mode.");
+        }
+
+        // --- 4. 通用函数 ---
         function adjustMonth(s) { viewDate.setMonth(viewDate.getMonth() + s); render(); }
         function syncDate() { viewDate = new Date(yearSel.value, monthSel.value, 1); render(); }
-
-        function handleAuthClick() {
-            if(user) auth.signOut();
-            else {
-                document.getElementById('modal-overlay').style.display = 'flex';
-                document.getElementById('login-modal').style.display = 'block';
-                document.getElementById('edit-modal').style.display = 'none';
-            }
+        function showModal(id) {
+            document.getElementById('modal-overlay').style.display = 'flex';
+            document.getElementById('login-modal').style.display = (id === 'login-modal' ? 'block' : 'none');
+            document.getElementById('edit-modal').style.display = (id === 'edit-modal' ? 'block' : 'none');
         }
-
-        function login() {
-            const e = document.getElementById('email-in').value;
-            const p = document.getElementById('pass-in').value;
-            auth.signInWithEmailAndPassword(e, p).then(() => closeModal()).catch(err => alert(err.message));
-        }
-
+        function closeModal() { document.getElementById('modal-overlay').style.display = 'none'; }
         function openEditor(key) {
             activeKey = key;
             const data = cloudData[key] || {emoji:"", note:""};
             document.getElementById('edit-date-label').innerText = `DATE: ${key.replace(/-/g, '.')}`;
             document.getElementById('edit-note').value = data.note;
             setEmoji(data.emoji);
-
-            document.getElementById('modal-overlay').style.display = 'flex';
-            document.getElementById('edit-modal').style.display = 'block';
-            document.getElementById('login-modal').style.display = 'none';
+            showModal('edit-modal');
         }
-
         function setEmoji(e) {
             activeEmoji = e;
-            document.querySelectorAll('.emoji-opt').forEach(opt => {
-                opt.classList.toggle('active', opt.innerText === e);
-            });
+            document.querySelectorAll('.emoji-opt').forEach(opt => opt.classList.toggle('active', opt.innerText === e));
         }
-
-        function save() {
-            const note = document.getElementById('edit-note').value;
-            db.ref(`calendar_logs/${user.uid}/${activeKey}`).set({
-                emoji: activeEmoji,
-                note: note
-            }).then(() => {
-                cloudData[activeKey] = { emoji: activeEmoji, note: note };
-                closeModal();
-                render();
-            });
-        }
-
-        function closeModal() { document.getElementById('modal-overlay').style.display = 'none'; }
-
-        // 启动！
-        render();
     </script>
 </body>
 </html>
