@@ -24,16 +24,16 @@
             overflow: hidden; 
         }
 
-        /* --- 强化版实时氛围灯 --- */
+        /* --- 增强型实时氛围灯 --- */
         #ambient-canvas {
             position: fixed;
             top: 50%; left: 50%;
-            transform: translate(-50%, -50%) scale(1.2);
+            transform: translate(-50%, -50%) scale(1.5);
             width: 100vw; height: 100vh;
             z-index: 2500; 
-            filter: blur(120px) brightness(0.6) saturate(1.8);
+            filter: blur(80px) brightness(0.7) saturate(2);
             opacity: 0;
-            transition: opacity 2s ease;
+            transition: opacity 2s ease, filter 1s linear;
             pointer-events: none;
         }
 
@@ -55,7 +55,7 @@
 
         header {
             display: flex; justify-content: space-between; align-items: center;
-            padding: 15px 30px; background: rgba(0, 0, 0, 0.7);
+            padding: 15px 30px; background: rgba(0, 0, 0, 0.8);
             backdrop-filter: blur(15px); -webkit-backdrop-filter: blur(15px);
             border-bottom: 1px solid var(--neon-blue);
             position: sticky; top: 0; z-index: 100;
@@ -72,7 +72,7 @@
         }
         .btn-cyber:hover { background: var(--neon-blue); color: var(--deep-blue); box-shadow: 0 0 20px var(--neon-blue); }
         
-        .admin-only { display: none; } /* 默认隐藏管理功能 */
+        .admin-only { display: none; }
 
         .container { 
             max-width: 1200px; margin: 30px auto; padding: 0 20px; 
@@ -85,62 +85,57 @@
 
         .card {
             background: var(--panel-bg); border: 1px solid var(--border-glow);
-            border-radius: 4px; overflow: hidden; cursor: grab; transition: 0.3s; position: relative;
-            touch-action: none;
+            border-radius: 4px; overflow: hidden; cursor: pointer; transition: 0.3s; position: relative;
         }
-        .card:hover { border-color: var(--neon-blue); transform: translateY(-5px); box-shadow: 0 0 15px rgba(0,242,255,0.2); }
-        .cover-box { width: 100%; aspect-ratio: 16/9; background: #000; overflow: hidden; pointer-events: none; }
+        .card:hover { border-color: var(--neon-blue); transform: translateY(-5px); }
+        .cover-box { width: 100%; aspect-ratio: 16/9; background: #000; overflow: hidden; }
         .cover-box img { width: 100%; height: 100%; object-fit: cover; opacity: 0.8; }
-        .card-info { padding: 12px; border-top: 1px solid var(--border-glow); pointer-events: none; }
+        .card-info { padding: 12px; border-top: 1px solid var(--border-glow); }
         .song-title { color: var(--neon-blue); font-size: 14px; font-weight: bold; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 
-        /* --- 播放器覆盖层 --- */
+        /* --- 播放器界面 --- */
         #player-overlay {
             display: none;
             position: fixed; top: 0; left: 0; width: 100%; height: 100%;
-            background: rgba(0, 0, 0, 0.85);
+            background: rgba(0, 0, 0, 0.9);
             z-index: 3000; backdrop-filter: blur(10px);
             justify-content: center; align-items: center;
         }
         #player-content {
             width: 95%; height: 85%; max-width: 1280px;
             background: #000; border: 1px solid var(--neon-blue);
-            display: flex; flex-direction: row;
-            box-shadow: 0 0 60px rgba(0, 242, 255, 0.15);
+            display: flex; box-shadow: 0 0 60px rgba(0, 242, 255, 0.15);
             overflow: hidden; position: relative; z-index: 3100;
         }
-        .video-main { flex: 3; display: flex; flex-direction: column; background: #000; }
+        .video-main { flex: 3; display: flex; flex-direction: column; }
         .video-wrapper { width: 100%; aspect-ratio: 16/9; background: #000; }
         .playlist-side { 
             flex: 1; border-left: 1px solid #222; 
             display: flex; flex-direction: column; background: rgba(5,5,5,0.95);
             min-width: 300px;
         }
-        .playlist-header { padding: 15px; background: #111; font-size: 12px; border-bottom: 1px solid #222; color: var(--neon-blue); letter-spacing: 1px; }
+        .playlist-header { padding: 15px; background: #111; font-size: 11px; border-bottom: 1px solid #222; color: var(--neon-blue); }
         .playlist-items { flex: 1; overflow-y: auto; }
         .playlist-item { 
-            display: flex; gap: 10px; padding: 12px; cursor: pointer; border-bottom: 1px solid #111; transition: 0.2s;
+            display: flex; gap: 10px; padding: 12px; cursor: pointer; border-bottom: 1px solid #111;
         }
-        .playlist-item:hover { background: rgba(255,255,255,0.05); }
         .playlist-item.active { background: rgba(0, 242, 255, 0.1); border-left: 3px solid var(--neon-blue); }
-        .playlist-item img { width: 100px; height: 56px; object-fit: cover; border-radius: 2px; }
+        .playlist-item img { width: 80px; height: 45px; object-fit: cover; }
 
         .player-footer { 
             background: var(--neon-blue); color: var(--deep-blue); 
-            padding: 10px 20px; display: flex; justify-content: space-between; align-items: center;
-            font-weight: bold; font-size: 12px;
+            padding: 8px 20px; display: flex; justify-content: space-between; align-items: center;
+            font-weight: bold; font-size: 11px;
         }
 
-        /* --- 模态框 & 登录 --- */
+        /* --- 模态框 --- */
         .modal { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.9); justify-content: center; align-items: center; z-index: 4000; }
-        .modal-content { background: var(--deep-blue); border: 2px solid var(--neon-blue); padding: 30px; width: 340px; position: relative; box-shadow: 0 0 30px var(--neon-blue); }
-        input { width: 100%; padding: 12px; margin: 10px 0; background: rgba(0, 242, 255, 0.05); border: 1px solid var(--border-glow); color: white; outline: none; box-sizing: border-box; transition: 0.3s; }
-        input:focus { border-color: var(--neon-blue); background: rgba(0, 242, 255, 0.15); }
+        .modal-content { background: var(--deep-blue); border: 2px solid var(--neon-blue); padding: 30px; width: 340px; box-shadow: 0 0 30px var(--neon-blue); }
+        input { width: 100%; padding: 12px; margin: 10px 0; background: rgba(0, 242, 255, 0.05); border: 1px solid var(--border-glow); color: white; box-sizing: border-box; }
         
         .page { display: none; }
         .active-page { display: block; }
-        .delete-btn { position: absolute; top: 5px; right: 5px; color: var(--error-red); font-size: 10px; background: rgba(0,0,0,0.8); border: 1px solid var(--error-red); cursor: pointer; padding: 2px 6px; z-index: 5; opacity: 0.7; }
-        .delete-btn:hover { opacity: 1; background: var(--error-red); color: white; }
+        .delete-btn { position: absolute; top: 5px; right: 5px; color: var(--error-red); font-size: 10px; background: rgba(0,0,0,0.8); border: 1px solid var(--error-red); cursor: pointer; padding: 2px 6px; }
 
         @media (max-width: 768px) {
             #player-content { flex-direction: column; height: 95%; }
@@ -152,7 +147,7 @@
 
     <canvas id="ambient-canvas"></canvas>
 
-    <div class="video-bg" id="bg-container">
+    <div class="video-bg">
         <video autoplay muted loop playsinline id="bgVideo">
             <source src="zijunbg.mp4" type="video/mp4">
         </video>
@@ -163,7 +158,7 @@
             <img src="zijunlogo.png" alt="Logo">
             <div>
                 <div style="font-size: 16px; letter-spacing: 2px; font-weight: bold;">ZIJUN TERMINAL</div>
-                <div id="status-tag" style="font-size: 8px; color: var(--neon-blue);">// STATUS: AMBIENT_SYNC_READY</div>
+                <div id="status-tag" style="font-size: 8px; color: var(--neon-blue);">// STATUS: AMBIENT_SYNC_ACTIVE</div>
             </div>
         </div>
         <div style="display: flex; gap: 10px;">
@@ -174,13 +169,13 @@
 
     <div class="container">
         <div id="home-page" class="page active-page">
-            <h3 style="color: var(--neon-blue); margin-bottom: 20px; font-size: 13px; letter-spacing: 1px;">> CORE_DATABASE / ALBUMS</h3>
+            <h3 style="color: var(--neon-blue); margin-bottom: 20px; font-size: 13px;">> CORE_DATABASE / ALBUMS</h3>
             <div id="album-grid" class="grid-list"></div>
         </div>
 
         <div id="detail-page" class="page">
-            <div style="display: flex; align-items: center; margin-bottom: 20px;">
-                <button class="btn-cyber" onclick="showHome()" style="margin-right: 15px;">BACK</button>
+            <div style="display: flex; align-items: center; margin-bottom: 20px; gap: 20px;">
+                <button class="btn-cyber" onclick="showHome()">← BACK</button>
                 <h3 id="album-title-display" style="color: var(--neon-blue); margin: 0; font-size: 13px;"></h3>
             </div>
             <div id="song-grid" class="grid-list"></div>
@@ -192,7 +187,7 @@
             <div class="video-main">
                 <div id="youtube-player-container" class="video-wrapper"></div>
                 <div class="player-footer">
-                    <span id="now-playing-title">STREAMING...</span>
+                    <span id="now-playing-title">LOADING STREAM...</span>
                     <span style="cursor:pointer; background: rgba(0,0,0,0.3); padding: 4px 12px; border: 1px solid #000;" onclick="window.closePlayer()">TERMINATE_SESSION</span>
                 </div>
             </div>
@@ -203,34 +198,28 @@
         </div>
     </div>
 
-    <div id="login-modal" class="modal">
-        <div class="modal-content">
-            <h3 style="color:var(--neon-blue); margin-top:0;">AUTH_REQUIRED</h3>
-            <input type="email" id="login-email" placeholder="ACCESS_ID (EMAIL)">
-            <input type="password" id="login-pass" placeholder="SECURITY_KEY">
-            <button class="btn-cyber" style="width: 100%; margin-top:10px;" onclick="handleLogin()">VERIFY IDENTITY</button>
-            <button class="btn-cyber" style="width: 100%; border:none; color:#666; margin-top:10px;" onclick="closeModals()">ABORT</button>
-        </div>
-    </div>
+    <div id="login-modal" class="modal"><div class="modal-content">
+        <h3 style="color:var(--neon-blue); margin-top:0;">AUTH_REQUIRED</h3>
+        <input type="email" id="login-email" placeholder="ACCESS_ID">
+        <input type="password" id="login-pass" placeholder="SECURITY_KEY">
+        <button class="btn-cyber" style="width: 100%; margin-top:10px;" onclick="handleLogin()">VERIFY</button>
+        <button class="btn-cyber" style="width: 100%; border:none; color:#666; margin-top:5px;" onclick="closeModals()">ABORT</button>
+    </div></div>
 
-    <div id="album-modal" class="modal">
-        <div class="modal-content">
-            <h3 style="color:var(--neon-blue); margin-top:0;">INITIALIZE_ALBUM</h3>
-            <input type="text" id="album-input" placeholder="ALBUM NAME...">
-            <button class="btn-cyber" style="width: 100%; margin-top:10px;" onclick="createAlbum()">CONFIRM</button>
-            <button class="btn-cyber" style="width: 100%; border:none; color:#666; margin-top:10px;" onclick="closeModals()">ABORT</button>
-        </div>
-    </div>
+    <div id="album-modal" class="modal"><div class="modal-content">
+        <h3 style="color:var(--neon-blue); margin-top:0;">NEW_ALBUM</h3>
+        <input type="text" id="album-input" placeholder="ALBUM NAME...">
+        <button class="btn-cyber" style="width: 100%;" onclick="createAlbum()">CONFIRM</button>
+        <button class="btn-cyber" style="width: 100%; border:none; color:#666; margin-top:5px;" onclick="closeModals()">ABORT</button>
+    </div></div>
 
-    <div id="song-modal" class="modal">
-        <div class="modal-content">
-            <h3 style="color:var(--neon-blue); margin-top:0;">INJECT_SONG_DATA</h3>
-            <input type="text" id="song-name-input" placeholder="SONG NAME">
-            <input type="text" id="song-url-input" placeholder="YOUTUBE URL...">
-            <button class="btn-cyber" style="width: 100%; margin-top:10px;" onclick="addSong()">EXECUTE</button>
-            <button class="btn-cyber" style="width: 100%; border:none; color:#666; margin-top:10px;" onclick="closeModals()">ABORT</button>
-        </div>
-    </div>
+    <div id="song-modal" class="modal"><div class="modal-content">
+        <h3 style="color:var(--neon-blue); margin-top:0;">INJECT_TRACK</h3>
+        <input type="text" id="song-name-input" placeholder="SONG NAME">
+        <input type="text" id="song-url-input" placeholder="YOUTUBE URL">
+        <button class="btn-cyber" style="width: 100%;" onclick="addSong()">EXECUTE</button>
+        <button class="btn-cyber" style="width: 100%; border:none; color:#666; margin-top:5px;" onclick="closeModals()">ABORT</button>
+    </div></div>
 
     <script src="https://www.youtube.com/iframe_api"></script>
 
@@ -259,59 +248,30 @@
         let ambientInterval = null;
         let isAdmin = false;
 
-        // --- 身份验证逻辑 ---
-        window.openLogin = () => {
-            if(auth.currentUser) {
-                signOut(auth).then(() => location.reload());
-            } else {
-                document.getElementById('login-modal').style.display = 'flex';
-            }
-        };
-
-        window.handleLogin = async () => {
-            const email = document.getElementById('login-email').value;
-            const pass = document.getElementById('login-pass').value;
-            try {
-                await signInWithEmailAndPassword(auth, email, pass);
-                closeModals();
-            } catch (err) {
-                alert("ACCESS DENIED: INVALID CREDENTIALS");
-            }
-        };
-
-        onAuthStateChanged(auth, (user) => {
-            isAdmin = !!user;
-            document.querySelectorAll('.admin-only').forEach(el => el.style.display = user ? 'block' : 'none');
-            document.getElementById('login-gate-btn').innerText = user ? "LOGOUT" : "SYSTEM LOGIN";
-            document.getElementById('status-tag').innerText = user ? "// STATUS: ADMIN_SESSION_ACTIVE" : "// STATUS: AMBIENT_SYNC_READY";
-        });
-
-        // --- 实时氛围灯引擎 (大范围重构) ---
+        // --- 氛围灯引擎：每秒切换与平滑过渡 ---
         const ambCanvas = document.getElementById('ambient-canvas');
         const ambCtx = ambCanvas.getContext('2d', { alpha: false });
-        ambCanvas.width = 32; ambCanvas.height = 18; // 低分辨率采样实现高性能模糊
+        ambCanvas.width = 16; ambCanvas.height = 9;
 
         function updateAmbientEffect() {
             if (!ytPlayer || typeof ytPlayer.getVideoData !== 'function') return;
-            const state = ytPlayer.getPlayerState();
-            if (state !== YT.PlayerState.PLAYING) return;
+            if (ytPlayer.getPlayerState() !== YT.PlayerState.PLAYING) return;
 
             const vid = ytPlayer.getVideoData().video_id;
             const img = new Image();
             img.crossOrigin = "Anonymous";
-            // 使用高质量缩略图作为光源
+            // 每秒抓取缩略图作为光源，由于 canvas 极小，会产生自然的色彩流动
             img.src = `https://img.youtube.com/vi/${vid}/mqdefault.jpg`;
             img.onload = () => {
-                ambCtx.drawImage(img, 0, 0, ambCanvas.width, ambCanvas.height);
+                ambCtx.drawImage(img, 0, 0, 16, 9);
             };
         }
 
-        // --- 播放器逻辑 ---
+        // --- 核心播放逻辑 ---
         window.play = (videoId, songName) => {
             document.getElementById('player-overlay').style.display = 'flex';
-            document.getElementById('bg-container').style.opacity = '0.1';
             document.getElementById('ambient-canvas').style.opacity = '1';
-            document.getElementById('now-playing-title').innerText = `LIVE_STREAM: ${songName}`;
+            document.getElementById('now-playing-title').innerText = `STREAMING: ${songName}`;
 
             if (!ytPlayer) {
                 ytPlayer = new YT.Player('youtube-player-container', {
@@ -323,7 +283,7 @@
                         'onStateChange': (e) => {
                             if (e.data === YT.PlayerState.ENDED) playNext();
                             if (e.data === YT.PlayerState.PLAYING) {
-                                if(!ambientInterval) ambientInterval = setInterval(updateAmbientEffect, 2000);
+                                if(!ambientInterval) ambientInterval = setInterval(updateAmbientEffect, 1000);
                             }
                         }
                     }
@@ -336,18 +296,13 @@
 
         const renderPlayerPlaylist = (activeId) => {
             const playlistBox = document.getElementById('playlist-items');
-            playlistBox.innerHTML = "";
-            currentAlbumSongs.forEach(song => {
-                const isActive = song.id === activeId ? 'active' : '';
-                playlistBox.innerHTML += `
-                    <div class="playlist-item ${isActive}" onclick="window.play('${song.id}', '${song.name}')">
-                        <img src="https://img.youtube.com/vi/${song.id}/mqdefault.jpg">
-                        <div style="font-size:11px; margin-left:10px; overflow:hidden;">
-                            <div style="color:${song.id === activeId ? 'var(--neon-blue)' : '#fff'}; font-weight:bold; text-overflow:ellipsis; white-space:nowrap; overflow:hidden;">${song.name}</div>
-                            <div style="color:#555; font-size:9px; margin-top:4px;">ENCRYPTED_SIGNAL</div>
-                        </div>
-                    </div>`;
-            });
+            playlistBox.innerHTML = currentAlbumSongs.map(song => `
+                <div class="playlist-item ${song.id === activeId ? 'active' : ''}" onclick="window.play('${song.id}', '${song.name}')">
+                    <img src="https://img.youtube.com/vi/${song.id}/mqdefault.jpg">
+                    <div style="font-size:11px; overflow:hidden;">
+                        <div style="color:${song.id === activeId ? 'var(--neon-blue)' : '#fff'}; font-weight:bold;">${song.name}</div>
+                    </div>
+                </div>`).join('');
         };
 
         const playNext = () => {
@@ -361,44 +316,19 @@
 
         window.closePlayer = () => {
             document.getElementById('player-overlay').style.display = 'none';
-            document.getElementById('bg-container').style.opacity = '1';
             document.getElementById('ambient-canvas').style.opacity = '0';
             if (ytPlayer) ytPlayer.stopVideo();
             clearInterval(ambientInterval);
             ambientInterval = null;
         };
 
-        // --- 数据渲染与拖拽 (原有功能保留) ---
-        onSnapshot(query(albumsCol, orderBy("timestamp", "desc")), (snapshot) => {
-            const grid = document.getElementById('album-grid');
-            grid.innerHTML = "";
-            snapshot.forEach(d => {
-                const album = d.data();
-                const cover = (album.songs && album.songs.length > 0) ? `https://img.youtube.com/vi/${album.songs[0].id}/mqdefault.jpg` : 'zijunlogo.png';
-                grid.innerHTML += `
-                    <div class="card" data-id="${d.id}" onclick="window.viewAlbum('${d.id}', '${album.title}')">
-                        <div class="cover-box"><img src="${cover}"></div>
-                        <div class="card-info">
-                            <div class="song-title">${album.title}</div>
-                            <div style="font-size:10px;color:#666;margin-top:4px;">${album.songs?.length || 0} SECTORS</div>
-                        </div>
-                        ${isAdmin ? `<button class="delete-btn" onclick="window.delAlbum(event, '${d.id}')">ERASE</button>` : ''}
-                    </div>`;
-            });
-
-            if(isAdmin) {
-                Sortable.create(grid, {
-                    animation: 150, onEnd: async () => {
-                        const items = document.querySelectorAll('#album-grid .card');
-                        let now = Date.now();
-                        for (let i = 0; i < items.length; i++) {
-                            const id = items[i].getAttribute('data-id');
-                            await updateDoc(doc(db, "albums", id), { timestamp: now - (i * 1000) });
-                        }
-                    }
-                });
-            }
-        });
+        // --- UI 导航逻辑 ---
+        window.showHome = () => {
+            currentAlbumId = null;
+            document.getElementById('detail-page').classList.remove('active-page');
+            document.getElementById('home-page').classList.add('active-page');
+            document.getElementById('main-btn').innerText = "+ NEW COLLECTION";
+        };
 
         window.viewAlbum = (id, title) => {
             currentAlbumId = id;
@@ -410,39 +340,51 @@
             onSnapshot(doc(db, "albums", id), (d) => {
                 if(!currentAlbumId || d.id !== currentAlbumId) return;
                 const songGrid = document.getElementById('song-grid');
-                songGrid.innerHTML = "";
                 currentAlbumSongs = d.data()?.songs || [];
-                currentAlbumSongs.forEach((song, index) => {
-                    songGrid.innerHTML += `
-                        <div class="card" data-index="${index}" onclick="window.play('${song.id}', '${song.name}')">
-                            <div class="cover-box"><img src="https://img.youtube.com/vi/${song.id}/mqdefault.jpg"></div>
-                            <div class="card-info"><div class="song-title">${song.name}</div></div>
-                            ${isAdmin ? `<button class="delete-btn" onclick="window.removeSong(event, '${song.id}')">PURGE</button>` : ''}
-                        </div>`;
-                });
-
-                if(isAdmin) {
-                    Sortable.create(songGrid, {
-                        animation: 150, onEnd: async () => {
-                            const items = document.querySelectorAll('#song-grid .card');
-                            let newSongs = Array.from(items).map(item => currentAlbumSongs[item.getAttribute('data-index')]);
-                            await updateDoc(doc(db, "albums", currentAlbumId), { songs: newSongs });
-                        }
-                    });
-                }
+                songGrid.innerHTML = currentAlbumSongs.map((song, idx) => `
+                    <div class="card" data-index="${idx}" onclick="window.play('${song.id}', '${song.name}')">
+                        <div class="cover-box"><img src="https://img.youtube.com/vi/${song.id}/mqdefault.jpg"></div>
+                        <div class="card-info"><div class="song-title">${song.name}</div></div>
+                        ${isAdmin ? `<button class="delete-btn" onclick="window.removeSong(event, '${song.id}')">PURGE</button>` : ''}
+                    </div>`).join('');
             });
         };
 
-        // --- UI 控制 ---
-        window.showHome = () => {
-            currentAlbumId = null;
-            document.getElementById('detail-page').classList.remove('active-page');
-            document.getElementById('home-page').classList.add('active-page');
-            document.getElementById('main-btn').innerText = "+ NEW COLLECTION";
+        // --- 身份验证与后台 ---
+        onAuthStateChanged(auth, (user) => {
+            isAdmin = !!user;
+            document.querySelectorAll('.admin-only').forEach(el => el.style.display = user ? 'block' : 'none');
+            document.getElementById('login-gate-btn').innerText = user ? "LOGOUT" : "SYSTEM LOGIN";
+        });
+
+        window.handleLogin = async () => {
+            const email = document.getElementById('login-email').value;
+            const pass = document.getElementById('login-pass').value;
+            try { await signInWithEmailAndPassword(auth, email, pass); closeModals(); } catch { alert("ACCESS DENIED"); }
         };
 
+        window.openLogin = () => auth.currentUser ? signOut(auth).then(() => location.reload()) : document.getElementById('login-modal').style.display = 'flex';
+
+        // --- 数据操作 ---
+        onSnapshot(query(albumsCol, orderBy("timestamp", "desc")), (snapshot) => {
+            const grid = document.getElementById('album-grid');
+            grid.innerHTML = "";
+            snapshot.forEach(d => {
+                const album = d.data();
+                const cover = album.songs?.[0] ? `https://img.youtube.com/vi/${album.songs[0].id}/mqdefault.jpg` : 'zijunlogo.png';
+                grid.innerHTML += `
+                    <div class="card" onclick="window.viewAlbum('${d.id}', '${album.title}')">
+                        <div class="cover-box"><img src="${cover}"></div>
+                        <div class="card-info">
+                            <div class="song-title">${album.title}</div>
+                            <div style="font-size:10px;color:#555;">${album.songs?.length || 0} SECTORS</div>
+                        </div>
+                        ${isAdmin ? `<button class="delete-btn" onclick="window.delAlbum(event, '${d.id}')">ERASE</button>` : ''}
+                    </div>`;
+            });
+        });
+
         window.triggerAction = () => {
-            if(!isAdmin) return;
             if(currentAlbumId) document.getElementById('song-modal').style.display = 'flex';
             else document.getElementById('album-modal').style.display = 'flex';
         };
@@ -464,26 +406,15 @@
 
         window.removeSong = async (e, videoId) => {
             e.stopPropagation();
-            if(!confirm("PURGE DATA TRACK?")) return;
             const albumRef = doc(db, "albums", currentAlbumId);
             const docSnap = await getDoc(albumRef);
-            if (docSnap.exists()) {
-                const songToDelete = docSnap.data().songs.find(s => s.id === videoId);
-                if (songToDelete) await updateDoc(albumRef, { songs: arrayRemove(songToDelete) });
-            }
+            const song = docSnap.data().songs.find(s => s.id === videoId);
+            await updateDoc(albumRef, { songs: arrayRemove(song) });
         };
 
-        window.delAlbum = async (e, id) => {
-            e.stopPropagation();
-            if(confirm("ERASE ENTIRE ALBUM?")) await deleteDoc(doc(db, "albums", id));
-        };
+        window.delAlbum = async (e, id) => { e.stopPropagation(); if(confirm("ERASE?")) await deleteDoc(doc(db, "albums", id)); };
+        window.closeModals = () => { document.querySelectorAll('.modal').forEach(m => m.style.display = 'none'); };
 
-        window.closeModals = () => {
-            document.querySelectorAll('.modal').forEach(m => m.style.display = 'none');
-            document.querySelectorAll('input').forEach(i => i.value = "");
-        };
-
-        window.addEventListener('keydown', (e) => { if(e.key === "Escape") window.closePlayer(); });
     </script>
 </body>
 </html>
