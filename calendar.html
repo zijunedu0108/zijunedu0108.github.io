@@ -26,7 +26,6 @@
             overflow-x: hidden;
         }
 
-        /* 赛博朋克背景效果 */
         body::before {
             content: " ";
             position: fixed; top: 0; left: 0; bottom: 0; right: 0;
@@ -80,7 +79,6 @@
         .day-num { font-size: 16px; font-weight: bold; }
         .day-emoji { font-size: 14px; margin-top: 5px; }
 
-        /* 弹出层 */
         #modal-overlay {
             position: fixed; top: 0; left: 0; width: 100%; height: 100%;
             background: rgba(0, 0, 0, 0.85); display: none; justify-content: center; align-items: center;
@@ -88,7 +86,6 @@
         }
         .modal-box { background: var(--deep-blue); border: 1px solid var(--neon-blue); width: 300px; padding: 25px; box-shadow: 0 0 20px var(--border-glow); }
         input, textarea { width: 100%; background: #000; border: 1px solid #333; color: #fff; padding: 10px; margin-bottom: 15px; box-sizing: border-box; outline: none; }
-        input:focus { border-color: var(--neon-blue); }
         
         .emoji-list { display: flex; justify-content: center; gap: 8px; margin-bottom: 15px; flex-wrap: wrap; }
         .emoji-opt { font-size: 22px; cursor: pointer; padding: 5px; border: 1px solid transparent; }
@@ -118,9 +115,7 @@
                 <select id="sel-year" onchange="syncDate()"></select>
                 <button class="btn-cyber" onclick="adjustMonth(1)">></button>
             </div>
-
-            <div class="calendar-grid" id="cal-grid">
-                </div>
+            <div class="calendar-grid" id="cal-grid"></div>
         </div>
     </div>
 
@@ -149,15 +144,16 @@
     </div>
 
     <script>
-        // --- 1. 配置参数 (请填入你的 Firebase 信息) ---
+        // --- 使用你的配置 ---
         const firebaseConfig = {
-            apiKey: "YOUR_API_KEY",
-            authDomain: "YOUR_PROJECT.firebaseapp.com",
-            databaseURL: "https://YOUR_PROJECT.firebaseio.com",
-            projectId: "YOUR_PROJECT_ID",
-            storageBucket: "YOUR_PROJECT.appspot.com",
-            messagingSenderId: "YOUR_SENDER_ID",
-            appId: "YOUR_APP_ID"
+            apiKey: "AIzaSyBhc2JVAoxfk3wEsLee-Gr4I1StgqsPkBU",
+            authDomain: "zijunblog.firebaseapp.com",
+            projectId: "zijunblog",
+            storageBucket: "zijunblog.firebasestorage.app",
+            messagingSenderId: "689359220073",
+            appId: "1:689359220073:web:be9d4a467f438b6e8de1f8",
+            // 这里的 databaseURL 需要手动确认，通常是以下格式
+            databaseURL: "https://zijunblog-default-rtdb.firebaseio.com" 
         };
 
         let viewDate = new Date();
@@ -167,43 +163,34 @@
         let activeEmoji = "";
         const months = ["January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"];
 
-        // --- 2. 初始化下拉菜单 ---
         const monthSel = document.getElementById('sel-month');
         const yearSel = document.getElementById('sel-year');
         months.forEach((m, i) => monthSel.add(new Option(m, i)));
         for(let y=2024; y<=2030; y++) yearSel.add(new Option(y, y));
 
-        // --- 3. 基础渲染逻辑 (立即执行) ---
         function render() {
             const grid = document.getElementById('cal-grid');
             if(!grid) return;
             grid.innerHTML = "";
-
-            // 星期头
             ["SUN", "MON", "TUE", "WED", "THU", "FRI", "SAT"].forEach(day => {
                 const h = document.createElement('div');
-                h.className = 'day-header';
-                h.innerText = day;
+                h.className = 'day-header'; h.innerText = day;
                 grid.appendChild(h);
             });
 
             const year = viewDate.getFullYear();
             const month = viewDate.getMonth();
-            monthSel.value = month;
-            yearSel.value = year;
+            monthSel.value = month; yearSel.value = year;
 
             const firstDayIndex = new Date(year, month, 1).getDay();
             const lastDayDate = new Date(year, month + 1, 0).getDate();
 
-            // 空白格
             for(let x=0; x<firstDayIndex; x++) {
                 const empty = document.createElement('div');
-                empty.className = 'day-cell';
-                empty.style.opacity = "0.1";
+                empty.className = 'day-cell'; empty.style.opacity = "0.1";
                 grid.appendChild(empty);
             }
 
-            // 日期格
             const today = new Date();
             for(let d=1; d<=lastDayDate; d++) {
                 const key = `${year}-${month+1}-${d}`;
@@ -213,36 +200,21 @@
 
                 const data = cloudData[key] || {};
                 cell.innerHTML = `<div class="day-num">${d}</div><div class="day-emoji">${data.emoji || ''}</div>`;
-                
-                // 只有登录后才绑定点击
                 if(user) cell.onclick = () => openEditor(key);
                 grid.appendChild(cell);
             }
         }
 
-        // --- 4. 按钮交互逻辑 (放在全局) ---
-        window.handleAuthClick = function() {
-            if(user) {
-                firebase.auth().signOut();
-            } else {
-                showModal('login-modal');
-            }
-        };
-
-        window.showModal = function(type) {
+        window.handleAuthClick = () => { if(user) firebase.auth().signOut(); else showModal('login-modal'); };
+        window.showModal = (type) => {
             document.getElementById('modal-overlay').style.display = 'flex';
             document.getElementById('login-modal').style.display = (type === 'login-modal' ? 'block' : 'none');
             document.getElementById('edit-modal').style.display = (type === 'edit-modal' ? 'block' : 'none');
         };
-
-        window.closeModal = function() {
-            document.getElementById('modal-overlay').style.display = 'none';
-        };
-
+        window.closeModal = () => document.getElementById('modal-overlay').style.display = 'none';
         window.adjustMonth = (s) => { viewDate.setMonth(viewDate.getMonth() + s); render(); };
         window.syncDate = () => { viewDate = new Date(yearSel.value, monthSel.value, 1); render(); };
 
-        // --- 5. Firebase 逻辑 ---
         try {
             firebase.initializeApp(firebaseConfig);
             const auth = firebase.auth();
@@ -272,12 +244,11 @@
 
             window.save = () => {
                 const note = document.getElementById('edit-note').value;
-                db.ref(`calendar_logs/${user.uid}/${activeKey}`).set({ emoji: activeEmoji, note: note })
-                  .then(() => closeModal());
+                db.ref(`calendar_logs/${user.uid}/${activeKey}`).set({ emoji: activeEmoji, note: note }).then(() => closeModal());
             };
 
         } catch (e) {
-            console.warn("Firebase config missing or invalid.");
+            console.warn("Firebase Init Error:", e);
         }
 
         window.openEditor = (key) => {
@@ -294,7 +265,6 @@
             document.querySelectorAll('.emoji-opt').forEach(opt => opt.classList.toggle('active', opt.innerText === e));
         };
 
-        // 首次加载渲染
         render();
     </script>
 </body>
