@@ -205,6 +205,7 @@
                 <div id="youtube-player-container" class="video-wrapper"></div>
                 <div class="player-footer">
                     <span id="now-playing-title">STREAMING...</span>
+                    <span id="ad-block-status" style="font-size: 10px; color: rgba(0,0,0,0.5); font-style: italic;">// AD_SHIELD_ACTIVE</span>
                     <span style="cursor:pointer; background: rgba(0,0,0,0.3); padding: 4px 12px; border: 1px solid #000;" onclick="window.closePlayer()">CLOSE TERMINAL</span>
                 </div>
             </div>
@@ -270,6 +271,7 @@
         let ytPlayer = null; 
         let currentVideoId = null;
         let ambientInterval = null; // 氛围灯定时器
+        let adCheckInterval = null; // 广告拦截定时器
         let isUserAdmin = false;
 
         // --- 权限管理逻辑 ---
@@ -319,12 +321,40 @@
             if (!currentVideoId) return;
             const img = new Image();
             img.crossOrigin = "Anonymous";
-            // 使用高质量缩略图作为取色源
             img.src = `https://img.youtube.com/vi/${currentVideoId}/mqdefault.jpg`;
             img.onload = () => {
-                // 将缩略图极度压缩绘制到 16x9 像素，获得该帧的色彩均值
                 ambCtx.drawImage(img, 0, 0, ambCanvas.width, ambCanvas.height);
             };
+        }
+
+        // --- 广告去除功能逻辑 ---
+        function runAdShield() {
+            if (!ytPlayer || typeof ytPlayer.getAdState !== 'function') return;
+            
+            // 检测是否处于广告状态 (1 为正在播放广告)
+            const isAd = ytPlayer.getAdState() === 1;
+            const statusEl = document.getElementById('ad-block-status');
+
+            if (isAd) {
+                ytPlayer.mute(); // 广告静音
+                ytPlayer.setPlaybackRate(10); // 10倍速快进广告 (如果API支持)
+                
+                // 尝试跳过广告 (如果视频时长极短或跳过按钮出现)
+                const duration = ytPlayer.getDuration();
+                if (duration > 0) {
+                    ytPlayer.seekTo(duration - 0.5, true); 
+                }
+                
+                statusEl.innerText = "// AD_DETECTED: NEUTRALIZING...";
+                statusEl.style.color = "#ff4d4d";
+            } else {
+                if (ytPlayer.isMuted() && !isAd) {
+                    ytPlayer.unMute(); // 恢复音量
+                    ytPlayer.setPlaybackRate(1); // 恢复正常语速
+                }
+                statusEl.innerText = "// AD_SHIELD_ACTIVE";
+                statusEl.style.color = "rgba(0,0,0,0.5)";
+            }
         }
 
         // --- 初始化拖拽引擎 ---
@@ -344,7 +374,6 @@
             currentVideoId = videoId;
             document.getElementById('player-overlay').style.display = 'flex';
             
-            // 氛围灯启动：暗化视频背景，亮起氛围 Canvas
             document.getElementById('bg-container').style.opacity = '0.2';
             document.getElementById('ambient-canvas').style.opacity = '1';
             document.getElementById('now-playing-title').innerText = `NOW STREAMING: ${songName}`;
@@ -353,14 +382,20 @@
                 ytPlayer = new YT.Player('youtube-player-container', {
                     height: '100%', width: '100%',
                     videoId: videoId,
-                    playerVars: { 'autoplay': 1, 'rel': 0, 'modestbranding': 1 },
+                    playerVars: { 
+                        'autoplay': 1, 
+                        'rel': 0, 
+                        'modestbranding': 1,
+                        'iv_load_policy': 3 // 禁用视频内注视
+                    },
                     events: {
                         'onStateChange': (e) => {
                             if (e.data === YT.PlayerState.ENDED) playNext();
                             if (e.data === YT.PlayerState.PLAYING) {
-                                // 实时氛围灯模式启动：每 3 秒同步一次画面色调
                                 updateAmbientEffect();
                                 if(!ambientInterval) ambientInterval = setInterval(updateAmbientEffect, 3000);
+                                // 启动广告屏蔽轮询 (每500ms检查一次)
+                                if(!adCheckInterval) adCheckInterval = setInterval(runAdShield, 500);
                             }
                         }
                     }
@@ -369,7 +404,6 @@
                 ytPlayer.loadVideoById(videoId);
             }
             
-            // 更新播放列表
             const playlistBox = document.getElementById('playlist-items');
             playlistBox.innerHTML = "";
             currentAlbumSongs.forEach(song => {
@@ -397,9 +431,13 @@
             document.getElementById('bg-container').style.opacity = '1';
             document.getElementById('ambient-canvas').style.opacity = '0';
             if (ytPlayer) ytPlayer.stopVideo();
-            // 停止取色引擎
+            
             clearInterval(ambientInterval);
             ambientInterval = null;
+            
+            // 停止广告拦截
+            clearInterval(adCheckInterval);
+            adCheckInterval = null;
         };
 
         // --- Firebase 监听逻辑 ---
