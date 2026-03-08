@@ -64,6 +64,8 @@
         .logo-area { display: flex; align-items: center; gap: 12px; cursor: pointer; }
         .logo-area img { width: 40px; height: 40px; border-radius: 50%; border: 2px solid var(--neon-blue); box-shadow: 0 0 10px var(--neon-blue); }
 
+        .nav-controls { display: flex; gap: 10px; align-items: center; }
+
         .btn-cyber {
             background: transparent; color: var(--neon-blue); border: 1px solid var(--neon-blue);
             padding: 8px 18px; cursor: pointer; text-transform: uppercase;
@@ -74,7 +76,7 @@
 
         .container { 
             max-width: 1200px; margin: 30px auto; padding: 0 20px; 
-            position: relative; z-index: 10; height: calc(100vh - 120px); overflow-y: auto;
+            position: relative; z-index: 10; height: calc(100vh - 180px); overflow-y: auto;
         }
         .container::-webkit-scrollbar { width: 4px; }
         .container::-webkit-scrollbar-thumb { background: var(--neon-blue); }
@@ -87,11 +89,15 @@
 
         .card {
             background: var(--panel-bg); border: 1px solid var(--border-glow);
-            border-radius: 4px; overflow: hidden; cursor: grab; transition: 0.3s; position: relative;
-            touch-action: none; /* 优化移动端拖拽 */
+            border-radius: 4px; overflow: hidden; cursor: pointer; transition: 0.3s; position: relative;
+            touch-action: none;
         }
-        .card:active { cursor: grabbing; }
         .card:hover { border-color: var(--neon-blue); transform: translateY(-5px); box-shadow: 0 0 15px rgba(0,242,255,0.2); }
+        
+        /* 仅在登录后允许拖拽指针 */
+        body.is-admin .card { cursor: grab; }
+        body.is-admin .card:active { cursor: grabbing; }
+
         .cover-box { width: 100%; aspect-ratio: 16/9; background: #000; overflow: hidden; pointer-events: none; }
         .cover-box img { width: 100%; height: 100%; object-fit: cover; opacity: 0.8; }
         .card-info { padding: 12px; border-top: 1px solid var(--border-glow); pointer-events: none; }
@@ -133,15 +139,30 @@
             font-weight: bold; font-size: 12px;
         }
 
+        /* 模态框 */
         .modal { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.85); justify-content: center; align-items: center; z-index: 4000; }
         .modal-content { background: var(--deep-blue); border: 2px solid var(--neon-blue); padding: 30px; width: 340px; }
         input { width: 100%; padding: 12px; margin: 10px 0; background: rgba(0, 242, 255, 0.1); border: 1px solid var(--neon-blue); color: white; outline: none; box-sizing: border-box; }
+        
         .page { display: none; }
         .active-page { display: block; }
+        
+        /* 权限控制：默认隐藏管理按钮 */
+        .admin-only { display: none !important; }
+        body.is-admin .admin-only { display: block !important; }
+        body.is-admin button.admin-only { display: inline-block !important; }
+
         .delete-btn { position: absolute; top: 5px; right: 5px; color: #ff4d4d; font-size: 10px; background: rgba(0,0,0,0.7); border: 1px solid #ff4d4d; cursor: pointer; padding: 2px 6px; z-index: 5; }
+
+        /* 页脚 */
+        footer {
+            position: fixed; bottom: 0; width: 100%; padding: 15px 0;
+            background: rgba(0,0,0,0.8); border-top: 1px solid rgba(0, 242, 255, 0.1);
+            text-align: center; font-size: 10px; color: #555; letter-spacing: 1px;
+        }
     </style>
 </head>
-<body>
+<body id="main-body">
 
     <canvas id="ambient-canvas"></canvas>
 
@@ -156,26 +177,34 @@
             <img src="zijunlogo.png" alt="Logo">
             <div>
                 <div style="font-size: 16px; letter-spacing: 2px; font-weight: bold;">ZIJUN TERMINAL</div>
-                <div id="status-tag" style="font-size: 8px; color: var(--neon-blue);">// STATUS: AMBIENT_SYNC_ACTIVE</div>
+                <div id="status-tag" style="font-size: 8px; color: var(--neon-blue);">// STATUS: GUEST_MODE_ACTIVE</div>
             </div>
         </div>
-        <button class="btn-cyber" id="main-btn" onclick="triggerAction()">+ NEW COLLECTION</button>
+        <div class="nav-controls">
+            <button class="btn-cyber" onclick="location.href='index.html'">BACK</button>
+            <button class="btn-cyber admin-only" id="main-btn" onclick="triggerAction()">+ NEW COLLECTION</button>
+            <button class="btn-cyber" id="login-btn" onclick="showLogin()">LOGIN</button>
+        </div>
     </header>
 
     <div class="container">
         <div id="home-page" class="page active-page">
-            <h3 style="color: var(--neon-blue); margin-bottom: 20px; font-size: 14px;">> CORE_DATABASE / ALBUMS (DRAG TO SORT)</h3>
+            <h3 style="color: var(--neon-blue); margin-bottom: 20px; font-size: 14px;">> CORE_DATABASE / ALBUMS</h3>
             <div id="album-grid" class="grid-list"></div>
         </div>
 
         <div id="detail-page" class="page">
             <div style="display: flex; align-items: center; margin-bottom: 20px;">
-                <button class="btn-cyber" onclick="showHome()" style="margin-right: 15px;">BACK</button>
+                <button class="btn-cyber" onclick="showHome()" style="margin-right: 15px;">BACK_TO_LIST</button>
                 <h3 id="album-title-display" style="color: var(--neon-blue); margin: 0; font-size: 14px;"></h3>
             </div>
             <div id="song-grid" class="grid-list"></div>
         </div>
     </div>
+
+    <footer>
+        CLEAN AND AD-FREE MUSIC experience. COPYRIGHT © ZIJUN. ALL RIGHTS RESERVED.
+    </footer>
 
     <div id="player-overlay">
         <div id="player-content" onclick="event.stopPropagation()">
@@ -190,6 +219,16 @@
                 <div class="playlist-header">UP NEXT / COLLECTION</div>
                 <div id="playlist-items" class="playlist-items"></div>
             </div>
+        </div>
+    </div>
+
+    <div id="login-modal" class="modal">
+        <div class="modal-content">
+            <h3 style="color:var(--neon-blue); margin-top:0;">ADMIN_LOGIN</h3>
+            <input type="email" id="login-email" placeholder="ADMIN EMAIL">
+            <input type="password" id="login-password" placeholder="PASSWORD">
+            <button class="btn-cyber" style="width: 100%; margin-top:10px;" id="do-login-btn">ACCESS_GRANTED</button>
+            <button class="btn-cyber" style="width: 100%; border:none; color:#666; margin-top:10px;" onclick="closeModals()">ABORT</button>
         </div>
     </div>
 
@@ -215,8 +254,9 @@
     <script src="https://www.youtube.com/iframe_api"></script>
 
     <script type="module">
-        import { initializeApp } from "https://www.gstatic.com/firebasejs/12.10.0/firebase-app.js";
-        import { getFirestore, collection, addDoc, onSnapshot, query, orderBy, doc, updateDoc, getDoc, arrayUnion, arrayRemove, deleteDoc } from "https://www.gstatic.com/firebasejs/12.10.0/firebase-firestore.js";
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
+        import { getAuth, signInWithEmailAndPassword, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js";
+        import { getFirestore, collection, addDoc, onSnapshot, query, orderBy, doc, updateDoc, getDoc, arrayUnion, arrayRemove, deleteDoc } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
 
         const firebaseConfig = {
             apiKey: "AIzaSyBhc2JVAoxfk3wEsLee-Gr4I1StgqsPkBU",
@@ -228,6 +268,7 @@
         };
 
         const app = initializeApp(firebaseConfig);
+        const auth = getAuth(app);
         const db = getFirestore(app);
         const albumsCol = collection(db, "albums");
         
@@ -236,9 +277,51 @@
         let ytPlayer = null; 
         let currentVideoId = null;
         let ambientInterval = null;
+        let isUserAdmin = false;
+
+        // --- 权限管理逻辑 ---
+        onAuthStateChanged(auth, (user) => {
+            const body = document.getElementById('main-body');
+            const loginBtn = document.getElementById('login-btn');
+            const statusTag = document.getElementById('status-tag');
+            
+            if (user) {
+                isUserAdmin = true;
+                body.classList.add('is-admin');
+                loginBtn.innerText = "LOGOUT";
+                statusTag.innerText = "// STATUS: ADMIN_PRIVILEGE_ACTIVE";
+                statusTag.style.color = "#00ff88";
+            } else {
+                isUserAdmin = false;
+                body.classList.remove('is-admin');
+                loginBtn.innerText = "LOGIN";
+                statusTag.innerText = "// STATUS: GUEST_MODE_ACTIVE";
+                statusTag.style.color = var(--neon-blue);
+            }
+        });
+
+        window.showLogin = () => {
+            if (auth.currentUser) {
+                if(confirm("LOGOUT FROM TERMINAL?")) signOut(auth);
+            } else {
+                document.getElementById('login-modal').style.display = 'flex';
+            }
+        };
+
+        document.getElementById('do-login-btn').onclick = async () => {
+            const email = document.getElementById('login-email').value;
+            const pass = document.getElementById('login-password').value;
+            try {
+                await signInWithEmailAndPassword(auth, email, pass);
+                window.closeModals();
+            } catch (e) {
+                alert("ACCESS_DENIED: Invalid credentials.");
+            }
+        };
 
         // --- 初始化拖拽引擎 ---
         const initDraggable = (elementId, onEndCallback) => {
+            if (!isUserAdmin) return; // 游客禁止初始化拖拽
             const el = document.getElementById(elementId);
             Sortable.create(el, {
                 animation: 150,
@@ -278,13 +361,7 @@
                     height: '100%', width: '100%',
                     videoId: videoId,
                     host: 'https://www.youtube-nocookie.com',
-                    playerVars: { 
-                        'autoplay': 1, 
-                        'rel': 0, 
-                        'modestbranding': 1, 
-                        'iv_load_policy': 3, 
-                        'origin': window.location.origin 
-                    },
+                    playerVars: { 'autoplay': 1, 'rel': 0, 'modestbranding': 1, 'origin': window.location.origin },
                     events: {
                         'onStateChange': (e) => {
                             if (e.data === YT.PlayerState.ENDED) playNext();
@@ -331,8 +408,6 @@
         };
 
         // --- 核心 Firebase 逻辑 ---
-        
-        // 渲染首页合集并初始化合集拖拽
         onSnapshot(query(albumsCol, orderBy("timestamp", "desc")), (snapshot) => {
             const grid = document.getElementById('album-grid');
             grid.innerHTML = "";
@@ -346,20 +421,20 @@
                             <div class="song-title">${album.title}</div>
                             <div style="font-size:10px;color:#888;margin-top:4px;">${album.songs?.length || 0} TRACKS</div>
                         </div>
-                        <button class="delete-btn" onclick="window.delAlbum(event, '${d.id}')">ERASE</button>
+                        <button class="delete-btn admin-only" onclick="window.delAlbum(event, '${d.id}')">ERASE</button>
                     </div>`;
             });
 
-            // 初始化合集拖拽：通过改变 timestamp 权重实现持久化排序
-            initDraggable('album-grid', async () => {
-                const items = document.querySelectorAll('#album-grid .card');
-                let now = Date.now();
-                for (let i = 0; i < items.length; i++) {
-                    const id = items[i].getAttribute('data-id');
-                    // 倒序时间戳保证 UI 顺序
-                    await updateDoc(doc(db, "albums", id), { timestamp: now - (i * 1000) });
-                }
-            });
+            if (isUserAdmin) {
+                initDraggable('album-grid', async () => {
+                    const items = document.querySelectorAll('#album-grid .card');
+                    let now = Date.now();
+                    for (let i = 0; i < items.length; i++) {
+                        const id = items[i].getAttribute('data-id');
+                        await updateDoc(doc(db, "albums", id), { timestamp: now - (i * 1000) });
+                    }
+                });
+            }
         });
 
         window.viewAlbum = (id, title) => {
@@ -379,20 +454,21 @@
                         <div class="card" data-index="${index}" onclick="window.play('${song.id}', '${song.name}')">
                             <div class="cover-box"><img src="https://img.youtube.com/vi/${song.id}/mqdefault.jpg"></div>
                             <div class="card-info"><div class="song-title">${song.name}</div></div>
-                            <button class="delete-btn" onclick="window.removeSong(event, '${song.id}')">REMOVE</button>
+                            <button class="delete-btn admin-only" onclick="window.removeSong(event, '${song.id}')">REMOVE</button>
                         </div>`;
                 });
 
-                // 初始化歌曲拖拽：直接重新排列数组
-                initDraggable('song-grid', async () => {
-                    const items = document.querySelectorAll('#song-grid .card');
-                    let newSongs = [];
-                    items.forEach(item => {
-                        const idx = item.getAttribute('data-index');
-                        newSongs.push(currentAlbumSongs[idx]);
+                if (isUserAdmin) {
+                    initDraggable('song-grid', async () => {
+                        const items = document.querySelectorAll('#song-grid .card');
+                        let newSongs = [];
+                        items.forEach(item => {
+                            const idx = item.getAttribute('data-index');
+                            newSongs.push(currentAlbumSongs[idx]);
+                        });
+                        await updateDoc(doc(db, "albums", currentAlbumId), { songs: newSongs });
                     });
-                    await updateDoc(doc(db, "albums", currentAlbumId), { songs: newSongs });
-                });
+                }
             });
         };
 
@@ -404,16 +480,19 @@
         };
 
         window.triggerAction = () => {
+            if(!isUserAdmin) return;
             if(currentAlbumId) document.getElementById('song-modal').style.display = 'flex';
             else document.getElementById('album-modal').style.display = 'flex';
         };
 
         window.createAlbum = async () => {
+            if(!isUserAdmin) return;
             const val = document.getElementById('album-input').value;
             if(val) { await addDoc(albumsCol, { title: val, songs: [], timestamp: Date.now() }); closeModals(); }
         };
 
         window.addSong = async () => {
+            if(!isUserAdmin) return;
             const name = document.getElementById('song-name-input').value;
             const url = document.getElementById('song-url-input').value;
             const match = url.match(/(?:v=|be\/|embed\/)(.{11})/);
@@ -425,7 +504,7 @@
 
         window.removeSong = async (e, videoId) => {
             e.stopPropagation();
-            if(!confirm("REMOVE TRACK?")) return;
+            if(!isUserAdmin || !confirm("REMOVE TRACK?")) return;
             const albumRef = doc(db, "albums", currentAlbumId);
             const docSnap = await getDoc(albumRef);
             if (docSnap.exists()) {
@@ -436,7 +515,8 @@
 
         window.delAlbum = async (e, id) => {
             e.stopPropagation();
-            if(confirm("DELETE ALBUM?")) await deleteDoc(doc(db, "albums", id));
+            if(!isUserAdmin || !confirm("DELETE ALBUM?")) return;
+            await deleteDoc(doc(db, "albums", id));
         };
 
         window.closeModals = () => {
