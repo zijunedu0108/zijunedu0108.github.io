@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Zijun Sci-Fi Terminal | Ambient</title>
+    <title>Zijun Sci-Fi Terminal | Ambient & Secure</title>
     <link rel="icon" href="zijunlogo.png" type="image/png">
     <script src="https://cdn.jsdelivr.net/npm/sortablejs@1.15.0/Sortable.min.js"></script>
     <style>
@@ -13,6 +13,7 @@
             --cyber-black: #00050a;
             --panel-bg: rgba(5, 15, 25, 0.85);
             --border-glow: rgba(0, 242, 255, 0.3);
+            --error-red: #ff4d4d;
         }
 
         body, html {
@@ -23,20 +24,19 @@
             overflow: hidden; 
         }
 
-        /* --- Ambient Mode 画布 (氛围灯核心) --- */
+        /* --- 强化版实时氛围灯 --- */
         #ambient-canvas {
             position: fixed;
             top: 50%; left: 50%;
-            transform: translate(-50%, -50%);
-            width: 110vw; height: 110vh;
+            transform: translate(-50%, -50%) scale(1.2);
+            width: 100vw; height: 100vh;
             z-index: 2500; 
-            filter: blur(100px) brightness(0.6) saturate(1.8);
+            filter: blur(120px) brightness(0.6) saturate(1.8);
             opacity: 0;
-            transition: opacity 1.5s ease;
+            transition: opacity 2s ease;
             pointer-events: none;
         }
 
-        /* --- 背景视频 --- */
         .video-bg {
             position: fixed;
             top: 0; left: 0;
@@ -64,98 +64,91 @@
         .logo-area { display: flex; align-items: center; gap: 12px; cursor: pointer; }
         .logo-area img { width: 40px; height: 40px; border-radius: 50%; border: 2px solid var(--neon-blue); box-shadow: 0 0 10px var(--neon-blue); }
 
-        .nav-controls { display: flex; gap: 10px; align-items: center; }
-
         .btn-cyber {
             background: transparent; color: var(--neon-blue); border: 1px solid var(--neon-blue);
             padding: 8px 18px; cursor: pointer; text-transform: uppercase;
             clip-path: polygon(10% 0, 100% 0, 100% 70%, 90% 100%, 0 100%, 0% 30%);
-            transition: 0.3s; font-size: 12px;
+            transition: 0.3s; font-size: 11px; font-weight: bold;
         }
         .btn-cyber:hover { background: var(--neon-blue); color: var(--deep-blue); box-shadow: 0 0 20px var(--neon-blue); }
+        
+        .admin-only { display: none; } /* 默认隐藏管理功能 */
 
         .container { 
             max-width: 1200px; margin: 30px auto; padding: 0 20px; 
-            position: relative; z-index: 10; height: calc(100vh - 180px); overflow-y: auto;
+            position: relative; z-index: 10; height: calc(100vh - 120px); overflow-y: auto;
         }
         .container::-webkit-scrollbar { width: 4px; }
         .container::-webkit-scrollbar-thumb { background: var(--neon-blue); }
 
         .grid-list { display: grid; grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); gap: 25px; }
 
-        .sortable-ghost { opacity: 0.4; border: 2px dashed var(--neon-blue); }
-        .sortable-chosen { cursor: grabbing; }
-
         .card {
             background: var(--panel-bg); border: 1px solid var(--border-glow);
-            border-radius: 4px; overflow: hidden; cursor: pointer; transition: 0.3s; position: relative;
+            border-radius: 4px; overflow: hidden; cursor: grab; transition: 0.3s; position: relative;
             touch-action: none;
         }
         .card:hover { border-color: var(--neon-blue); transform: translateY(-5px); box-shadow: 0 0 15px rgba(0,242,255,0.2); }
-        
-        body.is-admin .card { cursor: grab; }
-        body.is-admin .card:active { cursor: grabbing; }
-
         .cover-box { width: 100%; aspect-ratio: 16/9; background: #000; overflow: hidden; pointer-events: none; }
         .cover-box img { width: 100%; height: 100%; object-fit: cover; opacity: 0.8; }
         .card-info { padding: 12px; border-top: 1px solid var(--border-glow); pointer-events: none; }
         .song-title { color: var(--neon-blue); font-size: 14px; font-weight: bold; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 
+        /* --- 播放器覆盖层 --- */
         #player-overlay {
             display: none;
             position: fixed; top: 0; left: 0; width: 100%; height: 100%;
-            background: rgba(0, 0, 0, 0.7);
-            z-index: 3000; backdrop-filter: blur(5px);
+            background: rgba(0, 0, 0, 0.85);
+            z-index: 3000; backdrop-filter: blur(10px);
             justify-content: center; align-items: center;
         }
         #player-content {
-            width: 95%; height: 85%; max-width: 1200px;
+            width: 95%; height: 85%; max-width: 1280px;
             background: #000; border: 1px solid var(--neon-blue);
             display: flex; flex-direction: row;
-            box-shadow: 0 0 50px rgba(0, 242, 255, 0.2);
-            overflow: hidden;
+            box-shadow: 0 0 60px rgba(0, 242, 255, 0.15);
+            overflow: hidden; position: relative; z-index: 3100;
         }
         .video-main { flex: 3; display: flex; flex-direction: column; background: #000; }
-        .video-wrapper { width: 100%; aspect-ratio: 16/9; }
+        .video-wrapper { width: 100%; aspect-ratio: 16/9; background: #000; }
         .playlist-side { 
-            flex: 1; border-left: 1px solid #333; 
-            display: flex; flex-direction: column; background: rgba(10,10,10,0.9);
-            min-width: 0;
+            flex: 1; border-left: 1px solid #222; 
+            display: flex; flex-direction: column; background: rgba(5,5,5,0.95);
+            min-width: 300px;
         }
-        .playlist-header { padding: 15px; background: #111; font-size: 14px; border-bottom: 1px solid #333; color: var(--neon-blue); }
+        .playlist-header { padding: 15px; background: #111; font-size: 12px; border-bottom: 1px solid #222; color: var(--neon-blue); letter-spacing: 1px; }
         .playlist-items { flex: 1; overflow-y: auto; }
         .playlist-item { 
-            display: flex; gap: 10px; padding: 10px; cursor: pointer; border-bottom: 1px solid #222; 
+            display: flex; gap: 10px; padding: 12px; cursor: pointer; border-bottom: 1px solid #111; transition: 0.2s;
         }
-        .playlist-item.active { background: rgba(0, 242, 255, 0.15); }
-        .playlist-item img { width: 80px; height: 45px; object-fit: cover; border-radius: 2px; }
+        .playlist-item:hover { background: rgba(255,255,255,0.05); }
+        .playlist-item.active { background: rgba(0, 242, 255, 0.1); border-left: 3px solid var(--neon-blue); }
+        .playlist-item img { width: 100px; height: 56px; object-fit: cover; border-radius: 2px; }
 
         .player-footer { 
             background: var(--neon-blue); color: var(--deep-blue); 
-            padding: 8px 15px; display: flex; justify-content: space-between; align-items: center;
+            padding: 10px 20px; display: flex; justify-content: space-between; align-items: center;
             font-weight: bold; font-size: 12px;
         }
 
-        .modal { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.85); justify-content: center; align-items: center; z-index: 4000; }
-        .modal-content { background: var(--deep-blue); border: 2px solid var(--neon-blue); padding: 30px; width: 340px; }
-        input { width: 100%; padding: 12px; margin: 10px 0; background: rgba(0, 242, 255, 0.1); border: 1px solid var(--neon-blue); color: white; outline: none; box-sizing: border-box; }
+        /* --- 模态框 & 登录 --- */
+        .modal { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.9); justify-content: center; align-items: center; z-index: 4000; }
+        .modal-content { background: var(--deep-blue); border: 2px solid var(--neon-blue); padding: 30px; width: 340px; position: relative; box-shadow: 0 0 30px var(--neon-blue); }
+        input { width: 100%; padding: 12px; margin: 10px 0; background: rgba(0, 242, 255, 0.05); border: 1px solid var(--border-glow); color: white; outline: none; box-sizing: border-box; transition: 0.3s; }
+        input:focus { border-color: var(--neon-blue); background: rgba(0, 242, 255, 0.15); }
         
         .page { display: none; }
         .active-page { display: block; }
-        
-        .admin-only { display: none !important; }
-        body.is-admin .admin-only { display: block !important; }
+        .delete-btn { position: absolute; top: 5px; right: 5px; color: var(--error-red); font-size: 10px; background: rgba(0,0,0,0.8); border: 1px solid var(--error-red); cursor: pointer; padding: 2px 6px; z-index: 5; opacity: 0.7; }
+        .delete-btn:hover { opacity: 1; background: var(--error-red); color: white; }
 
-        .delete-btn { position: absolute; top: 5px; right: 5px; color: #ff4d4d; font-size: 10px; background: rgba(0,0,0,0.7); border: 1px solid #ff4d4d; cursor: pointer; padding: 2px 6px; z-index: 5; }
-
-        footer {
-            position: fixed; bottom: 0; width: 100%; padding: 15px 0;
-            background: rgba(0,0,0,0.8); border-top: 1px solid rgba(0, 242, 255, 0.1);
-            text-align: center; font-size: 10px; color: #555; letter-spacing: 1px;
+        @media (max-width: 768px) {
+            #player-content { flex-direction: column; height: 95%; }
+            .playlist-side { min-width: 100%; height: 40%; }
         }
     </style>
 </head>
-<body id="main-body">
+<body>
 
     <canvas id="ambient-canvas"></canvas>
 
@@ -170,34 +163,29 @@
             <img src="zijunlogo.png" alt="Logo">
             <div>
                 <div style="font-size: 16px; letter-spacing: 2px; font-weight: bold;">ZIJUN TERMINAL</div>
-                <div id="status-tag" style="font-size: 8px; color: var(--neon-blue);">// STATUS: GUEST_MODE_ACTIVE</div>
+                <div id="status-tag" style="font-size: 8px; color: var(--neon-blue);">// STATUS: AMBIENT_SYNC_READY</div>
             </div>
         </div>
-        <div class="nav-controls">
-            <button class="btn-cyber" onclick="location.href='index.html'">BACK</button>
+        <div style="display: flex; gap: 10px;">
             <button class="btn-cyber admin-only" id="main-btn" onclick="triggerAction()">+ NEW COLLECTION</button>
-            <button class="btn-cyber" id="login-btn" onclick="showLogin()">LOGIN</button>
+            <button class="btn-cyber" id="login-gate-btn" onclick="openLogin()">SYSTEM LOGIN</button>
         </div>
     </header>
 
     <div class="container">
         <div id="home-page" class="page active-page">
-            <h3 style="color: var(--neon-blue); margin-bottom: 20px; font-size: 14px;">> CORE_DATABASE / ALBUMS</h3>
+            <h3 style="color: var(--neon-blue); margin-bottom: 20px; font-size: 13px; letter-spacing: 1px;">> CORE_DATABASE / ALBUMS</h3>
             <div id="album-grid" class="grid-list"></div>
         </div>
 
         <div id="detail-page" class="page">
             <div style="display: flex; align-items: center; margin-bottom: 20px;">
-                <button class="btn-cyber" onclick="showHome()" style="margin-right: 15px;">BACK_TO_LIST</button>
-                <h3 id="album-title-display" style="color: var(--neon-blue); margin: 0; font-size: 14px;"></h3>
+                <button class="btn-cyber" onclick="showHome()" style="margin-right: 15px;">BACK</button>
+                <h3 id="album-title-display" style="color: var(--neon-blue); margin: 0; font-size: 13px;"></h3>
             </div>
             <div id="song-grid" class="grid-list"></div>
         </div>
     </div>
-
-    <footer>
-        CLEAN AND AD-FREE MUSIC experience. COPYRIGHT © ZIJUN. ALL RIGHTS RESERVED.
-    </footer>
 
     <div id="player-overlay">
         <div id="player-content" onclick="event.stopPropagation()">
@@ -205,12 +193,11 @@
                 <div id="youtube-player-container" class="video-wrapper"></div>
                 <div class="player-footer">
                     <span id="now-playing-title">STREAMING...</span>
-                    <span id="ad-block-status" style="font-size: 10px; color: rgba(0,0,0,0.5); font-style: italic;">// AD_SHIELD_ACTIVE</span>
-                    <span style="cursor:pointer; background: rgba(0,0,0,0.3); padding: 4px 12px; border: 1px solid #000;" onclick="window.closePlayer()">CLOSE TERMINAL</span>
+                    <span style="cursor:pointer; background: rgba(0,0,0,0.3); padding: 4px 12px; border: 1px solid #000;" onclick="window.closePlayer()">TERMINATE_SESSION</span>
                 </div>
             </div>
             <div class="playlist-side">
-                <div class="playlist-header">UP NEXT / COLLECTION</div>
+                <div class="playlist-header">SECURE_QUEUE / PLAYLIST</div>
                 <div id="playlist-items" class="playlist-items"></div>
             </div>
         </div>
@@ -218,10 +205,10 @@
 
     <div id="login-modal" class="modal">
         <div class="modal-content">
-            <h3 style="color:var(--neon-blue); margin-top:0;">ADMIN_LOGIN</h3>
-            <input type="email" id="login-email" placeholder="ADMIN EMAIL">
-            <input type="password" id="login-password" placeholder="PASSWORD">
-            <button class="btn-cyber" style="width: 100%; margin-top:10px;" id="do-login-btn">ACCESS_GRANTED</button>
+            <h3 style="color:var(--neon-blue); margin-top:0;">AUTH_REQUIRED</h3>
+            <input type="email" id="login-email" placeholder="ACCESS_ID (EMAIL)">
+            <input type="password" id="login-pass" placeholder="SECURITY_KEY">
+            <button class="btn-cyber" style="width: 100%; margin-top:10px;" onclick="handleLogin()">VERIFY IDENTITY</button>
             <button class="btn-cyber" style="width: 100%; border:none; color:#666; margin-top:10px;" onclick="closeModals()">ABORT</button>
         </div>
     </div>
@@ -248,9 +235,9 @@
     <script src="https://www.youtube.com/iframe_api"></script>
 
     <script type="module">
-        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
-        import { getAuth, signInWithEmailAndPassword, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js";
-        import { getFirestore, collection, addDoc, onSnapshot, query, orderBy, doc, updateDoc, getDoc, arrayUnion, arrayRemove, deleteDoc } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/12.10.0/firebase-app.js";
+        import { getFirestore, collection, addDoc, onSnapshot, query, orderBy, doc, updateDoc, getDoc, arrayUnion, arrayRemove, deleteDoc } from "https://www.gstatic.com/firebasejs/12.10.0/firebase-firestore.js";
+        import { getAuth, signInWithEmailAndPassword, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/12.10.0/firebase-auth.js";
 
         const firebaseConfig = {
             apiKey: "AIzaSyBhc2JVAoxfk3wEsLee-Gr4I1StgqsPkBU",
@@ -262,140 +249,81 @@
         };
 
         const app = initializeApp(firebaseConfig);
-        const auth = getAuth(app);
         const db = getFirestore(app);
+        const auth = getAuth(app);
         const albumsCol = collection(db, "albums");
         
         let currentAlbumId = null;
         let currentAlbumSongs = [];
         let ytPlayer = null; 
-        let currentVideoId = null;
-        let ambientInterval = null; // 氛围灯定时器
-        let adCheckInterval = null; // 广告拦截定时器
-        let isUserAdmin = false;
+        let ambientInterval = null;
+        let isAdmin = false;
 
-        // --- 权限管理逻辑 ---
-        onAuthStateChanged(auth, (user) => {
-            const body = document.getElementById('main-body');
-            const loginBtn = document.getElementById('login-btn');
-            const statusTag = document.getElementById('status-tag');
-            if (user) {
-                isUserAdmin = true;
-                body.classList.add('is-admin');
-                loginBtn.innerText = "LOGOUT";
-                statusTag.innerText = "// STATUS: ADMIN_PRIVILEGE_ACTIVE";
-                statusTag.style.color = "#00ff88";
-            } else {
-                isUserAdmin = false;
-                body.classList.remove('is-admin');
-                loginBtn.innerText = "LOGIN";
-                statusTag.innerText = "// STATUS: GUEST_MODE_ACTIVE";
-                statusTag.style.color = "var(--neon-blue)";
-            }
-        });
-
-        window.showLogin = () => {
-            if (auth.currentUser) {
-                if(confirm("LOGOUT FROM TERMINAL?")) signOut(auth);
+        // --- 身份验证逻辑 ---
+        window.openLogin = () => {
+            if(auth.currentUser) {
+                signOut(auth).then(() => location.reload());
             } else {
                 document.getElementById('login-modal').style.display = 'flex';
             }
         };
 
-        document.getElementById('do-login-btn').onclick = async () => {
+        window.handleLogin = async () => {
             const email = document.getElementById('login-email').value;
-            const pass = document.getElementById('login-password').value;
+            const pass = document.getElementById('login-pass').value;
             try {
                 await signInWithEmailAndPassword(auth, email, pass);
-                window.closeModals();
-            } catch (e) { alert("ACCESS_DENIED"); }
+                closeModals();
+            } catch (err) {
+                alert("ACCESS DENIED: INVALID CREDENTIALS");
+            }
         };
 
-        // --- 氛围灯引擎核心逻辑 ---
+        onAuthStateChanged(auth, (user) => {
+            isAdmin = !!user;
+            document.querySelectorAll('.admin-only').forEach(el => el.style.display = user ? 'block' : 'none');
+            document.getElementById('login-gate-btn').innerText = user ? "LOGOUT" : "SYSTEM LOGIN";
+            document.getElementById('status-tag').innerText = user ? "// STATUS: ADMIN_SESSION_ACTIVE" : "// STATUS: AMBIENT_SYNC_READY";
+        });
+
+        // --- 实时氛围灯引擎 (大范围重构) ---
         const ambCanvas = document.getElementById('ambient-canvas');
-        const ambCtx = ambCanvas.getContext('2d');
-        ambCanvas.width = 16; 
-        ambCanvas.height = 9;
+        const ambCtx = ambCanvas.getContext('2d', { alpha: false });
+        ambCanvas.width = 32; ambCanvas.height = 18; // 低分辨率采样实现高性能模糊
 
         function updateAmbientEffect() {
-            if (!currentVideoId) return;
+            if (!ytPlayer || typeof ytPlayer.getVideoData !== 'function') return;
+            const state = ytPlayer.getPlayerState();
+            if (state !== YT.PlayerState.PLAYING) return;
+
+            const vid = ytPlayer.getVideoData().video_id;
             const img = new Image();
             img.crossOrigin = "Anonymous";
-            img.src = `https://img.youtube.com/vi/${currentVideoId}/mqdefault.jpg`;
+            // 使用高质量缩略图作为光源
+            img.src = `https://img.youtube.com/vi/${vid}/mqdefault.jpg`;
             img.onload = () => {
                 ambCtx.drawImage(img, 0, 0, ambCanvas.width, ambCanvas.height);
             };
         }
 
-        // --- 广告去除功能逻辑 ---
-        function runAdShield() {
-            if (!ytPlayer || typeof ytPlayer.getAdState !== 'function') return;
-            
-            // 检测是否处于广告状态 (1 为正在播放广告)
-            const isAd = ytPlayer.getAdState() === 1;
-            const statusEl = document.getElementById('ad-block-status');
-
-            if (isAd) {
-                ytPlayer.mute(); // 广告静音
-                ytPlayer.setPlaybackRate(10); // 10倍速快进广告 (如果API支持)
-                
-                // 尝试跳过广告 (如果视频时长极短或跳过按钮出现)
-                const duration = ytPlayer.getDuration();
-                if (duration > 0) {
-                    ytPlayer.seekTo(duration - 0.5, true); 
-                }
-                
-                statusEl.innerText = "// AD_DETECTED: NEUTRALIZING...";
-                statusEl.style.color = "#ff4d4d";
-            } else {
-                if (ytPlayer.isMuted() && !isAd) {
-                    ytPlayer.unMute(); // 恢复音量
-                    ytPlayer.setPlaybackRate(1); // 恢复正常语速
-                }
-                statusEl.innerText = "// AD_SHIELD_ACTIVE";
-                statusEl.style.color = "rgba(0,0,0,0.5)";
-            }
-        }
-
-        // --- 初始化拖拽引擎 ---
-        const initDraggable = (elementId, onEndCallback) => {
-            if (!isUserAdmin) return;
-            const el = document.getElementById(elementId);
-            Sortable.create(el, {
-                animation: 150,
-                ghostClass: 'sortable-ghost',
-                chosenClass: 'sortable-chosen',
-                onEnd: onEndCallback
-            });
-        };
-
-        // --- 核心播放逻辑 ---
+        // --- 播放器逻辑 ---
         window.play = (videoId, songName) => {
-            currentVideoId = videoId;
             document.getElementById('player-overlay').style.display = 'flex';
-            
-            document.getElementById('bg-container').style.opacity = '0.2';
+            document.getElementById('bg-container').style.opacity = '0.1';
             document.getElementById('ambient-canvas').style.opacity = '1';
-            document.getElementById('now-playing-title').innerText = `NOW STREAMING: ${songName}`;
+            document.getElementById('now-playing-title').innerText = `LIVE_STREAM: ${songName}`;
 
             if (!ytPlayer) {
                 ytPlayer = new YT.Player('youtube-player-container', {
                     height: '100%', width: '100%',
                     videoId: videoId,
-                    playerVars: { 
-                        'autoplay': 1, 
-                        'rel': 0, 
-                        'modestbranding': 1,
-                        'iv_load_policy': 3 // 禁用视频内注视
-                    },
+                    host: 'https://www.youtube-nocookie.com',
+                    playerVars: { 'autoplay': 1, 'rel': 0, 'modestbranding': 1, 'iv_load_policy': 3 },
                     events: {
                         'onStateChange': (e) => {
                             if (e.data === YT.PlayerState.ENDED) playNext();
                             if (e.data === YT.PlayerState.PLAYING) {
-                                updateAmbientEffect();
-                                if(!ambientInterval) ambientInterval = setInterval(updateAmbientEffect, 3000);
-                                // 启动广告屏蔽轮询 (每500ms检查一次)
-                                if(!adCheckInterval) adCheckInterval = setInterval(runAdShield, 500);
+                                if(!ambientInterval) ambientInterval = setInterval(updateAmbientEffect, 2000);
                             }
                         }
                     }
@@ -403,23 +331,28 @@
             } else {
                 ytPlayer.loadVideoById(videoId);
             }
-            
+            renderPlayerPlaylist(videoId);
+        };
+
+        const renderPlayerPlaylist = (activeId) => {
             const playlistBox = document.getElementById('playlist-items');
             playlistBox.innerHTML = "";
             currentAlbumSongs.forEach(song => {
-                const isActive = song.id === videoId ? 'active' : '';
+                const isActive = song.id === activeId ? 'active' : '';
                 playlistBox.innerHTML += `
                     <div class="playlist-item ${isActive}" onclick="window.play('${song.id}', '${song.name}')">
                         <img src="https://img.youtube.com/vi/${song.id}/mqdefault.jpg">
-                        <div style="font-size:12px; margin-left:10px;">
-                            <div style="color:${song.id === videoId ? 'var(--neon-blue)' : '#fff'}; font-weight:bold;">${song.name}</div>
+                        <div style="font-size:11px; margin-left:10px; overflow:hidden;">
+                            <div style="color:${song.id === activeId ? 'var(--neon-blue)' : '#fff'}; font-weight:bold; text-overflow:ellipsis; white-space:nowrap; overflow:hidden;">${song.name}</div>
+                            <div style="color:#555; font-size:9px; margin-top:4px;">ENCRYPTED_SIGNAL</div>
                         </div>
                     </div>`;
             });
         };
 
         const playNext = () => {
-            const idx = currentAlbumSongs.findIndex(s => s.id === currentVideoId);
+            const currentVid = ytPlayer.getVideoData().video_id;
+            const idx = currentAlbumSongs.findIndex(s => s.id === currentVid);
             if (idx !== -1 && idx < currentAlbumSongs.length - 1) {
                 const next = currentAlbumSongs[idx + 1];
                 window.play(next.id, next.name);
@@ -431,16 +364,11 @@
             document.getElementById('bg-container').style.opacity = '1';
             document.getElementById('ambient-canvas').style.opacity = '0';
             if (ytPlayer) ytPlayer.stopVideo();
-            
             clearInterval(ambientInterval);
             ambientInterval = null;
-            
-            // 停止广告拦截
-            clearInterval(adCheckInterval);
-            adCheckInterval = null;
         };
 
-        // --- Firebase 监听逻辑 ---
+        // --- 数据渲染与拖拽 (原有功能保留) ---
         onSnapshot(query(albumsCol, orderBy("timestamp", "desc")), (snapshot) => {
             const grid = document.getElementById('album-grid');
             grid.innerHTML = "";
@@ -452,19 +380,21 @@
                         <div class="cover-box"><img src="${cover}"></div>
                         <div class="card-info">
                             <div class="song-title">${album.title}</div>
-                            <div style="font-size:10px;color:#888;margin-top:4px;">${album.songs?.length || 0} TRACKS</div>
+                            <div style="font-size:10px;color:#666;margin-top:4px;">${album.songs?.length || 0} SECTORS</div>
                         </div>
-                        <button class="delete-btn admin-only" onclick="window.delAlbum(event, '${d.id}')">ERASE</button>
+                        ${isAdmin ? `<button class="delete-btn" onclick="window.delAlbum(event, '${d.id}')">ERASE</button>` : ''}
                     </div>`;
             });
 
-            if (isUserAdmin) {
-                initDraggable('album-grid', async () => {
-                    const items = document.querySelectorAll('#album-grid .card');
-                    let now = Date.now();
-                    for (let i = 0; i < items.length; i++) {
-                        const id = items[i].getAttribute('data-id');
-                        await updateDoc(doc(db, "albums", id), { timestamp: now - (i * 1000) });
+            if(isAdmin) {
+                Sortable.create(grid, {
+                    animation: 150, onEnd: async () => {
+                        const items = document.querySelectorAll('#album-grid .card');
+                        let now = Date.now();
+                        for (let i = 0; i < items.length; i++) {
+                            const id = items[i].getAttribute('data-id');
+                            await updateDoc(doc(db, "albums", id), { timestamp: now - (i * 1000) });
+                        }
                     }
                 });
             }
@@ -474,8 +404,8 @@
             currentAlbumId = id;
             document.getElementById('home-page').classList.remove('active-page');
             document.getElementById('detail-page').classList.add('active-page');
-            document.getElementById('album-title-display').innerText = `ALBUM // ${title}`;
-            document.getElementById('main-btn').innerText = "+ ADD SONG";
+            document.getElementById('album-title-display').innerText = `DIRECTORY // ${title}`;
+            document.getElementById('main-btn').innerText = "+ INJECT TRACK";
             
             onSnapshot(doc(db, "albums", id), (d) => {
                 if(!currentAlbumId || d.id !== currentAlbumId) return;
@@ -487,24 +417,23 @@
                         <div class="card" data-index="${index}" onclick="window.play('${song.id}', '${song.name}')">
                             <div class="cover-box"><img src="https://img.youtube.com/vi/${song.id}/mqdefault.jpg"></div>
                             <div class="card-info"><div class="song-title">${song.name}</div></div>
-                            <button class="delete-btn admin-only" onclick="window.removeSong(event, '${song.id}')">REMOVE</button>
+                            ${isAdmin ? `<button class="delete-btn" onclick="window.removeSong(event, '${song.id}')">PURGE</button>` : ''}
                         </div>`;
                 });
 
-                if (isUserAdmin) {
-                    initDraggable('song-grid', async () => {
-                        const items = document.querySelectorAll('#song-grid .card');
-                        let newSongs = [];
-                        items.forEach(item => {
-                            const idx = item.getAttribute('data-index');
-                            newSongs.push(currentAlbumSongs[idx]);
-                        });
-                        await updateDoc(doc(db, "albums", currentAlbumId), { songs: newSongs });
+                if(isAdmin) {
+                    Sortable.create(songGrid, {
+                        animation: 150, onEnd: async () => {
+                            const items = document.querySelectorAll('#song-grid .card');
+                            let newSongs = Array.from(items).map(item => currentAlbumSongs[item.getAttribute('data-index')]);
+                            await updateDoc(doc(db, "albums", currentAlbumId), { songs: newSongs });
+                        }
                     });
                 }
             });
         };
 
+        // --- UI 控制 ---
         window.showHome = () => {
             currentAlbumId = null;
             document.getElementById('detail-page').classList.remove('active-page');
@@ -513,7 +442,7 @@
         };
 
         window.triggerAction = () => {
-            if(!isUserAdmin) return;
+            if(!isAdmin) return;
             if(currentAlbumId) document.getElementById('song-modal').style.display = 'flex';
             else document.getElementById('album-modal').style.display = 'flex';
         };
@@ -535,17 +464,18 @@
 
         window.removeSong = async (e, videoId) => {
             e.stopPropagation();
-            if(!confirm("REMOVE TRACK?")) return;
+            if(!confirm("PURGE DATA TRACK?")) return;
             const albumRef = doc(db, "albums", currentAlbumId);
             const docSnap = await getDoc(albumRef);
-            const songToDelete = docSnap.data().songs.find(s => s.id === videoId);
-            if (songToDelete) await updateDoc(albumRef, { songs: arrayRemove(songToDelete) });
+            if (docSnap.exists()) {
+                const songToDelete = docSnap.data().songs.find(s => s.id === videoId);
+                if (songToDelete) await updateDoc(albumRef, { songs: arrayRemove(songToDelete) });
+            }
         };
 
         window.delAlbum = async (e, id) => {
             e.stopPropagation();
-            if(!confirm("DELETE ALBUM?")) return;
-            await deleteDoc(doc(db, "albums", id));
+            if(confirm("ERASE ENTIRE ALBUM?")) await deleteDoc(doc(db, "albums", id));
         };
 
         window.closeModals = () => {
