@@ -3,11 +3,11 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>KONG ZI JUN | Calendar Terminal</title>
+    <title>KONG ZI JUN | Firestore Calendar</title>
     <link rel="icon" href="zijunlogo.png" type="image/png">
     <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-auth-compat.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-database-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-firestore-compat.js"></script>
     <style>
         :root {
             --neon-blue: #00f2ff;
@@ -26,6 +26,7 @@
             overflow-x: hidden;
         }
 
+        /* 赛博朋克扫描线 */
         body::before {
             content: " ";
             position: fixed; top: 0; left: 0; bottom: 0; right: 0;
@@ -144,16 +145,14 @@
     </div>
 
     <script>
-        // --- 使用你的配置 ---
+        // --- 1. 使用你的 Firestore 配置 ---
         const firebaseConfig = {
             apiKey: "AIzaSyBhc2JVAoxfk3wEsLee-Gr4I1StgqsPkBU",
             authDomain: "zijunblog.firebaseapp.com",
             projectId: "zijunblog",
             storageBucket: "zijunblog.firebasestorage.app",
             messagingSenderId: "689359220073",
-            appId: "1:689359220073:web:be9d4a467f438b6e8de1f8",
-            // 这里的 databaseURL 需要手动确认，通常是以下格式
-            databaseURL: "https://zijunblog-default-rtdb.firebaseio.com" 
+            appId: "1:689359220073:web:be9d4a467f438b6e8de1f8"
         };
 
         let viewDate = new Date();
@@ -215,10 +214,11 @@
         window.adjustMonth = (s) => { viewDate.setMonth(viewDate.getMonth() + s); render(); };
         window.syncDate = () => { viewDate = new Date(yearSel.value, monthSel.value, 1); render(); };
 
+        // --- 2. Firestore 初始化逻辑 ---
         try {
             firebase.initializeApp(firebaseConfig);
             const auth = firebase.auth();
-            const db = firebase.database();
+            const db = firebase.firestore(); // 这里切换到 firestore
 
             auth.onAuthStateChanged(u => {
                 user = u;
@@ -226,9 +226,12 @@
                 document.getElementById('auth-btn').innerText = u ? "LOGOUT" : "LOGIN";
                 document.getElementById('cal-container').classList.toggle('auth-active', !!u);
                 if(u) {
-                    db.ref('calendar_logs/' + u.uid).on('value', snap => {
-                        cloudData = snap.val() || {};
-                        render();
+                    // 监听 Firestore 数据集合
+                    db.collection("calendar_logs").doc(u.uid).onSnapshot((doc) => {
+                        if (doc.exists) {
+                            cloudData = doc.data();
+                            render();
+                        }
                     });
                 } else {
                     cloudData = {};
@@ -244,7 +247,22 @@
 
             window.save = () => {
                 const note = document.getElementById('edit-note').value;
-                db.ref(`calendar_logs/${user.uid}/${activeKey}`).set({ emoji: activeEmoji, note: note }).then(() => closeModal());
+                if (!user) return;
+
+                // 在 Firestore 中，我们将每一天作为对象里的一个字段
+                db.collection("calendar_logs").doc(user.uid).set({
+                    [activeKey]: {
+                        emoji: activeEmoji,
+                        note: note,
+                        timestamp: firebase.firestore.FieldValue.serverTimestamp()
+                    }
+                }, { merge: true }) // 使用 merge: true 防止覆盖掉其他日期的记录
+                .then(() => {
+                    closeModal();
+                })
+                .catch(err => {
+                    alert("Firestore Error: " + err.message);
+                });
             };
 
         } catch (e) {
@@ -255,8 +273,8 @@
             activeKey = key;
             const data = cloudData[key] || {emoji:"", note:""};
             document.getElementById('edit-date-label').innerText = `DATE: ${key.replace(/-/g, '.')}`;
-            document.getElementById('edit-note').value = data.note;
-            setEmoji(data.emoji);
+            document.getElementById('edit-note').value = data.note || "";
+            setEmoji(data.emoji || "");
             showModal('edit-modal');
         };
 
