@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="zh-CN">
+<html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -23,7 +23,7 @@
             overflow: hidden;
         }
 
-        /* 背景视频层 */
+        /* Background Video */
         .bg-video {
             position: fixed;
             top: 0; left: 0;
@@ -33,7 +33,7 @@
             filter: brightness(0.3) contrast(1.2);
         }
 
-        /* 扫描线效果 */
+        /* Scanline Effect */
         body::before {
             content: " ";
             position: fixed; top: 0; left: 0; bottom: 0; right: 0;
@@ -68,7 +68,7 @@
             position: relative;
         }
 
-        /* 左侧个人信息面板 */
+        /* Left Panel */
         .info-panel {
             flex: 1;
             background: var(--panel-bg);
@@ -80,7 +80,7 @@
             clip-path: polygon(0 0, 100% 0, 100% 95%, 95% 100%, 0 100%);
         }
 
-        /* 右侧展示面板 */
+        /* Right Panel */
         .display-panel {
             flex: 2;
             display: flex;
@@ -98,14 +98,16 @@
             box-shadow: 0 0 20px rgba(0, 242, 255, 0.1);
         }
 
+        /* Crossfade Image Styling */
         .poster-box img {
+            position: absolute;
+            top: 0; left: 0;
             width: 100%; height: 100%; object-fit: cover;
             display: block;
             opacity: 0;
-            transition: opacity 0.5s ease;
+            transition: opacity 1.2s ease-in-out; /* Slow crossfade */
         }
 
-        /* --- 加载动画样式 --- */
         .loading-overlay {
             position: absolute;
             top: 0; left: 0; width: 100%; height: 100%;
@@ -115,7 +117,7 @@
             justify-content: center;
             align-items: center;
             z-index: 8;
-            transition: opacity 0.4s ease;
+            transition: opacity 0.5s ease;
         }
 
         .loader-ring {
@@ -125,21 +127,11 @@
             border-radius: 50%;
             animation: spin 1s linear infinite;
             margin-bottom: 10px;
-            box-shadow: 0 0 10px var(--neon-blue);
-        }
-
-        .loader-text {
-            color: var(--neon-blue);
-            font-size: 10px;
-            letter-spacing: 2px;
-            text-transform: uppercase;
-            animation: pulse 1.5s ease infinite;
         }
 
         @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
-        @keyframes pulse { 0%, 100% { opacity: 0.4; } 50% { opacity: 1; } }
 
-        /* 翻页按钮 */
+        /* Navigation Arrows */
         .nav-arrow {
             position: absolute;
             top: 50%;
@@ -169,23 +161,23 @@
             z-index: 5;
         }
 
-        /* 导航按钮组 */
+        /* Nav Buttons Grid */
         .nav-grid {
             display: grid;
             grid-template-columns: 1fr 1fr;
-            gap: 15px;
+            gap: 12px;
         }
 
         .btn-cyber {
             background: transparent;
             color: var(--neon-blue);
             border: 1px solid var(--neon-blue);
-            padding: 15px;
+            padding: 12px 5px;
             text-align: center;
             text-decoration: none;
             text-transform: uppercase;
-            font-size: 14px;
-            letter-spacing: 2px;
+            font-size: 12px;
+            letter-spacing: 1px;
             transition: 0.3s;
             cursor: pointer;
         }
@@ -226,7 +218,7 @@
         <div class="info-panel">
             <div>
                 <div class="status-text">> USER_ID</div>
-                <div class="data-val">孔子君 / KONG ZI JUN</div>
+                <div class="data-val">KONG ZI JUN</div>
 
                 <div class="status-text">> BIRTH_DATA</div>
                 <div class="data-val">2007.01.08</div>
@@ -241,6 +233,7 @@
                 <a href="academic.html" class="btn-cyber">Academic</a>
                 <a href="jobexperience.html" class="btn-cyber">Experience</a>
                 <a href="talk.html" class="btn-cyber">Talk</a>
+                <a href="calendar.html" class="btn-cyber" style="grid-column: span 2;">Calendar</a>
             </div>
         </div>
 
@@ -248,21 +241,22 @@
             <div class="poster-box" id="poster-container">
                 <div class="loading-overlay" id="poster-loader">
                     <div class="loader-ring"></div>
-                    <div class="loader-text">Uplinking...</div>
+                    <div class="loader-text" style="font-size: 10px; color: var(--neon-blue);">SYNCING ASSETS...</div>
                 </div>
                 <div class="nav-arrow arrow-left" onclick="changePoster(-1)"></div>
-                <img id="poster-img" src="" alt="Terminal Core">
+                
+                <img id="poster-img" src="" alt="Terminal Display">
+                
                 <div class="nav-arrow arrow-right" onclick="changePoster(1)"></div>
                 <div class="poster-label" id="poster-counter">0 / 0</div>
             </div>
             <div class="info-panel" style="flex: none; padding: 15px;">
-                <div class="status-text" id="poster-desc">> Album</div>
+                <div class="status-text" id="poster-desc">> CLASSIFIED_ASSET</div>
             </div>
         </div>
     </div>
 
     <script>
-        // 时钟功能
         function updateClock() {
             const now = new Date();
             document.getElementById('clock').innerText = now.toTimeString().split(' ')[0];
@@ -271,18 +265,17 @@
 
         let posterData = [];
         let currentIdx = 0;
-        let autoPlayTimer = null; // 自动切换计时器
+        let autoPlayTimer = null;
         
         const posterImg = document.getElementById('poster-img');
         const loader = document.getElementById('poster-loader');
         const desc = document.getElementById('poster-desc');
 
-        // 图片下载完成后关闭加载动画层
         posterImg.onload = () => {
             posterImg.style.opacity = 1;
             loader.style.opacity = 0;
-            setTimeout(() => { loader.style.visibility = 'hidden'; }, 400);
-            resetAutoPlay(); // 加载完后重新倒计时
+            setTimeout(() => { loader.style.visibility = 'hidden'; }, 500);
+            resetAutoPlay();
         };
 
         async function fetchPosters() {
@@ -305,36 +298,33 @@
                 if (posterData.length > 0) {
                     updateDisplay();
                 } else {
-                    loader.innerHTML = '<div class="loader-text" style="color:#ff4e4e">NULL_DATA</div>';
-                    desc.innerText = "> ERROR: NO_ASSETS";
+                    loader.innerHTML = '<div class="loader-text" style="color:#ff4e4e">EMPTY_VAULT</div>';
                 }
             } catch (e) {
-                loader.innerHTML = '<div class="loader-text" style="color:#ff4e4e">UPLINK_FAIL</div>';
-                desc.innerText = "> CRITICAL: DISCONNECTED";
+                loader.innerHTML = '<div class="loader-text" style="color:#ff4e4e">LINK_BROKEN</div>';
             }
         }
 
         function updateDisplay() {
             const counter = document.getElementById('poster-counter');
             
-            // 每次切换时开启加载视觉效果
-            loader.style.visibility = 'visible';
-            loader.style.opacity = 1;
+            // Fade out current image
             posterImg.style.opacity = 0;
 
             setTimeout(() => {
                 posterImg.src = posterData[currentIdx].url;
+                desc.innerText = `> ASSET: ${posterData[currentIdx].title.toUpperCase()}`;
                 counter.innerText = `${currentIdx + 1} / ${posterData.length}`;
-            }, 100);
+                // Fade in triggered by onload
+            }, 600); // Wait for fade out to complete half-way
         }
 
-        // 核心：重置自动播放计时器
         function resetAutoPlay() {
             if (autoPlayTimer) clearInterval(autoPlayTimer);
             if (posterData.length > 1) {
                 autoPlayTimer = setInterval(() => {
                     changePoster(1);
-                }, 5000); // 5000ms = 5秒切换一次
+                }, 6000); // 6 seconds for better viewing
             }
         }
 
@@ -344,18 +334,15 @@
             updateDisplay();
         }
 
-        // 键盘支持
         window.addEventListener('keydown', (e) => {
             if (e.key === "ArrowLeft") changePoster(-1);
             if (e.key === "ArrowRight") changePoster(1);
         });
 
-        // 鼠标悬停暂停轮播
         const container = document.getElementById('poster-container');
         container.addEventListener('mouseenter', () => clearInterval(autoPlayTimer));
         container.addEventListener('mouseleave', () => resetAutoPlay());
 
-        // 初始化抓取
         fetchPosters();
     </script>
 </body>
