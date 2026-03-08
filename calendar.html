@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>KONG ZI JUN | Calendar Core</title>
+    <title>KONG ZI JUN | Calendar Terminal</title>
     <link rel="icon" href="zijunlogo.png" type="image/png">
     <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-auth-compat.js"></script>
@@ -26,6 +26,7 @@
             overflow-x: hidden;
         }
 
+        /* 扫描线效果 */
         body::before {
             content: " ";
             position: fixed; top: 0; left: 0; bottom: 0; right: 0;
@@ -36,64 +37,67 @@
             pointer-events: none;
         }
 
-        .container { max-width: 900px; margin: 40px auto; padding: 20px; position: relative; z-index: 150; }
+        .container { max-width: 900px; margin: 30px auto; padding: 20px; position: relative; z-index: 150; }
 
         header {
             display: flex; justify-content: space-between; align-items: center;
-            border-bottom: 1px solid var(--neon-blue); padding-bottom: 15px; margin-bottom: 30px;
+            border-bottom: 1px solid var(--neon-blue); padding-bottom: 15px; margin-bottom: 20px;
         }
 
         .btn-cyber {
             background: transparent; color: var(--neon-blue); border: 1px solid var(--neon-blue);
             padding: 8px 15px; font-size: 12px; text-transform: uppercase; cursor: pointer; transition: 0.3s;
         }
-
         .btn-cyber:hover { background: var(--neon-blue); color: #000; box-shadow: 0 0 15px var(--neon-blue); }
 
         /* Calendar Card */
-        .calendar-card { background: var(--panel-bg); border: 1px solid var(--border-glow); padding: 25px; backdrop-filter: blur(10px); }
+        .calendar-card { background: var(--panel-bg); border: 1px solid var(--border-glow); padding: 20px; backdrop-filter: blur(10px); }
 
-        .calendar-controls {
-            display: flex; justify-content: center; align-items: center; gap: 15px; margin-bottom: 25px;
+        .calendar-nav {
+            display: flex; justify-content: center; align-items: center; gap: 10px; margin-bottom: 20px;
         }
 
         select {
             background: #000; color: var(--neon-blue); border: 1px solid var(--neon-blue);
-            padding: 5px 10px; font-family: 'Orbitron', sans-serif; outline: none; cursor: pointer;
+            padding: 5px; font-family: 'Orbitron', sans-serif; outline: none; cursor: pointer;
         }
 
-        .calendar-grid { display: grid; grid-template-columns: repeat(7, 1fr); gap: 8px; text-align: center; }
+        .calendar-grid { display: grid; grid-template-columns: repeat(7, 1fr); gap: 5px; }
 
-        .day-label { color: var(--neon-blue); font-size: 11px; font-weight: bold; padding-bottom: 10px; border-bottom: 1px solid rgba(0,242,255,0.2); }
+        .day-header {
+            color: var(--neon-blue); font-size: 11px; font-weight: bold; text-align: center;
+            padding: 10px 0; border-bottom: 1px solid rgba(0, 242, 255, 0.2);
+        }
 
         .day-cell {
             aspect-ratio: 1/1; border: 1px solid rgba(0, 242, 255, 0.1);
             display: flex; flex-direction: column; justify-content: center; align-items: center;
-            background: rgba(255, 255, 255, 0.02); transition: 0.2s; position: relative; font-size: 14px;
+            background: rgba(255, 255, 255, 0.02); transition: 0.2s; position: relative;
         }
 
-        /* 只有登录后才显示可点击状态 */
-        .auth-active .day-cell { cursor: pointer; border-color: rgba(0, 242, 255, 0.3); }
+        /* 访客模式下的提示 */
+        .day-cell { cursor: default; }
+        .auth-active .day-cell { cursor: pointer; }
         .auth-active .day-cell:hover { background: rgba(0, 242, 255, 0.15); border-color: var(--neon-blue); }
 
-        .day-cell.today { border: 2px solid var(--neon-blue); box-shadow: inset 0 0 8px var(--neon-blue); }
-        .day-emoji { font-size: 16px; margin-top: 5px; }
+        .day-cell.today { border: 2px solid var(--neon-blue); box-shadow: inset 0 0 10px rgba(0, 242, 255, 0.3); }
+        .day-cell.other-month { opacity: 0.2; }
 
-        /* Modal Styles */
+        .day-num { font-size: 16px; font-weight: bold; }
+        .day-emoji { font-size: 14px; margin-top: 5px; }
+
+        /* Modal */
         #modal-overlay {
             position: fixed; top: 0; left: 0; width: 100%; height: 100%;
             background: rgba(0, 0, 0, 0.9); display: none; justify-content: center; align-items: center;
-            z-index: 1000; backdrop-filter: blur(8px);
+            z-index: 1000; backdrop-filter: blur(10px);
         }
-
         .modal-box { background: var(--deep-blue); border: 1px solid var(--neon-blue); width: 320px; padding: 25px; box-shadow: 0 0 30px var(--border-glow); }
         input, textarea { width: 100%; background: #000; border: 1px solid var(--border-glow); color: #fff; padding: 10px; margin-bottom: 15px; box-sizing: border-box; }
-        
-        .emoji-grid { display: flex; gap: 10px; margin-bottom: 15px; flex-wrap: wrap; justify-content: center; }
-        .emoji-item { font-size: 24px; cursor: pointer; padding: 5px; border: 1px solid transparent; transition: 0.2s; }
-        .emoji-item.selected { border-color: var(--neon-blue); background: rgba(0,242,255,0.1); }
-        
-        .btn-full { width: 100%; padding: 12px; background: var(--neon-blue); color: #000; border: none; font-weight: bold; cursor: pointer; }
+        .emoji-list { display: flex; justify-content: center; gap: 10px; margin-bottom: 15px; flex-wrap: wrap; }
+        .emoji-opt { font-size: 24px; cursor: pointer; padding: 5px; border: 1px solid transparent; }
+        .emoji-opt.active { border-color: var(--neon-blue); background: rgba(0,242,255,0.1); }
+        .btn-action { width: 100%; padding: 12px; background: var(--neon-blue); color: #000; border: none; font-weight: bold; cursor: pointer; }
     </style>
 </head>
 <body>
@@ -101,58 +105,55 @@
     <div class="container">
         <header>
             <div>
-                <div style="font-size: 18px; letter-spacing: 2px;">LOG_CALENDAR</div>
-                <div id="auth-status" style="font-size: 10px; color: #888;">GUEST_MODE // READ_ONLY</div>
+                <div style="font-size: 18px; letter-spacing: 2px;">CORE_CALENDAR</div>
+                <div id="status-tag" style="font-size: 10px; color: #666;">GUEST_READ_ONLY</div>
             </div>
             <div style="display: flex; gap: 10px;">
-                <button id="auth-btn" class="btn-cyber" onclick="toggleAuth()">LOGIN</button>
-                <a href="index.html" class="btn-cyber">BACK</a>
+                <button id="auth-btn" class="btn-cyber" onclick="handleAuthClick()">LOGIN</button>
+                <a href="index.html" class="btn-cyber">EXIT</a>
             </div>
         </header>
 
-        <div class="calendar-card" id="calendar-container">
-            <div class="calendar-controls">
-                <button class="btn-cyber" onclick="moveMonth(-1)"><</button>
-                <select id="select-month" onchange="jumpToDate()"></select>
-                <select id="select-year" onchange="jumpToDate()"></select>
-                <button class="btn-cyber" onclick="moveMonth(1)">></button>
+        <div class="calendar-card" id="cal-container">
+            <div class="calendar-nav">
+                <button class="btn-cyber" onclick="adjustMonth(-1)"><</button>
+                <select id="sel-month" onchange="syncDate()"></select>
+                <select id="sel-year" onchange="syncDate()"></select>
+                <button class="btn-cyber" onclick="adjustMonth(1)">></button>
             </div>
 
-            <div class="calendar-grid" id="calendar-grid">
-                <div class="day-label">SUN</div><div class="day-label">MON</div><div class="day-label">TUE</div>
-                <div class="day-label">WED</div><div class="day-label">THU</div><div class="day-label">FRI</div>
-                <div class="day-label">SAT</div>
+            <div class="calendar-grid" id="cal-grid">
                 </div>
         </div>
     </div>
 
     <div id="modal-overlay">
-        <div id="login-panel" class="modal-box" style="display:none;">
-            <div style="color:var(--neon-blue); margin-bottom:15px;">AUTHENTICATION_REQUIRED</div>
-            <input type="text" id="email" placeholder="ADMIN_EMAIL">
-            <input type="password" id="pass" placeholder="PASSWORD">
-            <button class="btn-full" onclick="doLogin()">VERIFY</button>
-            <button class="btn-cyber" style="width:100%; border:none; margin-top:10px;" onclick="closeModal()">CANCEL</button>
+        <div id="login-modal" class="modal-box" style="display:none;">
+            <div style="color:var(--neon-blue); margin-bottom:15px;">SECURE_LOGIN</div>
+            <input type="email" id="email-in" placeholder="ADMIN_EMAIL">
+            <input type="password" id="pass-in" placeholder="PASSWORD">
+            <button class="btn-action" onclick="login()">VERIFY</button>
+            <button class="btn-cyber" style="width:100%; border:none; margin-top:10px;" onclick="closeModal()">CLOSE</button>
         </div>
 
-        <div id="editor-panel" class="modal-box" style="display:none;">
-            <div id="editor-date" style="color:var(--neon-blue); margin-bottom:15px;">DATE: 0000.00.00</div>
-            <div class="emoji-grid">
-                <span class="emoji-item" onclick="pickEmoji('🚀')">🚀</span>
-                <span class="emoji-item" onclick="pickEmoji('💻')">💻</span>
-                <span class="emoji-item" onclick="pickEmoji('📚')">📚</span>
-                <span class="emoji-item" onclick="pickEmoji('✅')">✅</span>
-                <span class="emoji-item" onclick="pickEmoji('☕')">☕</span>
-                <span class="emoji-item" onclick="pickEmoji('💤')">💤</span>
+        <div id="edit-modal" class="modal-box" style="display:none;">
+            <div id="edit-date-label" style="color:var(--neon-blue); margin-bottom:15px;">DATE: 0000.00.00</div>
+            <div class="emoji-list">
+                <span class="emoji-opt" onclick="setEmoji('🚀')">🚀</span>
+                <span class="emoji-opt" onclick="setEmoji('💻')">💻</span>
+                <span class="emoji-opt" onclick="setEmoji('📚')">📚</span>
+                <span class="emoji-opt" onclick="setEmoji('✅')">✅</span>
+                <span class="emoji-opt" onclick="setEmoji('🔥')">🔥</span>
+                <span class="emoji-opt" onclick="setEmoji('💤')">💤</span>
             </div>
-            <textarea id="log-content" placeholder="System logs..."></textarea>
-            <button class="btn-full" onclick="saveLog()">COMMIT_DATA</button>
-            <button class="btn-cyber" style="width:100%; border:none; margin-top:10px;" onclick="closeModal()">CLOSE</button>
+            <textarea id="edit-note" placeholder="Write logs..."></textarea>
+            <button class="btn-action" onclick="save()">SAVE_TO_CLOUD</button>
+            <button class="btn-cyber" style="width:100%; border:none; margin-top:10px;" onclick="closeModal()">CANCEL</button>
         </div>
     </div>
 
     <script>
-        // --- Firebase Config (与 Music 一致) ---
+        // --- 1. FIREBASE SETUP ---
         const firebaseConfig = {
             apiKey: "你的ApiKey",
             authDomain: "你的Domain",
@@ -166,142 +167,155 @@
         const auth = firebase.auth();
         const db = firebase.database();
 
-        let currentViewDate = new Date();
-        let currentUser = null;
-        let userData = {};
-        let selectedKey = "";
-        let selectedEmoji = "";
+        // --- 2. VARS ---
+        let viewDate = new Date(); // 当前查看的日期
+        let user = null;
+        let cloudData = {};
+        let activeKey = "";
+        let activeEmoji = "";
 
-        const monthNames = ["January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"];
+        const months = ["January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"];
+        
+        // --- 3. INIT UI ---
+        const monthSel = document.getElementById('sel-month');
+        const yearSel = document.getElementById('sel-year');
+        months.forEach((m, i) => monthSel.add(new Option(m, i)));
+        for(let y=2024; y<=2030; y++) yearSel.add(new Option(y, y));
 
-        // 初始化下拉菜单
-        const monthSelect = document.getElementById('select-month');
-        const yearSelect = document.getElementById('select-year');
-        monthNames.forEach((m, i) => monthSelect.add(new Option(m, i)));
-        for(let y=2020; y<=2030; y++) yearSelect.add(new Option(y, y));
-
-        // 监听登录
-        auth.onAuthStateChanged(user => {
-            currentUser = user;
-            const status = document.getElementById('auth-status');
+        auth.onAuthStateChanged(u => {
+            user = u;
+            const status = document.getElementById('status-tag');
             const btn = document.getElementById('auth-btn');
-            const container = document.getElementById('calendar-container');
+            const container = document.getElementById('cal-container');
 
-            if(user) {
-                status.innerText = `ADMIN // ${user.email}`;
+            if(u) {
+                status.innerText = `ADMIN // ${u.email}`;
                 status.style.color = "var(--neon-blue)";
                 btn.innerText = "LOGOUT";
                 container.classList.add('auth-active');
-                fetchData();
+                loadCloudData();
             } else {
-                status.innerText = "GUEST_MODE // READ_ONLY";
-                status.style.color = "#888";
+                status.innerText = "GUEST_READ_ONLY";
+                status.style.color = "#666";
                 btn.innerText = "LOGIN";
                 container.classList.remove('auth-active');
-                userData = {};
+                cloudData = {};
                 render();
             }
         });
 
-        async function fetchData() {
-            if(!currentUser) return;
-            const snap = await db.ref('calendar_logs/' + currentUser.uid).once('value');
-            userData = snap.val() || {};
+        // --- 4. CORE LOGIC ---
+        async function loadCloudData() {
+            if(!user) return;
+            const snap = await db.ref('calendar_logs/' + user.uid).once('value');
+            cloudData = snap.val() || {};
             render();
         }
 
         function render() {
-            const grid = document.getElementById('calendar-grid');
-            const labels = grid.querySelectorAll('.day-label');
-            grid.innerHTML = "";
-            labels.forEach(l => grid.appendChild(l));
+            const grid = document.getElementById('cal-grid');
+            grid.innerHTML = ""; // 清空
 
-            const year = currentViewDate.getFullYear();
-            const month = currentViewDate.getMonth();
+            // 重新添加星期头
+            ["SUN", "MON", "TUE", "WED", "THU", "FRI", "SAT"].forEach(day => {
+                const h = document.createElement('div');
+                h.className = 'day-header';
+                h.innerText = day;
+                grid.appendChild(h);
+            });
+
+            const year = viewDate.getFullYear();
+            const month = viewDate.getMonth();
             
-            // 更新下拉框
-            monthSelect.value = month;
-            yearSelect.value = year;
+            // 同步下拉菜单
+            monthSel.value = month;
+            yearSel.value = year;
 
-            const firstDay = new Date(year, month, 1).getDay();
-            const daysInMonth = new Date(year, month + 1, 0).getDate();
+            const firstDayIndex = new Date(year, month, 1).getDay();
+            const lastDayDate = new Date(year, month + 1, 0).getDate();
 
-            // 填充前置空白
-            for(let i=0; i<firstDay; i++) grid.appendChild(document.createElement('div'));
+            // 填充空白日期
+            for(let x=0; x<firstDayIndex; x++) {
+                const empty = document.createElement('div');
+                empty.className = 'day-cell other-month';
+                grid.appendChild(empty);
+            }
 
-            // 填充日期
+            // 填充真实日期
             const today = new Date();
-            for(let d=1; d<=daysInMonth; d++) {
+            for(let d=1; d<=lastDayDate; d++) {
                 const key = `${year}-${month+1}-${d}`;
                 const cell = document.createElement('div');
                 cell.className = 'day-cell';
                 
-                if(d === today.getDate() && month === today.getMonth() && year === today.getFullYear()) cell.classList.add('today');
+                if(d === today.getDate() && month === today.getMonth() && year === today.getFullYear()) {
+                    cell.classList.add('today');
+                }
 
-                const log = userData[key] || {};
-                cell.innerHTML = `<div class="day-number">${d}</div><div class="day-emoji">${log.emoji || ''}</div>`;
-                
-                if(currentUser) cell.onclick = () => openEditor(key);
+                const data = cloudData[key] || {};
+                cell.innerHTML = `
+                    <div class="day-num">${d}</div>
+                    <div class="day-emoji">${data.emoji || ''}</div>
+                `;
+
+                if(user) cell.onclick = () => openEditor(key);
                 grid.appendChild(cell);
             }
         }
 
-        function moveMonth(step) {
-            currentViewDate.setMonth(currentViewDate.getMonth() + step);
-            render();
+        // --- 5. INTERACTION ---
+        function adjustMonth(s) { viewDate.setMonth(viewDate.getMonth() + s); render(); }
+        function syncDate() { viewDate = new Date(yearSel.value, monthSel.value, 1); render(); }
+
+        function handleAuthClick() {
+            if(user) auth.signOut();
+            else {
+                document.getElementById('modal-overlay').style.display = 'flex';
+                document.getElementById('login-modal').style.display = 'block';
+                document.getElementById('edit-modal').style.display = 'none';
+            }
         }
 
-        function jumpToDate() {
-            currentViewDate = new Date(yearSelect.value, monthSelect.value, 1);
-            render();
+        function login() {
+            const e = document.getElementById('email-in').value;
+            const p = document.getElementById('pass-in').value;
+            auth.signInWithEmailAndPassword(e, p).then(() => closeModal()).catch(err => alert(err.message));
         }
 
         function openEditor(key) {
-            selectedKey = key;
-            const log = userData[key] || {emoji: "", note: ""};
-            document.getElementById('editor-date').innerText = `DATE: ${key.replace(/-/g, '.')}`;
-            document.getElementById('log-content').value = log.note;
-            pickEmoji(log.emoji);
-            
+            activeKey = key;
+            const data = cloudData[key] || {emoji:"", note:""};
+            document.getElementById('edit-date-label').innerText = `DATE: ${key.replace(/-/g, '.')}`;
+            document.getElementById('edit-note').value = data.note;
+            setEmoji(data.emoji);
+
             document.getElementById('modal-overlay').style.display = 'flex';
-            document.getElementById('editor-panel').style.display = 'block';
-            document.getElementById('login-panel').style.display = 'none';
+            document.getElementById('edit-modal').style.display = 'block';
+            document.getElementById('login-modal').style.display = 'none';
         }
 
-        function pickEmoji(e) {
-            selectedEmoji = e;
-            document.querySelectorAll('.emoji-item').forEach(item => {
-                item.classList.toggle('selected', item.innerText === e);
+        function setEmoji(e) {
+            activeEmoji = e;
+            document.querySelectorAll('.emoji-opt').forEach(opt => {
+                opt.classList.toggle('active', opt.innerText === e);
             });
         }
 
-        function saveLog() {
-            const note = document.getElementById('log-content').value;
-            const ref = db.ref(`calendar_logs/${currentUser.uid}/${selectedKey}`);
-            ref.set({ emoji: selectedEmoji, note: note }).then(() => {
-                userData[selectedKey] = { emoji: selectedEmoji, note: note };
+        function save() {
+            const note = document.getElementById('edit-note').value;
+            db.ref(`calendar_logs/${user.uid}/${activeKey}`).set({
+                emoji: activeEmoji,
+                note: note
+            }).then(() => {
+                cloudData[activeKey] = { emoji: activeEmoji, note: note };
                 closeModal();
                 render();
             });
         }
 
-        function toggleAuth() {
-            if(currentUser) auth.signOut();
-            else {
-                document.getElementById('modal-overlay').style.display = 'flex';
-                document.getElementById('login-panel').style.display = 'block';
-                document.getElementById('editor-panel').style.display = 'none';
-            }
-        }
-
-        function doLogin() {
-            const e = document.getElementById('email').value;
-            const p = document.getElementById('pass').value;
-            auth.signInWithEmailAndPassword(e, p).then(() => closeModal()).catch(err => alert(err.message));
-        }
-
         function closeModal() { document.getElementById('modal-overlay').style.display = 'none'; }
 
+        // 启动！
         render();
     </script>
 </body>
