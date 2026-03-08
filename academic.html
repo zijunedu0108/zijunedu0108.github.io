@@ -1,0 +1,163 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ZIJUN | Academic Archives</title>
+    <link rel="icon" href="zijunlogo.png" type="image/png">
+    <style>
+        :root {
+            --neon-blue: #00f2ff;
+            --panel-bg: rgba(5, 15, 25, 0.9);
+            --border-glow: rgba(0, 242, 255, 0.3);
+            --text-main: #e0faff;
+            --accent-gold: #ffd700;
+        }
+
+        body {
+            margin: 0; background: #000; color: var(--text-main);
+            font-family: 'Segoe UI', 'Orbitron', sans-serif; overflow-x: hidden;
+        }
+
+        .bg-video {
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            z-index: -1; object-fit: cover; filter: brightness(0.2);
+        }
+
+        header {
+            padding: 20px 40px; border-bottom: 1px solid var(--neon-blue);
+            display: flex; justify-content: space-between; align-items: center;
+            background: rgba(0,0,0,0.8); backdrop-filter: blur(10px);
+        }
+
+        .container {
+            max-width: 1000px; margin: 40px auto; padding: 0 20px;
+        }
+
+        .section-title {
+            font-size: 24px; letter-spacing: 5px; color: var(--neon-blue);
+            border-left: 5px solid var(--neon-blue); padding-left: 15px;
+            margin: 40px 0 20px; text-transform: uppercase;
+        }
+
+        /* 成绩卡片布局 */
+        .stats-grid {
+            display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 20px;
+        }
+
+        .archive-card {
+            background: var(--panel-bg);
+            border: 1px solid var(--border-glow);
+            padding: 25px;
+            position: relative;
+            clip-path: polygon(0 0, 90% 0, 100% 10%, 100% 100%, 0 100%);
+            transition: 0.3s;
+        }
+
+        .archive-card:hover {
+            border-color: var(--neon-blue);
+            box-shadow: 0 0 20px rgba(0, 242, 255, 0.2);
+            transform: translateY(-5px);
+        }
+
+        .card-label { font-size: 12px; color: var(--neon-blue); opacity: 0.7; margin-bottom: 10px; }
+        .card-value { font-size: 28px; font-weight: bold; letter-spacing: 2px; margin-bottom: 15px; }
+        
+        /* 进度条效果 */
+        .rank-bar {
+            height: 4px; background: rgba(255,255,255,0.1); width: 100%; position: relative;
+        }
+        .rank-fill {
+            position: absolute; top: 0; left: 0; height: 100%; background: var(--neon-blue);
+            box-shadow: 0 0 10px var(--neon-blue);
+        }
+
+        /* 活动列表样式 */
+        .activity-item {
+            display: flex; align-items: center; gap: 20px;
+            background: rgba(0, 242, 255, 0.05);
+            margin-bottom: 15px; padding: 15px;
+            border-right: 3px solid transparent;
+            transition: 0.3s;
+        }
+
+        .activity-item:hover {
+            background: rgba(0, 242, 255, 0.1);
+            border-right-color: var(--neon-blue);
+        }
+
+        .year-tag {
+            background: var(--neon-blue); color: #000;
+            padding: 5px 12px; font-weight: bold; font-size: 14px;
+        }
+
+        .btn-back {
+            color: var(--neon-blue); text-decoration: none; border: 1px solid var(--neon-blue);
+            padding: 8px 20px; transition: 0.3s; font-size: 14px;
+        }
+        .btn-back:hover { background: var(--neon-blue); color: #000; }
+
+    </style>
+</head>
+<body>
+
+    <video autoplay muted loop playsinline class="bg-video">
+        <source src="zijunbg.mp4" type="video/mp4">
+    </video>
+
+    <header>
+        <div style="font-size: 24px; letter-spacing: 4px; font-weight: bold;">ACADEMIC_ARCHIVES</div>
+        <a href="index.html" class="btn-back">RETURN_TO_CORE</a>
+    </header>
+
+    <div class="container">
+        <div class="section-title">Academic Achievements</div>
+        <div class="stats-grid">
+            <div class="archive-card">
+                <div class="card-label">> CURRENT_STATUS: STPM (SEM 1 TRIAL)</div>
+                <div class="card-value">GPA 3.50</div>
+                <div class="rank-bar"><div class="rank-fill" style="width: 87.5%;"></div></div>
+                <p style="font-size: 12px; margin-top: 10px; opacity: 0.8;">Status: Distinction Level Predicted</p>
+            </div>
+
+            <div class="archive-card">
+                <div class="card-label">> HISTORICAL_DATA: SPM</div>
+                <div class="card-value">8A 2B</div>
+                <div class="rank-bar"><div class="rank-fill" style="width: 80%;"></div></div>
+                <p style="font-size: 12px; margin-top: 10px; opacity: 0.8;">Efficiency: Highly Successful</p>
+            </div>
+
+            <div class="archive-card">
+                <div class="card-label">> ORIGIN_DATA: UPSR</div>
+                <div class="card-value">2A 4B 2C</div>
+                <div class="rank-bar"><div class="rank-fill" style="width: 50%;"></div></div>
+                <p style="font-size: 12px; margin-top: 10px; opacity: 0.8;">Status: Foundation Established</p>
+            </div>
+        </div>
+
+        <div class="section-title">Leadership & Activities</div>
+        
+        <div class="activity-item">
+            <div class="year-tag">2026</div>
+            <div>
+                <div style="font-weight: bold; font-size: 18px;">Biro Multimedia dan Siar Raya</div>
+                <div style="font-size: 14px; color: var(--neon-blue);">// Role: Technical & Broadcasting Lead</div>
+            </div>
+        </div>
+
+        <div class="activity-item">
+            <div class="year-tag">2024</div>
+            <div>
+                <div style="font-weight: bold; font-size: 18px;">Kelab ICT</div>
+                <div style="font-size: 14px; color: var(--neon-blue);">// Role: President (Pengerusi)</div>
+            </div>
+        </div>
+
+        <p style="text-align: center; margin-top: 50px; font-size: 12px; opacity: 0.5;">
+            -- END OF ARCHIVE --<br>
+            DATA_INTEGRITY_VERIFIED_BY_CORE
+        </p>
+    </div>
+
+</body>
+</html>
