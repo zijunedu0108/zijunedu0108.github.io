@@ -218,7 +218,6 @@
         const db = getFirestore(app);
         const auth = getAuth(app);
         
-        // 显式设置持久化
         setPersistence(auth, browserLocalPersistence);
 
         let currentAlbumId = null;
@@ -227,20 +226,25 @@
         let ambientInterval = null;
         let isAdmin = false;
 
-        // --- 拖拽逻辑修复 ---
+        // --- 拖拽逻辑修复：增加权限判断 ---
         function initSortable(elId, isAlbum) {
             const el = document.getElementById(elId);
-            if (!el || !isAdmin) return;
+            if (!el) return;
             
+            // 如果已经存在 Sortable 实例，先销毁以便重新初始化权限
+            if (Sortable.get(el)) {
+                Sortable.get(el).destroy();
+            }
+
             Sortable.create(el, {
                 animation: 150,
+                disabled: !isAdmin, // 关键：如果不是管理员，禁止拖拽
                 ghostClass: 'sortable-ghost',
                 onEnd: async (evt) => {
+                    if (!isAdmin) return; // 二次保险
                     if (isAlbum) {
-                        // 更新合集顺序（基于 timestamp 分布）
                         console.log("Saving album order...");
                     } else {
-                        // 更新歌曲顺序
                         const newSongs = [];
                         el.querySelectorAll('.card').forEach(card => {
                             const songId = card.getAttribute('data-id');
@@ -253,7 +257,6 @@
             });
         }
 
-        // --- 氛围灯核心 ---
         const ambCanvas = document.getElementById('ambient-canvas');
         const ambCtx = ambCanvas.getContext('2d', { alpha: false });
         ambCanvas.width = 16; ambCanvas.height = 9;
@@ -268,7 +271,6 @@
             img.onload = () => ambCtx.drawImage(img, 0, 0, 16, 9);
         }
 
-        // --- 播放控制 ---
         window.play = (videoId, songName) => {
             document.getElementById('player-overlay').style.display = 'flex';
             document.getElementById('ambient-canvas').style.opacity = '1';
@@ -316,7 +318,6 @@
             clearInterval(ambientInterval); ambientInterval = null;
         };
 
-        // --- 导航 ---
         window.showHome = () => {
             currentAlbumId = null;
             document.getElementById('detail-page').classList.remove('active-page');
@@ -341,19 +342,19 @@
                         <div class="card-info"><div class="song-title">${s.name}</div></div>
                         ${isAdmin ? `<button class="delete-btn" onclick="window.removeSong(event, '${s.id}')">REMOVE</button>` : ''}
                     </div>`).join('');
-                if (isAdmin) initSortable('song-grid', false);
+                initSortable('song-grid', false);
             });
         };
 
-        // --- 身份验证 ---
+        // --- 身份验证后刷新拖拽实例 ---
         onAuthStateChanged(auth, (user) => {
             isAdmin = !!user;
             document.querySelectorAll('.admin-only').forEach(el => el.style.display = user ? 'block' : 'none');
             document.getElementById('login-gate-btn').innerText = user ? "SYS_LOGOUT" : "SYS_LOGIN";
-            if (isAdmin) {
-                initSortable('album-grid', true);
-                if (currentAlbumId) initSortable('song-grid', false);
-            }
+            
+            // 登录状态改变，重新初始化拖拽组件
+            initSortable('album-grid', true);
+            if (currentAlbumId) initSortable('song-grid', false);
         });
 
         window.handleLogin = async () => {
@@ -367,7 +368,6 @@
 
         window.openLogin = () => auth.currentUser ? signOut(auth) : document.getElementById('login-modal').style.display = 'flex';
 
-        // --- 数据加载 ---
         onSnapshot(query(collection(db, "albums"), orderBy("timestamp", "desc")), (snap) => {
             const grid = document.getElementById('album-grid');
             grid.innerHTML = "";
@@ -381,7 +381,7 @@
                         ${isAdmin ? `<button class="delete-btn" onclick="window.delAlbum(event, '${d.id}')">ERASE</button>` : ''}
                     </div>`;
             });
-            if (isAdmin) initSortable('album-grid', true);
+            initSortable('album-grid', true);
         });
 
         window.triggerAction = () => {
@@ -418,7 +418,6 @@
             if(confirm("PERMANENTLY ERASE THIS COLLECTION?")) await deleteDoc(doc(db, "albums", id)); 
         };
 
-        // 核心修复：挂载到 window 确保 HTML 能调用
         window.closeModals = () => { 
             document.querySelectorAll('.modal').forEach(m => m.style.display = 'none'); 
         };
