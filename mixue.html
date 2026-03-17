@@ -73,6 +73,7 @@
             padding: 0;
             flex-shrink: 0;
             -webkit-overflow-scrolling: touch; /* 滚动流畅 */
+            scroll-behavior: smooth;
         }
 
         #sidebar::-webkit-scrollbar { display: none; } /* 隐藏滚动条 */
@@ -102,6 +103,7 @@
             grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); 
             gap: 12px;
             align-content: start;
+            transition: opacity 0.2s; /* 切换时的淡入淡出感 */
         }
 
         .drink-card {
@@ -191,14 +193,14 @@
 
 <main>
     <div id="sidebar">
-        <div class="category-item active" onclick="filterCategory('ALL')">ALL</div>
-        <div class="category-item" onclick="filterCategory('ICE CREAM')">ICE CREAM</div>
-        <div class="category-item" onclick="filterCategory('MILK TEA')">MILK TEA</div>
-        <div class="category-item" onclick="filterCategory('CREAMY')">CREAMY</div>
-        <div class="category-item" onclick="filterCategory('REAL FRUIT')">REAL FRUIT</div>
-        <div class="category-item" onclick="filterCategory('COFFEE')">COFFEE</div>
-        <div class="category-item" onclick="filterCategory('STRAWBERRY')">STRAWBERRY</div>
-        <div class="category-item" onclick="filterCategory('OTHER')">OTHERS</div>
+        <div class="category-item active" data-cat="ALL" onclick="filterCategory('ALL')">ALL</div>
+        <div class="category-item" data-cat="ICE CREAM" onclick="filterCategory('ICE CREAM')">ICE CREAM</div>
+        <div class="category-item" data-cat="MILK TEA" onclick="filterCategory('MILK TEA')">MILK TEA</div>
+        <div class="category-item" data-cat="CREAMY" onclick="filterCategory('CREAMY')">CREAMY</div>
+        <div class="category-item" data-cat="REAL FRUIT" onclick="filterCategory('REAL FRUIT')">REAL FRUIT</div>
+        <div class="category-item" data-cat="COFFEE" onclick="filterCategory('COFFEE')">COFFEE</div>
+        <div class="category-item" data-cat="STRAWBERRY" onclick="filterCategory('STRAWBERRY')">STRAWBERRY</div>
+        <div class="category-item" data-cat="OTHER" onclick="filterCategory('OTHER')">OTHERS</div>
     </div>
     <div id="content"></div>
 </main>
@@ -215,7 +217,6 @@
 </div>
 
 <script>
-    // 数据部分保持不变
     const recipes = [
         { name: "Mixue Ice Cream", category: "ICE CREAM", cup: "Ais Cream Cone", image: "/mixue/icecream.jpg", steps: ["120 g Ice Cream"] },
         { name: "Strawberry Mi-Shake", category: "ICE CREAM", cup: "U Cup", image: "mixue/strawberrymishake.jpg", steps: ["3.5 lap Ais Cream (-+ 120g)", "Strawberry Jam (2 Scope - 25 g x 2)", "5 ICE", "Jasmine Tea (0.8)"] },
@@ -263,6 +264,7 @@
 
     const contentBox = document.getElementById('content');
     const overlay = document.getElementById('overlay');
+    const sidebar = document.getElementById('sidebar');
 
     function renderDrinks(data) {
         contentBox.innerHTML = '';
@@ -290,12 +292,26 @@
     }
 
     function filterCategory(cat) {
-        document.querySelectorAll('.category-item').forEach(el => {
+        const items = document.querySelectorAll('.category-item');
+        items.forEach(el => {
             el.classList.remove('active');
-            if(el.innerText === cat || (cat === 'ALL' && el.innerText === 'ALL')) el.classList.add('active');
+            if(el.getAttribute('data-cat') === cat) {
+                el.classList.add('active');
+                // 自动滚动导航条，使选中项居中
+                if (window.innerWidth <= 768) {
+                    const offset = el.offsetLeft - (sidebar.offsetWidth / 2) + (el.offsetWidth / 2);
+                    sidebar.scrollLeft = offset;
+                }
+            }
         });
-        if(cat === 'ALL') { renderDrinks(recipes); } 
-        else { renderDrinks(recipes.filter(r => r.category === cat)); }
+
+        contentBox.style.opacity = '0';
+        setTimeout(() => {
+            if(cat === 'ALL') { renderDrinks(recipes); } 
+            else { renderDrinks(recipes.filter(r => r.category === cat)); }
+            contentBox.style.opacity = '1';
+            contentBox.scrollTop = 0; // 切换分类后回到顶部
+        }, 150);
     }
 
     function showRecipe(item) {
@@ -312,6 +328,41 @@
     }
 
     function closePanel() { overlay.style.display = 'none'; }
+
+    // --- 新增：手机端左右滑动切换分类逻辑 ---
+    let touchstartX = 0;
+    let touchendX = 0;
+    const categories = ['ALL', 'ICE CREAM', 'MILK TEA', 'CREAMY', 'REAL FRUIT', 'COFFEE', 'STRAWBERRY', 'OTHER'];
+
+    contentBox.addEventListener('touchstart', e => {
+        touchstartX = e.changedTouches[0].screenX;
+    }, {passive: true});
+
+    contentBox.addEventListener('touchend', e => {
+        touchendX = e.changedTouches[0].screenX;
+        handleSwipe();
+    }, {passive: true});
+
+    function handleSwipe() {
+        const swipeThreshold = 60; // 滑动触发阈值
+        const activeItem = document.querySelector('.category-item.active');
+        const currentCat = activeItem.getAttribute('data-cat');
+        let index = categories.indexOf(currentCat);
+
+        if (touchendX < touchstartX - swipeThreshold) {
+            // 向左滑 -> 下一个分类
+            if (index < categories.length - 1) {
+                filterCategory(categories[index + 1]);
+            }
+        }
+        if (touchendX > touchstartX + swipeThreshold) {
+            // 向右滑 -> 上一个分类
+            if (index > 0) {
+                filterCategory(categories[index - 1]);
+            }
+        }
+    }
+
     renderDrinks(recipes);
 </script>
 
