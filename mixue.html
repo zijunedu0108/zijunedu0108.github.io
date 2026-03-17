@@ -30,7 +30,6 @@
             overflow: hidden;
         }
 
-        /* Header */
         header {
             background-color: var(--mixue-red);
             color: white;
@@ -42,86 +41,52 @@
             z-index: 100;
         }
 
-        .header-logo {
-            display: flex;
-            align-items: center;
-        }
+        .header-logo { display: flex; align-items: center; }
 
         header img {
-            height: 45px;
-            width: 45px;
+            height: 45px; width: 45px;
             margin-right: 15px;
             border-radius: 50%;
             background: white;
             border: 2px solid white;
         }
 
-        header h1 {
-            font-size: 1.4rem;
-            letter-spacing: 1px;
-        }
+        header h1 { font-size: 1.4rem; letter-spacing: 1px; }
 
-        /* Main Layout */
-        main {
-            display: flex;
-            flex: 1;
-            overflow: hidden;
-        }
+        main { display: flex; flex: 1; overflow: hidden; }
 
-        /* 左侧内容区 (70%) */
         #content {
-            width: 70%;
-            padding: 25px;
+            width: 70%; padding: 25px;
             overflow-y: auto;
             display: grid;
-            grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+            grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
             gap: 20px;
             align-content: start;
         }
 
-        /* 右侧分类栏 (30%) */
         #sidebar {
-            width: 30%;
-            background: var(--white);
+            width: 30%; background: var(--white);
             border-left: 1px solid #eee;
             overflow-y: auto;
-            display: flex;
-            flex-direction: column;
+            display: flex; flex-direction: column;
             padding: 10px 0;
         }
 
         .category-item {
-            padding: 18px 25px;
-            font-size: 1rem;
-            font-weight: 700;
-            color: var(--text-dark);
-            cursor: pointer;
+            padding: 18px 25px; font-size: 1rem; font-weight: 700;
+            color: var(--text-dark); cursor: pointer;
             border-bottom: 1px solid #f9f9f9;
             transition: all 0.2s;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
+            display: flex; justify-content: space-between; align-items: center;
         }
 
-        .category-item:hover {
-            background-color: #fffafa;
-            color: var(--mixue-red);
-        }
+        .category-item:hover { background-color: #fffafa; color: var(--mixue-red); }
+        .category-item.active { background-color: var(--mixue-red); color: white; }
 
-        .category-item.active {
-            background-color: var(--mixue-red);
-            color: white;
-        }
-
-        /* Card Style */
         .drink-card {
-            background: white;
-            border-radius: 16px;
-            padding: 20px;
-            text-align: center;
-            box-shadow: 0 4px 12px rgba(0,0,0,0.04);
-            cursor: pointer;
-            transition: all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            background: white; border-radius: 16px; padding: 20px;
+            text-align: center; box-shadow: 0 4px 12px rgba(0,0,0,0.04);
+            cursor: pointer; transition: all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
             border: 1px solid #f0f0f0;
         }
 
@@ -131,104 +96,57 @@
             border-color: var(--mixue-light-red);
         }
 
+        /* 图片/字母圆圈容器 */
         .drink-card .icon-circle {
-            width: 60px;
-            height: 60px;
-            background: #fff5f5;
+            width: 80px; height: 80px;
+            background: var(--mixue-red); /* 默认红底 */
+            color: white;
             border-radius: 50%;
-            display: flex;
-            align-items: center;
-            justify-content: center;
+            display: flex; align-items: center; justify-content: center;
             margin: 0 auto 15px;
-            font-size: 24px;
-            color: var(--mixue-red);
-            font-weight: bold;
-            border: 1px solid #ffebeb;
+            font-size: 32px; font-weight: bold;
+            border: 3px solid white;
+            box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+            overflow: hidden; /* 保证图片被裁切成圆形 */
         }
 
-        .drink-card h3 {
-            font-size: 0.95rem;
-            color: var(--text-dark);
-            text-transform: uppercase;
-        }
-
-        /* Modal Panel */
-        #overlay {
-            display: none;
-            position: fixed;
-            top: 0; left: 0;
+        .drink-card .icon-circle img {
             width: 100%; height: 100%;
-            background: rgba(0,0,0,0.7);
-            backdrop-filter: blur(4px);
-            z-index: 1000;
-            justify-content: center;
-            align-items: center;
+            object-fit: cover; /* 保证图片不变形 */
+        }
+
+        .drink-card h3 { font-size: 0.95rem; color: var(--text-dark); text-transform: uppercase; }
+
+        #overlay {
+            display: none; position: fixed;
+            top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(0,0,0,0.7); backdrop-filter: blur(4px);
+            z-index: 1000; justify-content: center; align-items: center;
         }
 
         #panel {
-            background: white;
-            width: 90%;
-            max-width: 550px;
-            border-radius: 25px;
-            overflow: hidden;
-            position: relative;
-            animation: pop 0.3s ease-out;
+            background: white; width: 90%; max-width: 550px;
+            border-radius: 25px; overflow: hidden;
+            position: relative; animation: pop 0.3s ease-out;
         }
 
-        @keyframes pop {
-            from { transform: scale(0.9); opacity: 0; }
-            to { transform: scale(1); opacity: 1; }
-        }
+        @keyframes pop { from { transform: scale(0.9); opacity: 0; } to { transform: scale(1); opacity: 1; } }
 
-        .panel-top {
-            background: var(--mixue-red);
-            color: white;
-            padding: 25px;
-            text-align: center;
-        }
-
+        .panel-top { background: var(--mixue-red); color: white; padding: 25px; text-align: center; }
         .panel-top h2 { margin-bottom: 5px; font-size: 1.5rem; }
         .panel-top span { opacity: 0.9; font-size: 0.9rem; font-weight: bold; background: rgba(0,0,0,0.1); padding: 2px 10px; border-radius: 10px;}
 
-        .panel-body {
-            padding: 30px;
-            max-height: 70vh;
-            overflow-y: auto;
-        }
-
-        .recipe-step {
-            display: flex;
-            margin-bottom: 15px;
-            padding-bottom: 12px;
-            border-bottom: 1px dashed #eee;
-        }
-
+        .panel-body { padding: 30px; max-height: 70vh; overflow-y: auto; }
+        .recipe-step { display: flex; margin-bottom: 15px; padding-bottom: 12px; border-bottom: 1px dashed #eee; }
         .step-num {
-            background: var(--mixue-red);
-            color: white;
-            width: 24px;
-            height: 24px;
-            border-radius: 50%;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 12px;
-            margin-right: 15px;
-            flex-shrink: 0;
-            margin-top: 3px;
+            background: var(--mixue-red); color: white;
+            width: 24px; height: 24px; border-radius: 50%;
+            display: flex; align-items: center; justify-content: center;
+            font-size: 12px; margin-right: 15px; flex-shrink: 0; margin-top: 3px;
         }
-
         .step-text { color: var(--text-dark); line-height: 1.5; font-size: 1.05rem; }
+        .footer-note { padding: 15px; background: #fff9f9; text-align: center; font-size: 0.85rem; color: #999; }
 
-        .footer-note {
-            padding: 15px;
-            background: #fff9f9;
-            text-align: center;
-            font-size: 0.85rem;
-            color: #999;
-        }
-
-        /* Responsive */
         @media (max-width: 768px) {
             main { flex-direction: column-reverse; }
             #sidebar { width: 100%; height: 70px; flex-direction: row; border-left: none; border-top: 1px solid #eee; }
@@ -249,7 +167,6 @@
 
 <main>
     <div id="content"></div>
-
     <div id="sidebar">
         <div class="category-item active" onclick="filterCategory('ALL')">ALL SERIES</div>
         <div class="category-item" onclick="filterCategory('ICE CREAM')">ICE CREAM</div>
@@ -269,73 +186,74 @@
             <h2 id="recipe-title">ITEM NAME</h2>
         </div>
         <div class="panel-body" id="recipe-detail"></div>
-        <div class="footer-note">
-            * Please follow the standard Mixue operating procedures.
-        </div>
+        <div class="footer-note">* Please follow the standard Mixue operating procedures.</div>
     </div>
 </div>
 
 <script>
+    // image 字段说明：
+    // 1. 如果有图：image: "images/lemon.jpg"
+    // 2. 如果没图：image: "" (会自动显示名字首字母)
     const recipes = [
         // ICE CREAM SERIES
-        { name: "Mixue Ice Cream", category: "ICE CREAM", cup: "Ais Cream Cone", steps: ["120 g Ice Cream"] },
-        { name: "Strawberry Mi-Shake", category: "ICE CREAM", cup: "U Cup", steps: ["3.5 lap Ais Cream (-+ 120g)", "Strawberry Jam (2 Scope - 25 g x 2)", "5 ICE", "Jasmine Tea (0.8)"] },
-        { name: "Peach Mi-Shake", category: "ICE CREAM", cup: "U Cup", steps: ["Yellow Jelly (1 Scope - 40 g)", "3.5 lap Ais Cream (+- 120g)", "Peach Jam (2 Scope - 2 x 25 g)", "5 ICE", "Ooblong Tea (0.8)"] },
-        { name: "Boba Mi-Shake", category: "ICE CREAM", cup: "U Cup", steps: ["Brown Sugar Syrup (0.5 press) - 10 g", "3.5 lap Ais Cream (+- 120g)", "Pearl (2 Scope - 2 x 25 g)", "5 ICE", "Black Tea (0.8)"] },
-        { name: "Strawberry Crispy Sundae", category: "ICE CREAM", cup: "U Cup", steps: ["Waffle Crumbs (2 Scope)", "5.5 laps Ais Cream (+- 180g)", "Strawberry Jam (2 Scope - 25 g x 2)"] },
-        { name: "Super Boba Sundae", category: "ICE CREAM", cup: "U Cup", steps: ["Brown Sugar Syrup (0.5 press- 10 g)", "5.5 laps Ais Cream (+- 180g)", "Pearl (2 Scope = 40 g x 2)"] },
-        { name: "O-Crispy Sundae", category: "ICE CREAM", cup: "U Cup", steps: ["Waffle Crumbs (2 Scope)", "5.5 laps Ais Cream (+- 180g)", "Chocolate (1 Pupl = 20 g)", "Cookies (2 Scope = 2 x 25 g)"] },
-        { name: "Super Mango Sundae", category: "ICE CREAM", cup: "U Cup", steps: ["5.5 laps Ais Cream (+- 180g)", "Mango Jam - 40 g (Kena Timbang)"] },
+        { name: "Mixue Ice Cream", category: "ICE CREAM", cup: "Ais Cream Cone", image: "", steps: ["120 g Ice Cream"] },
+        { name: "Strawberry Mi-Shake", category: "ICE CREAM", cup: "U Cup", image: "", steps: ["3.5 lap Ais Cream (-+ 120g)", "Strawberry Jam (2 Scope - 25 g x 2)", "5 ICE", "Jasmine Tea (0.8)"] },
+        { name: "Peach Mi-Shake", category: "ICE CREAM", cup: "U Cup", image: "", steps: ["Yellow Jelly (1 Scope - 40 g)", "3.5 lap Ais Cream (+- 120g)", "Peach Jam (2 Scope - 2 x 25 g)", "5 ICE", "Ooblong Tea (0.8)"] },
+        { name: "Boba Mi-Shake", category: "ICE CREAM", cup: "U Cup", image: "", steps: ["Brown Sugar Syrup (0.5 press) - 10 g", "3.5 lap Ais Cream (+- 120g)", "Pearl (2 Scope - 2 x 25 g)", "5 ICE", "Black Tea (0.8)"] },
+        { name: "Strawberry Crispy Sundae", category: "ICE CREAM", cup: "U Cup", image: "", steps: ["Waffle Crumbs (2 Scope)", "5.5 laps Ais Cream (+- 180g)", "Strawberry Jam (2 Scope - 25 g x 2)"] },
+        { name: "Super Boba Sundae", category: "ICE CREAM", cup: "U Cup", image: "", steps: ["Brown Sugar Syrup (0.5 press- 10 g)", "5.5 laps Ais Cream (+- 180g)", "Pearl (2 Scope = 40 g x 2)"] },
+        { name: "O-Crispy Sundae", category: "ICE CREAM", cup: "U Cup", image: "", steps: ["Waffle Crumbs (2 Scope)", "5.5 laps Ais Cream (+- 180g)", "Chocolate (1 Pupl = 20 g)", "Cookies (2 Scope = 2 x 25 g)"] },
+        { name: "Super Mango Sundae", category: "ICE CREAM", cup: "U Cup", image: "", steps: ["5.5 laps Ais Cream (+- 180g)", "Mango Jam - 40 g (Kena Timbang)"] },
 
         // MILK TEA SERIES
-        { name: "Brown Sugar Bubble Tea", category: "MILK TEA", cup: "500 Plastic Cup", steps: ["Brown Sugar Syrup (1.5 press = 30g )", "Pearl (2 Scope = 40 g x 2 )", "Add Ice", "Milk Tea Until 0.8"] },
-        { name: "Toffee Hazelnut Milk Tea", category: "MILK TEA", cup: "500 Plastic Cup", steps: ["Sugar Flavoured Drink ( 2 press - 40 g )", "Brown Sugar Jelly (80 g = 40 g x 2)", "Add Ice", "Milk Tea Until 0.8", "No Added On Water (New)"] },
-        { name: "O-Coco Milk Tea", category: "MILK TEA", cup: "500 Plastic Cup", steps: ["Sugar Syrup 10g", "Chocolate (2 Pupl = 40 g)", "Cookies (1 Scope = 10 g)", "Brown Sugar Jelly (80 g = 40 g x 2)", "Add Ice", "Milk Tea Until 0.8"] },
-        { name: "Classical Milk Tea", category: "MILK TEA", cup: "500 Plastic Cup", steps: ["Sugar Syrup 30g", "Pearl (2 Scope)", "Add Ice", "Milk Tea Until 0.8"] },
-        { name: "Classical Milk Tea (L)", category: "MILK TEA", cup: "700 Plastic Cup", steps: ["Sugar Syrup 30g", "Pearl (4 Scope)", "Add Ice", "Milk Tea Until 0.8"] },
-        { name: "Coconut Jelly Milk Tea", category: "MILK TEA", cup: "500 Plastic Cup", steps: ["Sugar Syrup 30g", "Coconut (2 Scope)", "Add Ice", "Milk Tea Until 0.8"] },
-        { name: "Coconut Jelly Milk Tea (L)", category: "MILK TEA", cup: "700 Plastic Cup", steps: ["Sugar Syrup 30g", "Coconut (6 Scope)", "Add Ice", "Milk Tea Until 0.8"] },
-        { name: "Brown Sugar Jelly Milk Tea", category: "MILK TEA", cup: "500 Plastic Cup", steps: ["Sugar Syrup 30g", "Brown Sugar Jelly (2 Scope)", "Add Ice", "Milk Tea Until 0.8"] },
-        { name: "Brown Sugar Jelly Milk Tea (L)", category: "MILK TEA", cup: "700 Plastic Cup", steps: ["Sugar Syrup 30g", "Brown Sugar Jelly (4 Scope)", "Add Ice", "Milk Tea Until 0.8"] },
-        { name: "Twin-Topping Milk Tea", category: "MILK TEA", cup: "500 Plastic Cup", steps: ["Sugar Syrup 30g", "Nata (2 Scope)", "Brown Sugar Jelly (2 Scope)", "Add Ice", "Milk Tea Until 0.8"] },
-        { name: "Twin-Topping Milk Tea (L)", category: "MILK TEA", cup: "700 Plastic Cup", steps: ["Sugar Syrup 30g", "Nata (3 Scope)", "Brown Sugar Jelly (3 Scope)", "Add Ice", "Milk Tea Until 0.8"] },
-        { name: "Super-Triple Milk Tea", category: "MILK TEA", cup: "700 Plastic Cup", steps: ["Sugar Syrup 30g", "Pearl (2 Scope)", "Nata (2 Scope)", "Brown Sugar Jelly (2 Scope)", "Add Ice", "Milk Tea Until 0.8"] },
+        { name: "Brown Sugar Bubble Tea", category: "MILK TEA", cup: "500 Plastic Cup", image: "", steps: ["Brown Sugar Syrup (1.5 press = 30g )", "Pearl (2 Scope = 40 g x 2 )", "Add Ice", "Milk Tea Until 0.8"] },
+        { name: "Toffee Hazelnut Milk Tea", category: "MILK TEA", cup: "500 Plastic Cup", image: "", steps: ["Sugar Flavoured Drink ( 2 press - 40 g )", "Brown Sugar Jelly (80 g = 40 g x 2)", "Add Ice", "Milk Tea Until 0.8", "No Added On Water (New)"] },
+        { name: "O-Coco Milk Tea", category: "MILK TEA", cup: "500 Plastic Cup", image: "", steps: ["Sugar Syrup 10g", "Chocolate (2 Pupl = 40 g)", "Cookies (1 Scope = 10 g)", "Brown Sugar Jelly (80 g = 40 g x 2)", "Add Ice", "Milk Tea Until 0.8"] },
+        { name: "Classical Milk Tea", category: "MILK TEA", cup: "500 Plastic Cup", image: "", steps: ["Sugar Syrup 30g", "Pearl (2 Scope)", "Add Ice", "Milk Tea Until 0.8"] },
+        { name: "Classical Milk Tea (L)", category: "MILK TEA", cup: "700 Plastic Cup", image: "", steps: ["Sugar Syrup 30g", "Pearl (4 Scope)", "Add Ice", "Milk Tea Until 0.8"] },
+        { name: "Coconut Jelly Milk Tea", category: "MILK TEA", cup: "500 Plastic Cup", image: "", steps: ["Sugar Syrup 30g", "Coconut (2 Scope)", "Add Ice", "Milk Tea Until 0.8"] },
+        { name: "Coconut Jelly Milk Tea (L)", category: "MILK TEA", cup: "700 Plastic Cup", image: "", steps: ["Sugar Syrup 30g", "Coconut (6 Scope)", "Add Ice", "Milk Tea Until 0.8"] },
+        { name: "Brown Sugar Jelly Milk Tea", category: "MILK TEA", cup: "500 Plastic Cup", image: "", steps: ["Sugar Syrup 30g", "Brown Sugar Jelly (2 Scope)", "Add Ice", "Milk Tea Until 0.8"] },
+        { name: "Brown Sugar Jelly Milk Tea (L)", category: "MILK TEA", cup: "700 Plastic Cup", image: "", steps: ["Sugar Syrup 30g", "Brown Sugar Jelly (4 Scope)", "Add Ice", "Milk Tea Until 0.8"] },
+        { name: "Twin-Topping Milk Tea", category: "MILK TEA", cup: "500 Plastic Cup", image: "", steps: ["Sugar Syrup 30g", "Nata (2 Scope)", "Brown Sugar Jelly (2 Scope)", "Add Ice", "Milk Tea Until 0.8"] },
+        { name: "Twin-Topping Milk Tea (L)", category: "MILK TEA", cup: "700 Plastic Cup", image: "", steps: ["Sugar Syrup 30g", "Nata (3 Scope)", "Brown Sugar Jelly (3 Scope)", "Add Ice", "Milk Tea Until 0.8"] },
+        { name: "Super-Triple Milk Tea", category: "MILK TEA", cup: "700 Plastic Cup", image: "", steps: ["Sugar Syrup 30g", "Pearl (2 Scope)", "Nata (2 Scope)", "Brown Sugar Jelly (2 Scope)", "Add Ice", "Milk Tea Until 0.8"] },
 
         // CREAMY DRINK
-        { name: "Strawberry Creamy Drink", category: "CREAMY", cup: "500 Plastic Cup", steps: ["Sugar Syrup 20 g", "Yellow Jelly (2 Scope 80 g)", "Strawberry Jam 75g (25g x 3)", "Add Ice to 0.8 cm", "Concentrated Milk 60ml", "Add Water Until 0.8"] },
-        { name: "Kiwi Creamy Drink", category: "CREAMY", cup: "500 Plastic Cup", steps: ["Sugar Syrup 30 g", "Yellow Jelly (2 Scope 80 g)", "Kiwi Jam 75g (25g x 3)", "Add Ice to 0.8 cm", "Concentrated Milk 60ml", "Add Water Until 0.8"] },
-        { name: "Lychee Rose Creamy Drink", category: "CREAMY", cup: "500 Plastic Cup", steps: ["Sugar Syrup 10g", "Milk Jelly (2 Scope - 40 g x 2)", "Lychee Syrup 60", "Add Ice", "Concentrated Milk 60ml", "Add Water Until 0.8"] },
-        { name: "Melon Creamy Drink", category: "CREAMY", cup: "500 Plastic Cup", steps: ["Milk Jelly (1 Scope)", "Crystal Jelly (2 Scope)", "Melon Syrup (2 Scope - 50g)", "Add Ice", "Concentrated Milk 60ml", "Add Water Until 0.8"] },
+        { name: "Strawberry Creamy Drink", category: "CREAMY", cup: "500 Plastic Cup", image: "", steps: ["Sugar Syrup 20 g", "Yellow Jelly (2 Scope 80 g)", "Strawberry Jam 75g (25g x 3)", "Add Ice to 0.8 cm", "Concentrated Milk 60ml", "Add Water Until 0.8"] },
+        { name: "Kiwi Creamy Drink", category: "CREAMY", cup: "500 Plastic Cup", image: "", steps: ["Sugar Syrup 30 g", "Yellow Jelly (2 Scope 80 g)", "Kiwi Jam 75g (25g x 3)", "Add Ice to 0.8 cm", "Concentrated Milk 60ml", "Add Water Until 0.8"] },
+        { name: "Lychee Rose Creamy Drink", category: "CREAMY", cup: "500 Plastic Cup", image: "", steps: ["Sugar Syrup 10g", "Milk Jelly (2 Scope - 40 g x 2)", "Lychee Syrup 60", "Add Ice", "Concentrated Milk 60ml", "Add Water Until 0.8"] },
+        { name: "Melon Creamy Drink", category: "CREAMY", cup: "500 Plastic Cup", image: "", steps: ["Milk Jelly (1 Scope)", "Crystal Jelly (2 Scope)", "Melon Syrup (2 Scope - 50g)", "Add Ice", "Concentrated Milk 60ml", "Add Water Until 0.8"] },
 
         // REAL FRUIT TEA
-        { name: "Kiwi Jasmine Tea", category: "REAL FRUIT", cup: "700 Plastic Cup", steps: ["Sugar Syrup 40g", "Fruit Honey (20 g)", "Coconut (2 Scope)", "Yellow Jelly (1 Scope)", "Kiwi Jam 75g", "Jasmine Tea 120ml", "Add Water Until 0.8"] },
-        { name: "Peach Black Tea", category: "REAL FRUIT", cup: "700 Plastic Cup", steps: ["Sugar Syrup 40g", "Yellow Peach Jam (4 Scope)", "Yellow Jelly (3 Scope)", "Add Ice", "Black Tea 100ml", "Add Water Until 0.8"] },
-        { name: "Peach Jasmine Tea", category: "REAL FRUIT", cup: "700 Plastic Cup", steps: ["Sugar Syrup 40g", "Pink Peach Jam (3 Scope)", "Yellow Jelly (3 Scope)", "Add Ice", "Jasmine Tea 100ml", "Add Water Until 0.8"] },
-        { name: "Passion Fruit Bubble Tea", category: "REAL FRUIT", cup: "700 Plastic Cup", steps: ["Sugar Syrup 20g", "Coconut (2 Scope)", "Pearl (2 Scope)", "Passion Fruit (2 Scope)", "Add Ice", "Jasmine Tea 120ml", "Add Water Until 0.8"] },
-        { name: "Creamy Mango Boba", category: "REAL FRUIT", cup: "500 Plastic Cup", steps: ["3.5 lap Ais Cream", "Mango Jam (3 Scope)", "Yellow Jelly (1 Scope)", "Pearl (1 Scope)", "Coconut (1 Scope)", "Add Ice Until 0.8", "Add Water Until 0.8"] },
-        { name: "Fresh Squeezed Lemonade", category: "REAL FRUIT", cup: "700 Plastic Cup", steps: ["Lemon 40g - 45 g", "Fruit Honey (55 g)", "Add Ice Until 0.8", "Add Water Until 0.8"] },
-        { name: "Lemon Jasmine Tea", category: "REAL FRUIT", cup: "700 Plastic Cup", steps: ["Lemon 40g", "Sugar Syrup 30g", "Fruit Honey (40g)", "Add Ice", "Jasmine Tea 160ml", "Add Water Until 0.8"] },
-        { name: "Lemon Black Tea", category: "REAL FRUIT", cup: "700 Plastic Cup", steps: ["Lemon 40g", "Sugar Syrup 30g", "Fruit Honey (40g)", "Add Ice", "Black Tea 120ml", "Add Water Until 0.8"] },
+        { name: "Kiwi Jasmine Tea", category: "REAL FRUIT", cup: "700 Plastic Cup", image: "", steps: ["Sugar Syrup 40g", "Fruit Honey (20 g)", "Coconut (2 Scope)", "Yellow Jelly (1 Scope)", "Kiwi Jam 75g", "Jasmine Tea 120ml", "Add Water Until 0.8"] },
+        { name: "Peach Black Tea", category: "REAL FRUIT", cup: "700 Plastic Cup", image: "", steps: ["Sugar Syrup 40g", "Yellow Peach Jam (4 Scope)", "Yellow Jelly (3 Scope)", "Add Ice", "Black Tea 100ml", "Add Water Until 0.8"] },
+        { name: "Peach Jasmine Tea", category: "REAL FRUIT", cup: "700 Plastic Cup", image: "", steps: ["Sugar Syrup 40g", "Pink Peach Jam (3 Scope)", "Yellow Jelly (3 Scope)", "Add Ice", "Jasmine Tea 100ml", "Add Water Until 0.8"] },
+        { name: "Passion Fruit Bubble Tea", category: "REAL FRUIT", cup: "700 Plastic Cup", image: "", steps: ["Sugar Syrup 20g", "Coconut (2 Scope)", "Pearl (2 Scope)", "Passion Fruit (2 Scope)", "Add Ice", "Jasmine Tea 120ml", "Add Water Until 0.8"] },
+        { name: "Creamy Mango Boba", category: "REAL FRUIT", cup: "500 Plastic Cup", image: "", steps: ["3.5 lap Ais Cream", "Mango Jam (3 Scope)", "Yellow Jelly (1 Scope)", "Pearl (1 Scope)", "Coconut (1 Scope)", "Add Ice Until 0.8", "Add Water Until 0.8"] },
+        { name: "Fresh Squeezed Lemonade", category: "REAL FRUIT", cup: "700 Plastic Cup", image: "freshlemonade.png", steps: ["Lemon 40g - 45 g", "Fruit Honey (55 g)", "Add Ice Until 0.8", "Add Water Until 0.8"] },
+        { name: "Lemon Jasmine Tea", category: "REAL FRUIT", cup: "700 Plastic Cup", image: "", steps: ["Lemon 40g", "Sugar Syrup 30g", "Fruit Honey (40g)", "Add Ice", "Jasmine Tea 160ml", "Add Water Until 0.8"] },
+        { name: "Lemon Black Tea", category: "REAL FRUIT", cup: "700 Plastic Cup", image: "", steps: ["Lemon 40g", "Sugar Syrup 30g", "Fruit Honey (40g)", "Add Ice", "Black Tea 120ml", "Add Water Until 0.8"] },
 
         // COFFEE SERIES
-        { name: "Ice Cream Latte", category: "COFFEE", cup: "500 Plastic Cup", steps: ["Sugar Syrup 20g", "Brown Sugar Jelly (1 Scope)", "Concentrated Milk 80ml", "Concentrated Coffee 80ml", "Add Ice Until Love Line", "2.5 lap Ais Cream (90g)"] },
-        { name: "Ice Cream Mocha", category: "COFFEE", cup: "500 Plastic Cup", steps: ["Sugar Syrup 10g", "Chocolate (2 press = 40g )", "Brown Sugar Jelly (1 Scope)", "Concentrated Milk 80ml", "Concentrated Coffee 80ml", "Add Ice Until Love", "2.5 lap Ais Cream (90g)"] },
-        { name: "Ice Cream Toffee Hazelnut Latte", category: "COFFEE", cup: "500 Plastic Cup", steps: ["Sugar Flavoured Drink ( 2 press - 40 g )", "Brown Sugar Jelly ( 1 Scope = 40 g )", "Concentrated Milk 80ml", "Concentrated Coffee 80ml", "Add Ice Until Love Line", "2.5 lap Ais Cream (90g)"] },
-        { name: "Iced Latte", category: "COFFEE", cup: "500 Plastic Cup", steps: ["Sugar Syrup 20g", "Concentrated Milk 180ml", "Stir", "Add Ice Until 0.8", "Concentrated Coffee 120ml"] },
-        { name: "Brown Sugar Latte", category: "COFFEE", cup: "500 Plastic Cup", steps: ["Brown Sugar Syrup (2 press = 40g )", "Concentrated Milk 160ml", "Add Ice Until 0.8", "Concentrated Coffee 100ml"] },
-        { name: "Toffee Hazelnut Latte", category: "COFFEE", cup: "500 Plastic Cup", steps: ["Sugar Flavoured Drink ( 2 press - 40 g )", "Concentrated Milk 160ml", "Stir", "Add Ice Until 0.8", "Concentrated Coffee 100ml"] },
+        { name: "Ice Cream Latte", category: "COFFEE", cup: "500 Plastic Cup", image: "", steps: ["Sugar Syrup 20g", "Brown Sugar Jelly (1 Scope)", "Concentrated Milk 80ml", "Concentrated Coffee 80ml", "Add Ice Until Love Line", "2.5 lap Ais Cream (90g)"] },
+        { name: "Ice Cream Mocha", category: "COFFEE", cup: "500 Plastic Cup", image: "", steps: ["Sugar Syrup 10g", "Chocolate (2 press = 40g )", "Brown Sugar Jelly (1 Scope)", "Concentrated Milk 80ml", "Concentrated Coffee 80ml", "Add Ice Until Love", "2.5 lap Ais Cream (90g)"] },
+        { name: "Ice Cream Toffee Hazelnut Latte", category: "COFFEE", cup: "500 Plastic Cup", image: "", steps: ["Sugar Flavoured Drink ( 2 press - 40 g )", "Brown Sugar Jelly ( 1 Scope = 40 g )", "Concentrated Milk 80ml", "Concentrated Coffee 80ml", "Add Ice Until Love Line", "2.5 lap Ais Cream (90g)"] },
+        { name: "Iced Latte", category: "COFFEE", cup: "500 Plastic Cup", image: "", steps: ["Sugar Syrup 20g", "Concentrated Milk 180ml", "Stir", "Add Ice Until 0.8", "Concentrated Coffee 120ml"] },
+        { name: "Brown Sugar Latte", category: "COFFEE", cup: "500 Plastic Cup", image: "", steps: ["Brown Sugar Syrup (2 press = 40g )", "Concentrated Milk 160ml", "Add Ice Until 0.8", "Concentrated Coffee 100ml"] },
+        { name: "Toffee Hazelnut Latte", category: "COFFEE", cup: "500 Plastic Cup", image: "", steps: ["Sugar Flavoured Drink ( 2 press - 40 g )", "Concentrated Milk 160ml", "Stir", "Add Ice Until 0.8", "Concentrated Coffee 100ml"] },
 
         // STRAWBERRY
-        { name: "Strawberry Peach", category: "STRAWBERRY", cup: "700 Plastic Cup", steps: ["Sugar Syrup 40g", "Crystal Jelly (2 Scope)", "Strawberry Jam (3 Scope)", "Peach Jam (1 Scope)", "Add Ice", "Jasmine Tea 120ml", "Add Water Until 0.8"] },
-        { name: "Strawberry Bobo", category: "STRAWBERRY", cup: "700 Plastic Cup", steps: ["Lemon 40g (No Pound)", "Sugar Syrup 40g", "Crystal Jelly (2 Scope)", "Strawberry Jam (4 Scope)", "Add Ice", "Jasmine Tea 120ml", "Add Water Until 0.8"] },
+        { name: "Strawberry Peach", category: "STRAWBERRY", cup: "700 Plastic Cup", image: "", steps: ["Sugar Syrup 40g", "Crystal Jelly (2 Scope)", "Strawberry Jam (3 Scope)", "Peach Jam (1 Scope)", "Add Ice", "Jasmine Tea 120ml", "Add Water Until 0.8"] },
+        { name: "Strawberry Bobo", category: "STRAWBERRY", cup: "700 Plastic Cup", image: "", steps: ["Lemon 40g (No Pound)", "Sugar Syrup 40g", "Crystal Jelly (2 Scope)", "Strawberry Jam (4 Scope)", "Add Ice", "Jasmine Tea 120ml", "Add Water Until 0.8"] },
 
         // OTHERS / MINT / TARO
-        { name: "Mango Brulee", category: "OTHER", cup: "500 Plastic Cup", steps: ["Sugar Syrup ( 20 g )", "Egg Puding ( 2 Scope = 80 g )", "Mango Jam (75 g)", "Add Ice to 0.8 cm", "Concentrated Milk ( 60 ml )", "Jasmine Tea ( 80 ml )"] },
-        { name: "Toffee Lava Brulee", category: "OTHER", cup: "500 Plastic Cup", steps: ["Sugar Flavoured Drink ( 1 Pulp )", "Chocolate (2 Pulp = 40g )", "Egg Puding ( 2 Scope )", "Add Ice to 0.8 cm", "Concentrated Milk ( 100 ml )", "Add Water Until 0.8 cm"] },
-        { name: "Mint Lemonade", category: "OTHER", cup: "700 Plastic Cup", steps: ["Lemon 40g (No Pound)", "Fruit Honey (50 g)", "Coconut (2 Scope)", "Lemon Mint Syrup (1 Scope)", "Add Ice", "Add Water Until 0.8"] },
-        { name: "Lemon Mint Cookies Sundae", category: "OTHER", cup: "U Cup", steps: ["5.5 laps Mint Ais Cream", "Cookies (2 Scope = 50g)"] },
-        { name: "Taro Bubble Creamy Drink", category: "OTHER", cup: "500 Plastic Cup", steps: ["5.5 laps Taro Ice Cream (170-190g)", "Tap Cup Downward (Line 5)", "Pearl (1 Scope)", "Add Ice to 0.8 cm", "Concentrated Milk ( 60ml )", "Add Water Until 0.8 cm"] },
-        { name: "Taro Ice Cream", category: "OTHER", cup: "Cone", steps: ["3.5 laps Taro Ice Cream (110 g - 130 g)", "Ice Cream Shape ( Tall )"] }
+        { name: "Mango Brulee", category: "OTHER", cup: "500 Plastic Cup", image: "", steps: ["Sugar Syrup ( 20 g )", "Egg Puding ( 2 Scope = 80 g )", "Mango Jam (75 g)", "Add Ice to 0.8 cm", "Concentrated Milk ( 60 ml )", "Jasmine Tea ( 80 ml )"] },
+        { name: "Toffee Lava Brulee", category: "OTHER", cup: "500 Plastic Cup", image: "", steps: ["Sugar Flavoured Drink ( 1 Pulp )", "Chocolate (2 Pulp = 40g )", "Egg Puding ( 2 Scope )", "Add Ice to 0.8 cm", "Concentrated Milk ( 100 ml )", "Add Water Until 0.8 cm"] },
+        { name: "Mint Lemonade", category: "OTHER", cup: "700 Plastic Cup", image: "", steps: ["Lemon 40g (No Pound)", "Fruit Honey (50 g)", "Coconut (2 Scope)", "Lemon Mint Syrup (1 Scope)", "Add Ice", "Add Water Until 0.8"] },
+        { name: "Lemon Mint Cookies Sundae", category: "OTHER", cup: "U Cup", image: "", steps: ["5.5 laps Mint Ais Cream", "Cookies (2 Scope = 50g)"] },
+        { name: "Taro Bubble Creamy Drink", category: "OTHER", cup: "500 Plastic Cup", image: "", steps: ["5.5 laps Taro Ice Cream (170-190g)", "Tap Cup Downward (Line 5)", "Pearl (1 Scope)", "Add Ice to 0.8 cm", "Concentrated Milk ( 60ml )", "Add Water Until 0.8 cm"] },
+        { name: "Taro Ice Cream", category: "OTHER", cup: "Cone", image: "", steps: ["3.5 laps Taro Ice Cream (110 g - 130 g)", "Ice Cream Shape ( Tall )"] }
     ];
 
     const contentBox = document.getElementById('content');
@@ -347,8 +265,14 @@
             const card = document.createElement('div');
             card.className = 'drink-card';
             card.onclick = () => showRecipe(item);
+
+            // 核心图片逻辑
+            const displayIcon = item.image 
+                ? `<img src="${item.image}" alt="${item.name}" onerror="handleImageError(this, '${item.name[0]}')">`
+                : item.name[0];
+
             card.innerHTML = `
-                <div class="icon-circle">${item.name[0]}</div>
+                <div class="icon-circle">${displayIcon}</div>
                 <h3>${item.name}</h3>
                 <p style="font-size: 0.7rem; color: #999; margin-top:5px;">${item.cup}</p>
             `;
@@ -356,18 +280,19 @@
         });
     }
 
+    // 图片加载失败时退回到首字母
+    function handleImageError(img, letter) {
+        const container = img.parentElement;
+        container.innerHTML = letter;
+    }
+
     function filterCategory(cat) {
         document.querySelectorAll('.category-item').forEach(el => {
             el.classList.remove('active');
             if(el.innerText.includes(cat)) el.classList.add('active');
         });
-
-        if(cat === 'ALL') {
-            renderDrinks(recipes);
-        } else {
-            const filtered = recipes.filter(r => r.category === cat);
-            renderDrinks(filtered);
-        }
+        if(cat === 'ALL') { renderDrinks(recipes); } 
+        else { renderDrinks(recipes.filter(r => r.category === cat)); }
     }
 
     function showRecipe(item) {
@@ -383,11 +308,7 @@
         overlay.style.display = 'flex';
     }
 
-    function closePanel() {
-        overlay.style.display = 'none';
-    }
-
-    // Init
+    function closePanel() { overlay.style.display = 'none'; }
     renderDrinks(recipes);
 </script>
 
