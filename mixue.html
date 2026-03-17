@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>蜜雪冰城配方库 - 你爱我我爱你</title>
+    <title>MIXUE- MENU</title>
     <link rel="icon" href="mixue.png" type="image/png">
     <style>
         :root {
@@ -182,7 +182,7 @@
 
 <header>
     <img src="mixue.png" alt="Logo" onerror="this.src='https://via.placeholder.com/40?text=MX'">
-    <h1>蜜雪冰城 · 配方档案</h1>
+    <h1>MIXUE · RECIPE</h1>
 </header>
 
 <main>
@@ -190,28 +190,30 @@
         </div>
 
     <div id="sidebar">
-        <div class="category-item active" onclick="filterCategory('全部')">全部系列</div>
-        <div class="category-item" onclick="filterCategory('奶茶')">经典奶茶</div>
-        <div class="category-item" onclick="filterCategory('果汁')">真鲜果饮</div>
-        <div class="category-item" onclick="filterCategory('冰淇淋')">冰淇淋</div>
+        <div class="category-item active" onclick="filterCategory('全部')">ALL SERIES</div>
+        <div class="category-item" onclick="filterCategory('奶茶')">MILK TEA SERIES</div>
+        <div class="category-item" onclick="filterCategory('果汁')">REAL FRUIT SERIES</div>
+        <div class="category-item" onclick="filterCategory('咖啡')">COFFEE SERIES</div>
+        <div class="category-item" onclick="filterCategory('特别')">SPECIAL SERIES</div>
+        <div class="category-item" onclick="filterCategory('冰淇淋')">ICE CREAM SERIES</div>
     </div>
 </main>
 
 <div id="overlay" onclick="closePanel()">
     <div id="panel" onclick="event.stopPropagation()">
         <div class="panel-header">
-            <h2 id="recipe-title">饮品名称</h2>
+            <h2 id="recipe-title">ITEM NAME</h2>
         </div>
         <ul class="recipe-list" id="recipe-detail">
             </ul>
-        <p style="margin-top:20px; color:#666; font-size: 0.9rem; text-align: center;">* 搅拌均匀，冰块量按标准添加</p>
+        <p style="margin-top:20px; color:#666; font-size: 0.9rem; text-align: center;">* Stir well and add ice cubes as per standard instructions.</p>
     </div>
 </div>
 
 <script>
     // 模拟配方数据
     const recipes = [
-        { name: "冰鲜柠檬水", category: "果汁", ingredients: ["柠檬片：3片", "糖浆：40g", "净水：加至400ml", "冰块：满杯"] },
+        { name: "KIWI JASMINE TEA", category: "果汁", ingredients: ["CUP ：700", "SUGAR SYRUP ：40g", "FRUIT HONEY ：20g", "COCONUT ：2 SCOPE", "YELLOW JELLY : 1 SCOPE", "KIWI JAM : 2 SCOPE", "JASMINE TEA : 120ml] },
         { name: "珍珠奶茶", category: "奶茶", ingredients: ["红茶汤：200ml", "奶精：3勺", "珍珠：1份", "糖浆：30g"] },
         { name: "草莓摇摇奶昔", category: "冰淇淋", ingredients: ["冰淇淋：2球", "草莓酱：2泵", "绿茶汤：100ml", "燕麦：1份"] },
         { name: "杨枝甘露", category: "果汁", ingredients: ["芒果泥：50g", "西米：1份", "椰奶：100ml", "红柚粒：适量"] },
