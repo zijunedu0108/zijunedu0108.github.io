@@ -1,0 +1,276 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>蜜雪冰城配方库 - 你爱我我爱你</title>
+    <link rel="icon" href="mixue.png" type="image/png">
+    <style>
+        :root {
+            --mixue-red: #ed1c24;
+            --mixue-light-red: #ff4d4d;
+            --mixue-bg: #f7f7f7;
+            --white: #ffffff;
+            --text-dark: #333;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: "Helvetica Neue", Helvetica, Arial, "Microsoft Yahei", sans-serif;
+        }
+
+        body {
+            background-color: var(--mixue-bg);
+            height: 100vh;
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+        }
+
+        /* Header */
+        header {
+            background-color: var(--mixue-red);
+            color: white;
+            padding: 10px 20px;
+            display: flex;
+            align-items: center;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            z-index: 10;
+        }
+
+        header img {
+            height: 40px;
+            margin-right: 15px;
+            border-radius: 50%;
+            background: white;
+        }
+
+        /* Main Layout */
+        main {
+            display: flex;
+            flex: 1;
+            overflow: hidden;
+        }
+
+        /* 右侧分类栏 (30%) - 依照要求放在右侧 */
+        #sidebar {
+            width: 30%;
+            background: var(--white);
+            border-left: 2px solid #eee;
+            overflow-y: auto;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .category-item {
+            padding: 20px;
+            text-align: center;
+            font-size: 1.1rem;
+            font-weight: bold;
+            color: var(--text-dark);
+            cursor: pointer;
+            border-bottom: 1px solid #f0f0f0;
+            transition: all 0.3s;
+        }
+
+        .category-item:hover {
+            background-color: #fff5f5;
+            color: var(--mixue-red);
+        }
+
+        .category-item.active {
+            background-color: var(--mixue-red);
+            color: white;
+        }
+
+        /* 左侧内容区 (70%) */
+        #content {
+            width: 70%;
+            padding: 20px;
+            overflow-y: auto;
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+            gap: 20px;
+            align-content: start;
+        }
+
+        .drink-card {
+            background: white;
+            border-radius: 15px;
+            padding: 15px;
+            text-align: center;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.05);
+            cursor: pointer;
+            transition: transform 0.2s;
+            border: 2px solid transparent;
+        }
+
+        .drink-card:hover {
+            transform: translateY(-5px);
+            border-color: var(--mixue-light-red);
+        }
+
+        .drink-card img {
+            width: 80px;
+            height: 80px;
+            margin-bottom: 10px;
+        }
+
+        .drink-card h3 {
+            font-size: 1rem;
+            color: var(--text-dark);
+        }
+
+        /* Modal Panel */
+        #overlay {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0,0,0,0.6);
+            z-index: 100;
+            justify-content: center;
+            align-items: center;
+        }
+
+        #panel {
+            background: white;
+            width: 90%;
+            max-width: 500px;
+            border-radius: 20px;
+            padding: 30px;
+            position: relative;
+            animation: slideUp 0.3s ease-out;
+        }
+
+        @keyframes slideUp {
+            from { transform: translateY(50px); opacity: 0; }
+            to { transform: translateY(0); opacity: 1; }
+        }
+
+        .panel-header {
+            border-bottom: 2px solid var(--mixue-red);
+            margin-bottom: 20px;
+            padding-bottom: 10px;
+        }
+
+        .recipe-list {
+            list-style: none;
+            line-height: 2;
+        }
+
+        .recipe-list li {
+            display: flex;
+            justify-content: space-between;
+            border-bottom: 1px dashed #ccc;
+        }
+
+        /* Mobile Responsive */
+        @media (max-width: 768px) {
+            main { flex-direction: column-reverse; }
+            #sidebar { width: 100%; height: 60px; flex-direction: row; }
+            #content { width: 100%; }
+            .category-item { padding: 10px; flex: 1; border-bottom: none; border-right: 1px solid #eee; font-size: 0.9rem;}
+        }
+    </style>
+</head>
+<body>
+
+<header>
+    <img src="mixue.png" alt="Logo" onerror="this.src='https://via.placeholder.com/40?text=MX'">
+    <h1>蜜雪冰城 · 配方档案</h1>
+</header>
+
+<main>
+    <div id="content">
+        </div>
+
+    <div id="sidebar">
+        <div class="category-item active" onclick="filterCategory('全部')">全部系列</div>
+        <div class="category-item" onclick="filterCategory('奶茶')">经典奶茶</div>
+        <div class="category-item" onclick="filterCategory('果汁')">真鲜果饮</div>
+        <div class="category-item" onclick="filterCategory('冰淇淋')">冰淇淋</div>
+    </div>
+</main>
+
+<div id="overlay" onclick="closePanel()">
+    <div id="panel" onclick="event.stopPropagation()">
+        <div class="panel-header">
+            <h2 id="recipe-title">饮品名称</h2>
+        </div>
+        <ul class="recipe-list" id="recipe-detail">
+            </ul>
+        <p style="margin-top:20px; color:#666; font-size: 0.9rem; text-align: center;">* 搅拌均匀，冰块量按标准添加</p>
+    </div>
+</div>
+
+<script>
+    // 模拟配方数据
+    const recipes = [
+        { name: "冰鲜柠檬水", category: "果汁", ingredients: ["柠檬片：3片", "糖浆：40g", "净水：加至400ml", "冰块：满杯"] },
+        { name: "珍珠奶茶", category: "奶茶", ingredients: ["红茶汤：200ml", "奶精：3勺", "珍珠：1份", "糖浆：30g"] },
+        { name: "草莓摇摇奶昔", category: "冰淇淋", ingredients: ["冰淇淋：2球", "草莓酱：2泵", "绿茶汤：100ml", "燕麦：1份"] },
+        { name: "杨枝甘露", category: "果汁", ingredients: ["芒果泥：50g", "西米：1份", "椰奶：100ml", "红柚粒：适量"] },
+        { name: "原味冰淇淋", category: "冰淇淋", ingredients: ["脆皮筒：1个", "冰淇淋奶浆：150g"] },
+        { name: "布丁奶茶", category: "奶茶", ingredients: ["布丁：1份", "奶茶底：350ml", "糖浆：标准"] }
+    ];
+
+    const contentBox = document.getElementById('content');
+    const overlay = document.getElementById('overlay');
+
+    // 加载列表
+    function renderDrinks(data) {
+        contentBox.innerHTML = '';
+        data.forEach(item => {
+            const card = document.createElement('div');
+            card.className = 'drink-card';
+            card.onclick = () => showRecipe(item);
+            card.innerHTML = `
+                <img src="https://via.placeholder.com/80/ed1c24/ffffff?text=${item.name[0]}" alt="${item.name}">
+                <h3>${item.name}</h3>
+            `;
+            contentBox.appendChild(card);
+        });
+    }
+
+    // 分类筛选
+    function filterCategory(cat) {
+        // 更新 UI 状态
+        document.querySelectorAll('.category-item').forEach(el => {
+            el.classList.remove('active');
+            if(el.innerText === cat || (cat === '全部' && el.innerText === '全部系列')) {
+                el.classList.add('active');
+            }
+        });
+
+        if(cat === '全部') {
+            renderDrinks(recipes);
+        } else {
+            const filtered = recipes.filter(r => r.category === cat);
+            renderDrinks(filtered);
+        }
+    }
+
+    // 显示弹窗
+    function showRecipe(item) {
+        document.getElementById('recipe-title').innerText = item.name;
+        const list = document.getElementById('recipe-detail');
+        list.innerHTML = item.ingredients.map(ing => `<li>${ing}</li>`).join('');
+        overlay.style.display = 'flex';
+    }
+
+    // 关闭弹窗
+    function closePanel() {
+        overlay.style.display = 'none';
+    }
+
+    // 初始化
+    renderDrinks(recipes);
+</script>
+
+</body>
+</html>
