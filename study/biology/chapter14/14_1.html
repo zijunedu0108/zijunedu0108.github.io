@@ -1,0 +1,167 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>14.1 Infectious Disease | STPM Biology</title>
+    
+    <link rel="icon" type="image/png" href="/zijunlogo.png">
+    <link rel="apple-touch-icon" href="/zijunlogo.png">
+    
+    <style>
+        :root {
+            --ios-bg: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+            --ios-card: rgba(255, 255, 255, 0.8);
+            --ios-blue: #007AFF;
+            --ios-red: #FF3B30;
+            --ios-green: #34C759;
+            --ios-text: #1d1d1f;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "SF Pro Text", sans-serif;
+            background: var(--ios-bg);
+            color: var(--ios-text);
+            margin: 0;
+            padding: 20px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+
+        .container { max-width: 650px; width: 100%; }
+
+        .header { text-align: center; margin-bottom: 30px; }
+        .header img { width: 55px; border-radius: 12px; margin-bottom: 10px; box-shadow: 0 4px 10px rgba(0,0,0,0.1); }
+        .back-link { color: var(--ios-blue); text-decoration: none; font-weight: 500; display: block; margin-bottom: 15px; }
+
+        .card {
+            background: var(--ios-card);
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+            border-radius: 20px;
+            padding: 24px;
+            margin-bottom: 20px;
+            border: 1px solid rgba(255,255,255,0.4);
+            box-shadow: 0 8px 32px rgba(0,0,0,0.05);
+        }
+
+        h2 { color: var(--ios-red); font-size: 20px; margin-top: 0; border-bottom: 1px solid rgba(0,0,0,0.05); padding-bottom: 10px; }
+        .term { font-weight: 700; color: var(--ios-blue); }
+        .translation { color: #86868b; font-size: 0.9em; font-weight: 400; }
+        
+        .section-box { margin-bottom: 15px; padding: 10px; border-radius: 12px; background: rgba(255,255,255,0.5); }
+
+        /* Interactive Elements */
+        .quiz-btn {
+            background: var(--ios-blue);
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 12px;
+            font-weight: 600;
+            width: 100%;
+            margin-top: 10px;
+            cursor: pointer;
+        }
+        .answer-area { display: none; margin-top: 12px; padding: 12px; border-left: 4px solid var(--ios-green); background: #f2fcf5; border-radius: 0 8px 8px 0; font-size: 14px; }
+
+        table { width: 100%; border-collapse: collapse; margin-top: 10px; font-size: 14px; }
+        td, th { padding: 12px; border-bottom: 1px solid rgba(0,0,0,0.05); text-align: left; }
+        th { color: #86868b; }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <div class="header">
+        <a href="../chapter14.html" class="back-link">‹ Chapter 14 Menu</a>
+        <img src="/zijunlogo.png" alt="Logo">
+        <h1>14.1 Infectious Diseases</h1>
+    </div>
+
+    <div class="card">
+        <h2>1. Fundamental Concepts <span class="translation">(基本概念)</span></h2>
+        <div class="section-box">
+            <span class="term">Infection <span class="translation">(感染)</span>:</span>
+            <p>Process of invasion of pathogens, where they multiply and replicate in the body[cite: 7].</p>
+        </div>
+        <div class="section-box">
+            <span class="term">Pathogens <span class="translation">(病原体)</span>:</span>
+            <p>Causative agents that cause disease, including viruses, bacteria, fungi, protozoans, and helminths[cite: 10, 11].</p>
+        </div>
+        <div class="section-box">
+            <span class="term">Vectors <span class="translation">(媒介)</span>:</span>
+            <p>Organisms (usually arthropods) that carry pathogens from an infected organism to a person[cite: 12].</p>
+        </div>
+    </div>
+
+    <div class="card">
+        <h2>2. Transmission Modes <span class="translation">(传播方式)</span></h2>
+        <table>
+            <tr><th>Mode</th><th>Description & Example</th></tr>
+            <tr>
+                <td><b>Direct</b> <br><span class="translation">(直接)</span></td>
+                <td>Contact with body fluids or animal scratches (e.g., HFMD, AIDS, CSD)[cite: 18, 23, 24].</td>
+            </tr>
+            <tr>
+                <td><b>Indirect</b> <br><span class="translation">(间接)</span></td>
+                <td>Via vectors like mosquitoes (e.g., Dengue, Malaria)[cite: 15, 16, 17].</td>
+            </tr>
+            <tr>
+                <td><b>Airborne</b> <br><span class="translation">(空气)</span></td>
+                <td>Inhaling contaminated air droplets from coughs/sneezes (e.g., SARS-CoV-2, TB)[cite: 25, 33].</td>
+            </tr>
+            <tr>
+                <td><b>Vertical</b> <br><span class="translation">(垂直)</span></td>
+                <td>From mother to foetus via placenta or breast milk (e.g., HIV, Zika)[cite: 34, 35, 39].</td>
+            </tr>
+            <tr>
+                <td><b>Waterborne</b> <br><span class="translation">(水源)</span></td>
+                <td>Consuming contaminated food or water (e.g., Cholera, Hepatitis A)[cite: 40, 42].</td>
+            </tr>
+        </table>
+    </div>
+
+    <div class="card">
+        <h2>3. Vaccination <span class="translation">(疫苗接种)</span></h2>
+        <p>A biological preparation of weakened or inactive pathogens to stimulate the immune system[cite: 80].</p>
+        <div class="section-box" style="border-left: 4px solid var(--ios-blue);">
+            <b>Live Vaccine <span class="translation">(减毒活疫苗)</span>:</b> Weakened pathogens; long-term protection; not for weak immune systems (e.g., MMR, Smallpox)[cite: 82, 83].
+        </div>
+        <div class="section-box" style="border-left: 4px solid var(--ios-secondary);">
+            <b>Non-live Vaccine <span class="translation">(灭活疫苗)</span>:</b> Dead pathogens; safer for weak immune systems; requires boosters (e.g., Hepatitis A, Flu)[cite: 84, 85, 86].
+        </div>
+    </div>
+
+    <div class="card">
+        <h2>4. Patterns of Spread <span class="translation">(传播模式)</span></h2>
+        <ul>
+            <li><b>Endemic <span class="translation">(地方性)</span>:</b> Consistently present in a specific region[cite: 48].</li>
+            <li><b>Epidemic <span class="translation">(流行性)</span>:</b> Unexpected increase in a specific area[cite: 50].</li>
+            <li><b>Pandemic <span class="translation">(大流行)</span>:</b> Widespread across continents or worldwide[cite: 53, 54].</li>
+        </ul>
+    </div>
+
+    <div class="card">
+        <h2>Self-Test <span class="translation">(自我检测)</span></h2>
+        <p><b>Q: Describe how vaccination helps to prevent smallpox.</b></p>
+        <button class="quiz-btn" onclick="toggleAns('ans1')">Show Explanation</button>
+        <div id="ans1" class="answer-area">
+            1. Vaccine contains weakened vaccinia virus[cite: 129].<br>
+            2. Lymphocytes recognize it as a foreign antigen[cite: 129].<br>
+            3. Stimulates humoral immune response: B cells produce antibodies and <b>memory cells</b>[cite: 130].<br>
+            4. Memory cells circulate to protect against future infection[cite: 131].
+        </div>
+    </div>
+</div>
+
+<script>
+    function toggleAns(id) {
+        const x = document.getElementById(id);
+        x.style.display = (x.style.display === "block") ? "none" : "block";
+    }
+</script>
+
+</body>
+</html>
