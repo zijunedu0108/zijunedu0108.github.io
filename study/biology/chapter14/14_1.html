@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>14.1 Infectious Disease | STPM Biology</title>
+    <title>14.1 Comprehensive Guide | STPM Biology</title>
     
     <link rel="icon" type="image/png" href="/zijunlogo.png">
     <link rel="apple-touch-icon" href="/zijunlogo.png">
@@ -55,11 +55,16 @@
         h2 { color: var(--ios-red); font-size: 20px; margin-top: 0; border-bottom: 1px solid rgba(0,0,0,0.05); padding-bottom: 12px; }
         .translation { color: var(--ios-secondary); font-size: 0.85em; font-weight: 400; margin-left: 5px; }
         
+        /* Content Box */
         .term-box { margin-bottom: 16px; padding: 12px; border-radius: 14px; background: rgba(255,255,255,0.5); border-left: 4px solid transparent; }
         .term-title { font-weight: 700; color: var(--ios-blue); display: block; margin-bottom: 4px; }
         mark { background-color: var(--highlight); padding: 2px 4px; border-radius: 4px; font-weight: 600; }
         
-        .diagram { width: 100%; border-radius: 12px; margin: 15px 0; border: 1px solid rgba(0,0,0,0.05); }
+        .exam-tip { background: #fff3e0; border: 1px dashed #ff9800; padding: 10px; border-radius: 10px; font-size: 13px; margin: 10px 0; }
+        
+        table { width: 100%; border-collapse: collapse; margin-top: 10px; }
+        th, td { padding: 12px 8px; border-bottom: 1px solid rgba(0,0,0,0.05); text-align: left; font-size: 14px; }
+        th { background: rgba(0,122,255,0.1); color: var(--ios-blue); }
 
         /* Quiz UI */
         .quiz-option {
@@ -68,15 +73,9 @@
             margin-bottom: 10px; font-size: 15px; font-weight: 500; cursor: pointer; transition: all 0.2s ease;
         }
         #feedback { margin-top: 15px; padding: 15px; border-radius: 12px; display: none; font-weight: 600; line-height: 1.4; }
-        .next-btn { 
-            background: var(--ios-blue); color: white; border: none; padding: 12px 24px; 
-            border-radius: 12px; font-weight: 600; margin-top: 10px; cursor: pointer; width: 100%;
-            display: none;
-        }
+        .next-btn { background: var(--ios-blue); color: white; border: none; padding: 12px 24px; border-radius: 12px; font-weight: 600; margin-top: 10px; cursor: pointer; width: 100%; display: none; }
 
-        table { width: 100%; border-collapse: collapse; margin-top: 10px; }
-        th, td { padding: 12px 8px; border-bottom: 1px solid rgba(0,0,0,0.05); text-align: left; font-size: 14px; }
-        .ans-toggle { color: var(--ios-blue); cursor: pointer; font-weight: 600; text-decoration: underline; }
+        .ans-toggle { color: var(--ios-blue); cursor: pointer; font-weight: 600; text-decoration: underline; display: block; margin-top: 10px; }
         .hidden-ans { display: none; background: #f0f9ff; padding: 12px; border-radius: 12px; margin-top: 10px; font-size: 14px; border-left: 4px solid var(--ios-blue); }
     </style>
 </head>
@@ -90,25 +89,94 @@
     </div>
 
     <div class="card">
-        <h2>Quick Review <span class="translation">(要点复习)</span></h2>
+        <h2>1. Fundamental Concepts <span class="translation">(基本概念)</span></h2>
         <div class="term-box" style="border-left-color: var(--ios-blue);">
-            <span class="term-title">Vector <span class="translation">(媒介)</span></span>
-            Arthropods that carry pathogens (e.g., <mark>Aedes</mark> for Dengue).
+            <span class="term-title">Infection <span class="translation">(感染)</span></span>
+            The process of <mark>invasion</mark> of pathogens, where they multiply and replicate in the body[cite: 7].
         </div>
         <div class="term-box" style="border-left-color: var(--ios-red);">
-            <span class="term-title">Vertical <span class="translation">(垂直传播)</span></span>
-            Mother to child via <mark>placenta</mark> or <mark>breast milk</mark>.
+            <span class="term-title">Pathogens <span class="translation">(病原体)</span></span>
+            Also known as causative agents. Includes: <mark>viruses, bacteria, fungi, protozoans, and helminths</mark> (e.g., tapeworms)[cite: 10, 11].
         </div>
         <div class="term-box" style="border-left-color: var(--ios-green);">
-            <span class="term-title">Herd Immunity <span class="translation">(群体免疫)</span></span>
-            Occurs when <mark>95%</mark> of population is vaccinated.
+            <span class="term-title">Contagious Disease <span class="translation">(接触传染病)</span></span>
+            A type of infectious disease easily transmitted through <mark>direct or indirect contact</mark>[cite: 9].
+        </div>
+        <div class="term-box" style="border-left-color: var(--ios-blue);">
+            <span class="term-title">Notifiable Disease <span class="translation">(法定报告传染病)</span></span>
+            Diseases that require <mark>mandatory reporting</mark> to the Ministry of Health (e.g., dengue, malaria, TB, HFMD).
         </div>
     </div>
 
     <div class="card">
-        <h2 style="color: var(--ios-green);">Exam Simulator <span class="translation">(Paper 1 题库)</span></h2>
+        <h2>2. Identification <span class="translation">(体征与症状)</span></h2>
+        <div style="display: flex; gap: 10px; margin-bottom: 10px;">
+            <div class="term-box" style="flex: 1; background: #fdf2f2;">
+                <span class="term-title" style="color: var(--ios-red);">Signs <span class="translation">(体征)</span></span>
+                <mark>Visible</mark> expressions detected by a doctor (e.g., rash, fever, blisters)[cite: 46].
+            </div>
+            <div class="term-box" style="flex: 1; background: #f0f9ff;">
+                <span class="term-title">Symptoms <span class="translation">(症状)</span></span>
+                Only <mark>reported</mark> by the patient (e.g., pain, headache, nausea)[cite: 47].
+            </div>
+        </div>
+        <p style="font-size: 13px;"><b>Incubation Period:</b> Time between infection and appearance of symptoms[cite: 43].</p>
+        <p style="font-size: 13px;"><b>Infectious Period:</b> Time when the person can spread the disease[cite: 45].</p>
+    </div>
+
+    <div class="card">
+        <h2>3. Modes of Transmission <span class="translation">(传播途径)</span></h2>
+        <table>
+            <thead><tr><th>Mode</th><th>Description & Examples</th></tr></thead>
+            <tbody>
+                <tr><td><b>Indirect</b></td><td>Via <mark>vectors</mark> (arthropods). Ex: Aedes (Dengue), Anopheles (Malaria), Tsetse fly (Sleeping sickness)[cite: 16, 17, 63].</td></tr>
+                <tr><td><b>Direct</b></td><td><mark>Bites/scratches</mark> from animals (Rabies, CSD) or <mark>body fluids</mark> (AIDS, Syphilis, HFMD)[cite: 22, 24, 63].</td></tr>
+                <tr><td><b>Airborne</b></td><td>Inhaling <mark>droplets</mark> from sneezing/coughing. Ex: SARS-CoV-2, Tuberculosis (TB)[cite: 33, 63].</td></tr>
+                <tr><td><b>Vertical</b></td><td>Mother to child via <mark>placenta</mark>, parturition, or <mark>breast milk</mark> (AIDS, Zika, Herpes)[cite: 36, 37, 39, 63].</td></tr>
+                <tr><td><b>Waterborne</b></td><td>Consuming contaminated <mark>food or water</mark>. Ex: Cholera, Hepatitis A, Salmonella[cite: 42, 70].</td></tr>
+            </tbody>
+        </table>
+    </div>
+
+    <div class="card">
+        <h2>4. Patterns of Spread <span class="translation">(传播模式对比)</span></h2>
+        <ul>
+            <li><b>Endemic:</b> Consistently present but <mark>limited to a region</mark> (e.g., leptospirosis in N. Sembilan)[cite: 48, 49].</li>
+            <li><b>Epidemic:</b> <mark>Unexpected increase</mark> in cases in a specific area (e.g., SARS 2003, JE Nipah)[cite: 50, 51, 52].</li>
+            <li><b>Pandemic:</b> <mark>Geographically widespread</mark> (worldwide) and uncontrolled (e.g., COVID-19, Swine flu)[cite: 53, 54, 55].</li>
+        </ul>
+    </div>
+
+    <div class="card">
+        <h2>5. Vaccination & Immunity <span class="translation">(疫苗与免疫)</span></h2>
+        <p>A vaccine stimulates the immune system to produce <mark>artificial active immunity</mark>[cite: 80].</p>
+        
+        <div class="term-box" style="border-left-color: var(--ios-blue);">
+            <b>Live Vaccine:</b> Weakened pathogens. Long-term protection. Not for weak immune systems (e.g., <mark>Smallpox, MMR</mark>)[cite: 82, 83].
+        </div>
+        <div class="term-box" style="border-left-color: var(--ios-secondary);">
+            <b>Non-live Vaccine:</b> Dead pathogens. Safer for weak immunity. Needs <mark>boosters</mark> (e.g., Hepatitis A, Flu, JE)[cite: 84, 85, 86, 87].
+        </div>
+
+        <div class="exam-tip">
+            <b>Herd Immunity:</b> Develops if <mark>95%</mark> of the population is vaccinated. Protects babies, elderly, and the ill[cite: 115, 117].
+        </div>
+    </div>
+
+    <div class="card">
+        <h2>6. Case Studies <span class="translation">(重点疾病案例)</span></h2>
+        <div class="term-box">
+            <b>Smallpox <span class="translation">(天花)</span>:</b> Caused by <mark>Variola virus</mark>. Vaccine uses <mark>Vaccinia virus</mark> (live)[cite: 97, 100]. Eradicated in 1980[cite: 102].
+        </div>
+        <div class="term-box">
+            <b>MMR Vaccine:</b> Protects against <mark>Measles</mark> (Paramyxovirus), <mark>Mumps</mark>, and <mark>Rubella</mark>[cite: 103, 104, 105].
+        </div>
+    </div>
+
+    <div class="card">
+        <h2 style="color: var(--ios-green);">7. Exam Simulator <span class="translation">(题库)</span></h2>
         <div id="quiz-container">
-            <p id="question-text" style="font-weight: 600; margin-bottom: 15px;">Loading question...</p>
+            <p id="question-text" style="font-weight: 600; margin-bottom: 15px;">Loading...</p>
             <div id="options-container"></div>
             <div id="feedback"></div>
             <button id="next-question" class="next-btn" onclick="loadRandomQuestion()">Next Question ❱</button>
@@ -116,11 +184,14 @@
     </div>
 
     <div class="card">
-        <h2>Paper 2 Focus <span class="translation">(简答题重点)</span></h2>
-        <p><b>Q: Why is vaccination more cost-effective than treatment? [cite: 119]</b></p>
-        <span class="ans-toggle" onclick="toggleAns('q_cost')">Show Explanation</span>
-        <div id="q_cost" class="hidden-ans">
-            Vaccination prevents the spread of pathogens, reducing the number of infected individuals. It is <mark>cheaper</mark> than hospitalizing severely ill patients during an <mark>outbreak</mark>.
+        <h2>8. Quick Check 1 Answers <span class="translation">(标准答案)</span></h2>
+        <p><b>Q3: Describe how vaccination helps to prevent smallpox.</b></p>
+        <span class="ans-toggle" onclick="toggleAns('ans_qc1')">Show Full Answer</span>
+        <div id="ans_qc1" class="hidden-ans">
+            1. Vaccine contains weakened <mark>vaccinia virus</mark>[cite: 129].<br>
+            2. Recognized by <mark>lymphocytes</mark> as foreign antigen, stimulating a <mark>humoral immune response</mark>[cite: 129, 130].<br>
+            3. <mark>B cells</mark> proliferate and divide to produce <mark>antibodies and memory cells</mark>[cite: 130].<br>
+            4. <mark>Memory cells circulate</mark> for long-term protection against future infection[cite: 131].
         </div>
     </div>
 </div>
@@ -128,65 +199,51 @@
 <script>
     const quizData = [
         {
-            q: "Which of the following is an example of an airborne disease? [cite: 33]",
-            options: ["Cholera", "SARS-CoV-2", "Malaria", "AIDS"],
+            q: "Which pathogen causes Cat Scratch Disease (CSD)?",
+            options: ["Variola virus", "Bartonella henselae", "Flavivirus", "Paramyxovirus"],
             correct: 1,
-            info: "SARS-CoV-2 and TB are airborne, transmitted via droplets."
+            info: "PDF Page 1: CSD is caused by the bacteria Bartonella henselae."
         },
         {
-            q: "What percentage of the population must be vaccinated to develop herd immunity? [cite: 115]",
-            options: ["70%", "85%", "90%", "95%"],
-            correct: 3,
-            info: "According to PDF page 5, 95% is the threshold for herd immunity."
-        },
-        {
-            q: "A disease that is consistently present in a specific region is called: [cite: 48]",
-            options: ["Epidemic", "Endemic", "Pandemic", "Contagious"],
+            q: "Which is a 'Notifiable Disease' in Malaysia?",
+            options: ["Common Cold", "Leptospirosis", "Chickenpox", "Arthritis"],
             correct: 1,
-            info: "Endemic means 'consistently present' in a specific location."
+            info: "PDF Page 3: Leptospirosis must be reported to the Ministry of Health[cite: 61]."
         },
         {
-            q: "Which vaccine type is safer for people with weakened immune systems? [cite: 84]",
-            options: ["Live Vaccine", "Non-live Vaccine", "Attenuated Vaccine"],
+            q: "What is the causative agent of Smallpox?",
+            options: ["Vaccinia virus", "Variola virus", "Mumps virus", "RuV"],
             correct: 1,
-            info: "Non-live vaccines use dead pathogens and are safer for vulnerable groups."
+            info: "PDF Page 5: Smallpox is caused by Variola virus; the vaccine uses Vaccinia[cite: 97, 100]."
         },
         {
-            q: "Smallpox vaccine contains which weakened virus? [cite: 129]",
-            options: ["Variola virus", "Vaccinia virus", "Flavivirus", "HIV"],
+            q: "A person with a weakened immune system should avoid:",
+            options: ["Hepatitis A vaccine", "MMR vaccine", "Flu vaccine", "JE vaccine"],
             correct: 1,
-            info: "The smallpox vaccine specifically uses the less virulent vaccinia virus."
+            info: "PDF Page 4: MMR is a live vaccine and is not suitable for weak immune systems[cite: 82, 83]."
         },
         {
-            q: "Which transmission mode involves mother-to-foetus via placenta? [cite: 37]",
-            options: ["Direct", "Indirect", "Vertical", "Airborne"],
-            correct: 2,
-            info: "Vertical transmission occurs from mother to offspring."
+            q: "Which disease is transmitted via vertical transmission?",
+            options: ["Dengue", "Congenital Zika Syndrome", "Tuberculosis", "Cholera"],
+            correct: 1,
+            info: "PDF Page 2: Zika can cross the placenta from mother to foetus[cite: 37]."
         }
     ];
 
     let currentQuestionIndex = -1;
 
     function loadRandomQuestion() {
-        // Reset UI
         const feedback = document.getElementById('feedback');
         const nextBtn = document.getElementById('next-question');
         feedback.style.display = "none";
         nextBtn.style.display = "none";
 
-        // Pick a random question different from the current one
         let newIndex;
-        do {
-            newIndex = Math.floor(Math.random() * quizData.length);
-        } while (newIndex === currentQuestionIndex);
-        
+        do { newIndex = Math.floor(Math.random() * quizData.length); } while (newIndex === currentQuestionIndex);
         currentQuestionIndex = newIndex;
         const data = quizData[currentQuestionIndex];
 
-        // Set Text
         document.getElementById('question-text').innerText = data.q;
-        
-        // Generate Options
         const container = document.getElementById('options-container');
         container.innerHTML = "";
         data.options.forEach((opt, index) => {
@@ -217,15 +274,9 @@
         });
 
         feedback.style.display = "block";
-        if (selectedIndex === correctIndex) {
-            feedback.innerHTML = "✅ Correct!<br><small>" + info + "</small>";
-            feedback.style.background = "#eafaf1";
-            feedback.style.color = "#27ae60";
-        } else {
-            feedback.innerHTML = "❌ Wrong Answer.<br><small>" + info + "</small>";
-            feedback.style.background = "#fdf2f2";
-            feedback.style.color = "#c0392b";
-        }
+        feedback.innerHTML = (selectedIndex === correctIndex ? "✅ Correct!" : "❌ Incorrect.") + "<br><small style='font-weight:400'>" + info + "</small>";
+        feedback.style.background = selectedIndex === correctIndex ? "#eafaf1" : "#fdf2f2";
+        feedback.style.color = selectedIndex === correctIndex ? "#27ae60" : "#c0392b";
         nextBtn.style.display = "block";
     }
 
@@ -234,7 +285,6 @@
         el.style.display = (el.style.display === 'block') ? 'none' : 'block';
     }
 
-    // Initial Load
     window.onload = loadRandomQuestion;
 </script>
 
