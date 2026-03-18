@@ -2,100 +2,164 @@
 <html lang="zh-CN">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
     <title>ZIJUN | Academic Archives</title>
     <link rel="icon" href="zijunlogo.png" type="image/png">
     <style>
         :root {
-            --neon-blue: #00f2ff;
-            --panel-bg: rgba(5, 15, 25, 0.9);
-            --border-glow: rgba(0, 242, 255, 0.3);
-            --text-main: #e0faff;
-            --accent-gold: #ffd700;
+            --ios-blue: #007AFF;
+            --ios-bg: rgba(28, 28, 30, 0.7);
+            --ios-card-bg: rgba(44, 44, 46, 0.6);
+            --border-light: rgba(255, 255, 255, 0.12);
+            --text-main: #FFFFFF;
+            --text-secondary: rgba(235, 235, 245, 0.6);
+            --ios-blur: blur(20px);
         }
 
         body {
-            margin: 0; background: #000; color: var(--text-main);
-            font-family: 'Segoe UI', 'Orbitron', sans-serif; overflow-x: hidden;
+            margin: 0; 
+            background: #000; 
+            color: var(--text-main);
+            /* 使用 iOS 标准系统字体 */
+            font-family: -apple-system, BlinkMacSystemFont, "SF Pro Text", "Helvetica Neue", Arial, sans-serif;
+            overflow-x: hidden;
+            -webkit-font-smoothing: antialiased;
         }
 
         .bg-video {
             position: fixed; top: 0; left: 0; width: 100%; height: 100%;
-            z-index: -1; object-fit: cover; filter: brightness(0.2);
+            z-index: -1; object-fit: cover; filter: brightness(0.5);
         }
 
         header {
-            padding: 20px 40px; border-bottom: 1px solid var(--neon-blue);
+            padding: 15px 25px; 
             display: flex; justify-content: space-between; align-items: center;
-            background: rgba(0,0,0,0.8); backdrop-filter: blur(10px);
+            background: rgba(0, 0, 0, 0.3); 
+            backdrop-filter: var(--ios-blur); 
+            -webkit-backdrop-filter: var(--ios-blur);
+            border-bottom: 0.5px solid var(--border-light);
+            position: sticky; top: 0; z-index: 100;
+        }
+
+        .header-title {
+            font-size: 17px; 
+            font-weight: 600; 
+            letter-spacing: -0.5px;
         }
 
         .container {
-            max-width: 1000px; margin: 40px auto; padding: 0 20px;
+            max-width: 900px; margin: 20px auto; padding: 0 20px 40px;
         }
 
         .section-title {
-            font-size: 24px; letter-spacing: 5px; color: var(--neon-blue);
-            border-left: 5px solid var(--neon-blue); padding-left: 15px;
-            margin: 40px 0 20px; text-transform: uppercase;
+            font-size: 22px; 
+            font-weight: 700; 
+            color: var(--text-main);
+            margin: 35px 0 20px;
+            padding-left: 5px;
         }
 
-        /* 成绩卡片布局 */
+        /* 成绩卡片布局 - iOS 风格 */
         .stats-grid {
-            display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 20px;
+            display: grid; 
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); 
+            gap: 16px;
         }
 
         .archive-card {
-            background: var(--panel-bg);
-            border: 1px solid var(--border-glow);
-            padding: 25px;
-            position: relative;
-            clip-path: polygon(0 0, 90% 0, 100% 10%, 100% 100%, 0 100%);
-            transition: 0.3s;
+            background: var(--ios-card-bg);
+            backdrop-filter: var(--ios-blur);
+            -webkit-backdrop-filter: var(--ios-blur);
+            border: 0.5px solid var(--border-light);
+            padding: 20px;
+            border-radius: 20px; /* 经典的 iOS 大圆角 */
+            transition: transform 0.2s ease;
         }
 
-        .archive-card:hover {
-            border-color: var(--neon-blue);
-            box-shadow: 0 0 20px rgba(0, 242, 255, 0.2);
-            transform: translateY(-5px);
+        .archive-card:active {
+            transform: scale(0.98); /* 点击时的缩放反馈 */
         }
 
-        .card-label { font-size: 12px; color: var(--neon-blue); opacity: 0.7; margin-bottom: 10px; }
-        .card-value { font-size: 28px; font-weight: bold; letter-spacing: 2px; margin-bottom: 15px; }
+        .card-label { 
+            font-size: 13px; 
+            color: var(--ios-blue); 
+            font-weight: 600;
+            margin-bottom: 8px; 
+            text-transform: uppercase;
+        }
+
+        .card-value { 
+            font-size: 32px; 
+            font-weight: 700; 
+            margin-bottom: 12px;
+            letter-spacing: -1px;
+        }
         
-        /* 进度条效果 */
+        /* iOS 进度条 */
         .rank-bar {
-            height: 4px; background: rgba(255,255,255,0.1); width: 100%; position: relative;
+            height: 6px; 
+            background: rgba(255, 255, 255, 0.1); 
+            width: 100%; 
+            border-radius: 3px;
+            overflow: hidden;
+            margin-bottom: 12px;
         }
         .rank-fill {
-            position: absolute; top: 0; left: 0; height: 100%; background: var(--neon-blue);
-            box-shadow: 0 0 10px var(--neon-blue);
+            height: 100%; 
+            background: var(--ios-blue);
+            border-radius: 3px;
         }
 
-        /* 活动列表样式 */
+        .card-status {
+            font-size: 13px; 
+            color: var(--text-secondary);
+        }
+
+        /* 活动列表样式 - iOS List 风格 */
         .activity-item {
-            display: flex; align-items: center; gap: 20px;
-            background: rgba(0, 242, 255, 0.05);
-            margin-bottom: 15px; padding: 15px;
-            border-right: 3px solid transparent;
-            transition: 0.3s;
-        }
-
-        .activity-item:hover {
-            background: rgba(0, 242, 255, 0.1);
-            border-right-color: var(--neon-blue);
+            display: flex; align-items: center; gap: 15px;
+            background: var(--ios-card-bg);
+            backdrop-filter: var(--ios-blur);
+            -webkit-backdrop-filter: var(--ios-blur);
+            margin-bottom: 12px; padding: 18px;
+            border-radius: 16px;
+            border: 0.5px solid var(--border-light);
         }
 
         .year-tag {
-            background: var(--neon-blue); color: #000;
-            padding: 5px 12px; font-weight: bold; font-size: 14px;
+            background: var(--ios-blue); color: #fff;
+            padding: 4px 10px; border-radius: 8px; font-weight: 700; font-size: 13px;
+            min-width: 40px; text-align: center;
+        }
+
+        .activity-info h4 {
+            margin: 0; font-size: 17px; font-weight: 600;
+        }
+        .activity-info p {
+            margin: 4px 0 0; font-size: 14px; color: var(--text-secondary);
         }
 
         .btn-back {
-            color: var(--neon-blue); text-decoration: none; border: 1px solid var(--neon-blue);
-            padding: 8px 20px; transition: 0.3s; font-size: 14px;
+            color: #fff; 
+            text-decoration: none; 
+            background: var(--ios-blue);
+            padding: 8px 16px; 
+            border-radius: 18px; 
+            font-size: 13px; 
+            font-weight: 600;
+            transition: opacity 0.2s;
         }
-        .btn-back:hover { background: var(--neon-blue); color: #000; }
+        .btn-back:hover { opacity: 0.8; }
+
+        /* 移动端专用优化 */
+        @media (max-width: 600px) {
+            header { padding: 12px 20px; }
+            .header-title { font-size: 15px; }
+            .section-title { font-size: 20px; margin: 25px 0 15px; }
+            .card-value { font-size: 28px; }
+            .container { margin: 10px auto; }
+            .stats-grid { grid-template-columns: 1fr; } /* 手机端强制单列 */
+        }
 
     </style>
 </head>
@@ -106,32 +170,32 @@
     </video>
 
     <header>
-        <div style="font-size: 24px; letter-spacing: 4px; font-weight: bold;">ACADEMIC_ARCHIVES</div>
-        <a href="index.html" class="btn-back">RETURN_TO_CORE</a>
+        <div class="header-title">Academic Archives</div>
+        <a href="index.html" class="btn-back">Return</a>
     </header>
 
     <div class="container">
         <div class="section-title">Academic Achievements</div>
         <div class="stats-grid">
             <div class="archive-card">
-                <div class="card-label">> CURRENT_STATUS: STPM (SEM 1 TRIAL)</div>
+                <div class="card-label">Current Status</div>
                 <div class="card-value">GPA 3.50</div>
                 <div class="rank-bar"><div class="rank-fill" style="width: 87.5%;"></div></div>
-                <p style="font-size: 12px; margin-top: 10px; opacity: 0.8;">Status: Distinction Level Predicted</p>
+                <div class="card-status">STPM Sem 1 Trial: Distinction Level Predicted</div>
             </div>
 
             <div class="archive-card">
-                <div class="card-label">> HISTORICAL_DATA: SPM</div>
+                <div class="card-label">Historical Data</div>
                 <div class="card-value">8A 2B</div>
                 <div class="rank-bar"><div class="rank-fill" style="width: 80%;"></div></div>
-                <p style="font-size: 12px; margin-top: 10px; opacity: 0.8;">Efficiency: Highly Successful</p>
+                <div class="card-status">SPM Result: Highly Successful</div>
             </div>
 
             <div class="archive-card">
-                <div class="card-label">> ORIGIN_DATA: UPSR</div>
+                <div class="card-label">Foundation</div>
                 <div class="card-value">2A 4B 2C</div>
                 <div class="rank-bar"><div class="rank-fill" style="width: 50%;"></div></div>
-                <p style="font-size: 12px; margin-top: 10px; opacity: 0.8;">Status: Foundation Established</p>
+                <div class="card-status">UPSR Result: Foundation Established</div>
             </div>
         </div>
 
@@ -139,23 +203,23 @@
         
         <div class="activity-item">
             <div class="year-tag">2026</div>
-            <div>
-                <div style="font-weight: bold; font-size: 18px;">Biro Multimedia dan Siar Raya</div>
-                <div style="font-size: 14px; color: var(--neon-blue);">// Role: Technical & Broadcasting Lead</div>
+            <div class="activity-info">
+                <h4>Biro Multimedia dan Siar Raya</h4>
+                <p>Role: Technical & Broadcasting Lead</p>
             </div>
         </div>
 
         <div class="activity-item">
             <div class="year-tag">2024</div>
-            <div>
-                <div style="font-weight: bold; font-size: 18px;">Kelab ICT</div>
-                <div style="font-size: 14px; color: var(--neon-blue);">// Role: President (Pengerusi)</div>
+            <div class="activity-info">
+                <h4>Kelab ICT</h4>
+                <p>Role: President (Pengerusi)</p>
             </div>
         </div>
 
-        <p style="text-align: center; margin-top: 50px; font-size: 12px; opacity: 0.5;">
-            -- END OF ARCHIVE --<br>
-            DATA_INTEGRITY_VERIFIED_BY_CORE
+        <p style="text-align: center; margin-top: 60px; font-size: 13px; color: var(--text-secondary); letter-spacing: 0.5px;">
+            End of Archive<br>
+            <span style="font-size: 11px; opacity: 0.6;">Data Integrity Verified by Core</span>
         </p>
     </div>
 
