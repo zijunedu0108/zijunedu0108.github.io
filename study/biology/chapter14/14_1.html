@@ -51,7 +51,24 @@
         
         /* Note Box */
         .note { background: #FFF4E5; border-left: 5px solid var(--ios-orange); padding: 12px; border-radius: 8px; font-size: 13px; margin: 10px 0; }
-        .note2 { background: #FFCCE6; border-left: 5px solid var(--ios-pink); padding: 12px; border-radius: 8px; font-size: 13px; margin: 3px 0; }
+        .note2 { 
+            background: #FFCCE6; 
+            border-left: 5px solid var(--ios-pink); 
+            padding: 12px; 
+            border-radius: 8px; 
+            font-size: 13px; 
+            margin: 3px 0; 
+        }
+        /* 新增：专门控制 note2 内部所有段落的间距 */
+        .note2 p {
+            margin: 2px 0; /* 极小的上下间距，让内容连贯 */
+            line-height: 1.4; /* 适当的行高，保证紧凑但不重叠 */
+        }
+        /* 新增：如果是加粗的标题，稍微给一点点底边距区分内容 */
+        .note2 b {
+            display: inline-block;
+            margin-bottom: 4px;
+        }
         
         /* Floating Button for Back to Menu (Simulated) */
         .back-btn { display: inline-block; color: var(--ios-blue); text-decoration: none; font-weight: 600; margin-bottom: 15px; font-size: 15px; }
