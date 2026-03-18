@@ -2,113 +2,200 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>STPM Biology Interactive Portal</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Biology STPM | Learning Hub</title>
+    
     <link rel="icon" type="image/png" href="zijunlogo.png">
     
     <style>
         :root {
-            --primary-blue: #2c3e50;
-            --accent-blue: #3498db;
-            --bg-color: #f8f9fa;
+            /* iOS Style Gradients */
+            --ios-bg: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+            --ios-card-bg: rgba(255, 255, 255, 0.7);
+            --ios-blue: #007AFF;
+            --ios-text: #1d1d1f;
+            --ios-secondary-text: #86868b;
+        }
+
+        * {
+            box-sizing: border-box;
+            -webkit-tap-highlight-color: transparent;
         }
 
         body { 
-            font-family: 'Segoe UI', Arial, sans-serif; 
-            background-color: var(--bg-color); 
+            font-family: -apple-system, BlinkMacSystemFont, "SF Pro Text", "Helvetica Neue", Arial, sans-serif; 
+            background: var(--ios-bg);
+            min-height: 100vh;
             margin: 0; 
-            padding: 40px 20px; 
+            padding: 20px; 
+            color: var(--ios-text);
             display: flex;
             flex-direction: column;
             align-items: center;
         }
 
-        .header-section {
+        /* Header Section */
+        .header {
             text-align: center;
-            margin-bottom: 40px;
+            margin: 40px 0;
+            animation: fadeIn 0.8s ease-out;
         }
 
-        /* Logo styling */
-        .main-logo {
-            width: 80px;
-            height: auto;
+        .header img {
+            width: 70px;
+            height: 70px;
+            border-radius: 18px; /* iOS App Icon Radius */
+            box-shadow: 0 4px 15px rgba(0,0,0,0.1);
             margin-bottom: 15px;
         }
 
         h1 { 
-            color: var(--primary-blue); 
-            font-size: 2rem;
-            margin: 10px 0;
+            font-weight: 700;
+            font-size: 28px;
+            letter-spacing: -0.5px;
+            margin: 0;
         }
 
+        .subtitle {
+            color: var(--ios-secondary-text);
+            font-size: 16px;
+            margin-top: 5px;
+        }
+
+        /* Grid Layout */
         .menu-grid { 
             display: grid; 
-            grid-template-columns: repeat(auto-fit, minmax(320px, 1fr)); 
-            gap: 20px; 
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); 
+            gap: 16px; 
             width: 100%;
-            max-width: 1000px;
+            max-width: 900px;
+            padding-bottom: 50px;
         }
 
-        .chapter-btn {
-            background-color: #ffffff;
-            border-left: 6px solid var(--accent-blue);
-            color: var(--primary-blue);
-            padding: 25px;
+        /* iOS Card Button */
+        .chapter-card {
+            background: var(--ios-card-bg);
+            backdrop-filter: blur(10px); /* Frosted Glass Effect */
+            -webkit-backdrop-filter: blur(10px);
+            border-radius: 20px;
+            padding: 20px;
             text-decoration: none;
-            border-radius: 8px;
-            font-weight: 600;
-            font-size: 1.1rem;
-            transition: all 0.2s ease-in-out;
-            box-shadow: 0 4px 12px rgba(0,0,0,0.05);
             display: flex;
             align-items: center;
+            justify-content: space-between;
+            transition: all 0.3s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+            border: 1px solid rgba(255,255,255,0.3);
+            box-shadow: 0 4px 6px rgba(0,0,0,0.05);
         }
 
-        .chapter-btn:hover {
-            transform: scale(1.02);
-            box-shadow: 0 6px 15px rgba(0,0,0,0.1);
-            background-color: #f1f9ff;
+        .chapter-card:active {
+            transform: scale(0.96);
+            background: rgba(255, 255, 255, 0.5);
         }
 
-        .chapter-number {
-            background: var(--accent-blue);
-            color: white;
-            padding: 5px 10px;
-            border-radius: 4px;
-            margin-right: 15px;
-            font-size: 0.9rem;
+        .chapter-info {
+            display: flex;
+            flex-direction: column;
+        }
+
+        .chapter-tag {
+            font-size: 11px;
+            text-transform: uppercase;
+            font-weight: 600;
+            color: var(--ios-blue);
+            margin-bottom: 4px;
+        }
+
+        .chapter-title {
+            font-size: 17px;
+            font-weight: 600;
+            color: var(--ios-text);
+        }
+
+        /* Chevron Icon */
+        .chevron {
+            width: 10px;
+            height: 10px;
+            border-top: 2px solid #c7c7cc;
+            border-right: 2px solid #c7c7cc;
+            transform: rotate(45deg);
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        /* Mobile Optimization */
+        @media (max-width: 480px) {
+            .menu-grid { grid-template-columns: 1fr; }
+            h1 { font-size: 24px; }
         }
     </style>
 </head>
 <body>
 
-<div class="header-section">
-    <img src="zijunlogo.png" alt="Logo" class="main-logo">
-    <h1>STPM Biology Study Hub</h1>
-    <p>Select a chapter to begin your interactive learning session</p>
+<div class="header">
+    <img src="zijunlogo.png" alt="Logo">
+    <h1>Biology STPM</h1>
+    <div class="subtitle">Semester 2 Interactive Study</div>
 </div>
 
 <div class="menu-grid">
-    <a href="study/biology/chapter8.html" class="chapter-btn">
-        <span class="chapter-number">CH 8</span> Gas Exchange
+    <a href="study/biology/chapter8.html" class="chapter-card">
+        <div class="chapter-info">
+            <span class="chapter-tag">Chapter 8</span>
+            <span class="chapter-title">Gas Exchange</span>
+        </div>
+        <div class="chevron"></div>
     </a>
-    <a href="study/biology/chapter9.html" class="chapter-btn">
-        <span class="chapter-number">CH 9</span> Transport in Animals and Plants
+
+    <a href="study/biology/chapter9.html" class="chapter-card">
+        <div class="chapter-info">
+            <span class="chapter-tag">Chapter 9</span>
+            <span class="chapter-title">Transport in Animals & Plants</span>
+        </div>
+        <div class="chevron"></div>
     </a>
-    <a href="study/biology/chapter10.html" class="chapter-btn">
-        <span class="chapter-number">CH 10</span> Control and Regulation
+
+    <a href="study/biology/chapter10.html" class="chapter-card">
+        <div class="chapter-info">
+            <span class="chapter-tag">Chapter 10</span>
+            <span class="chapter-title">Control and Regulation</span>
+        </div>
+        <div class="chevron"></div>
     </a>
-    <a href="study/biology/chapter11.html" class="chapter-btn">
-        <span class="chapter-number">CH 11</span> Reproduction, Development and Growth
+
+    <a href="study/biology/chapter11.html" class="chapter-card">
+        <div class="chapter-info">
+            <span class="chapter-tag">Chapter 11</span>
+            <span class="chapter-title">Reproduction & Growth</span>
+        </div>
+        <div class="chevron"></div>
     </a>
-    <a href="study/biology/chapter12.html" class="chapter-btn">
-        <span class="chapter-number">CH 12</span> Homeostasis
+
+    <a href="study/biology/chapter12.html" class="chapter-card">
+        <div class="chapter-info">
+            <span class="chapter-tag">Chapter 12</span>
+            <span class="chapter-title">Homeostasis</span>
+        </div>
+        <div class="chevron"></div>
     </a>
-    <a href="study/biology/chapter13.html" class="chapter-btn">
-        <span class="chapter-number">CH 13</span> Immunity
+
+    <a href="study/biology/chapter13.html" class="chapter-card">
+        <div class="chapter-info">
+            <span class="chapter-tag">Chapter 13</span>
+            <span class="chapter-title">Immunity</span>
+        </div>
+        <div class="chevron"></div>
     </a>
-    <a href="study/biology/chapter14.html" class="chapter-btn">
-        <span class="chapter-number">CH 14</span> Infectious Diseases
+
+    <a href="study/biology/chapter14.html" class="chapter-card">
+        <div class="chapter-info">
+            <span class="chapter-tag">Chapter 14</span>
+            <span class="chapter-title">Infectious Diseases</span>
+        </div>
+        <div class="chevron"></div>
     </a>
 </div>
 
