@@ -8,33 +8,31 @@
     <style>
         :root {
             --ios-blue: #007AFF;
-            --ios-bg: rgba(28, 28, 30, 0.7);
             --ios-card-bg: rgba(44, 44, 46, 0.6);
             --border-light: rgba(255, 255, 255, 0.12);
             --text-main: #FFFFFF;
             --text-secondary: rgba(235, 235, 245, 0.6);
-            --ios-blur: blur(20px);
+            --ios-blur: blur(25px);
         }
 
         body {
             margin: 0; 
             background: #000; 
             color: var(--text-main);
-            /* 使用 iOS 标准系统字体 */
-            font-family: -apple-system, BlinkMacSystemFont, "SF Pro Text", "Helvetica Neue", Arial, sans-serif;
+            font-family: -apple-system, BlinkMacSystemFont, "SF Pro Text", "Helvetica Neue", sans-serif;
             overflow-x: hidden;
             -webkit-font-smoothing: antialiased;
         }
 
         .bg-video {
             position: fixed; top: 0; left: 0; width: 100%; height: 100%;
-            z-index: -1; object-fit: cover; filter: brightness(0.5);
+            z-index: -1; object-fit: cover; filter: brightness(0.4);
         }
 
         header {
-            padding: 15px 25px; 
+            padding: 16px 20px; 
             display: flex; justify-content: space-between; align-items: center;
-            background: rgba(0, 0, 0, 0.3); 
+            background: rgba(0, 0, 0, 0.2); 
             backdrop-filter: var(--ios-blur); 
             -webkit-backdrop-filter: var(--ios-blur);
             border-bottom: 0.5px solid var(--border-light);
@@ -44,26 +42,25 @@
         .header-title {
             font-size: 17px; 
             font-weight: 600; 
-            letter-spacing: -0.5px;
+            letter-spacing: -0.2px;
         }
 
         .container {
-            max-width: 900px; margin: 20px auto; padding: 0 20px 40px;
+            max-width: 800px; margin: 10px auto; padding: 0 16px 60px;
         }
 
         .section-title {
             font-size: 22px; 
             font-weight: 700; 
-            color: var(--text-main);
-            margin: 35px 0 20px;
-            padding-left: 5px;
+            margin: 30px 0 15px;
+            letter-spacing: -0.5px;
         }
 
-        /* 成绩卡片布局 - iOS 风格 */
+        /* 成绩卡片 - 增强 iOS 质感 */
         .stats-grid {
             display: grid; 
-            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); 
-            gap: 16px;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); 
+            gap: 12px;
         }
 
         .archive-card {
@@ -72,42 +69,36 @@
             -webkit-backdrop-filter: var(--ios-blur);
             border: 0.5px solid var(--border-light);
             padding: 20px;
-            border-radius: 20px; /* 经典的 iOS 大圆角 */
-            transition: transform 0.2s ease;
-        }
-
-        .archive-card:active {
-            transform: scale(0.98); /* 点击时的缩放反馈 */
+            border-radius: 22px;
+            transition: background 0.2s;
         }
 
         .card-label { 
-            font-size: 13px; 
+            font-size: 12px; 
             color: var(--ios-blue); 
             font-weight: 600;
-            margin-bottom: 8px; 
+            margin-bottom: 6px; 
             text-transform: uppercase;
         }
 
         .card-value { 
-            font-size: 32px; 
+            font-size: 30px; 
             font-weight: 700; 
-            margin-bottom: 12px;
-            letter-spacing: -1px;
+            margin-bottom: 10px;
         }
         
-        /* iOS 进度条 */
         .rank-bar {
             height: 6px; 
             background: rgba(255, 255, 255, 0.1); 
             width: 100%; 
-            border-radius: 3px;
+            border-radius: 10px;
             overflow: hidden;
-            margin-bottom: 12px;
+            margin-bottom: 10px;
         }
         .rank-fill {
             height: 100%; 
             background: var(--ios-blue);
-            border-radius: 3px;
+            border-radius: 10px;
         }
 
         .card-status {
@@ -115,50 +106,50 @@
             color: var(--text-secondary);
         }
 
-        /* 活动列表样式 - iOS List 风格 */
-        .activity-item {
-            display: flex; align-items: center; gap: 15px;
+        /* 活动列表 - 类似 iOS 设置页面的分组列表 */
+        .activity-group {
             background: var(--ios-card-bg);
             backdrop-filter: var(--ios-blur);
             -webkit-backdrop-filter: var(--ios-blur);
-            margin-bottom: 12px; padding: 18px;
-            border-radius: 16px;
+            border-radius: 22px;
             border: 0.5px solid var(--border-light);
+            overflow: hidden;
         }
+
+        .activity-item {
+            display: flex; align-items: center; gap: 15px;
+            padding: 16px;
+            border-bottom: 0.5px solid var(--border-light);
+        }
+
+        .activity-item:last-child { border-bottom: none; }
 
         .year-tag {
             background: var(--ios-blue); color: #fff;
-            padding: 4px 10px; border-radius: 8px; font-weight: 700; font-size: 13px;
-            min-width: 40px; text-align: center;
+            padding: 4px 0; border-radius: 8px; font-weight: 700; font-size: 12px;
+            width: 45px; text-align: center; flex-shrink: 0;
         }
 
         .activity-info h4 {
-            margin: 0; font-size: 17px; font-weight: 600;
+            margin: 0; font-size: 16px; font-weight: 600; line-height: 1.3;
         }
         .activity-info p {
-            margin: 4px 0 0; font-size: 14px; color: var(--text-secondary);
+            margin: 3px 0 0; font-size: 14px; color: var(--text-secondary);
         }
 
         .btn-back {
             color: #fff; 
             text-decoration: none; 
             background: var(--ios-blue);
-            padding: 8px 16px; 
-            border-radius: 18px; 
+            padding: 8px 14px; 
+            border-radius: 20px; 
             font-size: 13px; 
             font-weight: 600;
-            transition: opacity 0.2s;
         }
-        .btn-back:hover { opacity: 0.8; }
 
-        /* 移动端专用优化 */
         @media (max-width: 600px) {
-            header { padding: 12px 20px; }
-            .header-title { font-size: 15px; }
-            .section-title { font-size: 20px; margin: 25px 0 15px; }
-            .card-value { font-size: 28px; }
-            .container { margin: 10px auto; }
-            .stats-grid { grid-template-columns: 1fr; } /* 手机端强制单列 */
+            .stats-grid { grid-template-columns: 1fr; }
+            .section-title { font-size: 20px; }
         }
 
     </style>
@@ -171,55 +162,58 @@
 
     <header>
         <div class="header-title">Academic Archives</div>
-        <a href="index.html" class="btn-back">Return</a>
+        <a href="index.html" class="btn-back">返回核心</a>
     </header>
 
     <div class="container">
         <div class="section-title">Academic Achievements</div>
         <div class="stats-grid">
             <div class="archive-card">
-                <div class="card-label">Current Status</div>
+                <div class="card-label">当前学业状态</div>
                 <div class="card-value">GPA 3.50</div>
                 <div class="rank-bar"><div class="rank-fill" style="width: 87.5%;"></div></div>
-                <div class="card-status">STPM Sem 1 Trial: Distinction Level Predicted</div>
+                <div class="card-status">STPM Sem 1 Trial: 优等水平预测</div>
             </div>
 
             <div class="archive-card">
-                <div class="card-label">Historical Data</div>
+                <div class="card-label">历史数据</div>
                 <div class="card-value">8A 2B</div>
                 <div class="rank-bar"><div class="rank-fill" style="width: 80%;"></div></div>
-                <div class="card-status">SPM Result: Highly Successful</div>
-            </div>
-
-            <div class="archive-card">
-                <div class="card-label">Foundation</div>
-                <div class="card-value">2A 4B 2C</div>
-                <div class="rank-bar"><div class="rank-fill" style="width: 50%;"></div></div>
-                <div class="card-status">UPSR Result: Foundation Established</div>
+                <div class="card-status">SPM 成绩: 表现优秀</div>
             </div>
         </div>
 
         <div class="section-title">Leadership & Activities</div>
         
-        <div class="activity-item">
-            <div class="year-tag">2026</div>
-            <div class="activity-info">
-                <h4>Biro Multimedia dan Siar Raya</h4>
-                <p>Role: Technical & Broadcasting Lead</p>
+        <div class="activity-group">
+            <div class="activity-item">
+                <div class="year-tag">2026</div>
+                <div class="activity-info">
+                    <h4>Ketua Editor Majalah Sekolah</h4>
+                    <p>Role: Chief Editor (校刊总编辑)</p>
+                </div>
+            </div>
+
+            <div class="activity-item">
+                <div class="year-tag">2026</div>
+                <div class="activity-info">
+                    <h4>Biro Multimedia dan Siar Raya</h4>
+                    <p>Role: Technical & Broadcasting Lead</p>
+                </div>
+            </div>
+
+            <div class="activity-item">
+                <div class="year-tag">2024</div>
+                <div class="activity-info">
+                    <h4>Kelab ICT</h4>
+                    <p>Role: President (Pengerusi)</p>
+                </div>
             </div>
         </div>
 
-        <div class="activity-item">
-            <div class="year-tag">2024</div>
-            <div class="activity-info">
-                <h4>Kelab ICT</h4>
-                <p>Role: President (Pengerusi)</p>
-            </div>
-        </div>
-
-        <p style="text-align: center; margin-top: 60px; font-size: 13px; color: var(--text-secondary); letter-spacing: 0.5px;">
-            End of Archive<br>
-            <span style="font-size: 11px; opacity: 0.6;">Data Integrity Verified by Core</span>
+        <p style="text-align: center; margin-top: 50px; font-size: 13px; color: var(--text-secondary);">
+            档案读取完毕<br>
+            <span style="font-size: 11px; opacity: 0.5;">Data Integrity Verified by System</span>
         </p>
     </div>
 
