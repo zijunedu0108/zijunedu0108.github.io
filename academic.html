@@ -16,14 +16,20 @@
 
         body, html {
             margin: 0; padding: 0;
-            width: 100%; height: 100%;
             background-color: #000;
             color: var(--text-main);
-            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+            /* 使用 Terminal Core 的 iOS 系统字体 */
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
             overflow-x: hidden;
         }
 
-        /* Scanline Effect */
+        /* 背景视频 */
+        .bg-video {
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            z-index: -1; object-fit: cover; filter: brightness(0.4);
+        }
+
+        /* 扫描线特效 - 统一 UI */
         body::before {
             content: " ";
             position: fixed; top: 0; left: 0; bottom: 0; right: 0;
@@ -31,11 +37,6 @@
             z-index: 100;
             background-size: 100% 4px;
             pointer-events: none;
-        }
-
-        .bg-video {
-            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
-            z-index: -1; object-fit: cover; filter: brightness(0.4);
         }
 
         header {
@@ -51,100 +52,83 @@
         .logo-area { display: flex; align-items: center; gap: 12px; }
         .logo-area img { width: 35px; height: 35px; border-radius: 8px; }
 
-        .main-layout {
-            display: flex;
-            min-height: calc(100vh - 80px);
-            padding: 15px;
-            gap: 15px;
-            box-sizing: border-box;
-            z-index: 150;
-            position: relative;
-            max-width: 1400px;
-            margin: 0 auto;
+        .container {
+            max-width: 900px; margin: 20px auto; padding: 0 15px 60px;
+            position: relative; z-index: 150;
         }
 
-        /* Left Content Panel */
-        .info-panel {
-            flex: 1;
+        /* 标题风格统一 */
+        .section-title {
+            font-family: monospace;
+            font-size: 14px;
+            color: var(--neon-blue);
+            text-transform: uppercase;
+            letter-spacing: 3px;
+            margin: 40px 0 20px;
+            padding-left: 10px;
+            border-left: 3px solid var(--neon-blue);
+        }
+
+        /* 成绩卡片 - 采用 Terminal Core 的 iOS 风格 */
+        .stats-grid {
+            display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 15px;
+        }
+
+        .archive-card {
             background: var(--panel-bg);
             backdrop-filter: var(--ios-blur);
             -webkit-backdrop-filter: var(--ios-blur);
             border: 1px solid var(--border-glow);
             padding: 25px;
             border-radius: 24px;
-            display: flex;
-            flex-direction: column;
-            box-shadow: 0 8px 32px rgba(0,0,0,0.3);
+            transition: 0.3s;
         }
 
-        /* Right Scrollable Panel */
-        .scroll-panel {
-            flex: 1.5;
-            display: flex;
-            flex-direction: column;
-            gap: 15px;
-            overflow-y: auto;
-        }
+        .archive-card:active { transform: scale(0.98); background: rgba(255,255,255,0.05); }
 
-        .status-text { 
-            font-family: monospace; 
-            color: var(--neon-blue); 
-            font-size: 11px; 
-            margin-bottom: 5px; 
-            text-transform: uppercase; 
-            letter-spacing: 1px;
-        }
-
-        .data-val { color: #fff; margin-bottom: 20px; font-size: 24px; font-weight: 700; letter-spacing: -0.5px; }
-
-        /* Progress Bar */
-        .rank-track {
-            height: 6px; background: rgba(255, 255, 255, 0.1); border-radius: 10px; overflow: hidden; margin-top: 10px;
+        .card-label { font-family: monospace; font-size: 11px; color: var(--neon-blue); opacity: 0.8; margin-bottom: 8px; text-transform: uppercase; }
+        .card-value { font-size: 28px; font-weight: 800; margin-bottom: 12px; letter-spacing: -1px; }
+        
+        /* 进度条样式 */
+        .rank-bar {
+            height: 6px; background: rgba(255,255,255,0.1); border-radius: 10px; overflow: hidden; margin-bottom: 10px;
         }
         .rank-fill {
             height: 100%; background: var(--neon-blue); border-radius: 10px;
             box-shadow: 0 0 10px var(--neon-blue);
         }
 
-        /* Activity Cards */
-        .activity-card {
+        .card-status { font-size: 12px; opacity: 0.6; }
+
+        /* 活动列表 - 采用与 Terminal Core 按钮一致的圆角风格 */
+        .activity-item {
             background: var(--panel-bg);
             backdrop-filter: var(--ios-blur);
             -webkit-backdrop-filter: var(--ios-blur);
             border: 1px solid var(--border-glow);
-            padding: 20px;
+            margin-bottom: 12px; padding: 20px;
             border-radius: 20px;
-            display: flex;
-            align-items: center;
-            gap: 15px;
-        }
-
-        .year-badge {
-            background: var(--neon-blue); color: #000;
-            padding: 5px 12px; border-radius: 10px; font-weight: 800; font-size: 12px;
-        }
-
-        /* Nav Grid for Footer-like experience */
-        .nav-grid {
-            display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; margin-top: auto; padding-top: 20px;
-        }
-
-        .btn-cyber {
-            background: rgba(255, 255, 255, 0.08);
-            color: #fff; border: 1px solid var(--border-glow);
-            padding: 12px 5px; text-align: center; text-decoration: none;
-            border-radius: 14px; font-size: 12px; font-weight: 600;
+            display: flex; align-items: center; gap: 20px;
             transition: 0.2s;
         }
 
-        .btn-cyber:active { transform: scale(0.95); background: rgba(255, 255, 255, 0.15); }
+        .activity-item:active { transform: translateX(5px); background: rgba(255,255,255,0.05); }
 
-        @media (max-width: 900px) {
-            .main-layout { flex-direction: column; }
-            .info-panel { order: 1; }
-            .scroll-panel { order: 2; }
-            .data-val { font-size: 20px; }
+        .year-tag {
+            background: var(--neon-blue); color: #000;
+            padding: 4px 12px; border-radius: 10px; font-weight: 800; font-size: 12px;
+            min-width: 45px; text-align: center;
         }
+
+        .info h4 { margin: 0; font-size: 17px; font-weight: 700; }
+        .info p { margin: 4px 0 0; font-size: 13px; color: var(--neon-blue); font-family: monospace; opacity: 0.8; }
+
+        .btn-back {
+            color: #fff; text-decoration: none; background: rgba(255,255,255,0.1);
+            padding: 8px 18px; border-radius: 15px; font-size: 12px; font-weight: 600;
+            border: 0.5px solid var(--border-glow); backdrop-filter: blur(5px);
+        }
+
     </style>
 </head>
 <body>
@@ -157,76 +141,62 @@
         <div class="logo-area">
             <img src="zijunlogo.png" alt="ZIJUN">
             <div>
-                <div style="font-size: 14px; font-weight: 800; letter-spacing: 1px;">ACADEMIC_ARCHIVES</div>
+                <div style="font-size: 16px; font-weight: 800; letter-spacing: 1px;">ACADEMIC_ARCHIVES</div>
                 <div style="font-size: 9px; opacity: 0.6;">// DATASET: KONG ZI JUN</div>
             </div>
         </div>
-        <div id="clock" style="font-family: monospace; font-weight: 600; font-size: 13px;">00:00:00</div>
+        <a href="index.html" class="btn-back">CORE_RETURN</a>
     </header>
 
-    <div class="main-layout">
-        <div class="info-panel">
-            <div class="status-text">> CURRENT_ACADEMIC_PHASE</div>
-            <div class="data-val">STPM 2026 (SEM 1)</div>
-            
-            <div class="status-text">> PERFORMANCE_INDEX (TRIAL)</div>
-            <div class="data-val">GPA 3.50</div>
-            <div class="rank-track"><div class="rank-fill" style="width: 87.5%;"></div></div>
-            <p style="font-size: 11px; opacity: 0.6; margin-top: 8px;">Status: Distinction Level Predicted</p>
-
-            <div style="margin-top: 30px;">
-                <div class="status-text">> HISTORICAL_SUMMARY</div>
-                <div class="data-val" style="font-size: 18px;">SPM: 8A 2B</div>
-                <div class="rank-track"><div class="rank-fill" style="width: 80%;"></div></div>
+    <div class="container">
+        <div class="section-title">Academic Achievements</div>
+        
+        <div class="stats-grid">
+            <div class="archive-card">
+                <div class="card-label">> CURRENT_PHASE</div>
+                <div class="card-value">GPA 3.50</div>
+                <div class="rank-bar"><div class="rank-fill" style="width: 87.5%;"></div></div>
+                <div class="card-status">STPM Sem 1 Trial | Predicted: Distinction</div>
             </div>
 
-            <div class="nav-grid">
-                <a href="index.html" class="btn-cyber" style="background: var(--neon-blue); color: #000;">CORE</a>
-                <a href="music.html" class="btn-cyber">MUSIC</a>
-                <a href="jobexperience.html" class="btn-cyber">EXP</a>
+            <div class="archive-card">
+                <div class="card-label">> HISTORICAL_RECORD</div>
+                <div class="card-value">8A 2B</div>
+                <div class="rank-bar"><div class="rank-fill" style="width: 80%;"></div></div>
+                <div class="card-status">SPM Certification | Status: Highly Successful</div>
             </div>
         </div>
 
-        <div class="scroll-panel">
-            <div class="status-text">> LEADERSHIP_LOGS</div>
-
-            <div class="activity-card">
-                <div class="year-badge">2026</div>
-                <div>
-                    <div style="font-weight: 700; font-size: 16px;">Ketua Editor Majalah Sekolah</div>
-                    <div style="font-size: 12px; color: var(--neon-blue); font-family: monospace;">// Chief Editor (School Magazine)</div>
-                </div>
+        <div class="section-title">Leadership & Activities</div>
+        
+        <div class="activity-item">
+            <div class="year-tag">2026</div>
+            <div class="info">
+                <h4>Ketua Editor Majalah Sekolah</h4>
+                <p>> Role: Chief Editor (School Magazine)</p>
             </div>
-
-            <div class="activity-card">
-                <div class="year-badge">2026</div>
-                <div>
-                    <div style="font-weight: 700; font-size: 16px;">Biro Multimedia dan Siar Raya</div>
-                    <div style="font-size: 12px; color: var(--neon-blue); font-family: monospace;">// Technical & Broadcasting Lead</div>
-                </div>
-            </div>
-
-            <div class="activity-card">
-                <div class="year-badge">2024</div>
-                <div>
-                    <div style="font-weight: 700; font-size: 16px;">Kelab ICT</div>
-                    <div style="font-size: 12px; color: var(--neon-blue); font-family: monospace;">// President (Pengerusi)</div>
-                </div>
-            </div>
-
-            <p style="text-align: center; margin-top: 30px; font-size: 10px; opacity: 0.4; letter-spacing: 2px;">
-                -- END OF DATA STREAM --
-            </p>
         </div>
+
+        <div class="activity-item">
+            <div class="year-tag">2026</div>
+            <div class="info">
+                <h4>Biro Multimedia dan Siar Raya</h4>
+                <p>> Role: Technical & Broadcasting Lead</p>
+            </div>
+        </div>
+
+        <div class="activity-item">
+            <div class="year-tag">2024</div>
+            <div class="info">
+                <h4>Kelab ICT</h4>
+                <p>> Role: President (Pengerusi)</p>
+            </div>
+        </div>
+
+        <p style="text-align: center; margin-top: 50px; font-size: 11px; opacity: 0.4; letter-spacing: 2px; font-family: monospace;">
+            -- END OF ACADEMIC_DATA_STREAM --
+        </p>
     </div>
 
-    <script>
-        function updateClock() {
-            const now = new Date();
-            document.getElementById('clock').innerText = now.toTimeString().split(' ')[0];
-        }
-        setInterval(updateClock, 1000);
-        updateClock();
-    </script>
 </body>
 </html>
