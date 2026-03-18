@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
-    <title>Zijun Sci-Fi Terminal</title>
+    <title>Zijun Sci-Fi Terminal | iOS Edition</title>
     <link rel="icon" href="zijunlogo.png" type="image/png">
     <script src="https://cdn.jsdelivr.net/npm/sortablejs@1.15.0/Sortable.min.js"></script>
     <style>
@@ -21,13 +21,12 @@
             width: 100%; height: 100%;
             background-color: #000;
             color: #fff; 
-            /* 使用 iOS 系统字体 */
             font-family: -apple-system, BlinkMacSystemFont, "SF Pro Text", "Helvetica Neue", sans-serif;
             overflow: hidden;
             -webkit-tap-highlight-color: transparent;
         }
 
-        /* --- 氛围灯底层 (保持原逻辑) --- */
+        /* --- 氛围灯底层 --- */
         #ambient-canvas {
             position: fixed; top: 50%; left: 50%;
             transform: translate(-50%, -50%) scale(1.6);
@@ -49,10 +48,9 @@
             position: sticky; top: 0; z-index: 1000;
         }
 
-        .logo-area { display: flex; align-items: center; gap: 10px; }
-        .logo-area img { width: 32px; height: 32px; border-radius: 8px; } /* iOS 图标圆角 */
+        .logo-area { display: flex; align-items: center; gap: 10px; cursor: pointer; }
+        .logo-area img { width: 32px; height: 32px; border-radius: 8px; }
 
-        /* iOS 风格按钮 */
         .btn-cyber {
             background: rgba(255, 255, 255, 0.1);
             color: #fff; border: none;
@@ -65,101 +63,100 @@
         .btn-return { background: var(--ios-blue); }
 
         .container { 
-            max-width: 1000px; margin: 0 auto; padding: 20px; 
+            max-width: 1200px; margin: 0 auto; padding: 20px; 
             height: calc(100vh - 80px); overflow-y: auto; 
             position: relative; z-index: 50;
-            -webkit-overflow-scrolling: touch; /* 顺滑滚动 */
+            -webkit-overflow-scrolling: touch;
         }
 
-        .nav-controls {
-            display: flex; align-items: center; gap: 12px;
-            margin-bottom: 20px; padding: 12px;
-            background: var(--bg-glass); border-radius: 16px;
-            backdrop-filter: var(--ios-blur); -webkit-backdrop-filter: var(--ios-blur);
-        }
-
-        /* 移动端网格优化 */
         .grid-list { 
             display: grid; 
-            grid-template-columns: repeat(auto-fill, minmax(160px, 1fr)); 
-            gap: 15px; 
+            grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); 
+            gap: 20px; 
         }
 
-        /* iOS 卡片风格 */
         .card {
             background: var(--bg-glass);
             backdrop-filter: var(--ios-blur); -webkit-backdrop-filter: var(--ios-blur);
             border: 0.5px solid var(--border-light);
-            border-radius: 20px; overflow: hidden; 
+            border-radius: 16px; overflow: hidden; 
             transition: 0.3s cubic-bezier(0.4, 0, 0.2, 1);
             position: relative;
         }
         .card:active { transform: scale(0.97); }
 
-        .cover-box { width: 100%; aspect-ratio: 1; background: #1a1a1a; overflow: hidden; }
+        /* 封面比例优化为 16:9 */
+        .cover-box { width: 100%; aspect-ratio: 16/9; background: #1a1a1a; overflow: hidden; }
         .cover-box img { width: 100%; height: 100%; object-fit: cover; }
 
-        .card-info { padding: 12px; text-align: center; }
+        .card-info { padding: 12px; text-align: left; }
         .song-title { color: #fff; font-size: 14px; font-weight: 600; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 
-        /* 全屏播放器 iOS 优化 */
+        /* --- 类似 YouTube 的播放器布局 --- */
         #player-overlay {
             display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%;
-            background: rgba(0, 0, 0, 0.95); z-index: 3000;
-            backdrop-filter: blur(40px); -webkit-backdrop-filter: blur(40px);
+            background: rgba(0, 0, 0, 0.9); z-index: 3000;
+            backdrop-filter: blur(30px); -webkit-backdrop-filter: blur(30px);
         }
+
         #player-content {
-            width: 100%; height: 100%;
-            display: flex; flex-direction: column; 
+            width: 95%; max-width: 1200px; height: 85vh;
+            position: absolute; top: 50%; left: 50%;
+            transform: translate(-50%, -50%);
+            display: flex; flex-direction: row; /* 左右分栏 */
+            background: #000; border-radius: 20px; overflow: hidden;
+            box-shadow: 0 20px 50px rgba(0,0,0,0.8);
         }
-        .video-main { flex: none; width: 100%; background: #000; padding-top: env(safe-area-inset-top); }
-        .playlist-side { flex: 1; display: flex; flex-direction: column; overflow: hidden; }
+
+        .video-main { flex: 7; background: #000; display: flex; align-items: center; }
+        .playlist-side { flex: 3; display: flex; flex-direction: column; background: #111; border-left: 0.5px solid var(--border-light); }
+
         .playlist-items { flex: 1; overflow-y: auto; padding: 10px; }
-        
-        /* 播放列表条目 iOS 风格 */
         .playlist-item { 
-            display: flex; gap: 15px; padding: 10px; border-radius: 12px;
-            margin-bottom: 8px; transition: 0.2s; align-items: center;
+            display: flex; gap: 10px; padding: 8px; border-radius: 10px;
+            margin-bottom: 6px; transition: 0.2s; align-items: center; cursor: pointer;
         }
-        .playlist-item.active { background: rgba(255, 255, 255, 0.15); }
-        .playlist-item img { width: 60px; height: 60px; border-radius: 8px; object-fit: cover; }
+        .playlist-item.active { background: rgba(0, 122, 255, 0.2); border: 0.5px solid var(--ios-blue); }
+        .playlist-item img { width: 80px; aspect-ratio: 16/9; border-radius: 6px; object-fit: cover; }
 
         .player-footer { 
-            padding: 20px; 
-            background: rgba(255,255,255,0.05); 
+            padding: 15px; background: #1a1a1a;
             display: flex; justify-content: space-between; align-items: center;
-            padding-bottom: calc(20px + var(--safe-area-inset-bottom));
         }
 
-        /* 弹窗 iOS 风格 */
-        .modal { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.6); justify-content: center; align-items: center; z-index: 4000; padding: 20px; }
+        /* --- 弹窗逻辑修复 --- */
+        .modal { 
+            display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; 
+            background: rgba(0,0,0,0.8); z-index: 4000; 
+            align-items: center; justify-content: center; /* 确保居中 */
+        }
         .modal-content { 
             background: #1c1c1e; border-radius: 24px; padding: 25px; 
-            width: 100%; max-width: 320px; text-align: center;
-            box-shadow: 0 10px 40px rgba(0,0,0,0.5);
+            width: 90%; max-width: 340px; text-align: center;
+            border: 0.5px solid var(--border-light);
         }
         input { 
-            width: 100%; padding: 14px; margin: 10px 0; 
+            width: 100%; padding: 14px; margin: 10px 0; box-sizing: border-box;
             background: #2c2c2e; border: none; border-radius: 12px; 
             color: #fff; font-size: 16px; outline: none;
         }
+
         .delete-btn { 
-            position: absolute; top: 10px; right: 10px; 
+            position: absolute; top: 8px; right: 8px; 
             background: rgba(255, 59, 48, 0.9); border: none;
-            color: #fff; border-radius: 50%; width: 24px; height: 24px; 
-            font-size: 12px; cursor: pointer; display: flex; align-items: center; justify-content: center;
+            color: #fff; border-radius: 50%; width: 22px; height: 22px; 
+            font-size: 10px; cursor: pointer; display: flex; align-items: center; justify-content: center; z-index: 10;
         }
 
-        /* 移动端适配补丁 */
-        @media (max-width: 600px) {
+        /* 移动端适配：播放器切换为上下布局 */
+        @media (max-width: 900px) {
+            #player-content { flex-direction: column; height: 90vh; width: 100%; border-radius: 0; }
+            .video-main { flex: none; width: 100%; }
+            .playlist-side { flex: 1; border-left: none; border-top: 0.5px solid var(--border-light); }
             .grid-list { grid-template-columns: repeat(2, 1fr); gap: 12px; }
-            .song-title { font-size: 13px; }
-            header { padding: 10px 15px; }
-            .btn-cyber { padding: 6px 12px; font-size: 12px; }
-            .logo-area div { display: none; } /* 窄屏隐藏部分 Logo 文字 */
         }
 
-        .sortable-ghost { opacity: 0.5; transform: scale(1.05); }
+        .sortable-ghost { opacity: 0.3; background: var(--ios-blue) !important; }
     </style>
 </head>
 <body>
@@ -177,7 +174,7 @@
             </div>
         </div>
         <div style="display: flex; gap: 8px;">
-            <a href="index.html" class="btn-cyber btn-return">CORE</a>
+            <a href="index.html" class="btn-cyber btn-return">RETURN</a>
             <button class="btn-cyber admin-only" id="main-btn" style="display:none;" onclick="triggerAction()">+ ADD</button>
             <button class="btn-cyber" id="login-gate-btn" onclick="openLogin()">LOGIN</button>
         </div>
@@ -189,10 +186,10 @@
             <div id="album-grid" class="grid-list"></div>
         </div>
 
-        <div id="detail-page" class="page">
-            <div class="nav-controls">
+        <div id="detail-page" class="page" style="display:none;">
+            <div style="display: flex; align-items: center; gap: 12px; margin-bottom: 20px;">
                 <button class="btn-cyber" onclick="showHome()">← 返回</button>
-                <span id="album-title-display" style="font-size: 14px; font-weight: 700; color: #fff;"></span>
+                <span id="album-title-display" style="font-size: 18px; font-weight: 700;"></span>
             </div>
             <div id="song-grid" class="grid-list"></div>
         </div>
@@ -204,13 +201,13 @@
                 <div id="yt-frame" style="width:100%; aspect-ratio:16/9;"></div>
             </div>
             <div class="playlist-side">
-                <div style="padding: 15px 20px; font-size: 17px; font-weight: 700; border-bottom: 0.5px solid rgba(255,255,255,0.1);">播放列表</div>
+                <div style="padding: 15px; font-size: 16px; font-weight: 700; border-bottom: 0.5px solid rgba(255,255,255,0.1);">播放队列</div>
                 <div id="playlist-items" class="playlist-items"></div>
                 <div class="player-footer">
-                    <div style="flex:1; overflow:hidden;">
-                        <div id="player-song-title" style="font-weight: 700; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">正在加载...</div>
+                    <div style="flex:1; overflow:hidden; margin-right: 10px;">
+                        <div id="player-song-title" style="font-size:14px; font-weight: 600; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">未在播放</div>
                     </div>
-                    <button class="btn-cyber" onclick="window.closePlayer()" style="background:rgba(255,255,255,0.15); margin-left:15px;">关闭</button>
+                    <button class="btn-cyber" onclick="window.closePlayer()" style="background:rgba(255,255,255,0.1);">关闭</button>
                 </div>
             </div>
         </div>
@@ -228,7 +225,7 @@
 
     <div id="album-modal" class="modal">
         <div class="modal-content">
-            <h4 style="margin:0 0 20px 0;">新建专辑</h4>
+            <h4>新建专辑</h4>
             <input type="text" id="album-input" placeholder="专辑名称">
             <button class="btn-cyber" style="width:100%; background:var(--ios-blue);" onclick="createAlbum()">确认创建</button>
             <button class="btn-cyber" style="width:100%; background:transparent; margin-top:10px;" onclick="closeModals()">取消</button>
@@ -237,7 +234,7 @@
 
     <div id="song-modal" class="modal">
         <div class="modal-content">
-            <h4 style="margin:0 0 20px 0;">添加歌曲</h4>
+            <h4>添加歌曲</h4>
             <input type="text" id="song-name-input" placeholder="歌曲名称">
             <input type="text" id="song-url-input" placeholder="YouTube 链接">
             <button class="btn-cyber" style="width:100%; background:var(--ios-blue);" onclick="addSong()">注入轨道</button>
@@ -272,15 +269,13 @@
         let ambientInterval = null;
         let isAdmin = false;
 
-        // --- 所有功能逻辑函数保持与你提供的版本一致 ---
-        // (省略重复逻辑以保持展示简洁，代码已完整包含功能)
-        
+        // 排序初始化
         function initSortable(elId, isAlbum) {
             const el = document.getElementById(elId);
             if (!el) return;
             if (Sortable.get(el)) Sortable.get(el).destroy();
             Sortable.create(el, {
-                animation: 200,
+                animation: 250,
                 disabled: !isAdmin,
                 ghostClass: 'sortable-ghost',
                 onEnd: async () => {
@@ -303,7 +298,7 @@
         ambCanvas.width = 16; ambCanvas.height = 9;
 
         function updateAmbient() {
-            if (!ytPlayer || ytPlayer.getPlayerState() !== 1) return;
+            if (!ytPlayer || typeof ytPlayer.getPlayerState !== 'function' || ytPlayer.getPlayerState() !== 1) return;
             const vidData = ytPlayer.getVideoData();
             if (!vidData) return;
             const img = new Image();
@@ -338,15 +333,15 @@
             const list = document.getElementById('playlist-items');
             list.innerHTML = currentAlbumSongs.map(s => `
                 <div class="playlist-item ${s.id === activeId ? 'active' : ''}" onclick="window.play('${s.id}', '${s.name}')">
-                    <img src="https://img.youtube.com/vi/${s.id}/default.jpg">
-                    <div style="font-size:15px; font-weight:600;">${s.name}</div>
+                    <img src="https://img.youtube.com/vi/${s.id}/mqdefault.jpg">
+                    <div style="font-size:13px; font-weight:600; color:#fff;">${s.name}</div>
                 </div>`).join('');
         };
 
         const playNext = () => {
             const curId = ytPlayer.getVideoData().video_id;
             const idx = currentAlbumSongs.findIndex(s => s.id === curId);
-            if (idx < currentAlbumSongs.length - 1) {
+            if (idx !== -1 && idx < currentAlbumSongs.length - 1) {
                 const next = currentAlbumSongs[idx+1];
                 window.play(next.id, next.name);
             }
@@ -361,16 +356,16 @@
 
         window.showHome = () => {
             currentAlbumId = null;
-            document.getElementById('detail-page').classList.remove('active-page');
-            document.getElementById('home-page').classList.add('active-page');
+            document.getElementById('detail-page').style.display = 'none';
+            document.getElementById('home-page').style.display = 'block';
             document.getElementById('main-btn').innerText = "+ ALBUM";
-            setTimeout(() => initSortable('album-grid', true), 500);
+            initSortable('album-grid', true);
         };
 
         window.viewAlbum = (id, title) => {
             currentAlbumId = id;
-            document.getElementById('home-page').classList.remove('active-page');
-            document.getElementById('detail-page').classList.add('active-page');
+            document.getElementById('home-page').style.display = 'none';
+            document.getElementById('detail-page').style.display = 'block';
             document.getElementById('album-title-display').innerText = title;
             document.getElementById('main-btn').innerText = "+ TRACK";
 
@@ -397,7 +392,7 @@
         window.handleLogin = async () => {
             const e = document.getElementById('login-email').value;
             const p = document.getElementById('login-pass').value;
-            try { await signInWithEmailAndPassword(auth, e, p); window.closeModals(); } 
+            try { await signInWithEmailAndPassword(auth, e, p); closeModals(); } 
             catch { alert("鉴权失败"); }
         };
 
@@ -410,7 +405,7 @@
                 const alb = d.data();
                 const cover = alb.songs?.[0] ? `https://img.youtube.com/vi/${alb.songs[0].id}/mqdefault.jpg` : 'zijunlogo.png';
                 grid.innerHTML += `
-                    <div class="card" data-id="${d.id}" onclick="window.viewAlbum('${d.id}', '${alb.title}')">
+                    <div class="card" data-id="${d.id}" onclick="window.viewAlbum('${d.id}', '${alb.title.replace(/'/g, "\\'")}')">
                         <div class="cover-box"><img src="${cover}"></div>
                         <div class="card-info">
                             <div class="song-title">${alb.title}</div>
@@ -429,7 +424,7 @@
 
         window.createAlbum = async () => {
             const val = document.getElementById('album-input').value;
-            if(val) { await addDoc(collection(db, "albums"), { title: val, songs: [], timestamp: Date.now() }); window.closeModals(); }
+            if(val) { await addDoc(collection(db, "albums"), { title: val, songs: [], timestamp: Date.now() }); closeModals(); }
         };
 
         window.addSong = async () => {
@@ -438,7 +433,7 @@
             const m = u.match(/(?:v=|be\/|embed\/)(.{11})/);
             if(n && m && currentAlbumId) {
                 await updateDoc(doc(db, "albums", currentAlbumId), { songs: arrayUnion({ id: m[1], name: n }) });
-                window.closeModals();
+                closeModals();
             }
         };
 
@@ -459,6 +454,8 @@
         window.closeModals = () => { 
             document.querySelectorAll('.modal').forEach(m => m.style.display = 'none'); 
         };
+        // 绑定到 window 以供 HTML 访问
+        window.closeModals = closeModals;
     </script>
 </body>
 </html>
