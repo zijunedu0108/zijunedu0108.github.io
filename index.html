@@ -9,9 +9,10 @@
         :root {
             --neon-blue: #00f2ff;
             --deep-blue: #020b16;
-            --panel-bg: rgba(5, 15, 25, 0.85);
-            --border-glow: rgba(0, 242, 255, 0.3);
-            --text-main: #e0faff;
+            --panel-bg: rgba(20, 20, 25, 0.7); /* iOS 深色模式背景 */
+            --border-glow: rgba(255, 255, 255, 0.1);
+            --text-main: #ffffff;
+            --ios-blur: blur(20px); /* iOS 标志性毛玻璃 */
         }
 
         body, html {
@@ -19,8 +20,10 @@
             width: 100%; height: 100%;
             background-color: #000;
             color: var(--text-main);
-            font-family: 'Segoe UI', 'Orbitron', sans-serif;
-            overflow: hidden;
+            /* 字体更接近 iOS 的系统字体 */
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+            overflow-x: hidden;
+            overflow-y: auto;
         }
 
         /* Background Video */
@@ -30,170 +33,177 @@
             width: 100%; height: 100%;
             z-index: -1;
             object-fit: cover;
-            filter: brightness(0.3) contrast(1.2);
+            filter: brightness(0.4);
         }
 
-        /* Scanline Effect */
+        /* Scanline Effect - 保持你的原始特效 */
         body::before {
             content: " ";
             position: fixed; top: 0; left: 0; bottom: 0; right: 0;
-            background: linear-gradient(rgba(18, 16, 16, 0) 50%, rgba(0, 0, 0, 0.25) 50%), 
-                        linear-gradient(90deg, rgba(255, 0, 0, 0.06), rgba(0, 255, 0, 0.02), rgba(0, 255, 0, 0.06));
+            background: linear-gradient(rgba(18, 16, 16, 0) 50%, rgba(0, 0, 0, 0.1) 50%);
             z-index: 100;
-            background-size: 100% 2px, 3px 100%;
+            background-size: 100% 4px;
             pointer-events: none;
         }
 
         header {
-            padding: 20px 40px;
-            background: rgba(0, 0, 0, 0.8);
-            border-bottom: 1px solid var(--neon-blue);
+            padding: 15px 25px;
+            background: rgba(0, 0, 0, 0.5);
+            border-bottom: 0.5px solid rgba(255, 255, 255, 0.2);
             display: flex;
             justify-content: space-between;
             align-items: center;
-            backdrop-filter: blur(10px);
+            backdrop-filter: var(--ios-blur);
+            -webkit-backdrop-filter: var(--ios-blur);
             z-index: 200;
+            position: sticky;
+            top: 0;
         }
 
-        .logo-area { display: flex; align-items: center; gap: 15px; }
-        .logo-area img { width: 50px; height: 50px; border: 2px solid var(--neon-blue); border-radius: 50%; box-shadow: 0 0 15px var(--neon-blue); }
+        .logo-area { display: flex; align-items: center; gap: 12px; }
+        .logo-area img { width: 40px; height: 40px; border-radius: 10px; border: none; box-shadow: 0 4px 12px rgba(0,0,0,0.5); }
 
         .main-layout {
             display: flex;
-            height: calc(100vh - 100px);
-            padding: 20px;
-            gap: 20px;
+            min-height: calc(100vh - 80px);
+            padding: 15px;
+            gap: 15px;
             box-sizing: border-box;
             z-index: 150;
             position: relative;
+            max-width: 1400px;
+            margin: 0 auto;
         }
 
-        /* Left Panel */
+        /* Left Panel - iOS 风格卡片 */
         .info-panel {
             flex: 1;
             background: var(--panel-bg);
+            backdrop-filter: var(--ios-blur);
+            -webkit-backdrop-filter: var(--ios-blur);
             border: 1px solid var(--border-glow);
-            padding: 30px;
+            padding: 25px;
             display: flex;
             flex-direction: column;
             justify-content: space-between;
-            clip-path: polygon(0 0, 100% 0, 100% 95%, 95% 100%, 0 100%);
+            border-radius: 24px; /* iOS 大圆角 */
+            box-shadow: 0 8px 32px rgba(0,0,0,0.3);
         }
 
         /* Right Panel */
         .display-panel {
-            flex: 2;
+            flex: 1.5;
             display: flex;
             flex-direction: column;
-            gap: 20px;
+            gap: 15px;
         }
 
         .poster-box {
             width: 100%;
             aspect-ratio: 16/9;
-            background: #000;
-            border: 1px solid var(--neon-blue);
+            background: #111;
+            border-radius: 24px;
             position: relative;
             overflow: hidden;
-            box-shadow: 0 0 20px rgba(0, 242, 255, 0.1);
+            box-shadow: 0 8px 32px rgba(0,0,0,0.4);
+            border: 1px solid var(--border-glow);
         }
 
-        /* Crossfade Image Styling */
         .poster-box img {
             position: absolute;
             top: 0; left: 0;
             width: 100%; height: 100%; object-fit: cover;
-            display: block;
             opacity: 0;
-            transition: opacity 1.2s ease-in-out; /* Slow crossfade */
+            transition: opacity 1s ease-in-out;
         }
 
         .loading-overlay {
             position: absolute;
             top: 0; left: 0; width: 100%; height: 100%;
             background: #000;
-            display: flex;
-            flex-direction: column;
-            justify-content: center;
-            align-items: center;
-            z-index: 8;
-            transition: opacity 0.5s ease;
+            display: flex; flex-direction: column; justify-content: center; align-items: center;
+            z-index: 8; transition: opacity 0.5s ease;
         }
 
         .loader-ring {
-            width: 50px; height: 50px;
-            border: 2px solid transparent;
-            border-top: 2px solid var(--neon-blue);
+            width: 30px; height: 30px;
+            border: 3px solid rgba(255,255,255,0.1);
+            border-top: 3px solid var(--neon-blue);
             border-radius: 50%;
-            animation: spin 1s linear infinite;
-            margin-bottom: 10px;
+            animation: spin 0.8s linear infinite;
         }
 
         @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
 
-        /* Navigation Arrows */
+        /* iOS Nav Arrows */
         .nav-arrow {
             position: absolute;
-            top: 50%;
-            transform: translateY(-50%);
-            background: rgba(0, 242, 255, 0.1);
-            border: 1px solid var(--neon-blue);
-            color: var(--neon-blue);
-            width: 45px;
-            height: 80px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            cursor: pointer;
-            z-index: 10;
-            transition: 0.3s;
-            font-size: 24px;
-            user-select: none;
+            top: 0; bottom: 0;
+            width: 50px;
+            display: flex; align-items: center; justify-content: center;
+            cursor: pointer; z-index: 10;
+            background: rgba(0,0,0,0.2);
+            backdrop-filter: blur(5px);
+            color: white; font-size: 20px; transition: 0.3s;
         }
-        .nav-arrow:hover { background: var(--neon-blue); color: #000; box-shadow: 0 0 15px var(--neon-blue); }
-        .arrow-left { left: 0; clip-path: polygon(100% 0, 100% 100%, 0 50%); }
-        .arrow-right { right: 0; clip-path: polygon(0 0, 0 100%, 100% 50%); }
+        .arrow-left { left: 0; }
+        .arrow-right { right: 0; }
+        .nav-arrow:hover { background: rgba(255,255,255,0.1); }
 
         .poster-label {
-            position: absolute; bottom: 10px; right: 10px;
-            background: var(--neon-blue); color: #000;
-            padding: 2px 10px; font-size: 12px; font-weight: bold;
-            z-index: 5;
+            position: absolute; top: 15px; right: 15px;
+            background: rgba(0, 0, 0, 0.5); backdrop-filter: blur(10px);
+            color: #fff; padding: 4px 12px; border-radius: 20px;
+            font-size: 11px; font-weight: 600; z-index: 5;
         }
 
-        /* Nav Buttons Grid */
+        /* Nav Buttons Grid - 优化触控 */
         .nav-grid {
             display: grid;
-            grid-template-columns: 1fr 1fr;
-            gap: 12px;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 10px;
+            margin-top: 20px;
         }
 
         .btn-cyber {
-            background: transparent;
-            color: var(--neon-blue);
-            border: 1px solid var(--neon-blue);
-            padding: 12px 5px;
+            background: rgba(255, 255, 255, 0.08);
+            color: #fff;
+            border: 0.5px solid rgba(255, 255, 255, 0.1);
+            padding: 14px 5px;
             text-align: center;
             text-decoration: none;
-            text-transform: uppercase;
-            font-size: 12px;
-            letter-spacing: 1px;
-            transition: 0.3s;
+            border-radius: 14px;
+            font-size: 13px;
+            font-weight: 500;
+            transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
             cursor: pointer;
         }
 
-        .btn-cyber:hover {
-            background: var(--neon-blue);
-            color: var(--deep-blue);
-            box-shadow: 0 0 20px var(--neon-blue);
+        .btn-cyber:active {
+            transform: scale(0.95);
+            background: rgba(255, 255, 255, 0.2);
         }
 
-        .status-text { font-family: monospace; color: var(--neon-blue); font-size: 14px; margin-bottom: 5px; }
-        .data-val { color: #fff; margin-bottom: 20px; font-size: 18px; }
+        /* 特别突出 MORE 按钮 */
+        .btn-more {
+            background: var(--neon-blue) !important;
+            color: #000 !important;
+            font-weight: bold;
+        }
 
-        @media (max-width: 900px) {
-            .main-layout { flex-direction: column; overflow-y: auto; }
-            .info-panel { flex: none; }
+        .status-text { font-family: monospace; color: var(--neon-blue); font-size: 11px; opacity: 0.8; margin-bottom: 2px; text-transform: uppercase; }
+        .data-val { color: #fff; margin-bottom: 15px; font-size: 16px; font-weight: 500; }
+
+        /* 响应式优化 */
+        @media (max-width: 800px) {
+            .main-layout { flex-direction: column; height: auto; padding-bottom: 50px; }
+            header { padding: 10px 20px; }
+            .info-panel { border-radius: 20px; order: 2; }
+            .display-panel { order: 1; }
+            .nav-grid { grid-template-columns: repeat(3, 1fr); } /* 手机端三列显示更节省空间 */
+            .btn-cyber { padding: 12px 5px; font-size: 12px; }
+            .btn-more { grid-column: span 1; }
+            .data-val { font-size: 15px; }
         }
     </style>
 </head>
@@ -207,11 +217,11 @@
         <div class="logo-area">
             <img src="zijunlogo.png" alt="ZIJUN">
             <div>
-                <div style="font-size: 20px; font-weight: bold; letter-spacing: 3px;">KONG ZI JUN</div>
-                <div style="font-size: 10px; color: var(--neon-blue);">// ORIGIN_GEN: 2007.01.08</div>
+                <div style="font-size: 16px; font-weight: 800; letter-spacing: 1px;">KONG ZI JUN</div>
+                <div style="font-size: 9px; opacity: 0.6;">// EST. 2007.01.08</div>
             </div>
         </div>
-        <div id="clock" style="font-family: monospace; color: var(--neon-blue);">00:00:00</div>
+        <div id="clock" style="font-family: monospace; font-weight: 600; font-size: 14px;">00:00:00</div>
     </header>
 
     <div class="main-layout">
@@ -224,8 +234,7 @@
                 <div class="data-val">2007.01.08</div>
 
                 <div class="status-text">> CONTACT_UPLINK</div>
-                <div class="data-val">+60 1153789909</div>
-                <div class="data-val">zijun0099@gmail.com</div>
+                <div class="data-val" style="font-size: 14px;">+60 1153789909<br>zijun0099@gmail.com</div>
             </div>
 
             <div class="nav-grid">
@@ -233,7 +242,8 @@
                 <a href="academic.html" class="btn-cyber">Academic</a>
                 <a href="jobexperience.html" class="btn-cyber">Experience</a>
                 <a href="talk.html" class="btn-cyber">Talk</a>
-                <a href="calendar.html" class="btn-cyber" style="grid-column: span 2;">Calendar</a>
+                <a href="calendar.html" class="btn-cyber">Calendar</a>
+                <a href="more.html" class="btn-cyber btn-more">MORE</a>
             </div>
         </div>
 
@@ -241,16 +251,17 @@
             <div class="poster-box" id="poster-container">
                 <div class="loading-overlay" id="poster-loader">
                     <div class="loader-ring"></div>
-                    <div class="loader-text" style="font-size: 10px; color: var(--neon-blue);">SYNCING ASSETS...</div>
+                    <div class="loader-text" style="font-size: 10px; margin-top:10px; color: #fff; opacity:0.5;">SYNCING...</div>
                 </div>
-                <div class="nav-arrow arrow-left" onclick="changePoster(-1)"></div>
+                <div class="nav-arrow arrow-left" onclick="changePoster(-1)">‹</div>
                 
                 <img id="poster-img" src="" alt="Terminal Display">
                 
-                <div class="nav-arrow arrow-right" onclick="changePoster(1)"></div>
+                <div class="nav-arrow arrow-right" onclick="changePoster(1)">›</div>
                 <div class="poster-label" id="poster-counter">0 / 0</div>
             </div>
-            <div class="info-panel" style="flex: none; padding: 15px;">
+            
+            <div class="info-panel" style="padding: 15px; min-height: auto;">
                 <div class="status-text" id="poster-desc">> CLASSIFIED_ASSET</div>
             </div>
         </div>
@@ -307,16 +318,13 @@
 
         function updateDisplay() {
             const counter = document.getElementById('poster-counter');
-            
-            // Fade out current image
             posterImg.style.opacity = 0;
 
             setTimeout(() => {
                 posterImg.src = posterData[currentIdx].url;
                 desc.innerText = `> ASSET: ${posterData[currentIdx].title.toUpperCase()}`;
                 counter.innerText = `${currentIdx + 1} / ${posterData.length}`;
-                // Fade in triggered by onload
-            }, 600); // Wait for fade out to complete half-way
+            }, 500); 
         }
 
         function resetAutoPlay() {
@@ -324,7 +332,7 @@
             if (posterData.length > 1) {
                 autoPlayTimer = setInterval(() => {
                     changePoster(1);
-                }, 6000); // 6 seconds for better viewing
+                }, 6000);
             }
         }
 
