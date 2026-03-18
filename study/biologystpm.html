@@ -1,0 +1,116 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>STPM Biology Interactive Portal</title>
+    <link rel="icon" type="image/png" href="zijunlogo.png">
+    
+    <style>
+        :root {
+            --primary-blue: #2c3e50;
+            --accent-blue: #3498db;
+            --bg-color: #f8f9fa;
+        }
+
+        body { 
+            font-family: 'Segoe UI', Arial, sans-serif; 
+            background-color: var(--bg-color); 
+            margin: 0; 
+            padding: 40px 20px; 
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+
+        .header-section {
+            text-align: center;
+            margin-bottom: 40px;
+        }
+
+        /* Logo styling */
+        .main-logo {
+            width: 80px;
+            height: auto;
+            margin-bottom: 15px;
+        }
+
+        h1 { 
+            color: var(--primary-blue); 
+            font-size: 2rem;
+            margin: 10px 0;
+        }
+
+        .menu-grid { 
+            display: grid; 
+            grid-template-columns: repeat(auto-fit, minmax(320px, 1fr)); 
+            gap: 20px; 
+            width: 100%;
+            max-width: 1000px;
+        }
+
+        .chapter-btn {
+            background-color: #ffffff;
+            border-left: 6px solid var(--accent-blue);
+            color: var(--primary-blue);
+            padding: 25px;
+            text-decoration: none;
+            border-radius: 8px;
+            font-weight: 600;
+            font-size: 1.1rem;
+            transition: all 0.2s ease-in-out;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.05);
+            display: flex;
+            align-items: center;
+        }
+
+        .chapter-btn:hover {
+            transform: scale(1.02);
+            box-shadow: 0 6px 15px rgba(0,0,0,0.1);
+            background-color: #f1f9ff;
+        }
+
+        .chapter-number {
+            background: var(--accent-blue);
+            color: white;
+            padding: 5px 10px;
+            border-radius: 4px;
+            margin-right: 15px;
+            font-size: 0.9rem;
+        }
+    </style>
+</head>
+<body>
+
+<div class="header-section">
+    <img src="zijunlogo.png" alt="Logo" class="main-logo">
+    <h1>STPM Biology Study Hub</h1>
+    <p>Select a chapter to begin your interactive learning session</p>
+</div>
+
+<div class="menu-grid">
+    <a href="study/biology/chapter8.html" class="chapter-btn">
+        <span class="chapter-number">CH 8</span> Gas Exchange
+    </a>
+    <a href="study/biology/chapter9.html" class="chapter-btn">
+        <span class="chapter-number">CH 9</span> Transport in Animals and Plants
+    </a>
+    <a href="study/biology/chapter10.html" class="chapter-btn">
+        <span class="chapter-number">CH 10</span> Control and Regulation
+    </a>
+    <a href="study/biology/chapter11.html" class="chapter-btn">
+        <span class="chapter-number">CH 11</span> Reproduction, Development and Growth
+    </a>
+    <a href="study/biology/chapter12.html" class="chapter-btn">
+        <span class="chapter-number">CH 12</span> Homeostasis
+    </a>
+    <a href="study/biology/chapter13.html" class="chapter-btn">
+        <span class="chapter-number">CH 13</span> Immunity
+    </a>
+    <a href="study/biology/chapter14.html" class="chapter-btn">
+        <span class="chapter-number">CH 14</span> Infectious Diseases
+    </a>
+</div>
+
+</body>
+</html>
