@@ -1,0 +1,176 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Chapter 14: Infectious Diseases</title>
+    
+    <link rel="icon" type="image/png" href="/zijunlogo.png">
+    <link rel="apple-touch-icon" href="/zijunlogo.png">
+    
+    <style>
+        :root {
+            --ios-bg: linear-gradient(135deg, #e0eafc 0%, #cfdef3 100%);
+            --ios-card-bg: rgba(255, 255, 255, 0.75);
+            --ios-blue: #007AFF;
+            --ios-red: #FF3B30; /* 用于返回按钮 */
+            --ios-text: #1d1d1f;
+            --ios-secondary-text: #86868b;
+        }
+
+        * {
+            box-sizing: border-box;
+            -webkit-tap-highlight-color: transparent;
+        }
+
+        body { 
+            font-family: -apple-system, BlinkMacSystemFont, "SF Pro Text", sans-serif; 
+            background: var(--ios-bg);
+            min-height: 100vh;
+            margin: 0; 
+            padding: 20px; 
+            color: var(--ios-text);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+
+        .header {
+            text-align: center;
+            margin: 30px 0;
+            animation: fadeIn 0.8s ease-out;
+        }
+
+        .header img {
+            width: 60px;
+            height: 60px;
+            border-radius: 14px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+            margin-bottom: 10px;
+        }
+
+        h1 { font-size: 24px; margin: 0; }
+        .subtitle { color: var(--ios-secondary-text); font-size: 15px; }
+
+        .menu-grid { 
+            display: grid; 
+            grid-template-columns: 1fr; 
+            gap: 12px; 
+            width: 100%;
+            max-width: 500px;
+        }
+
+        .chapter-card {
+            background: var(--ios-card-bg);
+            backdrop-filter: blur(15px);
+            -webkit-backdrop-filter: blur(15px);
+            border-radius: 16px;
+            padding: 18px;
+            text-decoration: none;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            transition: all 0.2s ease;
+            border: 1px solid rgba(255,255,255,0.4);
+        }
+
+        .chapter-card:active {
+            transform: scale(0.97);
+            background: rgba(255, 255, 255, 0.5);
+        }
+
+        /* 返回按钮特殊样式 */
+        .back-card {
+            margin-top: 10px;
+            border: 1px solid rgba(255, 59, 48, 0.2);
+        }
+        
+        .back-text {
+            color: var(--ios-red);
+            font-weight: 600;
+        }
+
+        .chapter-info { display: flex; flex-direction: column; }
+        .chapter-tag { font-size: 10px; font-weight: 700; color: var(--ios-blue); margin-bottom: 2px; }
+        .chapter-title { font-size: 16px; font-weight: 600; color: var(--ios-text); }
+
+        .chevron {
+            width: 8px;
+            height: 8px;
+            border-top: 2px solid #c7c7cc;
+            border-right: 2px solid #c7c7cc;
+            transform: rotate(45deg);
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+    </style>
+</head>
+<body>
+
+<div class="header">
+    <img src="/zijunlogo.png" alt="Logo">
+    <h1>Infectious Diseases</h1>
+    <div class="subtitle">STPM Biology Chapter 14</div>
+</div>
+
+<div class="menu-grid">
+    <a href="#" class="chapter-card">
+        <div class="chapter-info">
+            <span class="chapter-tag">14.1</span>
+            <span class="chapter-title">Infectious Disease Overview</span>
+        </div>
+        <div class="chevron"></div>
+    </a>
+
+    <a href="#" class="chapter-card">
+        <div class="chapter-info">
+            <span class="chapter-tag">14.2</span>
+            <span class="chapter-title">Dengue</span>
+        </div>
+        <div class="chevron"></div>
+    </a>
+
+    <a href="#" class="chapter-card">
+        <div class="chapter-info">
+            <span class="chapter-tag">14.3</span>
+            <span class="chapter-title">Cholera</span>
+        </div>
+        <div class="chevron"></div>
+    </a>
+
+    <a href="#" class="chapter-card">
+        <div class="chapter-info">
+            <span class="chapter-tag">14.4</span>
+            <span class="chapter-title">Tuberculosis (TB)</span>
+        </div>
+        <div class="chevron"></div>
+    </a>
+
+    <a href="#" class="chapter-card">
+        <div class="chapter-info">
+            <span class="chapter-tag">14.5</span>
+            <span class="chapter-title">Malaria</span>
+        </div>
+        <div class="chevron"></div>
+    </a>
+
+    <a href="#" class="chapter-card">
+        <div class="chapter-info">
+            <span class="chapter-tag">Extra</span>
+            <span class="chapter-title">HFMD</span>
+        </div>
+        <div class="chevron"></div>
+    </a>
+
+    <a href="../../biologystpm.html" class="chapter-card back-card">
+        <div class="chapter-info">
+            <span class="back-text">← Back to Main Menu</span>
+        </div>
+    </a>
+</div>
+
+</body>
+</html>
