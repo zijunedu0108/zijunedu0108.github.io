@@ -1,87 +1,136 @@
 <!DOCTYPE html>
-<html lang="zh-CN">
+<html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
     <title>ZIJUN | Mission Log</title>
     <link rel="icon" href="zijunlogo.png" type="image/png">
     <style>
         :root {
             --neon-blue: #00f2ff;
-            --panel-bg: rgba(5, 15, 25, 0.9);
-            --border-glow: rgba(0, 242, 255, 0.3);
-            --text-main: #e0faff;
+            --panel-bg: rgba(20, 20, 25, 0.7); 
+            --border-glow: rgba(255, 255, 255, 0.1);
+            --text-main: #ffffff;
+            --ios-blur: blur(20px);
             --status-success: #00ff88;
             --status-pending: #ffea00;
         }
 
-        body {
-            margin: 0; background: #000; color: var(--text-main);
-            font-family: 'Segoe UI', sans-serif; overflow-x: hidden;
+        body, html {
+            margin: 0; padding: 0;
+            background-color: #000;
+            color: var(--text-main);
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+            overflow-x: hidden;
+        }
+
+        /* 全局扫描线特效 */
+        body::before {
+            content: " ";
+            position: fixed; top: 0; left: 0; bottom: 0; right: 0;
+            background: linear-gradient(rgba(18, 16, 16, 0) 50%, rgba(0, 0, 0, 0.1) 50%);
+            z-index: 100;
+            background-size: 100% 4px;
+            pointer-events: none;
         }
 
         .bg-video {
             position: fixed; top: 0; left: 0; width: 100%; height: 100%;
-            z-index: -1; object-fit: cover; filter: brightness(0.2);
+            z-index: -1; object-fit: cover; filter: brightness(0.35);
         }
 
         header {
-            padding: 20px 40px; border-bottom: 1px solid var(--neon-blue);
+            padding: 15px 25px;
+            background: rgba(0, 0, 0, 0.5);
+            border-bottom: 0.5px solid rgba(255, 255, 255, 0.2);
             display: flex; justify-content: space-between; align-items: center;
-            background: rgba(0,0,0,0.8); backdrop-filter: blur(10px);
+            backdrop-filter: var(--ios-blur);
+            -webkit-backdrop-filter: var(--ios-blur);
+            z-index: 200; position: sticky; top: 0;
         }
 
-        .container { max-width: 800px; margin: 40px auto; padding: 0 20px; }
+        .logo-area { display: flex; align-items: center; gap: 12px; }
+        .logo-area img { width: 35px; height: 35px; border-radius: 8px; }
 
-        /* 时间轴样式 */
+        .container { 
+            max-width: 800px; margin: 20px auto; padding: 0 20px 80px; 
+            position: relative; z-index: 150;
+        }
+
+        /* 统一的 Section Title */
+        .section-header {
+            font-family: monospace; font-size: 14px; color: var(--neon-blue);
+            text-transform: uppercase; letter-spacing: 3px;
+            margin: 40px 0 30px 45px; /* 配合时间轴位置 */
+            display: flex; align-items: center; gap: 10px;
+        }
+        .section-header::after { content: ""; height: 1px; flex-grow: 1; background: linear-gradient(90deg, var(--neon-blue), transparent); }
+
+        /* 时间轴核心样式 */
         .timeline {
-            position: relative; border-left: 2px solid var(--neon-blue);
-            margin-left: 50px; padding: 20px 0;
+            position: relative; 
+            border-left: 2px solid rgba(0, 242, 255, 0.2);
+            margin-left: 45px; 
         }
 
         .timeline-item {
-            position: relative; margin-bottom: 40px; padding-left: 40px;
+            position: relative; margin-bottom: 30px; padding-left: 35px;
         }
 
-        /* 时间轴上的圆点 */
+        /* 时间轴节点 */
         .timeline-item::before {
-            content: ""; position: absolute; left: -11px; top: 5px;
-            width: 20px; height: 20px; background: #000;
-            border: 2px solid var(--neon-blue); border-radius: 50%;
-            box-shadow: 0 0 10px var(--neon-blue);
+            content: ""; position: absolute; left: -11px; top: 12px;
+            width: 16px; height: 16px; background: #000;
+            border: 3px solid var(--neon-blue); border-radius: 50%;
+            box-shadow: 0 0 15px var(--neon-blue); z-index: 2;
         }
 
         .year-label {
-            position: absolute; left: -100px; top: 5px;
-            font-family: 'Orbitron', sans-serif; color: var(--neon-blue);
-            font-weight: bold; font-size: 18px;
+            position: absolute; left: -85px; top: 10px;
+            font-family: monospace; color: var(--neon-blue);
+            font-weight: bold; font-size: 16px; letter-spacing: 1px;
         }
 
+        /* 任务卡片 - 统一为 iOS 玻璃风格 */
         .job-card {
-            background: var(--panel-bg); border: 1px solid var(--border-glow);
-            padding: 20px; clip-path: polygon(0 0, 100% 0, 100% 85%, 95% 100%, 0 100%);
-            transition: 0.3s;
+            background: var(--panel-bg);
+            backdrop-filter: var(--ios-blur);
+            -webkit-backdrop-filter: var(--ios-blur);
+            border: 1px solid var(--border-glow);
+            padding: 25px; border-radius: 24px;
+            transition: 0.3s cubic-bezier(0.4, 0, 0.2, 1);
         }
 
-        .job-card:hover { border-color: var(--neon-blue); box-shadow: 0 0 15px rgba(0,242,255,0.2); }
+        .job-card:active { transform: scale(0.97); background: rgba(255,255,255,0.05); }
 
-        .job-title { font-size: 20px; font-weight: bold; margin-bottom: 5px; letter-spacing: 1px; }
-        .job-company { color: var(--neon-blue); font-size: 14px; margin-bottom: 15px; }
+        .job-title { font-size: 19px; font-weight: 700; margin-bottom: 4px; letter-spacing: -0.5px; }
+        .job-company { color: var(--neon-blue); font-size: 13px; font-family: monospace; margin-bottom: 15px; display: block; }
         
         .status-tag {
-            display: inline-block; padding: 2px 10px; font-size: 11px;
-            border: 1px solid currentColor; margin-top: 10px; text-transform: uppercase;
+            display: inline-block; padding: 4px 12px; font-size: 10px; font-weight: 800;
+            border-radius: 8px; border: 1px solid currentColor;
+            margin-bottom: 15px; text-transform: uppercase; font-family: monospace;
         }
+
+        .mission-desc { font-size: 13px; opacity: 0.7; line-height: 1.6; margin: 0; }
 
         .btn-back {
-            color: var(--neon-blue); text-decoration: none; border: 1px solid var(--neon-blue);
-            padding: 8px 20px; transition: 0.3s;
+            color: #fff; text-decoration: none; background: rgba(255,255,255,0.1);
+            padding: 8px 18px; border-radius: 15px; font-size: 12px; font-weight: 600;
+            border: 1px solid var(--border-glow); transition: 0.2s;
         }
-        .btn-back:hover { background: var(--neon-blue); color: #000; }
+        .btn-back:active { transform: scale(0.95); }
 
-        /* 动画效果 */
-        @keyframes scan { from { opacity: 0.5; } to { opacity: 1; } }
-        .status-blink { animation: scan 1s infinite alternate; }
+        /* 状态闪烁动画 */
+        @keyframes blink { from { opacity: 0.4; } to { opacity: 1; } }
+        .status-blink { animation: blink 1s infinite alternate ease-in-out; }
+
+        @media (max-width: 600px) {
+            .timeline { margin-left: 40px; }
+            .year-label { left: -75px; font-size: 14px; }
+            .container { padding: 0 15px 60px; }
+            .section-header { margin-left: 35px; }
+        }
     </style>
 </head>
 <body>
@@ -91,20 +140,28 @@
     </video>
 
     <header>
-        <div style="font-size: 24px; letter-spacing: 4px; font-weight: bold;">MISSION_RECORDS</div>
-        <a href="index.html" class="btn-back">BACK_TO_CORE</a>
+        <div class="logo-area">
+            <img src="zijunlogo.png" alt="ZIJUN">
+            <div>
+                <div style="font-size: 15px; font-weight: 800; letter-spacing: 2px;">MISSION_RECORDS</div>
+                <div style="font-size: 9px; opacity: 0.6;">// SECTOR: CAREER_LOGS</div>
+            </div>
+        </div>
+        <a href="index.html" class="btn-back">CORE_RETURN</a>
     </header>
 
     <div class="container">
+        <div class="section-header">Operational Timeline</div>
+
         <div class="timeline">
 
             <div class="timeline-item">
                 <div class="year-label">2026</div>
-                <div class="job-card" style="border-style: dashed;">
+                <div class="job-card" style="border-style: dashed; border-width: 2px;">
                     <div class="job-title">Seasonal Operation Support</div>
-                    <div class="job-company">MIXUE | Hari Raya Phase</div>
+                    <span class="job-company">MIXUE | Hari Raya Phase</span>
                     <div class="status-tag status-blink" style="color: var(--status-pending);">[ STATUS: UPCOMING ]</div>
-                    <p style="font-size: 13px; opacity: 0.7;">> MISSION_OBJECTIVE: Peak flow management and customer fulfillment during festive season.</p>
+                    <p class="mission-desc">> MISSION_OBJECTIVE: Peak flow management and customer fulfillment during festive season.</p>
                 </div>
             </div>
 
@@ -112,9 +169,9 @@
                 <div class="year-label">2025</div>
                 <div class="job-card">
                     <div class="job-title">Service Crew Specialist</div>
-                    <div class="job-company">MIXUE | Hari Raya & National Day</div>
+                    <span class="job-company">MIXUE | Hari Raya & National Day</span>
                     <div class="status-tag" style="color: var(--status-success);">[ MISSION_COMPLETE ]</div>
-                    <p style="font-size: 13px; opacity: 0.7;">> High-efficiency beverage production and rapid transaction handling in high-pressure environments.</p>
+                    <p class="mission-desc">> High-efficiency beverage production and rapid transaction handling in high-pressure environments.</p>
                 </div>
             </div>
 
@@ -122,17 +179,17 @@
                 <div class="year-label">2023</div>
                 <div class="job-card">
                     <div class="job-title">Retail Associate</div>
-                    <div class="job-company">KANG STORE (Footwear)</div>
+                    <span class="job-company">KANG STORE (Footwear)</span>
                     <div class="status-tag" style="color: var(--status-success);">[ MISSION_COMPLETE ]</div>
-                    <p style="font-size: 13px; opacity: 0.7;">> Inventory logistics, customer profiling, and sales floor maintenance.</p>
+                    <p class="mission-desc">> Inventory logistics, customer profiling, and sales floor maintenance.</p>
                 </div>
             </div>
 
         </div>
 
-        <p style="text-align: center; font-family: monospace; opacity: 0.4; font-size: 12px; margin-top: 50px;">
+        <p style="text-align: center; font-family: monospace; opacity: 0.4; font-size: 10px; margin-top: 60px; letter-spacing: 2px;">
             // ACCESSING_ENCRYPTED_LOGS... SUCCESS<br>
-            // LOG_INTEGRITY: 100%
+            -- END OF MISSION DATA --
         </p>
     </div>
 
