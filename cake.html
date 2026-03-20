@@ -3,101 +3,101 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>MIXUE CAKE - POS</title>
+    <title>MIXUE POS</title>
     <style>
-        :root { --mixue-red: #ed1c24; --bg: #f8f9fa; }
+        :root { --red: #ed1c24; --bg: #f8f9fa; }
         * { box-sizing: border-box; margin: 0; padding: 0; font-family: sans-serif; -webkit-tap-highlight-color: transparent; }
         body { background: var(--bg); height: 100vh; display: flex; flex-direction: column; overflow: hidden; }
         
-        header { background: var(--mixue-red); color: white; padding: 12px; display: flex; justify-content: space-between; align-items: center; flex-shrink: 0; }
-        header img { height: 30px; background: white; border-radius: 50%; padding: 2px; }
+        /* Header */
+        header { background: var(--red); color: white; padding: 10px 15px; display: flex; justify-content: space-between; align-items: center; flex-shrink: 0; }
+        header h1 { font-size: 1.1rem; }
+        .btn-history { background: white; color: var(--red); border: none; padding: 5px 12px; border-radius: 15px; font-weight: bold; font-size: 0.8rem; }
 
-        main { flex: 1; padding: 15px; overflow-y: auto; display: grid; grid-template-columns: repeat(auto-fill, minmax(140px, 1fr)); gap: 10px; align-content: start; }
-        
-        .cake-card { background: white; border-radius: 12px; padding: 12px; text-align: center; border: 1px solid #eee; box-shadow: 0 2px 5px rgba(0,0,0,0.05); }
-        .cake-card h3 { font-size: 0.9rem; margin: 5px 0; height: 2.4em; overflow: hidden; color: #333; }
-        .cake-card p { color: var(--mixue-red); font-weight: bold; margin-bottom: 10px; }
-        .cake-card button { background: var(--mixue-red); color: white; border: none; padding: 10px; border-radius: 10px; width: 100%; cursor: pointer; font-weight: bold; font-size: 0.9rem; }
+        /* Main Content */
+        main { flex: 1; padding: 12px; overflow-y: auto; display: grid; grid-template-columns: repeat(2, 1fr); gap: 10px; align-content: start; }
+        .cake-card { background: white; border-radius: 10px; padding: 12px; text-align: center; border: 1px solid #eee; box-shadow: 0 2px 4px rgba(0,0,0,0.05); }
+        .cake-card h3 { font-size: 0.85rem; margin: 5px 0; height: 2.4em; overflow: hidden; color: #333; }
+        .cake-card p { color: var(--red); font-weight: bold; margin-bottom: 8px; }
+        .btn-add { background: var(--red); color: white; border: none; padding: 10px; border-radius: 8px; width: 100%; font-weight: bold; cursor: pointer; }
 
-        .cart-bar { background: white; padding: 15px 20px; display: flex; justify-content: space-between; align-items: center; border-top: 1px solid #ddd; flex-shrink: 0; }
-        .btn-pay { background: var(--mixue-red); color: white; border: none; padding: 12px 25px; border-radius: 25px; font-weight: bold; cursor: pointer; }
+        /* Cart Bar */
+        .cart-bar { background: white; padding: 12px 20px; display: flex; justify-content: space-between; align-items: center; border-top: 1px solid #ddd; }
+        .btn-pay { background: var(--red); color: white; border: none; padding: 12px 25px; border-radius: 20px; font-weight: bold; }
 
+        /* Overlays */
         .overlay { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.7); z-index: 1000; justify-content: center; align-items: flex-end; }
-        .panel { background: white; width: 100%; max-width: 500px; border-radius: 20px 20px 0 0; padding: 20px; max-height: 90vh; overflow-y: auto; position: relative; }
+        .panel { background: white; width: 100%; max-width: 500px; border-radius: 15px 15px 0 0; padding: 20px; max-height: 85vh; overflow-y: auto; }
         
-        .cart-item, .order-item { display: flex; justify-content: space-between; margin-bottom: 12px; padding-bottom: 8px; border-bottom: 1px solid #eee; align-items: center; }
-        .method-btn { flex: 1; margin: 5px; padding: 12px; border: 1px solid #ddd; border-radius: 8px; background: white; cursor: pointer; font-weight: bold; text-align: center; }
-        .method-btn.selected { background: var(--mixue-red); color: white; border-color: var(--mixue-red); }
+        .cart-item, .order-item { display: flex; justify-content: space-between; padding: 10px 0; border-bottom: 1px solid #eee; align-items: center; }
+        .method-btn { flex: 1; margin: 5px; padding: 12px; border: 1px solid #ddd; border-radius: 8px; background: white; text-align: center; font-weight: bold; }
+        .method-btn.active { background: var(--red); color: white; border-color: var(--red); }
 
-        .cash-input-box { display: none; margin-top: 15px; background: #fff5f5; padding: 15px; border-radius: 10px; border: 1px solid #ffebeb; }
-        input[type="number"] { width: 100%; padding: 12px; font-size: 1.2rem; border: 2px solid #ddd; border-radius: 8px; margin-top: 8px; outline: none; }
-        input[type="number"]:focus { border-color: var(--mixue-red); }
+        .cash-box { display: none; background: #fff5f5; padding: 15px; border-radius: 8px; margin-top: 10px; }
+        input { width: 100%; padding: 12px; font-size: 1.2rem; border: 1px solid #ddd; border-radius: 8px; margin-top: 5px; }
 
-        .btn-confirm { width: 100%; background: var(--mixue-red); color: white; border: none; padding: 16px; border-radius: 12px; font-size: 1.1rem; font-weight: bold; margin-top: 15px; cursor: pointer; }
-        .btn-action { padding: 8px 12px; border-radius: 6px; border: 1px solid #ddd; background: white; cursor: pointer; font-size: 0.8rem; margin-left: 5px; }
-        .refunded { opacity: 0.5; filter: grayscale(1); pointer-events: none; }
+        .btn-main { width: 100%; background: var(--red); color: white; border: none; padding: 15px; border-radius: 10px; font-size: 1rem; font-weight: bold; margin-top: 10px; }
+        
+        .refunded { opacity: 0.4; text-decoration: line-through; }
 
         @media print {
             body * { visibility: hidden; }
             #receipt-print, #receipt-print * { visibility: visible; }
-            #receipt-print { position: absolute; left: 0; top: 0; width: 100%; color: black !important; display: block !important; font-size: 12pt; }
+            #receipt-print { position: absolute; left: 0; top: 0; width: 100%; display: block !important; }
         }
     </style>
 </head>
 <body>
 
 <header>
-    <div style="display: flex; align-items: center; gap: 8px;">
-        <img src="mixue.png" alt="M">
-        <h1 style="font-size: 1rem;">RAYA LIMITED</h1>
-    </div>
-    <button id="nav-sales" style="background:white; color:var(--mixue-red); border:none; padding: 6px 15px; border-radius: 20px; font-size: 0.8rem; font-weight: bold;">HISTORY</button>
+    <h1>MIXUE RAYA LIMITED</h1>
+    <button class="btn-history" onclick="showHistory()">SALES & REFUND</button>
 </header>
 
-<main id="content-area"></main>
+<main id="menu-grid"></main>
 
 <div class="cart-bar">
-    <div>Total: <strong style="color:var(--mixue-red); font-size: 1.1rem;">RM <span id="cart-total-display">0.00</span></strong></div>
-    <button id="btn-open-checkout" class="btn-pay">CHECKOUT</button>
+    <div>Total: <strong style="color:var(--red)">RM <span id="total-price">0.00</span></strong></div>
+    <button class="btn-pay" onclick="openCheckout()">CHECKOUT</button>
 </div>
 
-<div id="checkout-overlay" class="overlay">
-    <div class="panel">
-        <h2 style="text-align:center;">Checkout</h2>
-        <div id="checkout-cart-list" style="margin-top:15px;"></div>
+<div id="checkout-view" class="overlay" onclick="closePop('checkout-view')">
+    <div class="panel" onclick="event.stopPropagation()">
+        <h2 style="text-align:center">Order Confirmation</h2>
+        <div id="checkout-list" style="margin-top:10px"></div>
         
-        <div style="margin-top: 20px;">
-            <p style="font-weight:bold;">Payment Method:</p>
-            <div style="display: flex;">
-                <div class="method-btn selected" data-method="CASH">CASH</div>
-                <div class="method-btn" data-method="DUITNOW">DuitNow</div>
-                <div class="method-btn" data-method="BANKIN">BANK-IN</div>
+        <div style="margin-top:15px">
+            <p>Payment Method:</p>
+            <div style="display:flex">
+                <div class="method-btn active" id="m-CASH" onclick="setPay('CASH')">CASH</div>
+                <div class="method-btn" id="m-DUITNOW" onclick="setPay('DUITNOW')">DuitNow</div>
+                <div class="method-btn" id="m-BANKIN" onclick="setPay('BANKIN')">BANK-IN</div>
             </div>
         </div>
 
-        <div id="cash-input-area" class="cash-input-box">
-            <p>Cash Received (RM):</p>
-            <input type="number" id="input-cash" placeholder="0.00" step="0.01">
-            <p style="margin-top:12px; font-weight:bold; color:var(--mixue-red);">Change: RM <span id="display-change">0.00</span></p>
+        <div id="cash-calc" class="cash-box">
+            <p>Cash Received:</p>
+            <input type="number" id="cash-in" placeholder="0.00" oninput="calcChange()">
+            <p style="margin-top:10px; color:var(--red); font-weight:bold">Change: RM <span id="change-out">0.00</span></p>
         </div>
 
-        <button id="btn-submit-order" class="btn-confirm">PAID & PRINT</button>
-        <button onclick="document.getElementById('checkout-overlay').style.display='none'" style="width:100%; background:none; border:none; color:#999; margin-top:10px; padding:10px;">CANCEL</button>
+        <button class="btn-main" onclick="handlePay()">PAID & PRINT</button>
     </div>
 </div>
 
-<div id="history-overlay" class="overlay">
-    <div class="panel">
-        <h2 style="text-align:center;">Today's Orders</h2>
-        <div id="history-list" style="margin: 20px 0; min-height: 100px;"></div>
-        <button id="btn-view-summary" class="btn-confirm" style="background:#333;">VIEW SALES SUMMARY</button>
-        <button onclick="document.getElementById('history-overlay').style.display='none'" class="btn-confirm" style="background:#999;">CLOSE</button>
+<div id="history-view" class="overlay" onclick="closePop('history-view')">
+    <div class="panel" onclick="event.stopPropagation()">
+        <h2 style="text-align:center">Today's Sales</h2>
+        <div id="history-list" style="margin: 15px 0"></div>
+        <button class="btn-main" style="background:#333" onclick="viewDailyTotal()">VIEW DAILY SUMMARY</button>
+        <button class="btn-main" style="background:#999" onclick="closePop('history-view')">CLOSE</button>
     </div>
 </div>
 
-<div id="receipt-print" style="display: none; font-family: monospace;"></div>
+<div id="receipt-print" style="display:none; font-family:monospace; padding:20px;"></div>
 
 <script type="module">
+    // --- Firebase Setup ---
     import { initializeApp } from "https://www.gstatic.com/firebasejs/12.11.0/firebase-app.js";
     import { getFirestore, collection, addDoc, getDocs, query, where, Timestamp, updateDoc, doc, orderBy } from "https://www.gstatic.com/firebasejs/12.11.0/firebase-firestore.js";
 
@@ -113,6 +113,7 @@
     const app = initializeApp(firebaseConfig);
     const db = getFirestore(app);
 
+    // --- Data & Logic ---
     const menu = [
         { id: 1, name: "Hokkaido Cake", price: 12.00 },
         { id: 2, name: "Rainbow Cake", price: 15.00 },
@@ -123,146 +124,116 @@
     ];
 
     let cart = [];
-    let currentMethod = 'CASH';
+    let payMethod = 'CASH';
 
-    // --- 页面初始化 ---
-    const contentArea = document.getElementById('content-area');
-    
-    function init() {
-        // 渲染菜单
-        contentArea.innerHTML = menu.map(item => `
+    // 渲染菜单 (挂载到全局)
+    window.renderMenu = () => {
+        const grid = document.getElementById('menu-grid');
+        grid.innerHTML = menu.map(item => `
             <div class="cake-card">
-                <div style="height:60px; background:#f0f0f0; border-radius:8px; margin-bottom:8px; display:flex; align-items:center; justify-content:center; font-size:10px; color:#999;">MIXUE</div>
+                <div style="height:50px; background:#eee; border-radius:5px; margin-bottom:8px"></div>
                 <h3>${item.name}</h3>
                 <p>RM ${item.price.toFixed(2)}</p>
-                <button class="add-btn" data-id="${item.id}">ADD</button>
+                <button class="btn-add" onclick="addToCart(${item.id})">ADD</button>
             </div>
         `).join('');
-
-        // 绑定ADD按钮
-        document.querySelectorAll('.add-btn').forEach(btn => {
-            btn.onclick = () => {
-                const id = parseInt(btn.dataset.id);
-                const item = menu.find(m => m.id === id);
-                const inCart = cart.find(c => c.id === id);
-                if (inCart) inCart.qty++; else cart.push({...item, qty: 1});
-                updateCartUI();
-            };
-        });
-    }
-
-    function updateCartUI() {
-        const total = cart.reduce((sum, i) => sum + (i.price * i.qty), 0);
-        document.getElementById('cart-total-display').innerText = total.toFixed(2);
-    }
-
-    // --- 支付方式选择 ---
-    document.querySelectorAll('.method-btn').forEach(btn => {
-        btn.onclick = () => {
-            currentMethod = btn.dataset.method;
-            document.querySelectorAll('.method-btn').forEach(b => b.classList.remove('selected'));
-            btn.classList.add('selected');
-            document.getElementById('cash-input-area').style.display = (currentMethod === 'CASH') ? 'block' : 'none';
-            updateChange();
-        };
-    });
-
-    // --- 计算找零 ---
-    const inputCash = document.getElementById('input-cash');
-    inputCash.oninput = updateChange;
-
-    function updateChange() {
-        const total = cart.reduce((sum, i) => sum + (i.price * i.qty), 0);
-        const received = parseFloat(inputCash.value) || 0;
-        const change = Math.max(0, received - total);
-        document.getElementById('display-change').innerText = change.toFixed(2);
-    }
-
-    // --- 结账按钮 ---
-    document.getElementById('btn-open-checkout').onclick = () => {
-        if (cart.length === 0) return alert("Cart is empty!");
-        document.getElementById('checkout-cart-list').innerHTML = cart.map(i => `
-            <div class="cart-item"><span>${i.name} x${i.qty}</span><span>RM ${(i.price*i.qty).toFixed(2)}</span></div>
-        `).join('');
-        document.getElementById('checkout-overlay').style.display = 'flex';
-        inputCash.value = '';
-        updateChange();
     };
 
-    // --- 提交订单 ---
-    document.getElementById('btn-submit-order').onclick = async () => {
-        const total = cart.reduce((sum, i) => sum + (i.price * i.qty), 0);
-        const received = parseFloat(inputCash.value) || 0;
+    window.addToCart = (id) => {
+        const cake = menu.find(m => m.id === id);
+        const exist = cart.find(c => c.id === id);
+        if (exist) exist.qty++; else cart.push({...cake, qty: 1});
+        
+        const total = cart.reduce((s, i) => s + (i.price * i.qty), 0);
+        document.getElementById('total-price').innerText = total.toFixed(2);
+    };
 
-        if (currentMethod === 'CASH' && received < total) return alert("Cash not enough!");
+    window.openCheckout = () => {
+        if (cart.length === 0) return alert("Empty Cart!");
+        document.getElementById('checkout-list').innerHTML = cart.map(i => `
+            <div class="cart-item"><span>${i.name} x${i.qty}</span><span>RM ${(i.price*i.qty).toFixed(2)}</span></div>
+        `).join('');
+        document.getElementById('checkout-view').style.display = 'flex';
+        setPay('CASH');
+    };
+
+    window.setPay = (m) => {
+        payMethod = m;
+        document.querySelectorAll('.method-btn').forEach(b => b.classList.remove('active'));
+        document.getElementById('m-' + m).classList.add('active');
+        document.getElementById('cash-calc').style.display = (m === 'CASH') ? 'block' : 'none';
+        calcChange();
+    };
+
+    window.calcChange = () => {
+        const total = cart.reduce((s, i) => s + (i.price * i.qty), 0);
+        const cash = parseFloat(document.getElementById('cash-in').value) || 0;
+        document.getElementById('change-out').innerText = Math.max(0, cash - total).toFixed(2);
+    };
+
+    window.handlePay = async () => {
+        const total = cart.reduce((s, i) => s + (i.price * i.qty), 0);
+        const cash = parseFloat(document.getElementById('cash-in').value) || 0;
+
+        if (payMethod === 'CASH' && cash < total) return alert("Cash not enough!");
 
         const order = {
             items: cart,
             total: total,
-            method: currentMethod,
-            cashReceived: received,
+            method: payMethod,
+            cashReceived: cash,
             status: "PAID",
             timestamp: Timestamp.now(),
             dateString: new Date().toISOString().split('T')[0]
         };
 
         try {
-            const docRef = await addDoc(collection(db, "cake_sales"), order);
+            await addDoc(collection(db, "cake_sales"), order);
             printReceipt(order);
             cart = [];
-            updateCartUI();
-            document.getElementById('checkout-overlay').style.display = 'none';
-        } catch (e) { alert("Error! Please check internet."); }
+            document.getElementById('total-price').innerText = "0.00";
+            document.getElementById('cash-in').value = '';
+            closePop('checkout-view');
+        } catch (e) { alert("Save Error!"); }
     };
 
-    // --- 历史记录查询 ---
-    document.getElementById('nav-sales').onclick = async () => {
-        document.getElementById('history-overlay').style.display = 'flex';
+    window.showHistory = async () => {
+        document.getElementById('history-view').style.display = 'flex';
         const today = new Date().toISOString().split('T')[0];
         const q = query(collection(db, "cake_sales"), where("dateString", "==", today), orderBy("timestamp", "desc"));
         const snap = await getDocs(q);
         
         let html = '';
-        snap.forEach(docSnap => {
-            const d = docSnap.data();
+        snap.forEach(dSnap => {
+            const d = dSnap.data();
             const isRef = d.status === "REFUNDED";
             html += `
                 <div class="order-item ${isRef ? 'refunded' : ''}">
-                    <div style="flex:1">
-                        <b>RM ${d.total.toFixed(2)}</b> [${d.method}]<br>
-                        <small>${d.items.map(i=>i.name).join(', ')}</small>
-                    </div>
-                    <div>
-                        <button class="btn-action receipt-btn" data-order='${JSON.stringify(d)}'>REC</button>
-                        ${!isRef ? `<button class="btn-action refund-btn" data-id="${docSnap.id}" style="color:red">RF</button>` : '<b>[RF]</b>'}
+                    <div><b>RM ${d.total.toFixed(2)}</b> [${d.method}]<br><small>${d.items.map(i=>i.name).join(',')}</small></div>
+                    <div style="display:flex; gap:5px">
+                        <button onclick='reprint(${JSON.stringify(d)})' style="padding:5px">REC</button>
+                        ${!isRef ? `<button onclick="doRefund('${dSnap.id}')" style="color:red; padding:5px">REF</button>` : '<b>[RF]</b>'}
                     </div>
                 </div>
             `;
         });
-        document.getElementById('history-list').innerHTML = html || 'No orders yet.';
-
-        // 绑定历史列表里的按钮
-        document.querySelectorAll('.receipt-btn').forEach(b => {
-            b.onclick = () => printReceipt(JSON.parse(b.dataset.order));
-        });
-        document.querySelectorAll('.refund-btn').forEach(b => {
-            b.onclick = async () => {
-                if (confirm("Confirm Refund?")) {
-                    await updateDoc(doc(db, "cake_sales", b.dataset.id), { status: "REFUNDED" });
-                    document.getElementById('nav-sales').click(); // 刷新
-                }
-            };
-        });
+        document.getElementById('history-list').innerHTML = html || 'No orders.';
     };
 
-    // --- 销售汇总 ---
-    document.getElementById('btn-view-summary').onclick = async () => {
+    window.doRefund = async (id) => {
+        if (confirm("Refund this order?")) {
+            await updateDoc(doc(db, "cake_sales", id), { status: "REFUNDED" });
+            showHistory();
+        }
+    };
+
+    window.viewDailyTotal = async () => {
         const today = new Date().toISOString().split('T')[0];
         const q = query(collection(db, "cake_sales"), where("dateString", "==", today));
         const snap = await getDocs(q);
         let s = { total: 0, CASH: 0, DUITNOW: 0, BANKIN: 0 };
-        snap.forEach(docSnap => {
-            const d = docSnap.data();
+        snap.forEach(doc => {
+            const d = doc.data();
             if(d.status !== "REFUNDED") {
                 s.total += d.total;
                 s[d.method] += d.total;
@@ -271,28 +242,31 @@
         alert(`DAILY SUMMARY\nTOTAL: RM ${s.total.toFixed(2)}\n\nCASH: RM ${s.CASH.toFixed(2)}\nDuitNow: RM ${s.DUITNOW.toFixed(2)}\nBank-In: RM ${s.BANKIN.toFixed(2)}`);
     };
 
+    window.reprint = (data) => printReceipt(data);
+
     function printReceipt(data) {
-        const time = data.timestamp.seconds ? new Date(data.timestamp.seconds * 1000).toLocaleString() : new Date().toLocaleString();
         const printArea = document.getElementById('receipt-print');
         printArea.innerHTML = `
-            <div style="text-align:center; padding:10px;">
-                <h2 style="margin:0">MIXUE CAKE</h2>
-                <p style="font-size:10px;">${time}</p>
-                <hr style="border:none; border-top:1px dashed #000; margin:10px 0;">
-                <div style="text-align:left; font-size:12px;">
+            <div style="text-align:center">
+                <h2>MIXUE CAKE</h2>
+                <p>Date: ${new Date().toLocaleString()}</p>
+                <hr>
+                <div style="text-align:left">
                     ${data.items.map(i => `${i.name} x${i.qty} <span style="float:right">RM${(i.price*i.qty).toFixed(2)}</span>`).join('<br>')}
                 </div>
-                <hr style="border:none; border-top:1px dashed #000; margin:10px 0;">
-                <p style="text-align:right">TOTAL: RM ${data.total.toFixed(2)}</p>
-                <p style="text-align:left; font-size:10px;">METHOD: ${data.method}</p>
-                ${data.method === 'CASH' ? `<p style="text-align:left; font-size:10px;">RECEIVED: RM ${data.cashReceived.toFixed(2)}<br>CHANGE: RM ${(data.cashReceived - data.total).toFixed(2)}</p>` : ''}
-                <p style="margin-top:10px;">THANK YOU!</p>
+                <hr>
+                <p>TOTAL: RM ${data.total.toFixed(2)}</p>
+                <p>METHOD: ${data.method}</p>
+                ${data.method === 'CASH' ? `<p>RECEIVED: RM ${data.cashReceived.toFixed(2)}<br>CHANGE: RM ${(data.cashReceived - data.total).toFixed(2)}</p>` : ''}
+                <p>THANK YOU!</p>
             </div>
         `;
         window.print();
     }
 
-    init();
+    window.closePop = (id) => document.getElementById(id).style.display = 'none';
+
+    renderMenu();
 </script>
 </body>
 </html>
