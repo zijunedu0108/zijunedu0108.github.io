@@ -1,0 +1,114 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Chapter 9: Transport in Animals and Pkants</title>
+    
+    <link rel="icon" type="image/png" href="/zijunlogo.png">
+    <link rel="apple-touch-icon" href="/zijunlogo.png">
+    
+    <style>
+        :root {
+            --ios-bg: linear-gradient(135deg, #fff5f5 0%, #f0f4f8 100%); /* Slightly warmer for bio */
+            --ios-card-bg: rgba(255, 255, 255, 0.8);
+            --ios-red: #FF3B30; /* iOS System Red for 'Disease' theme */
+            --ios-blue: #007AFF;
+            --ios-text: #1d1d1f;
+            --ios-secondary-text: #86868b;
+        }
+
+        * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+
+        body { 
+            font-family: -apple-system, BlinkMacSystemFont, "SF Pro Text", sans-serif; 
+            background: var(--ios-bg);
+            min-height: 100vh;
+            margin: 0; 
+            padding: 20px; 
+            color: var(--ios-text);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+
+        .header { text-align: center; margin: 40px 0 20px 0; }
+        .header img { width: 60px; height: 60px; border-radius: 15px; margin-bottom: 10px; }
+        
+        h1 { font-size: 24px; font-weight: 700; margin: 0; }
+        .subtitle { color: var(--ios-secondary-text); font-size: 14px; margin-top: 5px; }
+
+        .menu-grid { 
+            display: grid; 
+            grid-template-columns: 1fr; 
+            gap: 12px; 
+            width: 100%;
+            max-width: 500px;
+        }
+
+        .chapter-card {
+            background: var(--ios-card-bg);
+            backdrop-filter: blur(15px);
+            -webkit-backdrop-filter: blur(15px);
+            border-radius: 16px;
+            padding: 18px;
+            text-decoration: none;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            transition: all 0.2s ease;
+            border: 1px solid rgba(255,255,255,0.4);
+        }
+
+        .chapter-card:active { transform: scale(0.97); opacity: 0.8; }
+
+        .title-group { display: flex; flex-direction: column; }
+        .number { font-size: 10px; font-weight: 700; color: var(--ios-red); text-transform: uppercase; }
+        .name { font-size: 16px; font-weight: 600; color: var(--ios-text); }
+
+        /* Back Button Style */
+        .back-card {
+            margin-top: 20px;
+            background: none;
+            border: 1px solid rgba(0,0,0,0.1);
+        }
+        .back-card .name { color: var(--ios-blue); }
+
+        .chevron { width: 8px; height: 8px; border-top: 2px solid #c7c7cc; border-right: 2px solid #c7c7cc; transform: rotate(45deg); }
+    </style>
+</head>
+<body>
+
+<div class="header">
+    <img src="/zijunlogo.png" alt="Logo">
+    <h1>Transport in Animals or Plants</h1>
+    <div class="subtitle">STPM Biology Chapter 9</div>
+</div>
+
+<div class="menu-grid">
+    <a href="chapter9/9_1.html" class="chapter-card">
+        <div class="title-group">
+            <span class="number">Section 9.1</span>
+            <span class="name">Transport System in Humans</span>
+        </div>
+        <div class="chevron"></div>
+    </a>
+
+    <a href="chapter9/9_2.html" class="chapter-card">
+        <div class="title-group">
+            <span class="number">Section 9.2</span>
+            <span class="name">Transport System in Plants</span>
+        </div>
+        <div class="chevron"></div>
+    </a>
+
+  
+    <a href="/study/biologystpm" class="chapter-card back-card">
+        <div class="title-group">
+            <span class="name">← Back to Main Menu</span>
+        </div>
+    </a>
+</div>
+
+</body>
+</html>
