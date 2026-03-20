@@ -1,0 +1,229 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>9.1.1 Structure of Heart & Cardiac Cycle</title>
+    
+    <link rel="icon" type="image/png" href="/zijunlogo.png">
+    <link rel="apple-touch-icon" href="/zijunlogo.png">
+    
+    <style>
+        :root {
+            --ios-blue: #007AFF;
+            --ios-red: #FF3B30;
+            --ios-green: #34C759;
+            --ios-orange: #FF9500;
+            --ios-bg: #F2F2F7;
+            --card-white: #FFFFFF;
+            --text-main: #1C1C1E;
+            --text-sec: #8E8E93;
+        }
+
+        * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+
+        body { 
+            font-family: -apple-system, BlinkMacSystemFont, "SF Pro Text", sans-serif; 
+            background: var(--ios-bg); 
+            color: var(--text-main); 
+            margin: 0; 
+            padding: 15px; 
+            padding-bottom: 50px; 
+            line-height: 1.5;
+        }
+
+        .container { max-width: 600px; margin: 0 auto; }
+        
+        /* Navigation */
+        .back-btn { 
+            display: inline-block; 
+            color: var(--ios-blue); 
+            text-decoration: none; 
+            font-weight: 600; 
+            margin-bottom: 15px; 
+            font-size: 15px; 
+            transition: 0.2s;
+        }
+        .back-btn:active { opacity: 0.5; }
+
+        /* Header Area */
+        .header { text-align: center; padding: 20px 0; }
+        .header img { width: 60px; height: 60px; border-radius: 14px; margin-bottom: 10px; box-shadow: 0 4px 12px rgba(0,0,0,0.1); }
+        .header h1 { font-size: 24px; font-weight: 800; margin: 0; letter-spacing: -0.5px; }
+        .header p { color: var(--ios-blue); font-weight: 600; font-size: 14px; margin-top: 5px; text-transform: uppercase; }
+
+        /* Module Card */
+        .card { background: var(--card-white); border-radius: 20px; padding: 20px; margin-bottom: 20px; box-shadow: 0 4px 15px rgba(0,0,0,0.05); }
+        h2 { font-size: 18px; color: var(--ios-blue); border-bottom: 1px solid #F2F2F7; padding-bottom: 10px; margin-top: 0; display: flex; align-items: center; gap: 8px; }
+        
+        /* Highlights & Keywords */
+        mark { background: #FFF9C4; color: #000; padding: 1px 4px; border-radius: 4px; font-weight: 600; }
+        .keyword { color: var(--ios-red); font-weight: 700; }
+        .term { color: var(--ios-orange); font-weight: 700; }
+
+        /* List & Table Style */
+        ul { padding-left: 20px; margin: 10px 0; }
+        li { margin-bottom: 8px; font-size: 14px; }
+        .data-table { width: 100%; border-collapse: collapse; margin: 10px 0; font-size: 13px; }
+        .data-table th { background: #F8F8FA; text-align: left; padding: 10px; color: var(--text-sec); border-radius: 8px 8px 0 0; }
+        .data-table td { padding: 10px; border-bottom: 1px solid #F2F2F7; }
+
+        /* Note Boxes */
+        .note { background: #F0F7FF; border-left: 5px solid var(--ios-blue); padding: 12px; border-radius: 8px; font-size: 13px; margin: 10px 0; }
+        .note-red { background: #FFF2F2; border-left: 5px solid var(--ios-red); padding: 12px; border-radius: 8px; font-size: 13px; margin: 10px 0; }
+
+        /* Quiz Box */
+        .quiz-container { background: #1C1C1E; color: white; border-radius: 24px; padding: 25px; margin-top: 30px; }
+        .option-btn { background: #2C2C2E; border: 1px solid #3A3A3C; color: white; width: 100%; padding: 16px; border-radius: 12px; margin-bottom: 10px; text-align: left; font-size: 15px; transition: 0.2s; cursor: pointer; }
+        .option-btn:hover { background: #3A3A3C; }
+        .option-btn:active { transform: scale(0.98); }
+        
+        #q-feedback { display:none; padding:12px; border-radius:10px; margin-top:10px; font-size: 14px; line-height: 1.4; }
+        .next-btn { width: 100%; padding: 15px; background: var(--ios-blue); border: none; color: white; border-radius: 12px; font-weight: bold; margin-top: 10px; display: none; cursor: pointer; }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <a href="/study/biology/chapter9" class="back-btn">‹ Chapter 9 Menu</a>
+    
+    <div class="header">
+        <img src="/zijunlogo.png" alt="Logo">
+        <h1>9.1.1 Transport System & Heart</h1>
+        <p>STPM Biology Full Guide</p>
+    </div>
+
+    <div class="card">
+        <h2>🫀 1. Structure of Mammalian Heart</h2>
+        <ul>
+            <li><b>Location:</b> Cone-shaped, between lungs, beneath the <mark>sternum</mark>.</li>
+            <li><b>Pericardium:</b> Double-walled sac. Protects, anchors, and prevents <mark>overfilling</mark>. Secretes <b>pericardial fluid</b> to reduce friction.</li>
+            <li><b>Myocardium:</b> Muscular layer responsible for <mark>contractions</mark>. Thicker in ventricles (especially the <b>Left Ventricle</b>).</li>
+        </ul>
+        <div class="note-red">
+            <b>Important:</b> The <span class="keyword">Septum</span> separates the left and right sides to prevent the mixing of oxygenated and deoxygenated blood.
+        </div>
+    </div>
+
+    <div class="card">
+        <h2>🛡️ 2. Valves & Blood Flow</h2>
+        <table class="data-table">
+            <tr><th>Valve Type</th><th>Location</th><th>Function</th></tr>
+            <tr><td><b>Atrioventricular (AV)</b></td><td>Between Atria & Ventricles</td><td>Prevent backflow into <mark>atria</mark>.</td></tr>
+            <tr><td><b>Semilunar</b></td><td>Base of Aorta & Pulmonary Artery</td><td>Prevent backflow into <mark>ventricles</mark>.</td></tr>
+        </table>
+        <p style="font-size: 13px; margin-top: 10px;">
+            <b>Tricuspid:</b> Right side | <b>Bicuspid (Mitral):</b> Left side.
+        </p>
+    </div>
+
+    <div class="card">
+        <h2>🔄 3. The Cardiac Cycle</h2>
+        <p>A complete heartbeat lasts approx. <mark>0.8 seconds</mark>.</p>
+        
+        <div class="note">
+            <b>1. Atrial Systole (0.1s):</b> Atria contract, pushing the remaining 30% of blood into ventricles.
+        </div>
+        <div class="note">
+            <b>2. Ventricular Systole (0.3s):</b> 
+            <p>• <span class="term">Isovolumetric Contraction:</span> Ventricles contract, pressure rises, <b>AV valves close</b> (Lubb sound).</p>
+            <p>• <span class="term">Ventricular Ejection:</span> Pressure exceeds arteries, <b>Semilunar valves open</b>, blood rushes out.</p>
+        </div>
+        <div class="note">
+            <b>3. Relaxation / Diastole (0.4s):</b>
+            <p>• <span class="term">Isovolumetric Relaxation:</span> Ventricles relax, pressure drops, <b>Semilunar valves close</b> (Dub sound).</p>
+            <p>• <span class="term">Ventricular Filling:</span> Pressure falls below atria, AV valves reopen, blood flows <b>passively (70%)</b>.</p>
+        </div>
+    </div>
+
+    <div class="card">
+        <h2>🔊 4. Heart Sounds (Lubb-Dub)</h2>
+        <ul>
+            <li><b>First Sound (S1 - "Lubb"):</b> Caused by the <mark>closure of AV valves</mark> during ventricular systole. Lower pitch, longer duration.</li>
+            <li><b>Second Sound (S2 - "Dub"):</b> Caused by the <mark>closure of semilunar valves</mark> during ventricular diastole. Higher pitch, shorter duration.</li>
+        </ul>
+    </div>
+
+    <div class="quiz-container">
+        <h3 id="q-text">Ready to test your knowledge?</h3>
+        <div id="q-options">
+            <button class="option-btn" onclick="startQuiz()">Start Practice Quiz ❱</button>
+        </div>
+        <p id="q-feedback"></p>
+        <button id="next-btn" class="next-btn" onclick="loadQuiz()">Next Question ❱</button>
+    </div>
+
+</div>
+
+<script>
+    const quizData = [
+        {
+            q: "Which layer of the heart is responsible for actual contractions?",
+            o: ["Pericardium", "Myocardium", "Endocardium", "Septum"],
+            c: 1,
+            e: "The myocardium is the muscular layer composed of cardiac muscle fibers responsible for contraction."
+        },
+        {
+            q: "What causes the 'Dub' (S2) heart sound?",
+            o: ["Closing of AV valves", "Opening of AV valves", "Closing of Semilunar valves", "Opening of Semilunar valves"],
+            c: 2,
+            e: "The 'Dub' sound is produced when the semilunar valves close to prevent backflow into the ventricles."
+        },
+        {
+            q: "What percentage of ventricular filling occurs passively (without atrial contraction)?",
+            o: ["30%", "50%", "70%", "95%"],
+            c: 2,
+            e: "About 70% of filling is passive; the remaining 30% is added when the atria contract."
+        },
+        {
+            q: "During which phase are all four heart valves briefly closed?",
+            o: ["Atrial Systole", "Isovolumetric Relaxation", "Ventricular Ejection", "Passive Filling"],
+            c: 1,
+            e: "During isovolumetric phases (both contraction and relaxation), all valves are closed as pressure changes."
+        }
+    ];
+
+    let currentIdx = 0;
+
+    function startQuiz() {
+        currentIdx = 0;
+        loadQuiz();
+    }
+
+    function loadQuiz() {
+        const data = quizData[currentIdx % quizData.length];
+        document.getElementById('q-text').innerText = data.q;
+        const options = document.getElementById('q-options');
+        options.innerHTML = '';
+        
+        data.o.forEach((opt, i) => {
+            const btn = document.createElement('button');
+            btn.className = 'option-btn';
+            btn.innerText = opt;
+            btn.onclick = () => checkAnswer(i, data.c, data.e);
+            options.appendChild(btn);
+        });
+
+        document.getElementById('q-feedback').style.display = 'none';
+        document.getElementById('next-btn').style.display = 'none';
+        currentIdx++;
+    }
+
+    function checkAnswer(selected, correct, explanation) {
+        const fb = document.getElementById('q-feedback');
+        fb.style.display = 'block';
+        if(selected === correct) {
+            fb.innerText = "✅ Correct! " + explanation;
+            fb.style.background = "#34C75933";
+            fb.style.color = "#34C759";
+        } else {
+            fb.innerText = "❌ Incorrect. " + explanation;
+            fb.style.background = "#FF3B3033";
+            fb.style.color = "#FF3B30";
+        }
+        document.getElementById('next-btn').style.display = 'block';
+    }
+</script>
+
+</body>
+</html>
