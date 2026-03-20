@@ -3,25 +3,32 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Chapter 9: Transport in Animals and Pkants</title>
+    <title>Chapter 9: Transport in Animals and Plants</title>
     
     <link rel="icon" type="image/png" href="/zijunlogo.png">
     <link rel="apple-touch-icon" href="/zijunlogo.png">
     
     <style>
         :root {
-            --ios-bg: linear-gradient(135deg, #fff5f5 0%, #f0f4f8 100%); /* Slightly warmer for bio */
-            --ios-card-bg: rgba(255, 255, 255, 0.8);
-            --ios-red: #FF3B30; /* iOS System Red for 'Disease' theme */
+            /* 优化后的渐变背景，更具高级感 */
+            --ios-bg: linear-gradient(180deg, #fbfbfd 0%, #f2f2f7 100%); 
+            --ios-card-bg: rgba(255, 255, 255, 0.75);
+            --ios-red: #FF3B30; 
             --ios-blue: #007AFF;
             --ios-text: #1d1d1f;
             --ios-secondary-text: #86868b;
+            --card-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+            --card-border: 1px solid rgba(255, 255, 255, 0.7);
         }
 
-        * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+        * { 
+            box-sizing: border-box; 
+            -webkit-tap-highlight-color: transparent; 
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        }
 
         body { 
-            font-family: -apple-system, BlinkMacSystemFont, "SF Pro Text", sans-serif; 
+            font-family: -apple-system, BlinkMacSystemFont, "SF Pro Display", "SF Pro Text", sans-serif; 
             background: var(--ios-bg);
             min-height: 100vh;
             margin: 0; 
@@ -30,58 +37,130 @@
             display: flex;
             flex-direction: column;
             align-items: center;
+            letter-spacing: -0.01em;
         }
 
-        .header { text-align: center; margin: 40px 0 20px 0; }
-        .header img { width: 60px; height: 60px; border-radius: 15px; margin-bottom: 10px; }
+        .header { 
+            text-align: center; 
+            margin: 60px 0 30px 0; 
+            animation: fadeInDown 0.8s ease;
+        }
+
+        .header img { 
+            width: 72px; 
+            height: 72px; 
+            border-radius: 16px; 
+            margin-bottom: 16px; 
+            box-shadow: 0 8px 24px rgba(0,0,0,0.12);
+        }
         
-        h1 { font-size: 24px; font-weight: 700; margin: 0; }
-        .subtitle { color: var(--ios-secondary-text); font-size: 14px; margin-top: 5px; }
+        h1 { 
+            font-size: 28px; 
+            font-weight: 700; 
+            margin: 0; 
+            letter-spacing: -0.02em;
+        }
+
+        .subtitle { 
+            color: var(--ios-secondary-text); 
+            font-size: 15px; 
+            margin-top: 8px; 
+            font-weight: 500;
+        }
 
         .menu-grid { 
             display: grid; 
             grid-template-columns: 1fr; 
-            gap: 12px; 
+            gap: 16px; 
             width: 100%;
-            max-width: 500px;
+            max-width: 420px;
+            animation: fadeInUp 0.8s ease;
         }
 
         .chapter-card {
             background: var(--ios-card-bg);
-            backdrop-filter: blur(15px);
-            -webkit-backdrop-filter: blur(15px);
-            border-radius: 16px;
-            padding: 18px;
+            backdrop-filter: blur(20px) saturate(180%);
+            -webkit-backdrop-filter: blur(20px) saturate(180%);
+            border-radius: 20px;
+            padding: 20px 24px;
             text-decoration: none;
             display: flex;
             align-items: center;
             justify-content: space-between;
-            transition: all 0.2s ease;
-            border: 1px solid rgba(255,255,255,0.4);
+            border: var(--card-border);
+            box-shadow: var(--card-shadow);
         }
 
-        .chapter-card:active { transform: scale(0.97); opacity: 0.8; }
+        /* 悬停与点击效果 */
+        @media (恋愛: hover) {
+            .chapter-card:hover {
+                transform: translateY(-2px);
+                box-shadow: 0 8px 20px rgba(0,0,0,0.08);
+                background: rgba(255, 255, 255, 0.9);
+            }
+        }
+
+        .chapter-card:active { 
+            transform: scale(0.96); 
+            background: rgba(235, 235, 235, 0.8);
+        }
 
         .title-group { display: flex; flex-direction: column; }
-        .number { font-size: 10px; font-weight: 700; color: var(--ios-red); text-transform: uppercase; }
-        .name { font-size: 16px; font-weight: 600; color: var(--ios-text); }
-
-        /* Back Button Style */
-        .back-card {
-            margin-top: 20px;
-            background: none;
-            border: 1px solid rgba(0,0,0,0.1);
+        
+        .number { 
+            font-size: 11px; 
+            font-weight: 700; 
+            color: var(--ios-red); 
+            text-transform: uppercase; 
+            letter-spacing: 0.05em;
+            margin-bottom: 4px;
         }
-        .back-card .name { color: var(--ios-blue); }
 
-        .chevron { width: 8px; height: 8px; border-top: 2px solid #c7c7cc; border-right: 2px solid #c7c7cc; transform: rotate(45deg); }
+        .name { 
+            font-size: 17px; 
+            font-weight: 600; 
+            color: var(--ios-text); 
+        }
+
+        /* 返回按钮特殊样式 */
+        .back-card {
+            margin-top: 10px;
+            background: transparent;
+            border: 1px solid rgba(0,0,0,0.05);
+            box-shadow: none;
+        }
+
+        .back-card .name { 
+            color: var(--ios-blue); 
+            font-size: 16px;
+        }
+
+        .chevron { 
+            width: 10px; 
+            height: 10px; 
+            border-top: 2.5px solid #c7c7cc; 
+            border-right: 2.5px solid #c7c7cc; 
+            transform: rotate(45deg); 
+            opacity: 0.8;
+        }
+
+        /* 入场动画 */
+        @keyframes fadeInUp {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        @keyframes fadeInDown {
+            from { opacity: 0; transform: translateY(-20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
     </style>
 </head>
 <body>
 
 <div class="header">
     <img src="/zijunlogo.png" alt="Logo">
-    <h1>Transport in Animals or Plants</h1>
+    <h1>Transport in Animals & Plants</h1>
     <div class="subtitle">STPM Biology Chapter 9</div>
 </div>
 
@@ -102,7 +181,6 @@
         <div class="chevron"></div>
     </a>
 
-  
     <a href="/study/biologystpm" class="chapter-card back-card">
         <div class="title-group">
             <span class="name">← Back to Main Menu</span>
