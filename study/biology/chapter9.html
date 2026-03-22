@@ -68,13 +68,27 @@
             font-weight: 500;
         }
 
+        /* 核心修改部分：自适应网格 */
         .menu-grid { 
             display: grid; 
-            grid-template-columns: 1fr; 
+            grid-template-columns: 1fr; /* 默认手机端单列 */
             gap: 16px; 
             width: 100%;
             max-width: 420px;
             animation: fadeInUp 0.8s ease;
+        }
+
+        /* 当屏幕宽度大于 768px (电脑端/平板) 时开启双列 */
+        @media (min-width: 768px) {
+            .menu-grid {
+                grid-template-columns: 1fr 1fr; /* 开启双列展示 */
+                max-width: 850px; /* 相应地增加容器总宽度 */
+            }
+            
+            /* 让“返回按钮”在双列模式下横跨两列，保持美观 */
+            .back-card {
+                grid-column: span 2; 
+            }
         }
 
         .chapter-card {
@@ -92,7 +106,7 @@
         }
 
         /* 悬停与点击效果 */
-        @media (恋愛: hover) {
+        @media (hover: hover) {
             .chapter-card:hover {
                 transform: translateY(-2px);
                 box-shadow: 0 8px 20px rgba(0,0,0,0.08);
@@ -128,6 +142,7 @@
             background: transparent;
             border: 1px solid rgba(0,0,0,0.05);
             box-shadow: none;
+            justify-content: center; /* 返回按钮文字居中 */
         }
 
         .back-card .name { 
@@ -168,7 +183,7 @@
     <a href="chapter9/9_1_1.html" class="chapter-card">
         <div class="title-group">
             <span class="number">Section 9.1.1</span>
-            <span class="name">Structure of a mamalian heart</span>
+            <span class="name">Structure of a mammalian heart</span>
         </div>
         <div class="chevron"></div>
     </a>
