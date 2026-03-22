@@ -68,13 +68,28 @@
             font-weight: 500;
         }
 
+        /* 重点修改：容器布局 */
         .menu-grid { 
             display: grid; 
-            grid-template-columns: 1fr; 
+            grid-template-columns: 1fr; /* 默认手机端单列 */
             gap: 16px; 
             width: 100%;
-            max-width: 420px;
+            max-width: 420px; /* 手机端宽度 */
             animation: fadeInUp 0.8s ease;
+        }
+
+        /* 电脑端自动分两排的 Media Query */
+        @media (min-width: 768px) {
+            .menu-grid {
+                grid-template-columns: 1fr 1fr; /* 分为两列 */
+                max-width: 860px; /* 放宽容器限制以容纳两列 */
+            }
+            
+            /* 让返回按钮横跨两列，保持视觉平衡 */
+            .back-card {
+                grid-column: span 2;
+                justify-content: center;
+            }
         }
 
         .chapter-card {
@@ -92,7 +107,7 @@
         }
 
         /* 悬停与点击效果 */
-        @media (恋愛: hover) {
+        @media (hover: hover) {
             .chapter-card:hover {
                 transform: translateY(-2px);
                 box-shadow: 0 8px 20px rgba(0,0,0,0.08);
