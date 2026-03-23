@@ -1,0 +1,164 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+    <title>ZIJUN | More Modules</title>
+    <link rel="icon" href="zijunlogo.png" type="image/png">
+    <style>
+        :root {
+            --neon-blue: #00f2ff;
+            --panel-bg: rgba(20, 20, 25, 0.7); 
+            --border-glow: rgba(255, 255, 255, 0.1);
+            --text-main: #ffffff;
+            --ios-blur: blur(20px);
+        }
+
+        body, html {
+            margin: 0; padding: 0;
+            background-color: #000;
+            color: var(--text-main);
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+            overflow: hidden; /* 更多页面通常作为菜单，建议禁止长滚动 */
+            height: 100%;
+        }
+
+        /* 统一扫描线特效 */
+        body::before {
+            content: " ";
+            position: fixed; top: 0; left: 0; bottom: 0; right: 0;
+            background: linear-gradient(rgba(18, 16, 16, 0) 50%, rgba(0, 0, 0, 0.1) 50%);
+            z-index: 100;
+            background-size: 100% 4px;
+            pointer-events: none;
+        }
+
+        .bg-video {
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            z-index: -1; object-fit: cover; filter: brightness(0.35);
+        }
+
+        header {
+            padding: 15px 25px;
+            background: rgba(0, 0, 0, 0.5);
+            border-bottom: 0.5px solid rgba(255, 255, 255, 0.2);
+            display: flex; justify-content: space-between; align-items: center;
+            backdrop-filter: var(--ios-blur);
+            -webkit-backdrop-filter: var(--ios-blur);
+            z-index: 200; position: sticky; top: 0;
+        }
+
+        .logo-area { display: flex; align-items: center; gap: 12px; }
+        .logo-area img { width: 35px; height: 35px; border-radius: 8px; }
+
+        .container {
+            max-width: 600px; margin: 0 auto;
+            height: calc(100vh - 80px);
+            display: flex; flex-direction: column;
+            justify-content: center;
+            padding: 0 20px;
+            position: relative; z-index: 150;
+        }
+
+        .menu-title {
+            font-family: monospace; font-size: 14px; color: var(--neon-blue);
+            text-transform: uppercase; letter-spacing: 4px;
+            text-align: center; margin-bottom: 40px;
+        }
+
+        /* 按钮网格布局 */
+        .module-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+        }
+
+        .module-card {
+            background: var(--panel-bg);
+            backdrop-filter: var(--ios-blur);
+            -webkit-backdrop-filter: var(--ios-blur);
+            border: 1px solid var(--border-glow);
+            padding: 40px 20px;
+            border-radius: 28px;
+            text-align: center;
+            text-decoration: none;
+            color: #fff;
+            transition: 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            display: flex; flex-direction: column; align-items: center; justify-content: center;
+        }
+
+        .module-card:active {
+            transform: scale(0.92);
+            background: rgba(255, 255, 255, 0.1);
+            border-color: var(--neon-blue);
+        }
+
+        .icon-box {
+            font-size: 32px; margin-bottom: 15px;
+            filter: drop-shadow(0 0 10px var(--neon-blue));
+        }
+
+        .module-name {
+            font-size: 18px; font-weight: 700; letter-spacing: 1px;
+            margin-bottom: 5px;
+        }
+
+        .module-sub {
+            font-family: monospace; font-size: 10px; color: var(--neon-blue);
+            opacity: 0.7; text-transform: uppercase;
+        }
+
+        .btn-back {
+            color: #fff; text-decoration: none; background: rgba(255,255,255,0.1);
+            padding: 8px 18px; border-radius: 15px; font-size: 12px; font-weight: 600;
+            border: 1px solid var(--border-glow);
+        }
+
+        @media (max-width: 400px) {
+            .module-grid { grid-template-columns: 1fr; }
+            .module-card { padding: 30px 20px; }
+        }
+    </style>
+</head>
+<body>
+
+    <video autoplay muted loop playsinline class="bg-video">
+        <source src="zijunbg.mp4" type="video/mp4">
+    </video>
+
+    <header>
+        <div class="logo-area">
+            <img src="zijunlogo.png" alt="ZIJUN">
+            <div>
+                <div style="font-size: 15px; font-weight: 800; letter-spacing: 2px;">EXPANSION_CORE</div>
+                <div style="font-size: 9px; opacity: 0.6;">// SELECT_MODULE</div>
+            </div>
+        </div>
+        <a href="index.html" class="btn-back">CORE_RETURN</a>
+    </header>
+
+    <div class="container">
+        <div class="menu-title">-- EXTENDED_INTERFACE --</div>
+
+        <div class="module-grid">
+            <a href="study.html" class="module-card">
+                <div class="icon-box">📖</div>
+                <div class="module-name">STUDY</div>
+                <div class="module-sub">> academic_hub</div>
+            </a>
+
+            <a href="mixue.html" class="module-card">
+                <div class="icon-box">🍦</div>
+                <div class="module-name">MIXUE</div>
+                <div class="module-sub">> operation_logs</div>
+            </a>
+        </div>
+
+        <p style="text-align: center; font-family: monospace; opacity: 0.3; font-size: 9px; margin-top: 50px; letter-spacing: 2px;">
+            SECURE_CONNECTION_ESTABLISHED<br>
+            V.2026.MODULE_EXPANSION
+        </p>
+    </div>
+
+</body>
+</html>
