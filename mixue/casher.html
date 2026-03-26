@@ -2,148 +2,155 @@
 <html lang="zh">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>MIXUE POS System Pro</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>MIXUE Ultimate POS</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <style>
-        .glass { background: rgba(255, 255, 255, 0.8); backdrop-filter: blur(12px); border: 1px solid rgba(255, 255, 255, 0.3); }
-        .menu-item:active { transform: scale(0.95); }
-        ::-webkit-scrollbar { width: 5px; }
-        ::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 10px; }
+        /* 全屏自适应 */
+        html, body { height: 100vh; width: 100vw; overflow: hidden; margin: 0; }
+        .glass { background: rgba(255, 255, 255, 0.9); backdrop-filter: blur(15px); }
+        .active-cat { background-color: #ef4444 !important; color: white !important; border-color: #ef4444 !important; }
+        .qty-btn { width: 36px; height: 36px; display: flex; align-items: center; justify-content: center; border-radius: 10px; border: 1px solid #e2e8f0; }
+        .menu-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(160px, 1fr)); gap: 1rem; }
     </style>
 </head>
-<body class="h-screen flex bg-slate-100 font-sans overflow-hidden">
+<body class="flex bg-gray-50 text-slate-800">
 
-    <div class="w-2/3 h-full flex flex-col p-6">
-        <div class="flex justify-between items-center mb-6">
-            <h1 class="text-3xl font-black text-red-600 tracking-tighter">MIXUE POS</h1>
-            <div id="category-bar" class="flex gap-2 overflow-x-auto">
+    <div class="flex-grow h-full flex flex-col p-4 md:p-6 overflow-hidden">
+        <div class="flex flex-col md:flex-row justify-between items-start md:items-center mb-6 gap-4">
+            <h1 class="text-3xl font-black text-red-600 italic">MIXUE <span class="text-slate-800 not-italic text-xl ml-2">POS Terminal</span></h1>
+            <div id="category-bar" class="flex gap-2 overflow-x-auto w-full md:w-auto pb-2">
                 </div>
         </div>
         
-        <div id="menu-grid" class="grid grid-cols-3 md:grid-cols-4 gap-4 overflow-y-auto pr-2">
+        <div id="menu-grid" class="menu-grid overflow-y-auto pr-2 pb-20">
             </div>
     </div>
 
-    <div class="w-1/3 h-full glass shadow-2xl flex flex-col p-5 border-l">
-        <div class="flex justify-between items-center mb-4 border-b pb-2">
-            <h2 class="text-xl font-bold text-slate-800">Current Order</h2>
-            <button onclick="resetCart()" class="text-xs text-red-500 font-semibold">CLEAR ALL</button>
+    <div class="w-[380px] h-full glass border-l shadow-2xl flex flex-col">
+        <div class="p-6 border-b flex justify-between items-center bg-white">
+            <h2 class="text-xl font-bold">Current Order</h2>
+            <button onclick="resetCart()" class="text-xs font-bold text-gray-400 hover:text-red-500">VOID ALL</button>
         </div>
         
-        <div id="cart-items" class="flex-grow overflow-y-auto mb-4 space-y-3">
+        <div id="cart-items" class="flex-grow overflow-y-auto p-4 space-y-3">
             </div>
 
-        <div class="border-t border-dashed pt-4 space-y-2 text-slate-700">
-            <div class="flex justify-between font-medium"><span>Subtotal</span><span id="subtotal">RM 0.00</span></div>
-            <div class="flex justify-between items-center text-blue-600">
-                <span>Discount (RM / %)</span>
-                <input type="text" id="discount-input" placeholder="0" class="w-20 text-right bg-transparent border-b border-blue-200 outline-none" oninput="calculateTotal()">
+        <div class="p-6 bg-white border-t space-y-3">
+            <div class="flex justify-between text-sm"><span>Subtotal</span><span id="subtotal">RM 0.00</span></div>
+            <div class="flex justify-between items-center text-blue-600 text-sm">
+                <span>Discount</span>
+                <input type="text" id="discount-input" placeholder="0 or 10%" class="w-24 text-right border-b border-blue-100 outline-none" oninput="calculateTotal()">
             </div>
-            <div class="flex justify-between text-2xl font-black text-slate-900 pt-2 border-t">
-                <span>Total</span><span id="final-total">RM 0.00</span>
+            <div class="flex justify-between text-2xl font-black pt-2">
+                <span>Total</span><span id="final-total" class="text-red-600">RM 0.00</span>
             </div>
+            <button onclick="openPayModal()" class="w-full bg-red-600 hover:bg-red-700 text-white py-4 rounded-2xl text-xl font-bold mt-2 shadow-lg transition-transform active:scale-95">
+                PAY NOW
+            </button>
+            <button onclick="alert('Generating Report...')" class="w-full text-xs text-slate-400 mt-2">View Daily Sales</button>
         </div>
-
-        <button onclick="openPayModal()" class="mt-6 w-full bg-red-600 hover:bg-red-700 text-white py-4 rounded-2xl text-xl font-bold shadow-lg transition-all">PAY NOW</button>
-        <button onclick="showReport()" class="mt-2 text-xs text-slate-400 text-center w-full underline">Daily Report</button>
     </div>
 
-    <div id="option-modal" class="fixed inset-0 bg-black/60 hidden flex items-center justify-center z-50">
-        <div class="bg-white rounded-3xl p-8 w-[400px] shadow-2xl relative">
-            <h3 id="modal-title" class="text-2xl font-bold mb-6 text-slate-800 text-center">Customize Item</h3>
+    <div id="option-modal" class="fixed inset-0 bg-black/50 hidden flex items-center justify-center z-50 p-4">
+        <div class="bg-white rounded-3xl p-8 w-full max-w-md shadow-2xl animate-in fade-in zoom-in duration-200">
+            <h3 id="modal-title" class="text-2xl font-bold mb-6 text-center">Customize</h3>
             
-            <div class="space-y-4">
-                <div>
-                    <p class="text-sm font-bold text-slate-500 mb-2 uppercase tracking-widest">Ice Level</p>
-                    <div class="grid grid-cols-3 gap-2" id="ice-options">
-                        <button onclick="selectOpt('ice', 'Normal')" class="opt-btn p-2 border rounded-xl text-sm" data-val="Normal">Normal</button>
-                        <button onclick="selectOpt('ice', 'Less')" class="opt-btn p-2 border rounded-xl text-sm" data-val="Less">Less</button>
-                        <button onclick="selectOpt('ice', 'No')" class="opt-btn p-2 border rounded-xl text-sm" data-val="No">No Ice</button>
+            <div id="options-container" class="space-y-6">
+                <div id="drink-options">
+                    <p class="text-xs font-bold text-gray-400 uppercase mb-3">Ice & Sugar</p>
+                    <div class="grid grid-cols-2 gap-4">
+                        <select id="opt-ice" class="p-3 border rounded-xl bg-gray-50">
+                            <option value="Normal Ice">Normal Ice</option>
+                            <option value="Less Ice">Less Ice</option>
+                            <option value="No Ice">No Ice</option>
+                        </select>
+                        <select id="opt-sugar" class="p-3 border rounded-xl bg-gray-50">
+                            <option value="100%">100% Sugar</option>
+                            <option value="70%">70% Sugar</option>
+                            <option value="50%">50% Sugar</option>
+                            <option value="30%">30% Sugar</option>
+                            <option value="0%">No Sugar</option>
+                        </select>
                     </div>
                 </div>
 
                 <div>
-                    <p class="text-sm font-bold text-slate-500 mb-2 uppercase tracking-widest">Sugar Level</p>
-                    <div class="grid grid-cols-3 gap-2" id="sugar-options">
-                        <button onclick="selectOpt('sugar', '100%')" class="opt-btn p-2 border rounded-xl text-sm" data-val="100%">100%</button>
-                        <button onclick="selectOpt('sugar', '70%')" class="opt-btn p-2 border rounded-xl text-sm" data-val="70%">70%</button>
-                        <button onclick="selectOpt('sugar', '50%')" class="opt-btn p-2 border rounded-xl text-sm" data-val="50%">50%</button>
-                        <button onclick="selectOpt('sugar', '30%')" class="opt-btn p-2 border rounded-xl text-sm" data-val="30%">30%</button>
-                        <button onclick="selectOpt('sugar', 'No')" class="opt-btn p-2 border rounded-xl text-sm" data-val="No">No Sugar</button>
+                    <p class="text-xs font-bold text-gray-400 uppercase mb-3">Quantity</p>
+                    <div class="flex items-center gap-6">
+                        <button onclick="changeQty(-1)" class="qty-btn text-2xl font-bold">-</button>
+                        <span id="modal-qty" class="text-2xl font-black w-8 text-center">1</span>
+                        <button onclick="changeQty(1)" class="qty-btn text-2xl font-bold">+</button>
                     </div>
                 </div>
 
-                <div>
-                    <p class="text-sm font-bold text-slate-500 mb-2 uppercase tracking-widest">Toppings (+RM 1.00)</p>
-                    <div class="grid grid-cols-2 gap-2">
-                        <label class="flex items-center p-2 border rounded-xl text-sm cursor-pointer">
-                            <input type="checkbox" id="topping-pearl" class="mr-2"> Pearl
+                <div id="topping-section">
+                    <p class="text-xs font-bold text-gray-400 uppercase mb-3">Toppings (+RM 1.00)</p>
+                    <div class="flex gap-4">
+                        <label class="flex-1 border p-3 rounded-xl flex items-center gap-2 cursor-pointer">
+                            <input type="checkbox" id="top-pearl" class="w-5 h-5 accent-red-500"> Pearl
                         </label>
-                        <label class="flex items-center p-2 border rounded-xl text-sm cursor-pointer">
-                            <input type="checkbox" id="topping-coconut" class="mr-2"> Coconut Jelly
+                        <label class="flex-1 border p-3 rounded-xl flex items-center gap-2 cursor-pointer">
+                            <input type="checkbox" id="top-jelly" class="w-5 h-5 accent-red-500"> Coconut
                         </label>
                     </div>
                 </div>
             </div>
 
-            <button id="modal-confirm-btn" onclick="saveItemToCart()" class="w-full bg-red-600 text-white py-4 rounded-2xl font-bold mt-8 shadow-md">CONFIRM</button>
-            <button onclick="closeModal()" class="w-full mt-3 text-slate-400 font-medium">Cancel</button>
+            <div class="mt-8 flex gap-3">
+                <button onclick="closeModal()" class="flex-1 py-4 text-gray-400 font-bold">Cancel</button>
+                <button onclick="saveToCart()" class="flex-[2] bg-red-600 text-white py-4 rounded-2xl font-bold text-lg">DONE</button>
+            </div>
         </div>
     </div>
 
-    <div id="pay-modal" class="fixed inset-0 bg-black/60 hidden flex items-center justify-center z-50">
-        <div class="bg-white rounded-3xl p-8 w-[450px] shadow-2xl text-center">
-            <h3 class="text-xl font-bold mb-2">Checkout</h3>
-            <div class="text-4xl font-black mb-6 text-red-600" id="pay-total-display">RM 0.00</div>
-
-            <div class="grid grid-cols-3 gap-3 mb-6">
-                <button onclick="selectPayMethod('Cash')" id="pay-cash" class="border-2 p-3 rounded-2xl font-bold">Cash</button>
-                <button onclick="selectPayMethod('DuitNow')" id="pay-qr" class="border-2 p-3 rounded-2xl font-bold">DuitNow</button>
-                <button onclick="selectPayMethod('Bank')" id="pay-bank" class="border-2 p-3 rounded-2xl font-bold">Bank-in</button>
+    <div id="pay-modal" class="fixed inset-0 bg-black/60 hidden flex items-center justify-center z-50 p-4">
+        <div class="bg-white rounded-[40px] p-10 w-full max-w-lg shadow-2xl text-center">
+            <p class="text-gray-400 font-bold mb-2">AMOUNT DUE</p>
+            <h3 id="pay-total-display" class="text-5xl font-black text-red-600 mb-8">RM 0.00</h3>
+            
+            <div class="grid grid-cols-3 gap-4 mb-8">
+                <button onclick="selectPay('Cash')" class="pay-btn border-2 p-4 rounded-2xl font-bold">CASH</button>
+                <button onclick="selectPay('QR')" class="pay-btn border-2 p-4 rounded-2xl font-bold">DUITNOW</button>
+                <button onclick="selectPay('Bank')" class="pay-btn border-2 p-4 rounded-2xl font-bold">BANK-IN</button>
             </div>
 
-            <div id="cash-input-section" class="hidden mb-6 animate-pulse">
-                <p class="text-sm text-slate-500 mb-2">Customer Paid (RM):</p>
-                <input type="number" id="cash-received" class="w-full text-center text-3xl border-b-2 outline-none font-bold p-2" placeholder="0.00" oninput="updateChange()">
-                <div id="change-display" class="mt-4 text-2xl text-green-600 font-black">Return: RM 0.00</div>
+            <div id="cash-panel" class="hidden space-y-4">
+                <input type="number" id="cash-amount" placeholder="Input Cash Received" class="w-full text-center text-3xl border-b-4 p-2 outline-none font-bold" oninput="calcReturn()">
+                <div id="return-display" class="text-3xl font-black text-green-600">CHANGE: RM 0.00</div>
             </div>
 
-            <button onclick="processFinalPay()" id="final-pay-btn" class="w-full bg-slate-900 text-white py-4 rounded-2xl font-bold text-lg">COMPLETE ORDER</button>
-            <button onclick="closePayModal()" class="w-full mt-4 text-slate-400">Back</button>
+            <button onclick="confirmPayment()" id="final-btn" class="w-full bg-slate-900 text-white py-5 rounded-3xl font-bold text-xl mt-6 transition-all">CONFIRM PAYMENT</button>
         </div>
     </div>
 
     <script>
         const menuData = {
             categories: [
-                { id: "ice_cream", name: "Ice Cream", items: [
-                    {id: "A1", name: "MIXUE Ice Cream", price: 2.0}, {id: "A8", name: "Pearl Brulee Sundae", price: 5.0}, {id: "A4", name: "Super Boba Sundae", price: 5.0}, {id: "A5", name: "Super Mango Sundae", price: 5.0}
+                { id: "ice_cream", name: "ICE CREAM", items: [
+                    {id: "A1", name: "MIXUE Ice Cream", price: 2.0}, {id: "A8", name: "Pearl Sundae", price: 5.0}, {id: "A4", name: "Boba Sundae", price: 5.0}
                 ]},
-                { id: "fruit_tea", name: "Fruit Tea", items: [
-                    {id: "B1", name: "Fresh Lemonade", price: 3.0}, {id: "B2", name: "Kiwi Jasmine Tea", price: 5.0}, {id: "B8", name: "Strawberry Peach", price: 5.0}, {id: "B5", name: "Creamy Mango Boba", price: 7.0}
+                { id: "milk_tea", name: "MILK TEA", items: [
+                    {id: "C2", name: "Brown Sugar Pearl", price: 5.5}, {id: "C8", name: "Brulee Milk Tea", price: 5.0}, {id: "C10", name: "Mango Brulee", price: 5.5}
                 ]},
-                { id: "milk_tea", name: "Milk Tea", items: [
-                    {id: "C2", name: "Brown Sugar Bubble Tea", price: 5.5}, {id: "C8", name: "Brulee Milk Tea", price: 5.0}, {id: "C10", name: "Mango Brulee", price: 5.5}, {id: "C9", name: "Toffee Lava Brulee", price: 5.0}
-                ]},
-                { id: "coffee", name: "Coffee", items: [
-                    {id: "D3", name: "Ice Cream Toffee Hazelnut", price: 5.5}, {id: "D2", name: "Ice Cream Mocha", price: 5.5}, {id: "D1", name: "Ice Cream Latte", price: 5.5}, {id: "D5", name: "Brown Sugar Latte", price: 4.5}
+                { id: "fruit_tea", name: "FRUIT TEA", items: [
+                    {id: "B1", name: "Fresh Lemonade", price: 3.0}, {id: "B2", name: "Kiwi Jasmine", price: 5.0}
                 ]}
             ]
         };
 
         let cart = [];
-        let editIndex = -1; // -1 表示新添加，否则表示正在编辑的索引
-        let selectedIce = "Normal";
-        let selectedSugar = "100%";
-        let selectedPayMethodName = "";
-        let salesReport = { Cash: 0, DuitNow: 0, Bank: 0 };
+        let curItem = null;
+        let curQty = 1;
+        let curEditIdx = -1;
+        let curCat = "ice_cream";
 
         function init() {
             const bar = document.getElementById('category-bar');
             menuData.categories.forEach(cat => {
                 const btn = document.createElement('button');
-                btn.className = "px-4 py-2 bg-white rounded-xl shadow-sm hover:bg-red-500 hover:text-white transition text-sm font-bold whitespace-nowrap border";
+                btn.id = `btn-${cat.id}`;
+                btn.className = "px-6 py-2 bg-white border rounded-xl font-bold transition-all text-sm whitespace-nowrap";
                 btn.innerText = cat.name;
                 btn.onclick = () => renderMenu(cat.id);
                 bar.appendChild(btn);
@@ -152,192 +159,170 @@
         }
 
         function renderMenu(catId) {
+            curCat = catId;
+            document.querySelectorAll('#category-bar button').forEach(b => b.classList.remove('active-cat'));
+            document.getElementById(`btn-${catId}`).classList.add('active-cat');
+            
             const grid = document.getElementById('menu-grid');
             grid.innerHTML = '';
             const category = menuData.categories.find(c => c.id === catId);
+            
             category.items.forEach(item => {
                 const div = document.createElement('div');
-                div.className = "menu-item bg-white p-4 rounded-2xl shadow-sm border border-slate-200 cursor-pointer transition-all hover:border-red-500";
-                div.innerHTML = `<div class="text-xs font-bold text-slate-400 mb-1">#${item.id}</div><div class="font-bold text-slate-800 leading-tight h-10 overflow-hidden">${item.name}</div><div class="text-red-500 font-black mt-2">RM ${item.price.toFixed(2)}</div>`;
-                div.onclick = () => openModal(item);
+                div.className = "bg-white p-5 rounded-3xl shadow-sm border border-transparent hover:border-red-500 cursor-pointer transition-all active:scale-95";
+                div.innerHTML = `<div class="text-xs font-bold text-slate-300 mb-1">#${item.id}</div><div class="font-black text-slate-700 leading-tight mb-2">${item.name}</div><div class="text-red-600 font-black">RM ${item.price.toFixed(2)}</div>`;
+                
+                // 逻辑：如果是冰淇淋系列，直接加入购物车；否则打开规格弹窗
+                div.onclick = () => {
+                    if(catId === 'ice_cream') {
+                        fastAddToCart(item);
+                    } else {
+                        openModal(item);
+                    }
+                };
                 grid.appendChild(div);
             });
         }
 
-        // 弹窗控制与选择
-        function openModal(item, index = -1) {
-            editIndex = index;
-            document.getElementById('modal-title').innerText = index === -1 ? item.name : "Edit: " + item.name;
-            
-            // 如果是编辑模式，还原之前的选择
-            if(index !== -1) {
-                const data = cart[index];
-                selectedIce = data.ice;
-                selectedSugar = data.sugar;
-                document.getElementById('topping-pearl').checked = data.toppings.includes('Pearl');
-                document.getElementById('topping-coconut').checked = data.toppings.includes('Coconut');
-                window.currentItem = data.originalItem; // 保存原始价格引用
+        // 快速添加 (冰淇淋专用)
+        function fastAddToCart(item) {
+            const existing = cart.find(i => i.id === item.id && i.isFast);
+            if(existing) {
+                existing.qty++;
             } else {
-                selectedIce = "Normal";
-                selectedSugar = "100%";
-                document.getElementById('topping-pearl').checked = false;
-                document.getElementById('topping-coconut').checked = false;
-                window.currentItem = item;
+                cart.push({ ...item, qty: 1, isFast: true, toppings: [], ice: 'N/A', sugar: 'N/A' });
             }
+            updateCart();
+        }
+
+        // 规格弹窗 (用于奶茶/果茶或 Edit)
+        function openModal(item, index = -1) {
+            curEditIdx = index;
+            curQty = index === -1 ? 1 : cart[index].qty;
+            curItem = index === -1 ? item : cart[index];
             
-            updateOptButtons();
+            document.getElementById('modal-title').innerText = curItem.name;
+            document.getElementById('modal-qty').innerText = curQty;
+            
+            // 如果是冰淇淋系列的 Edit，隐藏冰/糖选项
+            const isIceCream = curItem.id.startsWith('A') || curCat === 'ice_cream';
+            document.getElementById('drink-options').style.display = isIceCream ? 'none' : 'block';
+            document.getElementById('topping-section').style.display = isIceCream ? 'none' : 'block';
+
+            if(index !== -1) { // 还原数据用于 Edit
+                document.getElementById('opt-ice').value = cart[index].ice;
+                document.getElementById('opt-sugar').value = cart[index].sugar;
+                document.getElementById('top-pearl').checked = cart[index].toppings.includes('Pearl');
+                document.getElementById('top-jelly').checked = cart[index].toppings.includes('Coconut');
+            }
+
             document.getElementById('option-modal').classList.remove('hidden');
         }
 
-        function selectOpt(type, val) {
-            if(type === 'ice') selectedIce = val;
-            if(type === 'sugar') selectedSugar = val;
-            updateOptButtons();
+        function changeQty(v) {
+            curQty = Math.max(1, curQty + v);
+            document.getElementById('modal-qty').innerText = curQty;
         }
 
-        function updateOptButtons() {
-            document.querySelectorAll('.opt-btn').forEach(btn => {
-                const val = btn.getAttribute('data-val');
-                if(val === selectedIce || val === selectedSugar) {
-                    btn.classList.add('bg-red-500', 'text-white', 'border-red-500');
-                } else {
-                    btn.classList.remove('bg-red-500', 'text-white', 'border-red-500');
-                }
-            });
-        }
-
-        function saveItemToCart() {
+        function saveToCart() {
+            const isIceCream = curItem.id.startsWith('A') || curCat === 'ice_cream';
             const toppings = [];
-            let extraPrice = 0;
-            if(document.getElementById('topping-pearl').checked) { toppings.push('Pearl'); extraPrice += 1.0; }
-            if(document.getElementById('topping-coconut').checked) { toppings.push('Coconut'); extraPrice += 1.0; }
+            let extra = 0;
+            
+            if(!isIceCream) {
+                if(document.getElementById('top-pearl').checked) { toppings.push('Pearl'); extra += 1; }
+                if(document.getElementById('top-jelly').checked) { toppings.push('Coconut'); extra += 1; }
+            }
 
-            const orderItem = {
-                name: window.currentItem.name,
-                originalItem: window.currentItem,
-                price: window.currentItem.price + extraPrice,
-                ice: selectedIce,
-                sugar: selectedSugar,
-                toppings: toppings
+            const data = {
+                ...curItem,
+                qty: curQty,
+                ice: isIceCream ? 'N/A' : document.getElementById('opt-ice').value,
+                sugar: isIceCream ? 'N/A' : document.getElementById('opt-sugar').value,
+                toppings: toppings,
+                unitPrice: (curItem.unitPrice || curItem.price), // 记录原始单价
+                totalPrice: ((curItem.unitPrice || curItem.price) + extra) * curQty
             };
 
-            if(editIndex === -1) {
-                cart.push(orderItem);
+            if(curEditIdx === -1) {
+                cart.push(data);
             } else {
-                cart[editIndex] = orderItem;
+                cart[curEditIdx] = data;
             }
-            
-            updateCartUI();
+            updateCart();
             closeModal();
         }
 
-        function closeModal() { document.getElementById('option-modal').classList.add('hidden'); }
-
-        function updateCartUI() {
+        function updateCart() {
             const container = document.getElementById('cart-items');
             container.innerHTML = '';
-            let subtotal = 0;
-            cart.forEach((item, index) => {
-                subtotal += item.price;
+            let sub = 0;
+            cart.forEach((item, idx) => {
+                const price = (item.totalPrice || (item.price * item.qty));
+                sub += price;
                 const div = document.createElement('div');
-                div.className = "flex justify-between items-center bg-white p-3 rounded-2xl shadow-sm border border-slate-100 group";
+                div.className = "bg-white p-4 rounded-2xl shadow-sm flex justify-between items-center border border-slate-100 animate-in slide-in-from-right-4 duration-200";
                 div.innerHTML = `
-                    <div class="flex-grow cursor-pointer" onclick="openModal(null, ${index})">
-                        <div class="font-bold text-sm text-slate-800">${item.name}</div>
-                        <div class="text-[10px] text-slate-400 font-bold uppercase">${item.ice} Ice / ${item.sugar} Sugar ${item.toppings.length ? '/ +'+item.toppings.join(',') : ''}</div>
+                    <div class="flex-grow cursor-pointer" onclick="openModal(null, ${idx})">
+                        <div class="font-black text-sm">${item.qty}x ${item.name}</div>
+                        <div class="text-[10px] font-bold text-gray-400 uppercase">${item.ice !== 'N/A' ? item.ice + ' / ' + item.sugar : 'Standard'}</div>
                     </div>
-                    <div class="text-right flex items-center gap-3">
-                        <div class="text-sm font-black text-slate-700">RM ${item.price.toFixed(2)}</div>
-                        <button onclick="removeItem(${index})" class="text-slate-300 hover:text-red-500">✕</button>
+                    <div class="text-right">
+                        <div class="text-sm font-black text-red-600">RM ${price.toFixed(2)}</div>
+                        <button onclick="cart.splice(${idx},1);updateCart()" class="text-[10px] text-gray-300 hover:text-red-500 font-bold">REMOVE</button>
                     </div>
                 `;
                 container.appendChild(div);
             });
-            document.getElementById('subtotal').innerText = `RM ${subtotal.toFixed(2)}`;
+            document.getElementById('subtotal').innerText = `RM ${sub.toFixed(2)}`;
             calculateTotal();
         }
 
-        function removeItem(index) { cart.splice(index, 1); updateCartUI(); }
-
         function calculateTotal() {
-            let subtotal = parseFloat(document.getElementById('subtotal').innerText.replace('RM ', ''));
-            let discountRaw = document.getElementById('discount-input').value;
-            let total = subtotal;
-
-            if(discountRaw.includes('%')) {
-                let percent = parseFloat(discountRaw.replace('%', '')) || 0;
-                total = subtotal * (1 - percent/100);
-            } else {
-                total = subtotal - (parseFloat(discountRaw) || 0);
-            }
-            
-            document.getElementById('final-total').innerText = `RM ${Math.max(0, total).toFixed(2)}`;
+            let sub = parseFloat(document.getElementById('subtotal').innerText.replace('RM ', ''));
+            let disc = document.getElementById('discount-input').value;
+            let final = sub;
+            if(disc.includes('%')) final = sub * (1 - parseFloat(disc)/100);
+            else final = sub - (parseFloat(disc) || 0);
+            document.getElementById('final-total').innerText = `RM ${Math.max(0, final).toFixed(2)}`;
         }
 
         // 支付逻辑
+        let payMethod = 'Cash';
         function openPayModal() {
-            if(cart.length === 0) return alert("Please select items!");
+            if(!cart.length) return;
             document.getElementById('pay-total-display').innerText = document.getElementById('final-total').innerText;
             document.getElementById('pay-modal').classList.remove('hidden');
-            selectPayMethod('Cash'); // 默认 Cash
+            selectPay('Cash');
         }
 
-        function selectPayMethod(method) {
-            selectedPayMethodName = method;
-            const btns = { 'Cash': 'pay-cash', 'DuitNow': 'pay-qr', 'Bank': 'pay-bank' };
-            Object.values(btns).forEach(id => document.getElementById(id).classList.remove('bg-slate-900', 'text-white', 'border-slate-900'));
-            document.getElementById(btns[method]).classList.add('bg-slate-900', 'text-white', 'border-slate-900');
-
-            if(method === 'Cash') {
-                document.getElementById('cash-input-section').classList.remove('hidden');
-                document.getElementById('cash-received').focus();
-            } else {
-                document.getElementById('cash-input-section').classList.add('hidden');
-            }
+        function selectPay(m) {
+            payMethod = m;
+            document.querySelectorAll('.pay-btn').forEach(b => b.classList.remove('bg-slate-900', 'text-white'));
+            event.target.classList.add('bg-slate-900', 'text-white');
+            document.getElementById('cash-panel').style.display = m === 'Cash' ? 'block' : 'none';
         }
 
-        function updateChange() {
+        function calcReturn() {
             const total = parseFloat(document.getElementById('pay-total-display').innerText.replace('RM ', ''));
-            const received = parseFloat(document.getElementById('cash-received').value) || 0;
-            const change = received - total;
-            document.getElementById('change-display').innerText = `Return: RM ${Math.max(0, change).toFixed(2)}`;
+            const rec = parseFloat(document.getElementById('cash-amount').value) || 0;
+            document.getElementById('return-display').innerText = `CHANGE: RM ${Math.max(0, rec - total).toFixed(2)}`;
         }
 
-        function processFinalPay() {
-            const total = parseFloat(document.getElementById('pay-total-display').innerText.replace('RM ', ''));
-            
-            if(selectedPayMethodName === 'Cash') {
-                const received = parseFloat(document.getElementById('cash-received').value) || 0;
-                if(received < total) return alert("Insufficient Cash!");
-                
-                const change = received - total;
-                document.getElementById('final-pay-btn').innerText = "PAID - CHANGE RM " + change.toFixed(2);
-                document.getElementById('final-pay-btn').classList.replace('bg-slate-900', 'bg-green-500');
-                
-                salesReport.Cash += total;
-                
-                // 3秒后自动重置
-                setTimeout(() => {
-                    closePayModal();
-                    resetCart();
-                    document.getElementById('final-pay-btn').innerText = "COMPLETE ORDER";
-                    document.getElementById('final-pay-btn').classList.replace('bg-green-500', 'bg-slate-900');
-                    document.getElementById('cash-received').value = '';
-                }, 3000);
-            } else {
-                salesReport[selectedPayMethodName] += total;
-                alert("Payment Success!");
-                closePayModal();
+        function confirmPayment() {
+            const btn = document.getElementById('final-btn');
+            btn.innerText = "SUCCESS! PRINTING...";
+            btn.classList.replace('bg-slate-900', 'bg-green-500');
+            setTimeout(() => {
+                document.getElementById('pay-modal').classList.add('hidden');
                 resetCart();
-            }
+                btn.innerText = "CONFIRM PAYMENT";
+                btn.classList.replace('bg-green-500', 'bg-slate-900');
+            }, 3000);
         }
 
-        function closePayModal() { document.getElementById('pay-modal').classList.add('hidden'); }
-        function resetCart() { cart = []; document.getElementById('discount-input').value = ''; updateCartUI(); }
-
-        function showReport() {
-            alert(`DAILY SALES REPORT\n-------------------\nCash: RM ${salesReport.Cash.toFixed(2)}\nDuitNow: RM ${salesReport.DuitNow.toFixed(2)}\nBank-in: RM ${salesReport.Bank.toFixed(2)}\n-------------------\nTotal: RM ${(salesReport.Cash + salesReport.DuitNow + salesReport.Bank).toFixed(2)}`);
-        }
+        function closeModal() { document.getElementById('option-modal').classList.add('hidden'); }
+        function resetCart() { cart = []; updateCart(); document.getElementById('discount-input').value=''; }
 
         init();
     </script>
