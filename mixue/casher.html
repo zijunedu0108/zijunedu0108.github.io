@@ -1,0 +1,210 @@
+<!DOCTYPE html>
+<html lang="zh">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Semsira POS System</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        /* 磨砂玻璃效果 */
+        .glass {
+            background: rgba(255, 255, 255, 0.7);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+        }
+        body { background-color: #f3f4f6; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; }
+    </style>
+</head>
+<body class="h-screen flex overflow-hidden">
+
+    <div class="w-2/3 h-full flex flex-col p-4 border-r">
+        <h1 class="text-2xl font-bold mb-4">MI XUE Menu</h1>
+        
+        <div id="category-bar" class="flex gap-4 mb-6 overflow-x-auto pb-2">
+            </div>
+
+        <div id="menu-grid" class="grid grid-cols-3 gap-4 overflow-y-auto">
+            </div>
+    </div>
+
+    <div class="w-1/3 h-full glass flex flex-col p-4 shadow-xl">
+        <h2 class="text-xl font-bold mb-4 border-b pb-2">Order Summary</h2>
+        
+        <div id="cart-items" class="flex-grow overflow-y-auto mb-4">
+            </div>
+
+        <div class="border-t pt-4 space-y-2">
+            <div class="flex justify-between"><span>Subtotal</span><span id="subtotal">RM 0.00</span></div>
+            <div class="flex justify-between text-blue-600">
+                <span>Discount</span>
+                <input type="number" id="discount-input" placeholder="RM" class="w-16 text-right border-none bg-transparent focus:ring-0" oninput="calculateTotal()">
+            </div>
+            <div class="flex justify-between text-xl font-bold border-t pt-2">
+                <span>Total</span><span id="final-total">RM 0.00</span>
+            </div>
+        </div>
+
+        <div class="mt-4 grid grid-cols-3 gap-2">
+            <button onclick="checkout('Cash')" class="bg-green-500 text-white py-2 rounded">Cash</button>
+            <button onclick="checkout('DuitNow')" class="bg-pink-500 text-white py-2 rounded text-xs">DuitNow QR</button>
+            <button onclick="checkout('Bank-in')" class="bg-blue-500 text-white py-2 rounded text-xs">Bank-in</button>
+        </div>
+        <button onclick="resetCart()" class="mt-2 text-red-500 text-sm underline text-center w-full">Void All (退单)</button>
+    </div>
+
+    <div id="option-modal" class="fixed inset-0 bg-black bg-opacity-50 hidden flex items-center justify-center">
+        <div class="bg-white rounded-2xl p-6 w-80 shadow-2xl">
+            <h3 id="modal-item-name" class="text-lg font-bold mb-4">Item Name</h3>
+            
+            <label class="block text-sm font-medium mb-1">Ice Level</label>
+            <select id="opt-ice" class="w-full mb-3 p-2 border rounded">
+                <option value="Normal Ice">Normal Ice</option>
+                <option value="Less Ice">Less Ice</option>
+                <option value="No Ice">No Ice</option>
+            </select>
+
+            <label class="block text-sm font-medium mb-1">Sugar Level</label>
+            <select id="opt-sugar" class="w-full mb-3 p-2 border rounded">
+                <option value="100%">100%</option>
+                <option value="70%">70%</option>
+                <option value="50%">50%</option>
+                <option value="30%">30%</option>
+                <option value="No Sugar">No Sugar</option>
+            </select>
+
+            <button onclick="addToCart()" class="w-full bg-red-500 text-white py-3 rounded-xl font-bold">Add to Order</button>
+            <button onclick="closeModal()" class="w-full mt-2 text-gray-500">Cancel</button>
+        </div>
+    </div>
+
+    <script>
+        // 模拟从 menu.json 获取数据
+        const menuData = {
+            categories: [
+                { id: "ice_cream", name: "Ice Cream Series", items: [
+                    {id: "A1", name: "MIXUE Ice Cream", price: 2.0},
+                    {id: "A4", name: "Super Boba Sundae", price: 5.0},
+                    {id: "A8", name: "Pearl Brulee Sundae", price: 5.0}
+                ]},
+                { id: "fruit_tea", name: "Fruit Tea Series", items: [
+                    {id: "B1", name: "Fresh Lemonade", price: 3.0},
+                    {id: "B2", name: "Kiwi Jasmine Tea", price: 5.0}
+                ]},
+                { id: "milk_tea", name: "Milk Tea Series", items: [
+                    {id: "C2", name: "Brown Sugar Bubble Tea", price: 5.5},
+                    {id: "C8", name: "Brulee Milk Tea", price: 5.0},
+                    {id: "C10", name: "Mango Brulee", price: 5.5}
+                ]}
+            ]
+        };
+
+        let cart = [];
+        let currentItem = null;
+        let salesReport = { Cash: 0, DuitNow: 0, "Bank-in": 0 };
+
+        // 初始化分类
+        function init() {
+            const bar = document.getElementById('category-bar');
+            menuData.categories.forEach(cat => {
+                const btn = document.createElement('button');
+                btn.className = "px-6 py-2 bg-white rounded-full shadow-sm hover:bg-red-500 hover:text-white transition";
+                btn.innerText = cat.name;
+                btn.onclick = () => renderMenu(cat.id);
+                bar.appendChild(btn);
+            });
+            renderMenu('milk_tea'); // 默认显示奶茶
+        }
+
+        // 渲染菜单
+        function renderMenu(catId) {
+            const grid = document.getElementById('menu-grid');
+            grid.innerHTML = '';
+            const category = menuData.categories.find(c => c.id === catId);
+            category.items.forEach(item => {
+                const div = document.createElement('div');
+                div.className = "bg-white p-4 rounded-xl shadow-sm cursor-pointer hover:border-red-500 border-2 border-transparent";
+                div.innerHTML = `<div class="font-bold">${item.name}</div><div class="text-red-500">RM ${item.price.toFixed(2)}</div>`;
+                div.onclick = () => openModal(item);
+                grid.appendChild(div);
+            });
+        }
+
+        // 弹窗控制
+        function openModal(item) {
+            currentItem = item;
+            document.getElementById('modal-item-name').innerText = item.name;
+            document.getElementById('option-modal').classList.remove('hidden');
+        }
+
+        function closeModal() {
+            document.getElementById('option-modal').classList.add('hidden');
+        }
+
+        // 加入购物车
+        function addToCart() {
+            const ice = document.getElementById('opt-ice').value;
+            const sugar = document.getElementById('opt-sugar').value;
+            cart.push({ ...currentItem, ice, sugar });
+            updateCartUI();
+            closeModal();
+        }
+
+        function updateCartUI() {
+            const container = document.getElementById('cart-items');
+            container.innerHTML = '';
+            let subtotal = 0;
+            cart.forEach((item, index) => {
+                subtotal += item.price;
+                const div = document.createElement('div');
+                div.className = "flex justify-between items-start mb-3 bg-white p-2 rounded shadow-sm";
+                div.innerHTML = `
+                    <div>
+                        <div class="font-bold text-sm">${item.name}</div>
+                        <div class="text-xs text-gray-400">${item.ice} | ${item.sugar}</div>
+                    </div>
+                    <div class="text-right">
+                        <div class="text-sm font-bold">RM ${item.price.toFixed(2)}</div>
+                        <button onclick="removeItem(${index})" class="text-xs text-red-400">Remove</button>
+                    </div>
+                `;
+                container.appendChild(div);
+            });
+            document.getElementById('subtotal').innerText = `RM ${subtotal.toFixed(2)}`;
+            calculateTotal();
+        }
+
+        function removeItem(index) {
+            cart.splice(index, 1);
+            updateCartUI();
+        }
+
+        function calculateTotal() {
+            let subtotal = parseFloat(document.getElementById('subtotal').innerText.replace('RM ', ''));
+            let discount = parseFloat(document.getElementById('discount-input').value) || 0;
+            let total = Math.max(0, subtotal - discount);
+            document.getElementById('final-total').innerText = `RM ${total.toFixed(2)}`;
+        }
+
+        function checkout(method) {
+            if (cart.length === 0) return alert("Empty Cart!");
+            const total = parseFloat(document.getElementById('final-total').innerText.replace('RM ', ''));
+            salesReport[method] += total;
+            alert(`Payment Success via ${method}!\nTotal: RM ${total.toFixed(2)}`);
+            resetCart();
+        }
+
+        function resetCart() {
+            cart = [];
+            document.getElementById('discount-input').value = '';
+            updateCartUI();
+        }
+
+        // 报告功能 (简单示例)
+        window.showReport = function() {
+            alert(`Today's Sales Report:\nCash: RM ${salesReport.Cash}\nDuitNow: RM ${salesReport.DuitNow}\nBank-in: RM ${salesReport['Bank-in']}`);
+        }
+
+        init();
+    </script>
+</body>
+</html>
