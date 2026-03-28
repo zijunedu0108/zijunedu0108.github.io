@@ -3,16 +3,59 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>MIXUE - 实时销售报表</title>
+    <title>MIXUE - 销售报表</title>
     <link rel="icon" type="image/png" href="/mixue.png">
     <script src="https://cdn.tailwindcss.com"></script>
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;700;900&display=swap');
         body { font-family: 'Inter', sans-serif; background: #f8fafc; }
         .stat-card { background: white; padding: 1.5rem; border-radius: 1.5rem; border: 1px solid #e2e8f0; }
+        
+        /* --- 打印样式优化 (核心部分) --- */
+        @media print {
+            /* 1. 隐藏所有屏幕上的 UI 元素 */
+            .no-print, header, .stat-card, #top-items, h2 { display: none !important; }
+            
+            body { background: white; padding: 0; margin: 0; }
+            
+            /* 2. 强制收据布局 */
+            #receipt-list { 
+                display: block !important; 
+                width: 58mm; /* 热敏纸常用宽度，若你的纸大可改 80mm */
+                margin: 0 auto;
+                font-family: 'Courier New', Courier, monospace; /* 等宽字体对齐更准 */
+                color: black;
+            }
+
+            /* 3. 重新定义收据卡片在打印时的样式 */
+            .receipt-card {
+                border: none !important;
+                border-bottom: 1px dashed #000 !important;
+                padding: 10px 0 !important;
+                margin-bottom: 5px !important;
+                box-shadow: none !important;
+                width: 100% !important;
+                break-inside: avoid;
+            }
+
+            .receipt-card span, .receipt-card div {
+                color: black !important;
+                font-size: 11px !important;
+            }
+
+            /* 自定义打印页眉（仅在纸张顶部显示一次） */
+            #receipt-list::before {
+                content: "MIXUE KANGAR - DAILY REPORT\n--------------------------------";
+                display: block;
+                text-align: center;
+                font-weight: bold;
+                white-space: pre;
+                margin-bottom: 10px;
+            }
+        }
+
         .receipt-card { animation: slideUp 0.3s ease-out; }
         @keyframes slideUp { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
-        @media print { .no-print { display: none; } }
     </style>
 </head>
 <body class="p-4 md:p-8">
@@ -27,52 +70,49 @@
             </div>
             <div class="flex gap-2">
                 <input type="date" id="report-date" class="p-3 border rounded-2xl font-bold text-sm outline-none shadow-sm" onchange="startLiveSync()">
-                <button onclick="window.print()" class="bg-white border px-5 py-3 rounded-2xl font-bold text-sm">打印 A4 报表</button>
-                <a href="index.html" class="bg-slate-900 text-white px-6 py-3 rounded-2xl font-black text-sm shadow-lg">回到收银台 ➔</a>
+                <button onclick="window.print()" class="bg-red-600 text-white px-5 py-3 rounded-2xl font-black text-sm shadow-lg hover:bg-red-700 transition-all">打印收据报表</button>
+                <a href="index.html" class="bg-slate-900 text-white px-6 py-3 rounded-2xl font-black text-sm shadow-lg">回到终端 ➔</a>
             </div>
         </header>
 
-        <div class="grid grid-cols-2 lg:grid-cols-6 gap-4 mb-8">
+        <div class="grid grid-cols-2 lg:grid-cols-6 gap-4 mb-8 no-print">
             <div class="stat-card">
                 <p class="text-[10px] font-black text-gray-400 uppercase tracking-widest mb-1">总营业额</p>
-                <h3 id="stat-total" class="text-2xl font-black text-slate-900">RM 0.00</h3>
+                <h3 id="stat-total" class="text-2xl font-black">RM 0.00</h3>
             </div>
             <div class="stat-card border-b-4 border-b-green-500">
                 <p class="text-[10px] font-black text-green-600 uppercase tracking-widest mb-1">现金收入</p>
-                <h3 id="stat-cash" class="text-2xl font-black text-slate-900">RM 0.00</h3>
+                <h3 id="stat-cash" class="text-2xl font-black">RM 0.00</h3>
             </div>
             <div class="stat-card border-b-4 border-b-blue-500">
                 <p class="text-[10px] font-black text-blue-600 uppercase tracking-widest mb-1">DuitNow QR</p>
-                <h3 id="stat-qr" class="text-2xl font-black text-slate-900">RM 0.00</h3>
+                <h3 id="stat-qr" class="text-2xl font-black">RM 0.00</h3>
             </div>
             <div class="stat-card border-b-4 border-b-purple-500">
                 <p class="text-[10px] font-black text-purple-600 uppercase tracking-widest mb-1">银行转账</p>
-                <h3 id="stat-bank" class="text-2xl font-black text-slate-900">RM 0.00</h3>
+                <h3 id="stat-bank" class="text-2xl font-black">RM 0.00</h3>
             </div>
             <div class="stat-card bg-orange-50">
-                <p class="text-[10px] font-black text-orange-600 uppercase tracking-widest mb-1">已给折扣</p>
+                <p class="text-[10px] font-black text-orange-600 uppercase tracking-widest mb-1">折扣总计</p>
                 <h3 id="stat-discount" class="text-2xl font-black text-orange-700">RM 0.00</h3>
             </div>
-            <div class="stat-card bg-slate-900 text-white shadow-xl">
+            <div class="stat-card bg-slate-900 text-white">
                 <p class="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1">收银机现金</p>
-                <h3 id="stat-drawer" class="text-2xl font-black text-white">RM 150.00</h3>
+                <h3 id="stat-drawer" class="text-2xl font-black">RM 150.00</h3>
                 <p class="text-[8px] opacity-50">含底数 RM 150</p>
             </div>
         </div>
 
         <div class="flex flex-col lg:flex-row gap-8">
             <div class="flex-[2]">
-                <h2 class="text-xl font-black mb-4">实时交易流水 <span id="order-count" class="ml-2 text-xs text-gray-400">0 单</span></h2>
+                <h2 class="text-xl font-black mb-4 no-print">实时流水 <span id="order-count" class="text-xs text-gray-400 font-normal ml-2">0 单</span></h2>
                 <div id="receipt-list" class="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    <p class="col-span-full text-center py-20 text-gray-400">正在同步数据...</p>
-                </div>
+                    </div>
             </div>
 
-            <div class="flex-1">
-                <h2 class="text-xl font-black mb-4 uppercase">今日热销排行</h2>
-                <div id="top-items" class="bg-white rounded-[2rem] p-6 border space-y-4">
-                    <p class="text-center text-gray-300 py-10">等待销售数据...</p>
-                </div>
+            <div class="flex-1 no-print">
+                <h2 class="text-xl font-black mb-4 uppercase">今日热卖</h2>
+                <div id="top-items" class="bg-white rounded-[2rem] p-6 border space-y-4"></div>
             </div>
         </div>
     </div>
@@ -93,12 +133,11 @@
         const app = initializeApp(firebaseConfig);
         const db = getFirestore(app);
         let currentUnsub = null;
-        const CASH_DRAWER_BASE = 150.00; // 你要求的收银机初始现金
+        const BASE_CASH = 150.00;
 
         window.startLiveSync = () => {
             const dateInput = document.getElementById('report-date').value;
             if(!dateInput) return;
-
             if(currentUnsub) currentUnsub();
 
             const start = new Date(dateInput); start.setHours(0,0,0,0);
@@ -110,65 +149,56 @@
                 orderBy("timestamp", "desc"));
 
             currentUnsub = onSnapshot(q, (snap) => {
-                let stats = { total: 0, cash: 0, qr: 0, bank: 0, discount: 0 };
+                let s = { total: 0, cash: 0, qr: 0, bank: 0, disc: 0 };
                 let itemsMap = {};
                 let html = "";
 
                 snap.forEach(doc => {
                     const d = doc.data();
                     const amt = d.totalAmount || 0;
-                    
-                    stats.total += amt;
-                    if(d.paymentMethod === 'Cash') stats.cash += amt;
-                    else if(d.paymentMethod === 'QR') stats.qr += amt;
-                    else if(d.paymentMethod === 'Bank') stats.bank += amt;
+                    s.total += amt;
+                    if(d.paymentMethod === 'Cash') s.cash += amt;
+                    else if(d.paymentMethod === 'QR') s.qr += amt;
+                    else if(d.paymentMethod === 'Bank') s.bank += amt;
 
-                    // 计算折扣 (单品总价 - 实际支付)
-                    const rawTotal = d.items.reduce((s, i) => s + (i.totalPrice || 0), 0);
-                    stats.discount += Math.max(0, rawTotal - amt);
+                    const rawTotal = d.items.reduce((sum, i) => sum + (i.totalPrice || 0), 0);
+                    s.disc += Math.max(0, rawTotal - amt);
 
-                    // 统计商品
                     d.items.forEach(i => { itemsMap[i.name] = (itemsMap[i.name] || 0) + i.qty; });
 
                     const time = d.timestamp ? d.timestamp.toDate().toLocaleTimeString([], {hour:'2-digit', minute:'2-digit'}) : '...';
+                    
+                    // 构建适合打印的收据结构
                     html += `
                         <div class="bg-white p-5 rounded-3xl border border-slate-100 shadow-sm receipt-card">
-                            <div class="flex justify-between mb-3">
-                                <span class="text-[9px] font-black text-slate-400">ID: ${doc.id.slice(-5).toUpperCase()}</span>
-                                <span class="text-[9px] font-bold text-gray-400">${time}</span>
+                            <div class="flex justify-between mb-1">
+                                <span class="font-bold">#${doc.id.slice(-4).toUpperCase()}</span>
+                                <span class="text-gray-400">${time}</span>
                             </div>
-                            <div class="text-xs font-bold text-slate-600 mb-3">
-                                ${d.items.map(i => `<div>• ${i.qty}x ${i.name}</div>`).join('')}
+                            <div class="mb-2">
+                                ${d.items.map(i => `<div class="flex justify-between"><span>${i.qty}x ${i.name}</span><span>${i.totalPrice.toFixed(2)}</span></div>`).join('')}
                             </div>
-                            <div class="flex justify-between items-end border-t border-dashed pt-3">
-                                <span class="text-[9px] font-black px-2 py-1 rounded bg-gray-50 text-gray-500 uppercase">${d.paymentMethod}</span>
-                                <span class="font-black text-slate-900 text-base">RM ${amt.toFixed(2)}</span>
+                            <div class="flex justify-between pt-2 border-t border-dashed">
+                                <span class="uppercase text-[9px] opacity-50 font-black">${d.paymentMethod}</span>
+                                <span class="font-black">RM ${amt.toFixed(2)}</span>
                             </div>
                         </div>`;
                 });
 
-                // 更新 UI
-                document.getElementById('stat-total').innerText = `RM ${stats.total.toFixed(2)}`;
-                document.getElementById('stat-cash').innerText = `RM ${stats.cash.toFixed(2)}`;
-                document.getElementById('stat-qr').innerText = `RM ${stats.qr.toFixed(2)}`;
-                document.getElementById('stat-bank').innerText = `RM ${stats.bank.toFixed(2)}`;
-                document.getElementById('stat-discount').innerText = `RM ${stats.discount.toFixed(2)}`;
-                document.getElementById('stat-drawer').innerText = `RM ${(CASH_DRAWER_BASE + stats.cash).toFixed(2)}`;
+                document.getElementById('stat-total').innerText = `RM ${s.total.toFixed(2)}`;
+                document.getElementById('stat-cash').innerText = `RM ${s.cash.toFixed(2)}`;
+                document.getElementById('stat-qr').innerText = `RM ${s.qr.toFixed(2)}`;
+                document.getElementById('stat-bank').innerText = `RM ${s.bank.toFixed(2)}`;
+                document.getElementById('stat-discount').innerText = `RM ${s.disc.toFixed(2)}`;
+                document.getElementById('stat-drawer').innerText = `RM ${(BASE_CASH + s.cash).toFixed(2)}`;
                 document.getElementById('order-count').innerText = `${snap.size} 单`;
-                document.getElementById('receipt-list').innerHTML = html || '<p class="col-span-full text-center py-20 text-gray-400 font-bold italic">今日暂无订单数据</p>';
+                document.getElementById('receipt-list').innerHTML = html || '<p class="text-center py-20 text-gray-300">暂无数据</p>';
 
-                // 更新排行
                 const sorted = Object.entries(itemsMap).sort((a,b) => b[1] - a[1]).slice(0,5);
-                document.getElementById('top-items').innerHTML = sorted.map(([name, qty], idx) => `
-                    <div class="flex justify-between items-center">
-                        <span class="text-sm font-bold text-slate-700 truncate w-32">${idx+1}. ${name}</span>
-                        <span class="text-xs font-black text-slate-900">${qty} 份</span>
-                    </div>
-                `).join('') || '<p class="text-center py-10 text-gray-300">暂无销量数据</p>';
+                document.getElementById('top-items').innerHTML = sorted.map(([name, qty]) => `<div class="flex justify-between text-sm font-bold"><span>${name}</span><span>${qty} 份</span></div>`).join('') || '无数据';
             });
         };
 
-        // 初始化
         document.getElementById('report-date').valueAsDate = new Date();
         startLiveSync();
     </script>
