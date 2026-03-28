@@ -3,38 +3,77 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>MIXUE POS - Dashboard</title>
+    <title>MIXUE POS - Live Report</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;700;900&display=swap');
-        body { font-family: 'Inter', sans-serif; background: #f8fafc; }
-        .receipt-card { animation: slideIn 0.3s ease-out; }
-        @keyframes slideIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+        body { font-family: 'Inter', sans-serif; background: #f1f5f9; color: #1e293b; }
+        .stat-card { background: white; padding: 1.5rem; rounded: 2rem; border: 1px solid #e2e8f0; transition: all 0.3s; }
+        .stat-card:hover { border-color: #ef4444; transform: translateY(-2px); }
+        .receipt-card { animation: slideUp 0.4s ease-out; }
+        @keyframes slideUp { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }
+        .no-scrollbar::-webkit-scrollbar { display: none; }
     </style>
 </head>
-<body class="p-6">
-    <div class="max-w-4xl mx-auto">
+<body class="p-4 md:p-8">
+    <div class="max-w-6xl mx-auto">
         <header class="flex justify-between items-center mb-8">
             <div>
-                <h1 class="text-4xl font-black text-slate-900 tracking-tighter">Daily Report</h1>
-                <p class="text-gray-400 font-bold">Realtime Dashboard</p>
+                <h1 class="text-4xl font-black italic text-red-600 tracking-tighter">MIXUE <span class="text-slate-900 not-italic">REPORTS</span></h1>
+                <p id="live-indicator" class="text-xs font-bold text-green-500 flex items-center gap-1">
+                    <span class="w-2 h-2 bg-green-500 rounded-full animate-pulse"></span> LIVE SYNC ACTIVE
+                </p>
             </div>
-            <a href="index.html" class="bg-white border px-4 py-2 rounded-xl text-xs font-bold text-slate-500 hover:shadow-sm">➔ Back to Terminal</a>
+            <div class="flex gap-3">
+                <input type="date" id="report-date" class="p-3 border rounded-2xl font-bold text-sm outline-none shadow-sm" onchange="startLiveSync()">
+                <a href="/mixue/casher.html" class="bg-slate-900 text-white px-6 py-3 rounded-2xl font-black text-sm shadow-lg hover:bg-slate-800 transition-all">TERMINAL ➔</a>
+            </div>
         </header>
 
-        <div class="bg-white p-6 rounded-[2rem] shadow-sm mb-6 flex flex-col md:flex-row gap-4 items-center justify-between border border-slate-100">
-            <div class="flex gap-4 items-center">
-                <input type="date" id="report-date" class="p-3 bg-gray-50 border rounded-2xl outline-none font-bold text-sm">
-                <button onclick="startLiveSync()" class="bg-red-600 text-white px-6 py-3 rounded-2xl font-black text-sm shadow-lg hover:scale-105 active:scale-95 transition-all">LOAD LIVE DATA</button>
+        <div class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4 mb-8">
+            <div class="stat-card">
+                <p class="text-[10px] font-black text-gray-400 uppercase tracking-widest">Total Sales</p>
+                <h3 id="stat-total" class="text-2xl font-black text-slate-900">RM 0.00</h3>
             </div>
-            <div class="text-right">
-                <p class="text-[10px] font-black text-gray-400 uppercase tracking-widest">Selected Day Total</p>
-                <h2 id="rep-total" class="text-4xl font-black text-red-600">RM 0.00</h2>
+            <div class="stat-card border-l-4 border-l-green-500">
+                <p class="text-[10px] font-black text-gray-400 uppercase tracking-widest">Cash Income</p>
+                <h3 id="stat-cash" class="text-2xl font-black text-green-600">RM 0.00</h3>
+            </div>
+            <div class="stat-card border-l-4 border-l-blue-500">
+                <p class="text-[10px] font-black text-gray-400 uppercase tracking-widest">DuitNow</p>
+                <h3 id="stat-qr" class="text-2xl font-black text-blue-600">RM 0.00</h3>
+            </div>
+            <div class="stat-card border-l-4 border-l-purple-500">
+                <p class="text-[10px] font-black text-gray-400 uppercase tracking-widest">Bank-In</p>
+                <h3 id="stat-bank" class="text-2xl font-black text-purple-600">RM 0.00</h3>
+            </div>
+            <div class="stat-card bg-amber-50 border-amber-100">
+                <p class="text-[10px] font-black text-amber-600 uppercase tracking-widest">Discounts</p>
+                <h3 id="stat-discount" class="text-2xl font-black text-amber-700">RM 0.00</h3>
+            </div>
+            <div class="stat-card bg-slate-900 text-white border-none shadow-xl">
+                <p class="text-[10px] font-black text-slate-400 uppercase tracking-widest">Cash in Drawer</p>
+                <h3 id="stat-drawer" class="text-2xl font-black text-white">RM 150.00</h3>
+                <p class="text-[8px] text-slate-500 mt-1">Base: RM 150.00</p>
             </div>
         </div>
 
-        <div id="receipt-list" class="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <div class="col-span-full text-center py-20 text-gray-400 font-bold">Select a date and click "Load Live Data"</div>
+        <div class="flex flex-col lg:flex-row gap-8">
+            <div class="flex-[2]">
+                <h2 class="text-xl font-black mb-4 flex items-center gap-2">
+                    RECENT RECEIPTS
+                    <span id="order-count" class="bg-slate-200 text-slate-600 text-[10px] px-2 py-1 rounded-full">0</span>
+                </h2>
+                <div id="receipt-list" class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    </div>
+            </div>
+
+            <div class="flex-1">
+                <h2 class="text-xl font-black mb-4">TOP SELLERS</h2>
+                <div id="top-items" class="bg-white rounded-[2rem] p-6 border shadow-sm space-y-4">
+                    <p class="text-center text-gray-400 text-sm font-bold py-10">Waiting for data...</p>
+                </div>
+            </div>
         </div>
     </div>
 
@@ -54,12 +93,13 @@
         const app = initializeApp(firebaseConfig);
         const db = getFirestore(app);
         let currentUnsub = null;
+        const INITIAL_CASH = 150.00; // 初始现金
 
         window.startLiveSync = () => {
             const dateInput = document.getElementById('report-date').value;
-            if(!dateInput) return alert("Please select a date");
+            if(!dateInput) return;
 
-            if(currentUnsub) currentUnsub(); // 关闭之前的监听
+            if(currentUnsub) currentUnsub();
 
             const start = new Date(dateInput); start.setHours(0,0,0,0);
             const end = new Date(dateInput); end.setHours(23,59,59,999);
@@ -69,36 +109,79 @@
                 where("timestamp", "<=", Timestamp.fromDate(end)),
                 orderBy("timestamp", "desc"));
 
-            // 核心实时监听逻辑
             currentUnsub = onSnapshot(q, (snap) => {
-                let total = 0;
+                let stats = { total: 0, cash: 0, qr: 0, bank: 0, discount: 0 };
+                let itemSales = {};
                 let listHtml = "";
+
                 snap.forEach(doc => {
                     const d = doc.data();
-                    total += d.totalAmount;
-                    const time = d.timestamp ? d.timestamp.toDate().toLocaleTimeString() : 'Updating...';
+                    const amount = d.totalAmount || 0;
+                    
+                    // 1. 基础销售额统计
+                    stats.total += amount;
+
+                    // 2. 支付方式分类
+                    if(d.paymentMethod === 'Cash') stats.cash += amount;
+                    else if(d.paymentMethod === 'QR') stats.qr += amount;
+                    else if(d.paymentMethod === 'Bank') stats.bank += amount;
+
+                    // 3. 计算 Discount (假设你在下单数据中存了原始金额和折扣金额，
+                    // 若无，这里我们计算 item.totalPrice 之和与 amount 的差值)
+                    let originalPrice = d.items.reduce((acc, curr) => acc + (curr.totalPrice || 0), 0);
+                    stats.discount += Math.max(0, originalPrice - amount);
+
+                    // 4. 统计 Top Items
+                    d.items.forEach(item => {
+                        itemSales[item.name] = (itemSales[item.name] || 0) + item.qty;
+                    });
+
+                    // 5. 生成收据 HTML
+                    const time = d.timestamp ? d.timestamp.toDate().toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'}) : 'Syncing...';
                     listHtml += `
-                        <div class="bg-white p-6 rounded-[2rem] shadow-sm border border-slate-100 receipt-card">
-                            <div class="flex justify-between items-start mb-4">
-                                <span class="bg-slate-100 px-3 py-1 rounded-lg text-[10px] font-black text-slate-500">REF: ${doc.id.slice(-6)}</span>
-                                <span class="text-xs text-gray-400 font-bold">${time}</span>
+                        <div class="bg-white p-5 rounded-3xl border border-slate-100 shadow-sm receipt-card">
+                            <div class="flex justify-between items-center mb-3">
+                                <span class="text-[10px] font-black text-slate-400">#${doc.id.slice(-6).toUpperCase()}</span>
+                                <span class="text-[10px] font-bold text-gray-400">${time}</span>
                             </div>
-                            <div class="space-y-2 mb-4">
-                                ${d.items.map(i => `<div class="flex justify-between text-sm font-bold text-slate-600"><span>${i.qty}x ${i.name}</span><span>RM ${i.totalPrice.toFixed(2)}</span></div>`).join('')}
+                            <div class="space-y-1 mb-3">
+                                ${d.items.map(i => `<div class="flex justify-between text-xs font-bold text-slate-700"><span>${i.qty}x ${i.name}</span><span>RM ${i.totalPrice.toFixed(2)}</span></div>`).join('')}
                             </div>
-                            <div class="border-t border-dashed pt-4 flex justify-between items-center">
-                                <span class="text-[10px] font-black uppercase text-blue-500 bg-blue-50 px-2 py-1 rounded">${d.paymentMethod}</span>
-                                <span class="text-xl font-black text-slate-900">RM ${d.totalAmount.toFixed(2)}</span>
+                            <div class="border-t border-dashed pt-3 flex justify-between items-end">
+                                <span class="text-[9px] font-black px-2 py-1 rounded bg-slate-100 text-slate-500 uppercase">${d.paymentMethod}</span>
+                                <span class="font-black text-slate-900">RM ${amount.toFixed(2)}</span>
                             </div>
                         </div>`;
                 });
-                document.getElementById('rep-total').innerText = `RM ${total.toFixed(2)}`;
-                document.getElementById('receipt-list').innerHTML = listHtml || '<div class="col-span-full text-center py-20 text-gray-400 font-bold">No orders found for this day.</div>';
+
+                // 更新 UI 统计
+                document.getElementById('stat-total').innerText = `RM ${stats.total.toFixed(2)}`;
+                document.getElementById('stat-cash').innerText = `RM ${stats.cash.toFixed(2)}`;
+                document.getElementById('stat-qr').innerText = `RM ${stats.qr.toFixed(2)}`;
+                document.getElementById('stat-bank').innerText = `RM ${stats.bank.toFixed(2)}`;
+                document.getElementById('stat-discount').innerText = `RM ${stats.discount.toFixed(2)}`;
+                document.getElementById('stat-drawer').innerText = `RM ${(INITIAL_CASH + stats.cash).toFixed(2)}`;
+                document.getElementById('order-count').innerText = snap.size;
+
+                document.getElementById('receipt-list').innerHTML = listHtml || '<p class="col-span-full text-center py-20 text-gray-400 font-bold">No orders yet.</p>';
+
+                // 更新 Top Items UI
+                const sortedItems = Object.entries(itemSales).sort((a,b) => b[1] - a[1]).slice(0, 5);
+                document.getElementById('top-items').innerHTML = sortedItems.map(([name, qty], i) => `
+                    <div class="flex justify-between items-center">
+                        <div class="flex items-center gap-3">
+                            <span class="w-6 h-6 flex items-center justify-center bg-red-50 text-red-600 rounded-lg text-[10px] font-black">${i+1}</span>
+                            <span class="text-sm font-bold text-slate-700 truncate w-32">${name}</span>
+                        </div>
+                        <span class="text-xs font-black text-slate-400">${qty} Sold</span>
+                    </div>
+                `).join('') || '<p class="text-center text-gray-400 py-10 text-sm">No data</p>';
             });
         };
 
-        // 默认选择今天
+        // 默认初始化
         document.getElementById('report-date').valueAsDate = new Date();
+        startLiveSync();
     </script>
 </body>
 </html>
