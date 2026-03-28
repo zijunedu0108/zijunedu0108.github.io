@@ -2,84 +2,143 @@
 <html lang="zh">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>MIXUE POS - Live Report</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>MIXUE POS - Terminal</title>
+    <link rel="icon" type="image/png" href="/mixue.png">
     <script src="https://cdn.tailwindcss.com"></script>
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;700;900&display=swap');
-        body { font-family: 'Inter', sans-serif; background: #f1f5f9; color: #1e293b; }
-        .stat-card { background: white; padding: 1.5rem; rounded: 2rem; border: 1px solid #e2e8f0; transition: all 0.3s; }
-        .stat-card:hover { border-color: #ef4444; transform: translateY(-2px); }
-        .receipt-card { animation: slideUp 0.4s ease-out; }
-        @keyframes slideUp { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }
+        html, body { height: 100vh; width: 100vw; overflow: hidden; margin: 0; font-family: 'Inter', sans-serif; }
+        .glass { background: rgba(255, 255, 255, 0.9); backdrop-filter: blur(15px); }
+        .active-cat { background-color: #ef4444 !important; color: white !important; }
         .no-scrollbar::-webkit-scrollbar { display: none; }
+        
+        /* --- 打印样式控制 --- */
+        @media print {
+            body * { visibility: hidden; } /* 隐藏所有页面内容 */
+            #print-receipt, #print-receipt * { visibility: visible; } /* 只显示收据部分 */
+            #print-receipt {
+                position: absolute;
+                left: 0;
+                top: 0;
+                width: 58mm; /* 或者 80mm，取决于你的打印机纸张 */
+                font-family: 'Courier New', Courier, monospace; /* 使用等宽字体更像收据 */
+                padding: 5px;
+            }
+            @page { margin: 0; }
+        }
+        #print-receipt { display: none; } /* 平时在屏幕上不可见 */
+        @media print { #print-receipt { display: block; } }
     </style>
 </head>
-<body class="p-4 md:p-8">
-    <div class="max-w-6xl mx-auto">
-        <header class="flex justify-between items-center mb-8">
-            <div>
-                <h1 class="text-4xl font-black italic text-red-600 tracking-tighter">MIXUE <span class="text-slate-900 not-italic">REPORTS</span></h1>
-                <p id="live-indicator" class="text-xs font-bold text-green-500 flex items-center gap-1">
-                    <span class="w-2 h-2 bg-green-500 rounded-full animate-pulse"></span> LIVE SYNC ACTIVE
-                </p>
-            </div>
-            <div class="flex gap-3">
-                <input type="date" id="report-date" class="p-3 border rounded-2xl font-bold text-sm outline-none shadow-sm" onchange="startLiveSync()">
-                <a href="/mixue/casher.html" class="bg-slate-900 text-white px-6 py-3 rounded-2xl font-black text-sm shadow-lg hover:bg-slate-800 transition-all">TERMINAL ➔</a>
-            </div>
-        </header>
+<body class="flex bg-gray-50 text-slate-800">
 
-        <div class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4 mb-8">
-            <div class="stat-card">
-                <p class="text-[10px] font-black text-gray-400 uppercase tracking-widest">Total Sales</p>
-                <h3 id="stat-total" class="text-2xl font-black text-slate-900">RM 0.00</h3>
+    <div id="print-receipt">
+        <div style="text-align: center;">
+            <h2 style="margin: 0;">MIXUE KANGAR</h2>
+            <p style="font-size: 10px;">Ice Cream & Tea</p>
+            <p>--------------------------------</p>
+        </div>
+        <div id="print-items" style="font-size: 12px;"></div>
+        <p>--------------------------------</p>
+        <div style="font-size: 12px;">
+            <div style="display: flex; justify-content: space-between;"><span>SUBTOTAL:</span><span id="print-sub"></span></div>
+            <div style="display: flex; justify-content: space-between;"><span>DISCOUNT:</span><span id="print-disc"></span></div>
+            <div style="font-weight: bold; font-size: 14px; display: flex; justify-content: space-between;"><span>TOTAL:</span><span id="print-total"></span></div>
+        </div>
+        <p>--------------------------------</p>
+        <div style="text-align: center; font-size: 10px;">
+            <p id="print-time"></p>
+            <p>Thank You & Please Come Again!</p>
+        </div>
+    </div>
+
+    <div class="flex-grow h-full flex flex-col p-6 overflow-hidden">
+        <div class="flex flex-col md:flex-row justify-between items-center mb-6 gap-4">
+            <div class="flex items-center gap-3">
+                <img src="/mixue.png" alt="Logo" class="w-10 h-10 object-contain">
+                <h1 class="text-3xl font-black text-red-600 italic tracking-tighter">MIXUE</h1>
             </div>
-            <div class="stat-card border-l-4 border-l-green-500">
-                <p class="text-[10px] font-black text-gray-400 uppercase tracking-widest">Cash Income</p>
-                <h3 id="stat-cash" class="text-2xl font-black text-green-600">RM 0.00</h3>
-            </div>
-            <div class="stat-card border-l-4 border-l-blue-500">
-                <p class="text-[10px] font-black text-gray-400 uppercase tracking-widest">DuitNow</p>
-                <h3 id="stat-qr" class="text-2xl font-black text-blue-600">RM 0.00</h3>
-            </div>
-            <div class="stat-card border-l-4 border-l-purple-500">
-                <p class="text-[10px] font-black text-gray-400 uppercase tracking-widest">Bank-In</p>
-                <h3 id="stat-bank" class="text-2xl font-black text-purple-600">RM 0.00</h3>
-            </div>
-            <div class="stat-card bg-amber-50 border-amber-100">
-                <p class="text-[10px] font-black text-amber-600 uppercase tracking-widest">Discounts</p>
-                <h3 id="stat-discount" class="text-2xl font-black text-amber-700">RM 0.00</h3>
-            </div>
-            <div class="stat-card bg-slate-900 text-white border-none shadow-xl">
-                <p class="text-[10px] font-black text-slate-400 uppercase tracking-widest">Cash in Drawer</p>
-                <h3 id="stat-drawer" class="text-2xl font-black text-white">RM 150.00</h3>
-                <p class="text-[8px] text-slate-500 mt-1">Base: RM 150.00</p>
+            <div id="category-bar" class="flex gap-2 overflow-x-auto no-scrollbar pb-2"></div>
+            <div class="flex gap-2">
+                <button onclick="window.printLastReceipt()" class="bg-blue-100 text-blue-600 px-4 py-2 rounded-xl text-xs font-bold">RE-PRINT LAST</button>
+                <a href="report.html" class="bg-slate-100 hover:bg-slate-200 px-4 py-2 rounded-xl text-xs font-bold text-slate-600">Reports ➔</a>
             </div>
         </div>
+        
+        <div id="menu-grid" class="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-6 gap-4 overflow-y-auto pr-2 pb-24">
+            <div class="col-span-full text-center py-20 text-gray-400">Syncing...</div>
+        </div>
+    </div>
 
-        <div class="flex flex-col lg:flex-row gap-8">
-            <div class="flex-[2]">
-                <h2 class="text-xl font-black mb-4 flex items-center gap-2">
-                    RECENT RECEIPTS
-                    <span id="order-count" class="bg-slate-200 text-slate-600 text-[10px] px-2 py-1 rounded-full">0</span>
-                </h2>
-                <div id="receipt-list" class="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    </div>
+    <div class="w-[400px] h-full glass border-l shadow-2xl flex flex-col">
+        <div class="p-6 border-b flex justify-between items-center bg-white">
+            <h2 class="text-xl font-bold">Current Order</h2>
+            <button onclick="resetCart()" class="text-xs font-bold text-gray-400 hover:text-red-500">VOID ALL</button>
+        </div>
+        <div id="cart-items" class="flex-grow overflow-y-auto p-4 space-y-3 no-scrollbar"></div>
+        <div class="p-6 bg-white border-t space-y-3">
+            <div class="flex justify-between text-3xl font-black pt-2">
+                <span>Total</span><span id="final-total" class="text-red-600">RM 0.00</span>
             </div>
+            <button onclick="openPayModal()" class="w-full bg-red-600 hover:bg-red-700 text-white py-5 rounded-[2rem] text-xl font-bold mt-2 shadow-lg active:scale-95 transition-all">PAY NOW</button>
+        </div>
+    </div>
 
-            <div class="flex-1">
-                <h2 class="text-xl font-black mb-4">TOP SELLERS</h2>
-                <div id="top-items" class="bg-white rounded-[2rem] p-6 border shadow-sm space-y-4">
-                    <p class="text-center text-gray-400 text-sm font-bold py-10">Waiting for data...</p>
+    <div id="option-modal" class="fixed inset-0 bg-black/50 hidden flex items-center justify-center z-50 p-4">
+        <div class="bg-white rounded-[2.5rem] p-8 w-full max-w-md">
+            <h3 id="modal-title" class="text-2xl font-black mb-6 text-center">ITEM</h3>
+            <div class="space-y-6">
+                <div id="drink-options">
+                    <p class="text-[10px] font-black text-gray-400 uppercase mb-3">Ice & Sugar</p>
+                    <div class="grid grid-cols-2 gap-3">
+                        <select id="opt-ice" class="p-4 border rounded-2xl bg-gray-50 font-bold text-sm"><option>Normal Ice</option><option>Less Ice</option><option>No Ice</option></select>
+                        <select id="opt-sugar" class="p-4 border rounded-2xl bg-gray-50 font-bold text-sm"><option>100% Sugar</option><option>70% Sugar</option><option>50% Sugar</option><option>30% Sugar</option><option>0% Sugar</option></select>
+                    </div>
+                </div>
+                <div>
+                    <p class="text-[10px] font-black text-gray-400 uppercase mb-3">Quantity</p>
+                    <div class="flex items-center justify-between px-4">
+                        <button onclick="changeQty(-1)" class="w-12 h-12 border rounded-xl font-bold">-</button>
+                        <span id="modal-qty" class="text-4xl font-black">1</span>
+                        <button onclick="changeQty(1)" class="w-12 h-12 border rounded-xl font-bold">+</button>
+                    </div>
+                </div>
+                <div id="topping-section">
+                    <p class="text-[10px] font-black text-gray-400 uppercase mb-3">Toppings (+RM 1.00)</p>
+                    <div class="flex gap-3">
+                        <label class="flex-1 border-2 p-4 rounded-2xl flex items-center gap-3 font-bold text-sm"><input type="checkbox" id="top-pearl" class="w-5 h-5 accent-red-600"> Pearl</label>
+                        <label class="flex-1 border-2 p-4 rounded-2xl flex items-center gap-3 font-bold text-sm"><input type="checkbox" id="top-jelly" class="w-5 h-5 accent-red-600"> Coconut</label>
+                    </div>
                 </div>
             </div>
+            <div class="mt-10 flex gap-4">
+                <button onclick="closeModal()" class="flex-1 py-4 text-gray-400 font-bold">Cancel</button>
+                <button onclick="saveToCart()" class="flex-[2] bg-red-600 text-white py-4 rounded-[1.5rem] font-black text-lg">DONE</button>
+            </div>
+        </div>
+    </div>
+
+    <div id="pay-modal" class="fixed inset-0 bg-black/60 hidden flex items-center justify-center z-50 p-4">
+        <div class="bg-white rounded-[3rem] p-10 w-full max-w-lg text-center">
+            <h3 id="pay-total-display" class="text-6xl font-black text-red-600 mb-10 tracking-tighter">RM 0.00</h3>
+            <div class="grid grid-cols-3 gap-4 mb-8">
+                <button onclick="selectPay('Cash')" class="pay-btn border-2 p-5 rounded-3xl font-black hover:border-red-500">CASH</button>
+                <button onclick="selectPay('QR')" class="pay-btn border-2 p-5 rounded-3xl font-black hover:border-red-500">DUITNOW</button>
+                <button onclick="selectPay('Bank')" class="pay-btn border-2 p-5 rounded-3xl font-black hover:border-red-500">BANK-IN</button>
+            </div>
+            <div id="cash-panel" class="hidden mb-8">
+                <input type="number" id="cash-amount" placeholder="Received" class="w-full text-center text-4xl border-b-4 p-2 font-black outline-none" oninput="calcReturn()">
+                <div id="return-display" class="text-3xl font-black text-green-600 mt-2">CHANGE: RM 0.00</div>
+            </div>
+            <button onclick="confirmPayment()" id="final-btn" class="w-full bg-slate-900 text-white py-6 rounded-[2rem] font-black text-xl">COMPLETE & PRINT</button>
+            <button onclick="document.getElementById('pay-modal').classList.add('hidden')" class="mt-4 text-gray-400 font-bold">Back</button>
         </div>
     </div>
 
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/12.11.0/firebase-app.js";
-        import { getFirestore, collection, onSnapshot, query, where, orderBy, Timestamp } from "https://www.gstatic.com/firebasejs/12.11.0/firebase-firestore.js";
+        import { getFirestore, collection, addDoc, onSnapshot, serverTimestamp } from "https://www.gstatic.com/firebasejs/12.11.0/firebase-firestore.js";
 
         const firebaseConfig = {
             apiKey: "AIzaSyBhc2JVAoxfk3wEsLee-Gr4I1StgqsPkBU",
@@ -92,96 +151,118 @@
 
         const app = initializeApp(firebaseConfig);
         const db = getFirestore(app);
-        let currentUnsub = null;
-        const INITIAL_CASH = 150.00; // 初始现金
 
-        window.startLiveSync = () => {
-            const dateInput = document.getElementById('report-date').value;
-            if(!dateInput) return;
+        let cart = [], curItem = null, curQty = 1, curEditIdx = -1, menuData = [], payMethod = 'Cash';
+        let lastOrder = null; // 用于重复打印
 
-            if(currentUnsub) currentUnsub();
+        onSnapshot(collection(db, "menu"), (snap) => {
+            menuData = []; snap.forEach(doc => menuData.push({ id: doc.id, ...doc.data() }));
+            renderCategories();
+        });
 
-            const start = new Date(dateInput); start.setHours(0,0,0,0);
-            const end = new Date(dateInput); end.setHours(23,59,59,999);
-
-            const q = query(collection(db, "orders"), 
-                where("timestamp", ">=", Timestamp.fromDate(start)), 
-                where("timestamp", "<=", Timestamp.fromDate(end)),
-                orderBy("timestamp", "desc"));
-
-            currentUnsub = onSnapshot(q, (snap) => {
-                let stats = { total: 0, cash: 0, qr: 0, bank: 0, discount: 0 };
-                let itemSales = {};
-                let listHtml = "";
-
-                snap.forEach(doc => {
-                    const d = doc.data();
-                    const amount = d.totalAmount || 0;
-                    
-                    // 1. 基础销售额统计
-                    stats.total += amount;
-
-                    // 2. 支付方式分类
-                    if(d.paymentMethod === 'Cash') stats.cash += amount;
-                    else if(d.paymentMethod === 'QR') stats.qr += amount;
-                    else if(d.paymentMethod === 'Bank') stats.bank += amount;
-
-                    // 3. 计算 Discount (假设你在下单数据中存了原始金额和折扣金额，
-                    // 若无，这里我们计算 item.totalPrice 之和与 amount 的差值)
-                    let originalPrice = d.items.reduce((acc, curr) => acc + (curr.totalPrice || 0), 0);
-                    stats.discount += Math.max(0, originalPrice - amount);
-
-                    // 4. 统计 Top Items
-                    d.items.forEach(item => {
-                        itemSales[item.name] = (itemSales[item.name] || 0) + item.qty;
-                    });
-
-                    // 5. 生成收据 HTML
-                    const time = d.timestamp ? d.timestamp.toDate().toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'}) : 'Syncing...';
-                    listHtml += `
-                        <div class="bg-white p-5 rounded-3xl border border-slate-100 shadow-sm receipt-card">
-                            <div class="flex justify-between items-center mb-3">
-                                <span class="text-[10px] font-black text-slate-400">#${doc.id.slice(-6).toUpperCase()}</span>
-                                <span class="text-[10px] font-bold text-gray-400">${time}</span>
-                            </div>
-                            <div class="space-y-1 mb-3">
-                                ${d.items.map(i => `<div class="flex justify-between text-xs font-bold text-slate-700"><span>${i.qty}x ${i.name}</span><span>RM ${i.totalPrice.toFixed(2)}</span></div>`).join('')}
-                            </div>
-                            <div class="border-t border-dashed pt-3 flex justify-between items-end">
-                                <span class="text-[9px] font-black px-2 py-1 rounded bg-slate-100 text-slate-500 uppercase">${d.paymentMethod}</span>
-                                <span class="font-black text-slate-900">RM ${amount.toFixed(2)}</span>
-                            </div>
-                        </div>`;
-                });
-
-                // 更新 UI 统计
-                document.getElementById('stat-total').innerText = `RM ${stats.total.toFixed(2)}`;
-                document.getElementById('stat-cash').innerText = `RM ${stats.cash.toFixed(2)}`;
-                document.getElementById('stat-qr').innerText = `RM ${stats.qr.toFixed(2)}`;
-                document.getElementById('stat-bank').innerText = `RM ${stats.bank.toFixed(2)}`;
-                document.getElementById('stat-discount').innerText = `RM ${stats.discount.toFixed(2)}`;
-                document.getElementById('stat-drawer').innerText = `RM ${(INITIAL_CASH + stats.cash).toFixed(2)}`;
-                document.getElementById('order-count').innerText = snap.size;
-
-                document.getElementById('receipt-list').innerHTML = listHtml || '<p class="col-span-full text-center py-20 text-gray-400 font-bold">No orders yet.</p>';
-
-                // 更新 Top Items UI
-                const sortedItems = Object.entries(itemSales).sort((a,b) => b[1] - a[1]).slice(0, 5);
-                document.getElementById('top-items').innerHTML = sortedItems.map(([name, qty], i) => `
-                    <div class="flex justify-between items-center">
-                        <div class="flex items-center gap-3">
-                            <span class="w-6 h-6 flex items-center justify-center bg-red-50 text-red-600 rounded-lg text-[10px] font-black">${i+1}</span>
-                            <span class="text-sm font-bold text-slate-700 truncate w-32">${name}</span>
-                        </div>
-                        <span class="text-xs font-black text-slate-400">${qty} Sold</span>
-                    </div>
-                `).join('') || '<p class="text-center text-gray-400 py-10 text-sm">No data</p>';
+        function renderCategories() {
+            const bar = document.getElementById('category-bar'); bar.innerHTML = '';
+            menuData.forEach(cat => {
+                const btn = document.createElement('button');
+                btn.className = "px-6 py-2 bg-white border rounded-2xl font-black text-xs shadow-sm";
+                btn.innerText = cat.name;
+                btn.onclick = (e) => {
+                    document.querySelectorAll('#category-bar button').forEach(b => b.classList.remove('active-cat'));
+                    e.target.classList.add('active-cat');
+                    renderItems(cat.items);
+                };
+                bar.appendChild(btn);
             });
+            if(menuData.length > 0) bar.firstChild.click();
+        }
+
+        function renderItems(items) {
+            const grid = document.getElementById('menu-grid'); grid.innerHTML = '';
+            items.forEach(item => {
+                const div = document.createElement('div');
+                div.className = "bg-white p-6 rounded-[2rem] shadow-sm border-2 border-transparent hover:border-red-500 cursor-pointer active:scale-95 transition-all";
+                div.innerHTML = `<div class="font-black text-sm uppercase">${item.name}</div><div class="text-red-600 font-black text-lg">RM ${item.price.toFixed(2)}</div>`;
+                div.onclick = () => window.openModal(item);
+                grid.appendChild(div);
+            });
+        }
+
+        window.openModal = (item, idx = -1) => {
+            curEditIdx = idx;
+            if (idx === -1) { curItem = item; curQty = 1; } else { curItem = cart[idx]; curQty = cart[idx].qty; }
+            document.getElementById('modal-title').innerText = curItem.name;
+            document.getElementById('modal-qty').innerText = curQty;
+            const isIce = curItem.id?.startsWith('A');
+            document.getElementById('drink-options').style.display = isIce ? 'none' : 'block';
+            document.getElementById('topping-section').style.display = isIce ? 'none' : 'block';
+            document.getElementById('option-modal').classList.remove('hidden');
         };
 
-        // 默认初始化
-        document.getElementById('report-date').valueAsDate = new Date();
-        startLiveSync();
+        window.changeQty = (v) => { curQty = Math.max(1, curQty + v); document.getElementById('modal-qty').innerText = curQty; };
+
+        window.saveToCart = () => {
+            const isIce = curItem.id?.startsWith('A');
+            const tops = []; let extra = 0;
+            if(!isIce) {
+                if(document.getElementById('top-pearl').checked) { tops.push('Pearl'); extra += 1; }
+                if(document.getElementById('top-jelly').checked) { tops.push('Coconut'); extra += 1; }
+            }
+            const data = { ...curItem, qty: curQty, ice: isIce ? 'N/A' : document.getElementById('opt-ice').value, sugar: isIce ? 'N/A' : document.getElementById('opt-sugar').value, toppings: tops, totalPrice: ((curItem.price || curItem.unitPrice) + extra) * curQty };
+            if(curEditIdx === -1) cart.push(data); else cart[curEditIdx] = data;
+            updateCartUI(); closeModal();
+        };
+
+        function updateCartUI() {
+            const container = document.getElementById('cart-items'); container.innerHTML = ''; let total = 0;
+            cart.forEach((item, idx) => {
+                total += item.totalPrice;
+                container.innerHTML += `<div class="bg-white p-4 rounded-2xl flex justify-between items-center shadow-sm"><div><b>${item.qty}x ${item.name}</b><p class="text-[10px] text-gray-400">${item.ice}/${item.sugar}</p></div><div class="text-red-600 font-black">RM ${item.totalPrice.toFixed(2)}</div></div>`;
+            });
+            document.getElementById('final-total').innerText = `RM ${total.toFixed(2)}`;
+        }
+
+        window.confirmPayment = async () => {
+            const finalTotal = document.getElementById('final-total').innerText;
+            const orderData = { items: [...cart], totalAmount: parseFloat(finalTotal.replace('RM ','')), paymentMethod: payMethod, timestamp: new Date() };
+            
+            lastOrder = orderData; // 存入最后一份订单
+            
+            const btn = document.getElementById('final-btn');
+            btn.innerText = "UPLOADING..."; btn.disabled = true;
+            try {
+                await addDoc(collection(db, "orders"), { ...orderData, timestamp: serverTimestamp() });
+                
+                // --- 触发自动打印 ---
+                window.printLastReceipt();
+
+                btn.innerText = "PRINTED!"; btn.classList.replace('bg-slate-900', 'bg-green-500');
+                setTimeout(() => { document.getElementById('pay-modal').classList.add('hidden'); resetCart(); btn.innerText = "COMPLETE & PRINT"; btn.classList.replace('bg-green-500', 'bg-slate-900'); btn.disabled = false; }, 1500);
+            } catch (e) { alert(e.message); btn.disabled = false; }
+        };
+
+        // --- 核心打印函数 ---
+        window.printLastReceipt = () => {
+            if(!lastOrder) return alert("No recent order to print!");
+            
+            const container = document.getElementById('print-items');
+            container.innerHTML = lastOrder.items.map(i => `
+                <div style="display: flex; justify-content: space-between;">
+                    <span>${i.qty}x ${i.name.slice(0,15)}</span>
+                    <span>${i.totalPrice.toFixed(2)}</span>
+                </div>
+                <div style="font-size: 10px; margin-bottom: 5px;">(${i.ice}/${i.sugar} ${i.toppings.join(',')})</div>
+            `).join('');
+            
+            document.getElementById('print-total').innerText = `RM ${lastOrder.totalAmount.toFixed(2)}`;
+            document.getElementById('print-time').innerText = new Date().toLocaleString();
+            
+            window.print(); // 弹出浏览器打印对话框
+        };
+
+        window.closeModal = () => document.getElementById('option-modal').classList.add('hidden');
+        window.resetCart = () => { cart = []; updateCartUI(); };
+        window.selectPay = (m) => { payMethod = m; document.querySelectorAll('.pay-btn').forEach(b => b.classList.remove('bg-red-600', 'text-white')); event.target.classList.add('bg-red-600', 'text-white'); document.getElementById('cash-panel').classList.toggle('hidden', m !== 'Cash'); };
+        window.openPayModal = () => { if(!cart.length) return; document.getElementById('pay-total-display').innerText = document.getElementById('final-total').innerText; document.getElementById('pay-modal').classList.remove('hidden'); selectPay('Cash'); };
     </script>
 </body>
 </html>
