@@ -13,6 +13,7 @@
         .active-cat { background-color: #ef4444 !important; color: white !important; border-color: #ef4444 !important; }
         .no-scrollbar::-webkit-scrollbar { display: none; }
         .menu-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(160px, 1fr)); gap: 1rem; }
+        .top-chip input:checked + span { background-color: #ef4444; color: white; border-color: #ef4444; }
     </style>
 </head>
 <body class="flex bg-gray-50 text-slate-800">
@@ -52,32 +53,48 @@
     </div>
 
     <div id="option-modal" class="fixed inset-0 bg-black/50 hidden flex items-center justify-center z-50 p-4">
-        <div class="bg-white rounded-[2.5rem] p-8 w-full max-w-md">
-            <h3 id="modal-title" class="text-2xl font-black mb-6 text-center">ITEM</h3>
+        <div class="bg-white rounded-[2.5rem] p-8 w-full max-w-lg max-h-[90vh] overflow-y-auto no-scrollbar">
+            <h3 id="modal-title" class="text-2xl font-black mb-6 text-center uppercase tracking-tight">ITEM</h3>
+            
             <div class="space-y-6">
-                <div id="drink-options">
-                    <p class="text-[10px] font-black text-gray-400 uppercase mb-3">Ice & Sugar</p>
-                    <div class="grid grid-cols-2 gap-3">
-                        <select id="opt-ice" class="p-4 border rounded-2xl bg-gray-50 font-bold text-sm"><option>Normal Ice</option><option>Less Ice</option><option>No Ice</option></select>
-                        <select id="opt-sugar" class="p-4 border rounded-2xl bg-gray-50 font-bold text-sm"><option>100% Sugar</option><option>70% Sugar</option><option>50% Sugar</option><option>30% Sugar</option><option>0% Sugar</option></select>
-                    </div>
-                </div>
                 <div>
                     <p class="text-[10px] font-black text-gray-400 uppercase mb-3">Quantity</p>
-                    <div class="flex items-center justify-between px-4">
-                        <button onclick="changeQty(-1)" class="w-12 h-12 border rounded-xl font-bold">-</button>
-                        <span id="modal-qty" class="text-4xl font-black">1</span>
-                        <button onclick="changeQty(1)" class="w-12 h-12 border rounded-xl font-bold">+</button>
+                    <div class="flex items-center justify-between bg-gray-50 p-2 rounded-2xl">
+                        <button onclick="changeQty(-1)" class="w-12 h-12 bg-white shadow-sm rounded-xl font-black text-xl">-</button>
+                        <span id="modal-qty" class="text-3xl font-black">1</span>
+                        <button onclick="changeQty(1)" class="w-12 h-12 bg-white shadow-sm rounded-xl font-black text-xl">+</button>
                     </div>
                 </div>
-                <div id="topping-section">
-                    <p class="text-[10px] font-black text-gray-400 uppercase mb-3">Toppings (+RM 1.00)</p>
+
+                <div id="size-section">
+                    <p class="text-[10px] font-black text-gray-400 uppercase mb-3">Cup Size</p>
                     <div class="flex gap-3">
-                        <label class="flex-1 border-2 p-4 rounded-2xl flex items-center gap-3 font-bold text-sm"><input type="checkbox" id="top-pearl" class="w-5 h-5 accent-red-600"> Pearl</label>
-                        <label class="flex-1 border-2 p-4 rounded-2xl flex items-center gap-3 font-bold text-sm"><input type="checkbox" id="top-jelly" class="w-5 h-5 accent-red-600"> Coconut</label>
+                        <button onclick="selectSize('M')" id="size-m" class="flex-1 py-3 border-2 rounded-2xl font-bold transition-all">Medium</button>
+                        <button onclick="selectSize('L')" id="size-l" class="flex-1 py-3 border-2 rounded-2xl font-bold transition-all">Large (+RM 1.00)</button>
                     </div>
+                </div>
+
+                <div id="drink-options">
+                    <p class="text-[10px] font-black text-gray-400 uppercase mb-3">Preference</p>
+                    <div class="grid grid-cols-2 gap-3">
+                        <select id="opt-ice" class="p-4 border-2 rounded-2xl bg-gray-50 font-bold text-sm outline-none">
+                            <option>Normal Ice</option><option>Less Ice</option><option>No Ice</option>
+                        </select>
+                        <select id="opt-sugar" class="p-4 border-2 rounded-2xl bg-gray-50 font-bold text-sm outline-none">
+                            <option>100% Sugar</option><option>70% Sugar</option><option>50% Sugar</option><option>30% Sugar</option><option>0% Sugar</option>
+                        </select>
+                    </div>
+                </div>
+
+                <div id="topping-section">
+                    <div class="flex justify-between items-center mb-3">
+                        <p class="text-[10px] font-black text-gray-400 uppercase">Toppings (+RM 1.00)</p>
+                        <span id="free-topping-badge" class="hidden text-[10px] bg-green-100 text-green-600 px-2 py-1 rounded-full font-black"></span>
+                    </div>
+                    <div class="grid grid-cols-2 gap-2" id="topping-grid"></div>
                 </div>
             </div>
+
             <div class="mt-10 flex gap-4">
                 <button onclick="closeModal()" class="flex-1 py-4 text-gray-400 font-bold">Cancel</button>
                 <button onclick="saveToCart()" class="flex-[2] bg-red-600 text-white py-4 rounded-[1.5rem] font-black text-lg shadow-lg">DONE</button>
@@ -98,7 +115,7 @@
                 <div id="return-display" class="text-3xl font-black text-green-600">CHANGE: RM 0.00</div>
             </div>
             <button onclick="confirmPayment()" id="final-btn" class="w-full bg-slate-900 text-white py-6 rounded-[2rem] font-black text-xl">COMPLETE ORDER</button>
-            <button onclick="document.getElementById('pay-modal').classList.add('hidden')" class="mt-4 text-gray-400 font-bold">Back</button>
+            <button onclick="closePayModal()" class="mt-4 text-gray-400 font-bold block w-full text-center">Back</button>
         </div>
     </div>
 
@@ -118,9 +135,18 @@
         const app = initializeApp(firebaseConfig);
         const db = getFirestore(app);
 
-        let cart = [], curItem = null, curQty = 1, curEditIdx = -1, menuData = [], payMethod = 'Cash';
+        let cart = [], curItem = null, curQty = 1, curSize = 'M', curEditIdx = -1, menuData = [], payMethod = 'Cash';
+        const toppingList = ["Pearl", "Coconut Jelly", "Crystal Jelly", "Brown Sugar Jelly", "Yellow Peach Jelly", "Brulee"];
 
-        // 实时加载菜单
+        const toppingGrid = document.getElementById('topping-grid');
+        toppingList.forEach(t => {
+            const label = document.createElement('label');
+            label.className = "top-chip cursor-pointer inline-block";
+            label.innerHTML = `<input type="checkbox" class="hidden" value="${t}">
+                <span class="block border-2 p-3 rounded-2xl text-center font-bold text-xs transition-all border-gray-100 bg-gray-50">${t}</span>`;
+            toppingGrid.appendChild(label);
+        });
+
         onSnapshot(collection(db, "menu"), (snap) => {
             menuData = []; snap.forEach(doc => menuData.push({ id: doc.id, ...doc.data() }));
             renderCategories();
@@ -153,36 +179,72 @@
             });
         }
 
+        window.selectSize = (s) => {
+            curSize = s;
+            document.getElementById('size-m').className = s === 'M' ? "flex-1 py-3 border-2 border-red-500 bg-red-50 text-red-600 rounded-2xl font-bold transition-all" : "flex-1 py-3 border-2 rounded-2xl font-bold transition-all";
+            document.getElementById('size-l').className = s === 'L' ? "flex-1 py-3 border-2 border-red-500 bg-red-50 text-red-600 rounded-2xl font-bold transition-all" : "flex-1 py-3 border-2 rounded-2xl font-bold transition-all";
+        };
+
         window.openModal = (item, idx = -1) => {
             curEditIdx = idx;
+            document.querySelectorAll('#topping-grid input').forEach(i => i.checked = false);
+            
             if (idx === -1) {
-                curItem = item; curQty = 1;
-                document.getElementById('top-pearl').checked = false; document.getElementById('top-jelly').checked = false;
+                curItem = item; curQty = 1; selectSize('M');
             } else {
-                curItem = cart[idx]; curQty = cart[idx].qty;
+                curItem = cart[idx]; curQty = cart[idx].qty; selectSize(cart[idx].size || 'M');
                 document.getElementById('opt-ice').value = cart[idx].ice;
                 document.getElementById('opt-sugar').value = cart[idx].sugar;
-                document.getElementById('top-pearl').checked = cart[idx].toppings.includes('Pearl');
-                document.getElementById('top-jelly').checked = cart[idx].toppings.includes('Coconut');
+                document.querySelectorAll('#topping-grid input').forEach(input => {
+                    if(cart[idx].toppings.includes(input.value)) input.checked = true;
+                });
             }
+
             document.getElementById('modal-title').innerText = curItem.name;
             document.getElementById('modal-qty').innerText = curQty;
-            const isIce = curItem.id?.startsWith('A');
-            document.getElementById('drink-options').style.display = isIce ? 'none' : 'block';
-            document.getElementById('topping-section').style.display = isIce ? 'none' : 'block';
+
+            const isIceSeries = curItem.id?.startsWith('A');
+            document.getElementById('drink-options').style.display = isIceSeries ? 'none' : 'block';
+            document.getElementById('size-section').style.display = isIceSeries ? 'none' : 'block';
+            
+            // 检查免费小料配额提示
+            const badge = document.getElementById('free-topping-badge');
+            if(curItem.id === 'C1') { badge.innerText = "1 FREE TOPPING"; badge.classList.remove('hidden'); }
+            else if(curItem.id === 'C11') { badge.innerText = "2 FREE TOPPINGS"; badge.classList.remove('hidden'); }
+            else { badge.classList.add('hidden'); }
+
             document.getElementById('option-modal').classList.remove('hidden');
         };
 
         window.changeQty = (v) => { curQty = Math.max(1, curQty + v); document.getElementById('modal-qty').innerText = curQty; };
 
         window.saveToCart = () => {
-            const isIce = curItem.id?.startsWith('A');
-            const tops = []; let extra = 0;
-            if(!isIce) {
-                if(document.getElementById('top-pearl').checked) { tops.push('Pearl'); extra += 1; }
-                if(document.getElementById('top-jelly').checked) { tops.push('Coconut'); extra += 1; }
-            }
-            const data = { ...curItem, qty: curQty, ice: isIce ? 'N/A' : document.getElementById('opt-ice').value, sugar: isIce ? 'N/A' : document.getElementById('opt-sugar').value, toppings: tops, unitPrice: (curItem.unitPrice || curItem.price), totalPrice: ((curItem.unitPrice || curItem.price) + extra) * curQty };
+            const isIceSeries = curItem.id?.startsWith('A');
+            const selectedTops = [];
+            document.querySelectorAll('#topping-grid input:checked').forEach(i => selectedTops.push(i.value));
+            
+            // 特殊优惠逻辑
+            let freeLimit = 0;
+            if(curItem.id === 'C1') freeLimit = 1;
+            if(curItem.id === 'C11') freeLimit = 2;
+
+            // 计算收费的小料数量
+            let chargeableTops = Math.max(0, selectedTops.length - freeLimit);
+            let extra = chargeableTops * 1.0;
+            
+            if(!isIceSeries && curSize === 'L') extra += 1.0;
+
+            const data = { 
+                ...curItem, 
+                qty: curQty, 
+                size: isIceSeries ? 'N/A' : curSize,
+                ice: isIceSeries ? 'N/A' : document.getElementById('opt-ice').value, 
+                sugar: isIceSeries ? 'N/A' : document.getElementById('opt-sugar').value, 
+                toppings: selectedTops, 
+                unitPrice: (curItem.unitPrice || curItem.price), 
+                totalPrice: ((curItem.unitPrice || curItem.price) + extra) * curQty 
+            };
+            
             if(curEditIdx === -1) cart.push(data); else cart[curEditIdx] = data;
             updateCartUI(); closeModal();
         };
@@ -191,7 +253,21 @@
             const container = document.getElementById('cart-items'); container.innerHTML = ''; let sub = 0;
             cart.forEach((item, idx) => {
                 sub += item.totalPrice;
-                container.innerHTML += `<div class="bg-white p-4 rounded-3xl flex justify-between items-center border border-slate-50 shadow-sm"><div onclick="window.openModal(null, ${idx})" class="cursor-pointer"><b>${item.qty}x ${item.name}</b><p class="text-[10px] text-gray-400 font-bold uppercase">${item.ice} / ${item.sugar}</p></div><div class="text-right"><div class="text-red-600 font-black">RM ${item.totalPrice.toFixed(2)}</div><button onclick="window.deleteItem(${idx})" class="text-[10px] text-gray-300 font-black">REMOVE</button></div></div>`;
+                const detail = item.size !== 'N/A' ? `${item.size} / ${item.ice} / ${item.sugar}` : `Qty: ${item.qty}`;
+                const tops = item.toppings.length > 0 ? `<p class="text-[9px] text-red-400 font-bold">+ ${item.toppings.join(', ')}</p>` : '';
+                
+                container.innerHTML += `
+                    <div class="bg-white p-4 rounded-3xl flex justify-between items-center border border-slate-50 shadow-sm">
+                        <div onclick="window.openModal(null, ${idx})" class="cursor-pointer">
+                            <b>${item.qty}x ${item.name}</b>
+                            <p class="text-[10px] text-gray-400 font-bold uppercase">${detail}</p>
+                            ${tops}
+                        </div>
+                        <div class="text-right">
+                            <div class="text-red-600 font-black">RM ${item.totalPrice.toFixed(2)}</div>
+                            <button onclick="window.deleteItem(${idx})" class="text-[10px] text-gray-300 font-black">REMOVE</button>
+                        </div>
+                    </div>`;
             });
             document.getElementById('subtotal').innerText = `RM ${sub.toFixed(2)}`; calculateTotal();
         }
@@ -205,16 +281,16 @@
         };
 
         window.openPayModal = () => { if(!cart.length) return; document.getElementById('pay-total-display').innerText = document.getElementById('final-total').innerText; document.getElementById('pay-modal').classList.remove('hidden'); selectPay('Cash'); };
+        window.closePayModal = () => document.getElementById('pay-modal').classList.add('hidden');
         window.selectPay = (m) => { payMethod = m; document.querySelectorAll('.pay-btn').forEach(b => b.classList.remove('bg-red-600', 'text-white')); event.target.classList.add('bg-red-600', 'text-white'); document.getElementById('cash-panel').classList.toggle('hidden', m !== 'Cash'); };
         window.calcReturn = () => { const total = parseFloat(document.getElementById('pay-total-display').innerText.replace('RM ','')); const rec = parseFloat(document.getElementById('cash-amount').value) || 0; document.getElementById('return-display').innerText = `CHANGE: RM ${Math.max(0, rec - total).toFixed(2)}`; };
-
         window.confirmPayment = async () => {
             const btn = document.getElementById('final-btn');
             btn.innerText = "UPLOADING..."; btn.disabled = true;
             try {
                 await addDoc(collection(db, "orders"), { items: cart, totalAmount: parseFloat(document.getElementById('final-total').innerText.replace('RM ','')), paymentMethod: payMethod, timestamp: serverTimestamp() });
                 btn.innerText = "PAID SUCCESS"; btn.classList.replace('bg-slate-900', 'bg-green-500');
-                setTimeout(() => { document.getElementById('pay-modal').classList.add('hidden'); resetCart(); btn.innerText = "COMPLETE ORDER"; btn.classList.replace('bg-green-500', 'bg-slate-900'); btn.disabled = false; }, 2000);
+                setTimeout(() => { closePayModal(); resetCart(); btn.innerText = "COMPLETE ORDER"; btn.classList.replace('bg-green-500', 'bg-slate-900'); btn.disabled = false; }, 2000);
             } catch (e) { alert(e.message); btn.disabled = false; }
         };
 
