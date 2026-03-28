@@ -1,0 +1,104 @@
+<!DOCTYPE html>
+<html lang="zh">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>MIXUE POS - Dashboard</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;700;900&display=swap');
+        body { font-family: 'Inter', sans-serif; background: #f8fafc; }
+        .receipt-card { animation: slideIn 0.3s ease-out; }
+        @keyframes slideIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+    </style>
+</head>
+<body class="p-6">
+    <div class="max-w-4xl mx-auto">
+        <header class="flex justify-between items-center mb-8">
+            <div>
+                <h1 class="text-4xl font-black text-slate-900 tracking-tighter">Daily Report</h1>
+                <p class="text-gray-400 font-bold">Realtime Dashboard</p>
+            </div>
+            <a href="index.html" class="bg-white border px-4 py-2 rounded-xl text-xs font-bold text-slate-500 hover:shadow-sm">➔ Back to Terminal</a>
+        </header>
+
+        <div class="bg-white p-6 rounded-[2rem] shadow-sm mb-6 flex flex-col md:flex-row gap-4 items-center justify-between border border-slate-100">
+            <div class="flex gap-4 items-center">
+                <input type="date" id="report-date" class="p-3 bg-gray-50 border rounded-2xl outline-none font-bold text-sm">
+                <button onclick="startLiveSync()" class="bg-red-600 text-white px-6 py-3 rounded-2xl font-black text-sm shadow-lg hover:scale-105 active:scale-95 transition-all">LOAD LIVE DATA</button>
+            </div>
+            <div class="text-right">
+                <p class="text-[10px] font-black text-gray-400 uppercase tracking-widest">Selected Day Total</p>
+                <h2 id="rep-total" class="text-4xl font-black text-red-600">RM 0.00</h2>
+            </div>
+        </div>
+
+        <div id="receipt-list" class="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div class="col-span-full text-center py-20 text-gray-400 font-bold">Select a date and click "Load Live Data"</div>
+        </div>
+    </div>
+
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/12.11.0/firebase-app.js";
+        import { getFirestore, collection, onSnapshot, query, where, orderBy, Timestamp } from "https://www.gstatic.com/firebasejs/12.11.0/firebase-firestore.js";
+
+        const firebaseConfig = {
+            apiKey: "AIzaSyBhc2JVAoxfk3wEsLee-Gr4I1StgqsPkBU",
+            authDomain: "zijunblog.firebaseapp.com",
+            projectId: "zijunblog",
+            storageBucket: "zijunblog.firebasestorage.app",
+            messagingSenderId: "689359220073",
+            appId: "1:689359220073:web:be9d4a467f438b6e8de1f8"
+        };
+
+        const app = initializeApp(firebaseConfig);
+        const db = getFirestore(app);
+        let currentUnsub = null;
+
+        window.startLiveSync = () => {
+            const dateInput = document.getElementById('report-date').value;
+            if(!dateInput) return alert("Please select a date");
+
+            if(currentUnsub) currentUnsub(); // 关闭之前的监听
+
+            const start = new Date(dateInput); start.setHours(0,0,0,0);
+            const end = new Date(dateInput); end.setHours(23,59,59,999);
+
+            const q = query(collection(db, "orders"), 
+                where("timestamp", ">=", Timestamp.fromDate(start)), 
+                where("timestamp", "<=", Timestamp.fromDate(end)),
+                orderBy("timestamp", "desc"));
+
+            // 核心实时监听逻辑
+            currentUnsub = onSnapshot(q, (snap) => {
+                let total = 0;
+                let listHtml = "";
+                snap.forEach(doc => {
+                    const d = doc.data();
+                    total += d.totalAmount;
+                    const time = d.timestamp ? d.timestamp.toDate().toLocaleTimeString() : 'Updating...';
+                    listHtml += `
+                        <div class="bg-white p-6 rounded-[2rem] shadow-sm border border-slate-100 receipt-card">
+                            <div class="flex justify-between items-start mb-4">
+                                <span class="bg-slate-100 px-3 py-1 rounded-lg text-[10px] font-black text-slate-500">REF: ${doc.id.slice(-6)}</span>
+                                <span class="text-xs text-gray-400 font-bold">${time}</span>
+                            </div>
+                            <div class="space-y-2 mb-4">
+                                ${d.items.map(i => `<div class="flex justify-between text-sm font-bold text-slate-600"><span>${i.qty}x ${i.name}</span><span>RM ${i.totalPrice.toFixed(2)}</span></div>`).join('')}
+                            </div>
+                            <div class="border-t border-dashed pt-4 flex justify-between items-center">
+                                <span class="text-[10px] font-black uppercase text-blue-500 bg-blue-50 px-2 py-1 rounded">${d.paymentMethod}</span>
+                                <span class="text-xl font-black text-slate-900">RM ${d.totalAmount.toFixed(2)}</span>
+                            </div>
+                        </div>`;
+                });
+                document.getElementById('rep-total').innerText = `RM ${total.toFixed(2)}`;
+                document.getElementById('receipt-list').innerHTML = listHtml || '<div class="col-span-full text-center py-20 text-gray-400 font-bold">No orders found for this day.</div>';
+            });
+        };
+
+        // 默认选择今天
+        document.getElementById('report-date').valueAsDate = new Date();
+    </script>
+</body>
+</html>
