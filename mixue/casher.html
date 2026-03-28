@@ -66,7 +66,7 @@
                     </div>
                 </div>
 
-                <div id="size-section" class="hidden">
+                <div id="size-section">
                     <p class="text-[10px] font-black text-gray-400 uppercase mb-3">Cup Size</p>
                     <div class="flex gap-3">
                         <button onclick="selectSize('M')" id="size-m" class="flex-1 py-3 border-2 rounded-2xl font-bold transition-all">Medium</button>
@@ -138,7 +138,6 @@
         let cart = [], curItem = null, curQty = 1, curSize = 'M', curEditIdx = -1, menuData = [], payMethod = 'Cash';
         const toppingList = ["Pearl", "Coconut Jelly", "Crystal Jelly", "Brown Sugar Jelly", "Yellow Peach Jelly", "Brulee"];
 
-        // 初始化 Toppings
         const toppingGrid = document.getElementById('topping-grid');
         toppingList.forEach(t => {
             const label = document.createElement('label');
@@ -204,15 +203,18 @@
             document.getElementById('modal-title').innerText = curItem.name;
             document.getElementById('modal-qty').innerText = curQty;
 
-            // 核心逻辑：只有 C1 和 C11 显示杯型选择
-            const allowSize = (curItem.id === 'C1' || curItem.id === 'C11');
-            document.getElementById('size-section').style.display = allowSize ? 'block' : 'none';
+            // 关键：强制检查 ID。只有 C1 和 C11 才能显示杯型。
+            const sizeSection = document.getElementById('size-section');
+            if (curItem.id === 'C1' || curItem.id === 'C11') {
+                sizeSection.style.display = 'block';
+            } else {
+                sizeSection.style.display = 'none';
+                curSize = 'M'; // 非 C1/C11 强制设为 M
+            }
 
-            // 冰淇淋系列 (A开头) 隐藏糖度冰度
             const isIceSeries = curItem.id?.startsWith('A');
             document.getElementById('drink-options').style.display = isIceSeries ? 'none' : 'block';
             
-            // 免费小料提示
             const badge = document.getElementById('free-topping-badge');
             if(curItem.id === 'C1') { badge.innerText = "1 FREE TOPPING"; badge.classList.remove('hidden'); }
             else if(curItem.id === 'C11') { badge.innerText = "2 FREE TOPPINGS"; badge.classList.remove('hidden'); }
@@ -232,14 +234,14 @@
             let chargeableTops = Math.max(0, selectedTops.length - freeLimit);
             let extra = chargeableTops * 1.0;
             
-            // 只有允许选杯型且选了L时才加 1.50
-            const allowSize = (curItem.id === 'C1' || curItem.id === 'C11');
-            if(allowSize && curSize === 'L') extra += 1.50;
+            // 只有 C1 和 C11 且选了 L 才加 1.50
+            const isC1orC11 = (curItem.id === 'C1' || curItem.id === 'C11');
+            if(isC1orC11 && curSize === 'L') extra += 1.50;
 
             const data = { 
                 ...curItem, 
                 qty: curQty, 
-                size: allowSize ? curSize : 'N/A',
+                size: isC1orC11 ? curSize : 'N/A', // 非这两款产品标记为 N/A 或 M
                 ice: isIceSeries ? 'N/A' : document.getElementById('opt-ice').value, 
                 sugar: isIceSeries ? 'N/A' : document.getElementById('opt-sugar').value, 
                 toppings: selectedTops, 
@@ -286,7 +288,6 @@
         window.closePayModal = () => document.getElementById('pay-modal').classList.add('hidden');
         window.selectPay = (m) => { payMethod = m; document.querySelectorAll('.pay-btn').forEach(b => b.classList.remove('bg-red-600', 'text-white')); event.target.classList.add('bg-red-600', 'text-white'); document.getElementById('cash-panel').classList.toggle('hidden', m !== 'Cash'); };
         window.calcReturn = () => { const total = parseFloat(document.getElementById('pay-total-display').innerText.replace('RM ','')); const rec = parseFloat(document.getElementById('cash-amount').value) || 0; document.getElementById('return-display').innerText = `CHANGE: RM ${Math.max(0, rec - total).toFixed(2)}`; };
-        
         window.confirmPayment = async () => {
             const btn = document.getElementById('final-btn');
             btn.innerText = "UPLOADING..."; btn.disabled = true;
