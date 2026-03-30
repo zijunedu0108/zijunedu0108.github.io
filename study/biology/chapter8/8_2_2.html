@@ -42,14 +42,29 @@
                 grid-template-columns: 1fr 1fr; 
                 gap: 20px; 
             }
-            .header, .calc-section { grid-column: span 2; }
+            /* 让标题和图片容器在电脑端横跨两列 */
+            .header, .image-container, .calc-section { grid-column: span 2; }
         }
 
         .back-btn { color: var(--ios-blue); text-decoration: none; font-weight: 600; font-size: 15px; margin-bottom: 20px; display: inline-block; }
 
-        .header { text-align: center; margin-bottom: 30px; }
-        .header img { width: 65px; border-radius: 15px; margin-bottom: 10px; box-shadow: 0 4px 12px rgba(0,0,0,0.1); }
+        .header { text-align: center; margin-bottom: 20px; }
+        .header img.logo { width: 65px; border-radius: 15px; margin-bottom: 10px; box-shadow: 0 4px 12px rgba(0,0,0,0.1); }
         .header h1 { font-size: 26px; margin: 0; letter-spacing: -0.5px; }
+
+        /* 图片展示区域样式 */
+        .image-container {
+            width: 100%;
+            margin-bottom: 24px;
+            text-align: center;
+        }
+        .spiro-img {
+            width: 100%;
+            max-width: 600px; /* 限制最大宽度，防止在大屏幕上模糊 */
+            border-radius: 18px;
+            box-shadow: 0 8px 24px rgba(0,0,0,0.08);
+            border: 1px solid rgba(0,0,0,0.05);
+        }
 
         .card { 
             background: var(--card-bg); 
@@ -62,12 +77,11 @@
         }
 
         h2 { font-size: 18px; margin-top: 0; display: flex; align-items: center; gap: 10px; }
-        .vol-label { font-size: 12px; font-weight: 800; padding: 2px 8px; border-radius: 6px; color: white; }
+        .vol-label { font-size: 11px; font-weight: 800; padding: 2px 8px; border-radius: 6px; color: white; }
         
         .translate { color: var(--ios-blue); font-size: 14px; font-weight: 600; margin-bottom: 8px; display: block; }
         .mnemonic { background: #F2F2F7; padding: 10px; border-radius: 12px; font-size: 13px; border-left: 4px solid var(--ios-purple); margin-top: 10px; }
         
-        /* Interactive Calculator */
         .calc-section { background: #1c1c1e; color: white; border-radius: 24px; padding: 25px; margin-top: 20px; }
         .calc-title { color: var(--ios-blue); font-weight: 700; margin-bottom: 15px; display: block; }
         .input-group { margin-bottom: 10px; display: flex; justify-content: space-between; align-items: center; }
@@ -83,9 +97,13 @@
     <a href="/study/biology/chapter8" class="back-btn">‹ Chapter 8 Menu</a>
 
     <div class="header">
-        <img src="/zijunlogo.png" alt="Logo">
+        <img src="/zijunlogo.png" alt="Logo" class="logo">
         <h1>Spirogram Analysis</h1>
         <p style="color:var(--text-sec)">Lung Volumes & Capacities</p>
+    </div>
+
+    <div class="image-container">
+        <img src="spirogram.png" alt="Spirogram Diagram" class="spiro-img">
     </div>
 
     <div class="grid-layout">
@@ -114,14 +132,14 @@
             <h2><span class="vol-label" style="background:var(--ios-red)">RV</span> Residual Volume</h2>
             <span class="translate">余气量 (残气量)</span>
             <p>Air remaining <mark>after forced exhalation</mark>. Prevents lung collapse.</p>
-            <div class="mnemonic">💡 <b>Mnemonic:</b> <b>R</b>emains <b>V</b>isible in lungs forever (to keep alveoli open).</div>
+            <div class="mnemonic">💡 <b>Mnemonic:</b> <b>R</b>emains <b>V</b>isible in lungs forever.</div>
         </div>
 
         <div class="card">
             <h2><span class="vol-label" style="background:var(--ios-purple)">VC</span> Vital Capacity</h2>
             <span class="translate">肺活量 (最大可用气量)</span>
             <p>Max air exhaled after max inhalation. <br><b>VC = TV + IRV + ERV</b></p>
-            <div class="mnemonic">💡 <b>Mnemonic:</b> <b>V</b>ery <b>C</b>rucial for athletes (functional capacity).</div>
+            <div class="mnemonic">💡 <b>Mnemonic:</b> <b>V</b>ery <b>C</b>rucial for athletes.</div>
         </div>
 
         <div class="calc-section">
@@ -164,7 +182,6 @@
         document.getElementById('vc-res').innerText = vc;
         document.getElementById('tlc-res').innerText = tlc;
     }
-    // 初始化计算
     calc();
 </script>
 
