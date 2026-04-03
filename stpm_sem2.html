@@ -1,0 +1,662 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+    <title>STPM SEM2 Countdown | ZIJUN</title>
+    <!-- Favicon & Icon -->
+    <link rel="icon" type="image/png" href="zijunlogo.png">
+    <link rel="apple-touch-icon" href="zijunlogo.png">
+    <!-- Google Fonts + Modern Font -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:opsz,wght@14..32,300;14..32,400;14..32,500;14..32,600;14..32,700;14..32,800&display=swap" rel="stylesheet">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            background: linear-gradient(135deg, #f5f7fc 0%, #eef2f8 100%);
+            font-family: 'Inter', sans-serif;
+            color: #13293D;
+            padding: 2rem 1.5rem;
+            position: relative;
+        }
+
+        /* Soft background pattern */
+        body::before {
+            content: "";
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-image: radial-gradient(#cbdde9 1px, transparent 1px);
+            background-size: 40px 40px;
+            opacity: 0.25;
+            pointer-events: none;
+            z-index: -1;
+        }
+
+        .container {
+            max-width: 1300px;
+            margin: 0 auto;
+        }
+
+        /* Header with logo integration */
+        .hero {
+            text-align: center;
+            margin-bottom: 2.5rem;
+        }
+
+        .logo-wrapper {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            margin-bottom: 1rem;
+        }
+
+        .logo-circle {
+            background: white;
+            width: 70px;
+            height: 70px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            box-shadow: 0 10px 20px -5px rgba(0, 0, 0, 0.1);
+            border: 2px solid rgba(41, 112, 188, 0.2);
+            transition: transform 0.2s ease;
+        }
+
+        .logo-circle img {
+            width: 55px;
+            height: 55px;
+            object-fit: contain;
+            border-radius: 50%;
+        }
+
+        .logo-circle:hover {
+            transform: scale(1.02);
+        }
+
+        .badge {
+            display: inline-block;
+            background: rgba(30, 70, 104, 0.1);
+            backdrop-filter: blur(4px);
+            padding: 0.4rem 1.2rem;
+            border-radius: 60px;
+            font-size: 0.85rem;
+            font-weight: 600;
+            letter-spacing: 0.5px;
+            color: #1f6392;
+            margin-top: 0.75rem;
+            border: 1px solid rgba(41, 112, 188, 0.3);
+        }
+
+        h1 {
+            font-size: 2.8rem;
+            font-weight: 800;
+            background: linear-gradient(125deg, #1E4A76, #2C6E9E);
+            background-clip: text;
+            -webkit-background-clip: text;
+            color: transparent;
+            letter-spacing: -0.02em;
+            margin: 0.5rem 0 0.2rem;
+        }
+
+        .sub {
+            font-size: 1rem;
+            color: #4a667f;
+            font-weight: 500;
+            border-bottom: 2px dotted #bdd4e4;
+            display: inline-block;
+            padding-bottom: 0.3rem;
+        }
+
+        /* Two column layout */
+        .exam-sections {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(360px, 1fr));
+            gap: 2rem;
+            margin-bottom: 2.2rem;
+        }
+
+        /* Cards UI */
+        .card {
+            background: rgba(255, 255, 255, 0.94);
+            backdrop-filter: blur(0px);
+            border-radius: 2rem;
+            box-shadow: 0 18px 35px -14px rgba(0, 0, 0, 0.08), 0 1px 3px rgba(0,0,0,0.02);
+            transition: all 0.25s ease;
+            overflow: hidden;
+            border: 1px solid rgba(255,255,255,0.7);
+        }
+
+        .card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 28px 42px -16px rgba(0, 20, 40, 0.2);
+            background: rgba(255, 255, 255, 0.98);
+        }
+
+        .card-header {
+            padding: 1.4rem 1.8rem 0.8rem 1.8rem;
+            border-bottom: 2px solid #eaf1f7;
+            display: flex;
+            justify-content: space-between;
+            align-items: baseline;
+            flex-wrap: wrap;
+        }
+
+        .card-header h2 {
+            font-weight: 700;
+            font-size: 1.65rem;
+            letter-spacing: -0.3px;
+            background: linear-gradient(120deg, #235b82, #1c4b6e);
+            background-clip: text;
+            -webkit-background-clip: text;
+            color: transparent;
+        }
+
+        .countdown-pill {
+            background: #2c5f8a;
+            color: white;
+            padding: 0.3rem 1rem;
+            border-radius: 40px;
+            font-size: 0.75rem;
+            font-weight: 600;
+            box-shadow: inset 0 1px 1px rgba(0,0,0,0.05), 0 2px 5px rgba(0,0,0,0.05);
+        }
+
+        /* Exam list */
+        .exam-list {
+            padding: 1rem 1.5rem 1.6rem 1.5rem;
+        }
+
+        .exam-item {
+            display: flex;
+            align-items: baseline;
+            justify-content: space-between;
+            padding: 0.9rem 0;
+            border-bottom: 1px solid #e2ecf3;
+            transition: background 0.1s;
+            gap: 0.75rem;
+            flex-wrap: wrap;
+        }
+
+        .exam-item:last-child {
+            border-bottom: none;
+        }
+
+        .date-block {
+            min-width: 92px;
+            font-weight: 700;
+            font-size: 0.9rem;
+            color: #1c5a7c;
+            background: #e9f1f8;
+            padding: 0.25rem 0.6rem;
+            border-radius: 30px;
+            text-align: center;
+            display: inline-block;
+        }
+
+        .exam-details {
+            flex: 1;
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: space-between;
+            align-items: center;
+            gap: 0.6rem;
+        }
+
+        .subject-list {
+            font-weight: 600;
+            font-size: 0.95rem;
+            color: #1c3f54;
+            display: flex;
+            flex-wrap: wrap;
+            gap: 0.4rem;
+        }
+
+        .subject-badge {
+            background: #f0f6fe;
+            padding: 0.2rem 0.8rem;
+            border-radius: 24px;
+            font-weight: 500;
+            font-size: 0.8rem;
+            color: #1a5f86;
+            transition: all 0.1s;
+        }
+
+        .day-remaining {
+            font-size: 0.75rem;
+            font-weight: 700;
+            background: #e3eef5;
+            padding: 0.25rem 0.85rem;
+            border-radius: 30px;
+            color: #1f5e7e;
+            white-space: nowrap;
+        }
+
+        .highlight-urgent {
+            background: #ffede3;
+            color: #c2591f;
+            font-weight: 800;
+        }
+
+        /* Global countdown bar */
+        .global-countdown {
+            background: linear-gradient(105deg, #1F405B, #1A4E70);
+            border-radius: 2rem;
+            padding: 1.2rem 1.8rem;
+            margin-top: 0.5rem;
+            margin-bottom: 2rem;
+            display: flex;
+            flex-wrap: wrap;
+            align-items: center;
+            justify-content: space-between;
+            color: white;
+            box-shadow: 0 16px 28px -14px rgba(0, 0, 0, 0.25);
+            border: 1px solid rgba(255,255,255,0.18);
+        }
+
+        .next-info {
+            display: flex;
+            flex-direction: column;
+            gap: 0.2rem;
+        }
+
+        .next-label {
+            font-weight: 500;
+            font-size: 0.85rem;
+            opacity: 0.85;
+            letter-spacing: 0.5px;
+        }
+
+        .next-exam-name {
+            font-weight: 800;
+            font-size: 1.35rem;
+            line-height: 1.2;
+        }
+
+        .next-exam-date {
+            font-size: 0.75rem;
+            opacity: 0.9;
+            margin-top: 0.2rem;
+        }
+
+        .timer-digits {
+            display: flex;
+            gap: 1.2rem;
+            background: rgba(0, 0, 0, 0.25);
+            padding: 0.45rem 1.3rem;
+            border-radius: 70px;
+            backdrop-filter: blur(5px);
+        }
+
+        .time-unit {
+            text-align: center;
+            min-width: 52px;
+        }
+
+        .time-number {
+            font-size: 1.9rem;
+            font-weight: 800;
+            line-height: 1;
+            letter-spacing: 1px;
+        }
+
+        .time-label {
+            font-size: 0.7rem;
+            text-transform: uppercase;
+            font-weight: 600;
+            opacity: 0.8;
+        }
+
+        .footer-note {
+            text-align: center;
+            margin-top: 2.2rem;
+            font-size: 0.75rem;
+            color: #5f7e9a;
+            border-top: 1px solid #cde1ed;
+            padding-top: 1.5rem;
+            display: flex;
+            justify-content: center;
+            gap: 1rem;
+            flex-wrap: wrap;
+        }
+
+        @media (max-width: 700px) {
+            body {
+                padding: 1rem;
+            }
+            h1 {
+                font-size: 2rem;
+            }
+            .card-header h2 {
+                font-size: 1.35rem;
+            }
+            .global-countdown {
+                flex-direction: column;
+                gap: 1rem;
+                text-align: center;
+            }
+            .timer-digits {
+                justify-content: center;
+                gap: 0.8rem;
+            }
+            .time-unit {
+                min-width: 42px;
+            }
+            .time-number {
+                font-size: 1.5rem;
+            }
+            .exam-item {
+                flex-direction: column;
+                align-items: flex-start;
+            }
+            .date-block {
+                margin-bottom: 0.2rem;
+            }
+        }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <div class="hero">
+        <div class="logo-wrapper">
+            <div class="logo-circle">
+                <img src="zijunlogo.png" alt="Zijun Logo" onerror="this.onerror=null; this.src='https://placehold.co/70x70?text=ZJ';">
+            </div>
+        </div>
+        <div class="badge">📅 COUNTDOWN • STPM SEMESTER 2 2026</div>
+        <h1>Final Countdown</h1>
+        <div class="sub">Stay focused, conquer your papers</div>
+    </div>
+
+    <!-- Global dynamic countdown bar (nearest exam) -->
+    <div class="global-countdown" id="globalCountdownPanel">
+        <div class="next-info">
+            <div class="next-label">⚡ NEXT EXAM</div>
+            <div class="next-exam-name" id="nearestExamName">Loading...</div>
+            <div class="next-exam-date" id="nearestExamDate">—</div>
+        </div>
+        <div class="timer-digits" id="timerDigits">
+            <div class="time-unit"><div class="time-number" id="daysLeft">00</div><div class="time-label">Days</div></div>
+            <div class="time-unit"><div class="time-number" id="hoursLeft">00</div><div class="time-label">Hrs</div></div>
+            <div class="time-unit"><div class="time-number" id="minsLeft">00</div><div class="time-label">Mins</div></div>
+            <div class="time-unit"><div class="time-number" id="secsLeft">00</div><div class="time-label">Secs</div></div>
+        </div>
+    </div>
+
+    <div class="exam-sections">
+        <!-- TRIAL STPM SEM2 Card -->
+        <div class="card">
+            <div class="card-header">
+                <h2>📘 TRIAL STPM SEM2</h2>
+                <div class="countdown-pill">Mock Exam</div>
+            </div>
+            <div class="exam-list" id="trialList">
+                <!-- dynamic injected -->
+            </div>
+        </div>
+
+        <!-- OFFICIAL STPM SEM 2 Card -->
+        <div class="card">
+            <div class="card-header">
+                <h2>🎓 STPM SEM 2</h2>
+                <div class="countdown-pill">Actual Exam</div>
+            </div>
+            <div class="exam-list" id="officialList">
+                <!-- dynamic injected -->
+            </div>
+        </div>
+    </div>
+    <div class="footer-note">
+        <span>⏱️ Real-time countdown to every paper</span>
+        <span>✨ Powered by Zijun — Good luck!</span>
+    </div>
+</div>
+
+<script>
+    // ----------------------------------------------
+    // EXAM DATA (based on given schedule)
+    // ----------------------------------------------
+    const trialExams = [
+        { date: "2026-05-18", subjects: ["MUET READING", "PHYSICS 2"], dayName: "MON" },
+        { date: "2026-05-19", subjects: ["ICT 2", "BIOLOGY 2"], dayName: "TUE" },
+        { date: "2026-05-20", subjects: ["PENGAJIAN AM 2", "MUET LISTENING"], dayName: "WED" },
+        { date: "2026-05-21", subjects: ["CHEMISTRY 2", "MATHEMATIC 2", "MUET WRITING"], dayName: "THU" },
+        { date: "2026-05-22", subjects: ["MUET SPEAKING"], dayName: "FRI" }
+    ];
+
+    const officialExams = [
+        { date: "2026-06-29", subjects: ["PENGAJIAN AM 2", "BC 2"], dayName: "MON" },
+        { date: "2026-06-30", subjects: ["BIOLOGY 2", "ICT 2"], dayName: "TUE" },
+        { date: "2026-07-01", subjects: ["MATHEMATICS 2"], dayName: "WED" },
+        { date: "2026-07-02", subjects: ["CHEMISTRY 2"], dayName: "THU" },
+        { date: "2026-07-06", subjects: ["PHYSICS 2"], dayName: "MON" }
+    ];
+
+    // Helper: format date as "DD/MM/YYYY (DAY)"
+    function formatDateDisplay(dateStr, dayName) {
+        const d = new Date(dateStr);
+        const day = d.getDate();
+        const month = d.getMonth() + 1;
+        const year = d.getFullYear();
+        return `${day}/${month}/${year} (${dayName})`;
+    }
+
+    // Get days difference (based on date only, used for remaining text)
+    function getDaysDifference(targetDate) {
+        const today = new Date();
+        today.setHours(0, 0, 0, 0);
+        const target = new Date(targetDate);
+        target.setHours(0, 0, 0, 0);
+        const diffTime = target - today;
+        return Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+    }
+
+    function getRemainingText(targetDate) {
+        const diffDays = getDaysDifference(targetDate);
+        if (diffDays < 0) return "✅ Ended";
+        if (diffDays === 0) return "🔥 TODAY!";
+        if (diffDays === 1) return "⚠️ Tomorrow";
+        return `📅 ${diffDays} days left`;
+    }
+
+    function isUrgent(diffDays) {
+        return diffDays >= 0 && diffDays <= 3;
+    }
+
+    // Render specific exam list
+    function renderExamList(containerId, examsArray) {
+        const container = document.getElementById(containerId);
+        if (!container) return;
+        container.innerHTML = "";
+        examsArray.forEach(exam => {
+            const diffDays = getDaysDifference(exam.date);
+            const remainingText = getRemainingText(exam.date);
+            const urgent = isUrgent(diffDays) && diffDays >= 0;
+            const dateFormatted = formatDateDisplay(exam.date, exam.dayName);
+            const shortDate = dateFormatted.split(' ')[0]; // DD/MM/YYYY
+
+            const itemDiv = document.createElement("div");
+            itemDiv.className = "exam-item";
+
+            const dateBlock = document.createElement("div");
+            dateBlock.className = "date-block";
+            dateBlock.innerText = shortDate;
+            dateBlock.title = dateFormatted;
+
+            const detailsDiv = document.createElement("div");
+            detailsDiv.className = "exam-details";
+
+            const subjectsContainer = document.createElement("div");
+            subjectsContainer.className = "subject-list";
+            exam.subjects.forEach(sub => {
+                const badgeSpan = document.createElement("span");
+                badgeSpan.className = "subject-badge";
+                badgeSpan.innerText = sub;
+                subjectsContainer.appendChild(badgeSpan);
+            });
+
+            const remainingSpan = document.createElement("div");
+            remainingSpan.className = `day-remaining ${urgent ? 'highlight-urgent' : ''}`;
+            remainingSpan.innerText = remainingText;
+
+            detailsDiv.appendChild(subjectsContainer);
+            detailsDiv.appendChild(remainingSpan);
+            itemDiv.appendChild(dateBlock);
+            itemDiv.appendChild(detailsDiv);
+            container.appendChild(itemDiv);
+        });
+    }
+
+    // ----------------------------------------------
+    // Combined logic for nearest upcoming exam (with precise seconds)
+    // ----------------------------------------------
+    function getAllExamsCombined() {
+        const combined = [];
+        trialExams.forEach(exam => {
+            combined.push({
+                ...exam,
+                type: "TRIAL",
+                fullDisplay: `[TRIAL] ${exam.subjects.join(" & ")}`
+            });
+        });
+        officialExams.forEach(exam => {
+            combined.push({
+                ...exam,
+                type: "OFFICIAL",
+                fullDisplay: `[OFFICIAL] ${exam.subjects.join(" & ")}`
+            });
+        });
+        return combined;
+    }
+
+    function findNearestUpcomingExam() {
+        const now = new Date(); // current timestamp
+        const all = getAllExamsCombined();
+        let nearest = null;
+        let minDiffMs = Infinity;
+
+        for (let exam of all) {
+            const examDateStart = new Date(exam.date);
+            examDateStart.setHours(0, 0, 0, 0);
+            const diffMs = examDateStart - now;
+            // include today's exam if it's not passed yet (diffMs could be negative after midnight but before exam day ends? but logically exam day: if diffMs < -86400000 means yesterday)
+            if (diffMs >= -86400000) {  // show exam if it's today or future (allow today even if few hours left)
+                if (diffMs < minDiffMs) {
+                    minDiffMs = diffMs;
+                    nearest = exam;
+                }
+            }
+        }
+
+        if (!nearest && all.length) {
+            // All exams finished -> show last exam as ended
+            let lastExam = all.reduce((prev, curr) => new Date(prev.date) > new Date(curr.date) ? prev : curr);
+            return { ...lastExam, isOver: true };
+        }
+        return nearest ? { ...nearest, isOver: false, diffMs: minDiffMs } : null;
+    }
+
+    // Update global countdown bar (accurate seconds)
+    function updateGlobalCountdown() {
+        const nearestObj = findNearestUpcomingExam();
+        const nameSpan = document.getElementById("nearestExamName");
+        const dateSpan = document.getElementById("nearestExamDate");
+        const daysSpan = document.getElementById("daysLeft");
+        const hoursSpan = document.getElementById("hoursLeft");
+        const minsSpan = document.getElementById("minsLeft");
+        const secsSpan = document.getElementById("secsLeft");
+
+        if (!nearestObj) {
+            if (nameSpan) nameSpan.innerText = "No exams";
+            if (dateSpan) dateSpan.innerText = "—";
+            if (daysSpan) daysSpan.innerText = "00";
+            if (hoursSpan) hoursSpan.innerText = "00";
+            if (minsSpan) minsSpan.innerText = "00";
+            if (secsSpan) secsSpan.innerText = "00";
+            return;
+        }
+
+        if (nearestObj.isOver) {
+            if (nameSpan) nameSpan.innerText = `${nearestObj.fullDisplay} (Finished)`;
+            if (dateSpan) dateSpan.innerText = formatDateDisplay(nearestObj.date, nearestObj.dayName);
+            if (daysSpan) daysSpan.innerText = "00";
+            if (hoursSpan) hoursSpan.innerText = "00";
+            if (minsSpan) minsSpan.innerText = "00";
+            if (secsSpan) secsSpan.innerText = "00";
+            return;
+        }
+
+        const targetDate = new Date(nearestObj.date);
+        targetDate.setHours(0, 0, 0, 0);
+        const now = new Date();
+        let diffMs = targetDate - now;
+        
+        if (diffMs < 0) {
+            // just in case, re-check but treat as zero
+            diffMs = 0;
+        }
+        const totalSeconds = Math.floor(diffMs / 1000);
+        const days = Math.floor(totalSeconds / 86400);
+        const hours = Math.floor((totalSeconds % 86400) / 3600);
+        const minutes = Math.floor((totalSeconds % 3600) / 60);
+        const seconds = totalSeconds % 60;
+
+        if (nameSpan) nameSpan.innerText = nearestObj.fullDisplay;
+        if (dateSpan) dateSpan.innerText = formatDateDisplay(nearestObj.date, nearestObj.dayName);
+        if (daysSpan) daysSpan.innerText = days < 10 ? "0" + days : days;
+        if (hoursSpan) hoursSpan.innerText = hours < 10 ? "0" + hours : hours;
+        if (minsSpan) minsSpan.innerText = minutes < 10 ? "0" + minutes : minutes;
+        if (secsSpan) secsSpan.innerText = seconds < 10 ? "0" + seconds : seconds;
+    }
+
+    // refresh both cards remaining texts (due to dynamic day changes)
+    function refreshAllCards() {
+        renderExamList("trialList", trialExams);
+        renderExamList("officialList", officialExams);
+    }
+
+    // Periodic updates: global timer (every sec) + cards refresh (every 30 sec)
+    let globalInterval, cardRefreshInterval;
+
+    function startTimers() {
+        if (globalInterval) clearInterval(globalInterval);
+        globalInterval = setInterval(() => {
+            updateGlobalCountdown();
+        }, 1000);
+
+        if (cardRefreshInterval) clearInterval(cardRefreshInterval);
+        cardRefreshInterval = setInterval(() => {
+            refreshAllCards();
+            // also refresh nearest after possible date change
+            updateGlobalCountdown();
+        }, 30000);
+    }
+
+    // initial load
+    function init() {
+        renderExamList("trialList", trialExams);
+        renderExamList("officialList", officialExams);
+        updateGlobalCountdown();
+        startTimers();
+
+        // Optional: re-run when visibility changes to avoid lag
+        document.addEventListener("visibilitychange", () => {
+            if (!document.hidden) {
+                updateGlobalCountdown();
+                refreshAllCards();
+            }
+        });
+    }
+
+    init();
+</script>
+</body>
+</html>
