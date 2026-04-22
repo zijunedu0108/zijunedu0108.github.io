@@ -1,0 +1,552 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+    <!-- 网站图标 (Favicon) 使用 zijunlogo.png -->
+    <link rel="icon" type="image/png" href="zijunlogo.png">
+    <link rel="apple-touch-icon" href="zijunlogo.png">
+    <title>Chapter 8: Computer Program | Zijun Logo</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            line-height: 1.6;
+            background: #f0f7ff;
+            color: #1a2a3a;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 1300px;
+            margin: auto;
+            background: white;
+            border-radius: 32px;
+            box-shadow: 0 20px 40px rgba(0,0,0,0.1);
+            overflow: hidden;
+        }
+
+        /* header with custom logo */
+        .hero {
+            background: linear-gradient(135deg, #0b2b40, #1b4f6e);
+            color: white;
+            padding: 1.5rem 2rem;
+            display: flex;
+            align-items: center;
+            gap: 1.2rem;
+            flex-wrap: wrap;
+            justify-content: space-between;
+        }
+        .hero-text {
+            flex: 1;
+        }
+        .hero h1 {
+            font-size: 2rem;
+            margin-bottom: 0.25rem;
+            letter-spacing: -0.5px;
+        }
+        .hero p {
+            font-size: 1rem;
+            opacity: 0.9;
+        }
+        .logo-area img {
+            height: 60px;
+            width: auto;
+            border-radius: 12px;
+            background: rgba(255,255,255,0.15);
+            padding: 6px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.2);
+        }
+
+        /* navigation tabs */
+        .nav-tabs {
+            display: flex;
+            flex-wrap: wrap;
+            background: #eef2f7;
+            border-bottom: 2px solid #cbd5e1;
+            padding-left: 1rem;
+        }
+        .tab-btn {
+            background: transparent;
+            border: none;
+            padding: 1rem 1.8rem;
+            font-size: 1rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: 0.2s;
+            color: #2c3e4e;
+        }
+        .tab-btn:hover {
+            background: #dce5ef;
+        }
+        .tab-btn.active {
+            background: white;
+            color: #1e6f9f;
+            border-bottom: 3px solid #1e6f9f;
+            margin-bottom: -2px;
+        }
+
+        /* content panels */
+        .tab-panel {
+            display: none;
+            padding: 2rem 2rem;
+            animation: fade 0.2s ease;
+        }
+        .tab-panel.active-panel {
+            display: block;
+        }
+
+        @keyframes fade {
+            from { opacity: 0; transform: translateY(5px);}
+            to { opacity: 1; transform: translateY(0);}
+        }
+
+        /* cards & styling */
+        h2 {
+            color: #0f4c5f;
+            margin-top: 1rem;
+            margin-bottom: 1rem;
+            border-left: 6px solid #2c9cd4;
+            padding-left: 1rem;
+        }
+        h3 {
+            color: #1f6390;
+            margin: 1.5rem 0 0.5rem 0;
+        }
+        .grid-cards {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 1.5rem;
+            margin: 1.5rem 0;
+        }
+        .card {
+            background: #f9fcfd;
+            border-radius: 24px;
+            padding: 1.2rem 1.5rem;
+            box-shadow: 0 6px 14px rgba(0,0,0,0.03);
+            border: 1px solid #e2edf2;
+            flex: 1 1 260px;
+            transition: 0.2s;
+        }
+        .card:hover {
+            border-color: #bdd9e8;
+            box-shadow: 0 12px 20px rgba(0,0,0,0.05);
+        }
+        .badge {
+            background: #d9eaf3;
+            color: #0f5b7a;
+            padding: 0.2rem 0.8rem;
+            border-radius: 50px;
+            font-weight: bold;
+            display: inline-block;
+            margin-bottom: 0.8rem;
+            font-size: 0.8rem;
+        }
+        .code-block {
+            background: #1e2a36;
+            color: #eef4ff;
+            padding: 1rem;
+            border-radius: 18px;
+            overflow-x: auto;
+            font-family: 'Courier New', monospace;
+            margin: 1rem 0;
+        }
+        .error-example {
+            background: #ffe9e6;
+            border-left: 6px solid #d9534f;
+            padding: 1rem;
+            margin: 1rem 0;
+            border-radius: 14px;
+        }
+        .success-example {
+            background: #e0f7ea;
+            border-left: 6px solid #2e7d64;
+            padding: 1rem;
+            border-radius: 14px;
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 1.2rem 0;
+            background: #ffffff;
+            border-radius: 20px;
+            overflow: hidden;
+            box-shadow: 0 1px 2px rgba(0,0,0,0.05);
+        }
+        th, td {
+            border: 1px solid #d4dee5;
+            padding: 10px 12px;
+            text-align: left;
+            vertical-align: top;
+        }
+        th {
+            background: #e6f0f5;
+            font-weight: 700;
+        }
+        .quiz-question {
+            background: #fef9e6;
+            border-radius: 20px;
+            padding: 1.2rem;
+            margin: 1rem 0;
+        }
+        button.quiz-option {
+            display: block;
+            width: 100%;
+            text-align: left;
+            background: white;
+            border: 1px solid #cbdbe2;
+            border-radius: 40px;
+            padding: 0.6rem 1rem;
+            margin: 0.5rem 0;
+            cursor: pointer;
+            font-size: 0.95rem;
+            transition: 0.1s;
+        }
+        button.quiz-option:hover {
+            background: #eef2fa;
+            border-color: #5fa3c2;
+        }
+        .quiz-feedback {
+            margin-top: 0.5rem;
+            font-style: italic;
+        }
+        hr {
+            margin: 2rem 0;
+            border: none;
+            height: 2px;
+            background: linear-gradient(to right, #c0d9e8, transparent);
+        }
+        footer {
+            background: #eef3f8;
+            text-align: center;
+            padding: 1.5rem;
+            font-size: 0.85rem;
+            color: #2c5a74;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 12px;
+        }
+        footer img {
+            height: 28px;
+            width: auto;
+            opacity: 0.8;
+        }
+        @media (max-width: 700px) {
+            .tab-btn { padding: 0.7rem 1rem; font-size: 0.85rem; }
+            .tab-panel { padding: 1.2rem; }
+            .hero { flex-direction: column; text-align: center; }
+        }
+        .inline-icon {
+            font-size: 1.2rem;
+            vertical-align: middle;
+        }
+    </style>
+</head>
+<body>
+<div class="container">
+    <div class="hero">
+        <div class="hero-text">
+            <h1>📘 CHAPTER 8: COMPUTER PROGRAM</h1>
+            <p>From instructions to execution | Errors, languages, and real-world impact</p>
+        </div>
+        <div class="logo-area">
+            <!-- 标题图标 / 品牌logo: zijunlogo.png -->
+            <img src="zijunlogo.png" alt="Zijun Logo" title="Zijun Logo">
+        </div>
+    </div>
+
+    <div class="nav-tabs">
+        <button class="tab-btn active" data-tab="intro">📌 Introduction</button>
+        <button class="tab-btn" data-tab="langGenerations">💻 Languages & Generations</button>
+        <button class="tab-btn" data-tab="devEnv">⚙️ Dev Environment</button>
+        <button class="tab-btn" data-tab="errors">🐞 Programming Errors</button>
+        <button class="tab-btn" data-tab="quiz">🧠 Interactive Quiz</button>
+    </div>
+
+    <!-- PANEL 1: INTRODUCTION + PROGRAM DEFINITION -->
+    <div id="intro" class="tab-panel active-panel">
+        <h2>📌 What is a Computer Program?</h2>
+        <div class="grid-cards">
+            <div class="card"><span class="badge">🔍 Definition</span> A computer program is a set of logical instructions written in a programming language that directs a computer to perform specific tasks. Without programs, computers are useless.</div>
+            <div class="card"><span class="badge">🧠 Analogy: Recipe</span> Just like a recipe gives step‑by‑step cooking instructions, a program tells the CPU exactly what to do (input, processing, output).</div>
+            <div class="card"><span class="badge">⚡ Key fact</span> Programs can be written in different languages (Python, C++, Java) but achieve the same result if logic is correct.</div>
+        </div>
+
+        <h3>📜 Core Components of a Program</h3>
+        <ul>
+            <li><strong>Algorithms:</strong> logical step‑by‑step procedure to solve a problem.</li>
+            <li><strong>Data Structures:</strong> organizing data efficiently (lists, arrays).</li>
+            <li><strong>Syntax:</strong> grammatical rules of the programming language.</li>
+            <li><strong>Compilation/Interpretation:</strong> translation to machine code.</li>
+        </ul>
+        <div class="code-block">
+            # Example: Simple Python program<br>
+            name = input("Enter your name: ")<br>
+            print("Hello,", name, "! Welcome to programming.")
+        </div>
+        <div class="success-example">
+            ✅ <strong>Benefits of Programs:</strong> Automation, precision, solving complex problems, enabling apps, AI, and all digital experiences.
+        </div>
+        <div class="error-example">
+            ⚠️ <strong>Consequence of Bad Program:</strong> Crashes, security vulnerabilities, wrong calculations. That's why error-free code matters.
+        </div>
+        <h3>🎯 Real‑world Impact</h3>
+        <p>From mobile apps to medical devices, every digital system runs on programs. They are the invisible engines of modern society.</p>
+        <hr>
+        <h3>📌 Why Computers Need Programs</h3>
+        <p>Computers do not think; they strictly follow instructions. Programs bridge human intent and machine action.</p>
+    </div>
+
+    <!-- PANEL 2: PROGRAMMING LANGUAGES & GENERATIONS -->
+    <div id="langGenerations" class="tab-panel">
+        <h2>🌐 Types of Programming Languages</h2>
+        <p><strong>General-purpose:</strong> Python, Java, C++ — solve many problem types.<br>
+        <strong>Special-purpose:</strong> SQL (databases), MATLAB (numerical computing), LISP (AI).</p>
+        <div class="grid-cards">
+            <div class="card"><span class="badge">🐍 Python</span> High-level, readable, data science & web.</div>
+            <div class="card"><span class="badge">☕ Java</span> Android, enterprise systems.</div>
+            <div class="card"><span class="badge">⚡ C/C++</span> Performance, game dev, system software.</div>
+            <div class="card"><span class="badge">🌐 JavaScript</span> Interactive front‑end & back‑end.</div>
+        </div>
+        <h2>📅 Generations of Programming Languages</h2>
+        <table>
+            <tr><th>Generation</th><th>Type</th><th>Example</th><th>Pros / Cons</th></tr>
+            <tr><td>1GL</td><td>Machine Language</td><td>10110000 01100001</td><td>⚡ Fast, direct hardware control — ❌ Not portable, very cryptic.</td></tr>
+            <tr><td>2GL</td><td>Assembly Language</td><td>MOV AL, 61h</td><td>🧩 Mnemonics, still machine‑dependent, needs assembler.</td></tr>
+            <tr><td>3GL</td><td>High-Level (Procedural/OOP)</td><td>Python, C, Java</td><td>✅ Portable, human-readable, compiled/interpreted.</td></tr>
+            <tr><td>4GL</td><td>Non-procedural / Very high-level</td><td>SQL, FOCUS</td><td>🎯 Goal-oriented, database queries.</td></tr>
+            <tr><td>5GL</td><td>Natural / Constraint-based</td><td>Prolog, Mercury</td><td>🤖 AI, logic programming, solve using constraints.</td></tr>
+        </table>
+
+        <div class="success-example">
+            💡 <strong>Benefit of High-Level Languages (3GL):</strong> Easier to write, maintain, and portable across platforms.
+        </div>
+        <div class="error-example">
+            ⚠️ <strong>Downside of Low-Level (1GL/2GL):</strong> Each CPU type requires its own version, steep learning curve.
+        </div>
+        <h3>⚙️ Fifth Generation (5GL) in Action</h3>
+        <div class="code-block">
+            % Prolog example (logic based)<br>
+            human(socrates).<br>
+            mortal(X) :- human(X).<br>
+            ?- mortal(socrates).  % Output: true
+        </div>
+        <p>5GL focuses on <strong>what</strong> to solve, not <strong>how</strong> — essential in AI research.</p>
+    </div>
+
+    <!-- PANEL 3: PROGRAM DEVELOPMENT ENVIRONMENT (EDITING → EXECUTION) -->
+    <div id="devEnv" class="tab-panel">
+        <h2>🛠️ From Editing to Execution: Development Workflow</h2>
+        <div class="grid-cards">
+            <div class="card"><span class="badge">1️⃣ EDITING</span> Write source code using IDE (VS Code, PyCharm) or text editor (Notepad++).</div>
+            <div class="card"><span class="badge">2️⃣ COMPILING / INTERPRETING</span> Compiler translates all at once (C++), interpreter line‑by‑line (Python).</div>
+            <div class="card"><span class="badge">3️⃣ LINKING</span> Combines object code with libraries → executable file.</div>
+            <div class="card"><span class="badge">4️⃣ EXECUTION</span> CPU runs machine instructions → output.</div>
+            <div class="card"><span class="badge">🐞 DEBUGGING</span> Find & fix errors (breakpoints, watches).</div>
+        </div>
+        <h3>📁 Example: C Program Lifecycle</h3>
+        <div class="code-block">
+            // hello.c<br>
+            #include &lt;stdio.h&gt;<br>
+            int main() { printf("Hello, World!"); return 0; }<br>
+            // Compile: gcc hello.c -o hello<br>
+            // Execute: ./hello
+        </div>
+        <p><strong>Interpreted (Python):</strong> <code>python script.py</code> → no separate executable, translation on the fly.</p>
+        <table>
+            <tr><th>Stage</th><th>Tool / Process</th><th>Output</th></tr>
+            <tr><td>Editing</td><td>IDE / Editor</td><td>.c, .py, .java source files</td></tr>
+            <tr><td>Compilation</td><td>Compiler (gcc, javac)</td><td>Object code / bytecode</td></tr>
+            <tr><td>Linking</td><td>Linker</td><td>Executable (.exe, .out)</td></tr>
+            <tr><td>Execution</td><td>OS / CPU</td><td>Program results</td></tr>
+        </table>
+        <div class="success-example">
+            ✅ <strong>IDE Advantage:</strong> Integrated debugging, syntax highlighting, one-click build → accelerates development.
+        </div>
+        <h3>💡 Extra: Role of Preprocessor & Linker</h3>
+        <p>Preprocessor handles directives (#include), linker resolves references between modules. A missing header leads to linker errors.</p>
+    </div>
+
+    <!-- PANEL 4: PROGRAMMING ERRORS (RUNTIME, SYNTAX, LOGIC + DESIGN) -->
+    <div id="errors" class="tab-panel">
+        <h2>🐞 Types of Programming Errors</h2>
+        <div class="grid-cards">
+            <div class="card"><span class="badge">🔴 SYNTAX ERROR</span> Violation of language rules. <br> Example: missing semicolon, unmatched parentheses. <br> 🚫 Program won't run / compile.</div>
+            <div class="card"><span class="badge">⚠️ RUNTIME ERROR</span> Occurs during execution (division by zero, index out of range). <br> 💥 Program crashes.</div>
+            <div class="card"><span class="badge">🧠 LOGIC ERROR</span> Wrong output despite successful run. <br> Example: using wrong formula. <br> ❌ No error message, just wrong result.</div>
+            <div class="card"><span class="badge">📐 DESIGN ERROR</span> Flaw in planning/architecture (poor database schema, missing requirements). <br> ⚠️ Expensive to fix later.</div>
+        </div>
+        <h3>🔍 Examples in Code</h3>
+        <div class="code-block">
+            // SYNTAX ERROR (missing parenthesis)<br>
+            print("Hello World"   
+            
+            // RUNTIME ERROR (division by zero)<br>
+            result = 100 / 0  
+            
+            // LOGIC ERROR (incorrect average)<br>
+            average = a + b / 2   # should be (a+b)/2
+        </div>
+        <div class="error-example">
+            <strong>🚨 Consequences of Logic Error:</strong> A banking app might miscalculate interest, causing financial loss; safety‑critical systems could fail silently.
+        </div>
+        <h3>📊 Comparison Table</h3>
+        <table>
+            <tr><th>Error Type</th><th>When Detected</th><th>Error Message?</th><th>Example</th></tr>
+            <tr><td>Syntax Error</td><td>Compile/Interpret time</td><td>✅ Yes</td><td>Missing colon in Python</td></tr>
+            <tr><td>Runtime Error</td><td>During execution</td><td>✅ Yes (crash)</td><td>ZeroDivisionError</td></tr>
+            <tr><td>Logic Error</td><td>After execution (incorrect output)</td><td>❌ No</td><td>Wrong conditional &lt;= instead of &lt;</td></tr>
+        </table>
+        <div class="success-example">
+            🛠️ <strong>Prevention & Debugging:</strong> Use unit tests, code reviews, and debuggers. For design errors: prototyping, requirement validation.
+        </div>
+        <h3>➕ Design vs Implementation Error</h3>
+        <p><strong>Design error</strong> = flawed plan (e.g., missing encryption in design). <strong>Implementation error</strong> = correct plan but bad coding (e.g., miswritten condition). Both are critical, but design errors are more expensive to fix.</p>
+        <div class="code-block">
+            // Design error example (insecure by design): storing passwords in plain text.
+            // Implementation error: correct hash algorithm but wrong salt handling.
+        </div>
+    </div>
+
+    <!-- PANEL 5: INTERACTIVE QUIZ (mix of definitions, errors, development) -->
+    <div id="quiz" class="tab-panel">
+        <h2>🧠 Knowledge Check: Interactive Quiz</h2>
+        <p>Test your understanding of computer programs, languages, errors, and development process.</p>
+        <div id="quizContainer"></div>
+        <div style="margin-top: 1rem;">
+            <button id="checkQuizBtn" style="background: #1f6390; color:white; border:none; padding: 10px 24px; border-radius: 40px; cursor: pointer; font-weight: bold;">✅ Submit Answers</button>
+            <button id="resetQuizBtn" style="background: #ddd; margin-left: 10px; border:none; padding: 10px 20px; border-radius: 40px; cursor: pointer;">⟳ Reset</button>
+        </div>
+        <div id="quizOverallFeedback" style="margin-top: 1.5rem; font-weight: 500;"></div>
+    </div>
+    <footer>
+        <img src="zijunlogo.png" alt="Zijun Logo" style="height: 28px;"> 
+        <span>Chapter 8: Computer Program — integrated notes, examples, consequences & best practices. Powered by Zijun.</span>
+    </footer>
+</div>
+
+<script>
+    // ---------- QUIZ DATA (rich interactive) ----------
+    const quizData = [
+        { question: "What is a computer program?", options: ["A type of hardware", "A set of instructions for the computer", "A user manual", "A computer virus"], correct: 1, explanation: "A program is a set of instructions that directs a computer to perform tasks." },
+        { question: "Which error occurs when you divide by zero during program execution?", options: ["Syntax error", "Logic error", "Runtime error", "Design error"], correct: 2, explanation: "Division by zero is a classic runtime error – it crashes the program while running." },
+        { question: "What does a compiler do?", options: ["Executes code line by line", "Converts entire source code to machine language", "Manages memory allocation", "Creates UI design"], correct: 1, explanation: "A compiler translates all source code into machine code before execution." },
+        { question: "Which generation of programming language uses binary (0s and 1s) directly?", options: ["1GL (Machine Language)", "2GL (Assembly)", "3GL (High-level)", "4GL (SQL)"], correct: 0, explanation: "First-generation languages are machine language, executed directly by CPU." },
+        { question: "A program runs but gives wrong total. What type of error is most likely?", options: ["Syntax error", "Runtime error", "Logic error", "Linker error"], correct: 2, explanation: "Logic errors produce incorrect results without crashing the program." },
+        { question: "Which stage follows editing in a compiled language development cycle?", options: ["Execution", "Debugging", "Compilation", "Linking only"], correct: 2, explanation: "After writing code, the next step is compilation (translation to object code)." },
+        { question: "What is the role of an interpreter?", options: ["Translates & executes line-by-line", "Creates executable file once", "Optimizes hardware", "Manages databases"], correct: 0, explanation: "Interpreters read and execute code line by line at runtime." },
+        { question: "Which of these is a special-purpose programming language?", options: ["Python", "SQL", "C++", "Java"], correct: 1, explanation: "SQL is designed specifically for database querying and management." },
+        { question: "What makes logic errors harder to find than syntax errors?", options: ["They crash the computer", "No error message appears, only wrong output", "They require a supercomputer", "They appear only in comments"], correct: 1, explanation: "Logic errors produce no alerts; you must manually verify results." },
+        { question: "Which tool is commonly used to inspect variables and step through code to find bugs?", options: ["Compiler", "Text editor", "Debugger", "Linker"], correct: 2, explanation: "Debuggers allow breakpoints and variable inspection to locate logical errors." }
+    ];
+
+    let userSelections = new Array(quizData.length).fill(null);
+    let quizSubmitted = false;
+
+    function renderQuiz() {
+        const container = document.getElementById('quizContainer');
+        if (!container) return;
+        let html = '';
+        quizData.forEach((q, idx) => {
+            const selected = userSelections[idx];
+            html += `<div class="quiz-question" data-qidx="${idx}">
+                        <strong>Q${idx+1}. ${q.question}</strong><br>`;
+            q.options.forEach((opt, optIdx) => {
+                const isChecked = (selected === optIdx);
+                const checkedAttr = isChecked ? 'checked' : '';
+                html += `<label style="display:block; margin: 8px 0 4px 20px;">
+                            <input type="radio" name="q${idx}" value="${optIdx}" ${checkedAttr} class="quiz-radio" data-q="${idx}" data-opt="${optIdx}">
+                            ${opt}
+                         </label>`;
+            });
+            html += `<div class="quiz-feedback" id="fb-${idx}"></div></div>`;
+        });
+        container.innerHTML = html;
+
+        document.querySelectorAll('.quiz-radio').forEach(radio => {
+            radio.addEventListener('change', (e) => {
+                if (quizSubmitted) return;
+                const qIdx = parseInt(radio.getAttribute('data-q'));
+                const optVal = parseInt(radio.getAttribute('data-opt'));
+                userSelections[qIdx] = optVal;
+                const fbDiv = document.getElementById(`fb-${qIdx}`);
+                if (fbDiv) fbDiv.innerHTML = '';
+            });
+        });
+    }
+
+    function evaluateQuiz() {
+        if (quizSubmitted) {
+            document.getElementById('quizOverallFeedback').innerHTML = "⚠️ You have already submitted. Press Reset to try again.";
+            return;
+        }
+        let score = 0;
+        for (let i = 0; i < quizData.length; i++) {
+            const selected = userSelections[i];
+            const isCorrect = (selected === quizData[i].correct);
+            if (isCorrect) score++;
+            const fbDiv = document.getElementById(`fb-${i}`);
+            if (fbDiv) {
+                if (selected === null) {
+                    fbDiv.innerHTML = '<span style="color:#b85c00;">❓ Not answered.</span>';
+                } else if (isCorrect) {
+                    fbDiv.innerHTML = `<span style="color:#2b7a4b;">✅ Correct! ${quizData[i].explanation}</span>`;
+                } else {
+                    const correctAns = quizData[i].options[quizData[i].correct];
+                    fbDiv.innerHTML = `<span style="color:#bc4e2c;">❌ Incorrect. Correct answer: ${correctAns}. ${quizData[i].explanation}</span>`;
+                }
+            }
+        }
+        const total = quizData.length;
+        const percent = Math.round((score/total)*100);
+        document.getElementById('quizOverallFeedback').innerHTML = `🎯 You scored ${score} / ${total} (${percent}%). ${percent >= 70 ? 'Great understanding!' : 'Review the sections above to improve.'}`;
+        quizSubmitted = true;
+    }
+
+    function resetQuiz() {
+        userSelections = new Array(quizData.length).fill(null);
+        quizSubmitted = false;
+        renderQuiz();
+        document.getElementById('quizOverallFeedback').innerHTML = '';
+        for (let i = 0; i < quizData.length; i++) {
+            const fb = document.getElementById(`fb-${i}`);
+            if (fb) fb.innerHTML = '';
+        }
+    }
+
+    // TAB SWITCHING
+    const tabs = document.querySelectorAll('.tab-btn');
+    const panels = document.querySelectorAll('.tab-panel');
+    function activateTab(tabId) {
+        panels.forEach(panel => {
+            panel.classList.remove('active-panel');
+            if (panel.id === tabId) panel.classList.add('active-panel');
+        });
+        tabs.forEach(btn => {
+            btn.classList.remove('active');
+            if (btn.getAttribute('data-tab') === tabId) btn.classList.add('active');
+        });
+    }
+    tabs.forEach(btn => {
+        btn.addEventListener('click', () => {
+            const tabId = btn.getAttribute('data-tab');
+            activateTab(tabId);
+        });
+    });
+
+    window.addEventListener('DOMContentLoaded', () => {
+        renderQuiz();
+        const checkBtn = document.getElementById('checkQuizBtn');
+        const resetBtn = document.getElementById('resetQuizBtn');
+        if (checkBtn) checkBtn.addEventListener('click', evaluateQuiz);
+        if (resetBtn) resetBtn.addEventListener('click', resetQuiz);
+    });
+</script>
+</body>
+</html>
