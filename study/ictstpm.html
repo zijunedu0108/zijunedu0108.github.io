@@ -1,0 +1,175 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+    <title>ICT STPM | Terminal Archives</title>
+    <link rel="icon" type="image/png" href="/zijunlogo.png">
+    
+    <style>
+        :root {
+            --neon-blue: #00f2ff;
+            --panel-bg: rgba(20, 20, 25, 0.7); 
+            --border-glow: rgba(255, 255, 255, 0.1);
+            --text-main: #ffffff;
+            --ios-blur: blur(20px);
+        }
+
+        body, html {
+            margin: 0; padding: 0;
+            background-color: #000;
+            color: var(--text-main);
+            font-family: -apple-system, BlinkMacSystemFont, "SF Pro Text", sans-serif;
+            overflow-x: hidden;
+        }
+
+        /* 全局扫描线特效 */
+        body::before {
+            content: " ";
+            position: fixed; top: 0; left: 0; bottom: 0; right: 0;
+            background: linear-gradient(rgba(18, 16, 16, 0) 50%, rgba(0, 0, 0, 0.1) 50%);
+            z-index: 100;
+            background-size: 100% 4px;
+            pointer-events: none;
+        }
+
+        .bg-video {
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            z-index: -1; object-fit: cover; filter: brightness(0.3);
+        }
+
+        header {
+            padding: 15px 25px;
+            background: rgba(0, 0, 0, 0.5);
+            border-bottom: 0.5px solid rgba(255, 255, 255, 0.2);
+            display: flex; justify-content: space-between; align-items: center;
+            backdrop-filter: var(--ios-blur);
+            -webkit-backdrop-filter: var(--ios-blur);
+            z-index: 200; position: sticky; top: 0;
+        }
+
+        .logo-area { display: flex; align-items: center; gap: 12px; }
+        .logo-area img { width: 35px; height: 35px; border-radius: 8px; box-shadow: 0 0 10px rgba(0, 242, 255, 0.3); }
+
+        .container {
+            max-width: 900px; margin: 20px auto; padding: 0 20px 80px;
+            position: relative; z-index: 150;
+        }
+
+        /* 标题部分 */
+        .section-header {
+            text-align: center; margin: 40px 0;
+            animation: fadeIn 0.8s ease-out;
+        }
+        .section-header h1 { font-size: 28px; font-weight: 800; margin: 0; letter-spacing: -1px; }
+        .section-header p { font-family: monospace; font-size: 12px; color: var(--neon-blue); opacity: 0.8; margin-top: 8px; text-transform: uppercase; }
+
+        /* 列表容器 */
+        .menu-grid { 
+            display: flex; flex-direction: column; gap: 12px; 
+            width: 100%;
+        }
+
+        /* 章节卡片 - 统一为列表样式更符合手机端操作 */
+        .chapter-card {
+            background: var(--panel-bg);
+            backdrop-filter: var(--ios-blur);
+            -webkit-backdrop-filter: var(--ios-blur);
+            border: 1px solid var(--border-glow);
+            border-left: 4px solid var(--neon-blue); /* 侧边强调色 */
+            border-radius: 20px;
+            padding: 20px 25px;
+            text-decoration: none;
+            display: flex; align-items: center; justify-content: space-between;
+            transition: 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        .chapter-card:active {
+            transform: scale(0.97) translateX(5px);
+            background: rgba(255, 255, 255, 0.05);
+        }
+
+        .chapter-tag {
+            font-family: monospace; font-size: 11px;
+            font-weight: 600; color: var(--neon-blue);
+            margin-bottom: 4px; display: block;
+        }
+
+        .chapter-title { font-size: 17px; font-weight: 600; color: #fff; }
+
+        /* Chevron Icon */
+        .chevron {
+            width: 8px; height: 8px;
+            border-top: 2px solid var(--neon-blue);
+            border-right: 2px solid var(--neon-blue);
+            transform: rotate(45deg); opacity: 0.6;
+        }
+
+        .btn-back {
+            color: #fff; text-decoration: none; background: rgba(255,255,255,0.1);
+            padding: 8px 18px; border-radius: 15px; font-size: 11px; font-weight: 600;
+            border: 0.5px solid var(--border-glow); font-family: monospace;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        @media (max-width: 480px) {
+            .section-header h1 { font-size: 24px; }
+            .chapter-card { padding: 18px 20px; }
+        }
+    </style>
+</head>
+<body>
+
+    <video autoplay muted loop playsinline class="bg-video">
+        <source src="zijunbg.mp4" type="video/mp4">
+    </video>
+
+    <header>
+        <div class="logo-area">
+            <img src="/zijunlogo.png" alt="ZIJUN">
+            <div>
+                <div style="font-size: 15px; font-weight: 800; letter-spacing: 2px;">DATA_ARCHIVE</div>
+                <div style="font-size: 9px; opacity: 0.6;">// SUBJECT: ICT</div>
+            </div>
+        </div>
+        <a href="study.html" class="btn-back">CORE_RETURN</a>
+    </header>
+
+    <div class="container">
+        <div class="section-header">
+            <h1>ICT STPM</h1>
+            <p>> Semester 2 Learning Dataset</p>
+        </div>
+
+        <div class="menu-grid">
+            <a href="ict/chapter8.html" class="chapter-card">
+                <div>
+                    <span class="chapter-tag">UNIT_08</span>
+                    <span class="chapter-title">--</span>
+                </div>
+                <div class="chevron"></div>
+            </a>
+
+            <a href="biology/chapter9.html" class="chapter-card">
+                <div>
+                    <span class="chapter-tag">UNIT_09</span>
+                    <span class="chapter-title">Transport in Animals & Plants</span>
+                </div>
+                <div class="chevron"></div>
+            </a>
+
+
+        </div>
+
+        <p style="text-align: center; font-family: monospace; opacity: 0.3; font-size: 9px; margin-top: 60px; letter-spacing: 2px;">
+            // ACCESSING_UNIT_DATA... [OK]<br>
+            // END_OF_INDEX
+        </p>
+    </div>
+
+</body>
+</html>
