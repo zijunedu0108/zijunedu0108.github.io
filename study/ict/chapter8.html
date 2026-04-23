@@ -3,7 +3,6 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
-    <!-- 网站图标 (Favicon) 使用 zijunlogo.png -->
     <link rel="icon" type="image/png" href="/zijunlogo.png">
     <link rel="apple-touch-icon" href="/zijunlogo.png">
     <title>Chapter 8: Computer Program | Advanced Quiz + Leaderboard</title>
@@ -241,21 +240,24 @@
         }
         .quiz-feedback {
             margin-top: 0.5rem;
-            font-style: italic;
-            padding: 0.5rem;
+            padding: 0.75rem;
             border-radius: 12px;
+            font-style: normal;
         }
         .correct-feedback {
             background: #d4edda;
             color: #155724;
+            border-left: 4px solid #28a745;
         }
         .incorrect-feedback {
             background: #f8d7da;
             color: #721c24;
+            border-left: 4px solid #dc3545;
         }
         .unanswered-feedback {
             background: #fff3cd;
             color: #856404;
+            border-left: 4px solid #ffc107;
         }
         hr {
             margin: 2rem 0;
@@ -289,6 +291,9 @@
             font-weight: bold;
             margin-right: 10px;
         }
+        .btn-primary:hover {
+            background: #0f4c6e;
+        }
         .btn-secondary {
             background: #ddd;
             border: none;
@@ -296,13 +301,15 @@
             border-radius: 40px;
             cursor: pointer;
         }
+        .btn-secondary:hover {
+            background: #ccc;
+        }
         @media (max-width: 700px) {
             .tab-btn { padding: 0.7rem 1rem; font-size: 0.85rem; }
             .tab-panel { padding: 1.2rem; }
             .hero { flex-direction: column; text-align: center; }
             .quiz-header-stats { flex-direction: column; align-items: stretch; }
         }
-        /* Additional nota styling */
         .note-highlight {
             background: #e8f4fd;
             padding: 1rem;
@@ -336,7 +343,7 @@
         <button class="tab-btn" data-tab="quiz">🧠 Smart Quiz</button>
     </div>
 
-    <!-- PANEL 1: INTRODUCTION (Enhanced Notes) -->
+    <!-- PANEL 1: INTRODUCTION -->
     <div id="intro" class="tab-panel active-panel">
         <h2>📌 What is a Computer Program?</h2>
         <div class="grid-cards">
@@ -359,7 +366,7 @@
         </div>
     </div>
 
-    <!-- PANEL 2: LANGUAGES & GENERATIONS (Enhanced) -->
+    <!-- PANEL 2: LANGUAGES & GENERATIONS -->
     <div id="langGenerations" class="tab-panel">
         <h2>🌐 Types of Programming Languages</h2>
         <p><strong>General-purpose:</strong> Python, Java, C++ — solve many problem types across domains.<br>
@@ -386,7 +393,7 @@
         </div>
     </div>
 
-    <!-- PANEL 3: DEV ENVIRONMENT (Enhanced) -->
+    <!-- PANEL 3: DEV ENVIRONMENT -->
     <div id="devEnv" class="tab-panel">
         <h2>🛠️ From Editing to Execution: Complete Workflow</h2>
         <div class="grid-cards">
@@ -404,7 +411,7 @@
         </div>
     </div>
 
-    <!-- PANEL 4: ERRORS (Enhanced with detailed examples) -->
+    <!-- PANEL 4: ERRORS -->
     <div id="errors" class="tab-panel">
         <h2>🐞 Types of Programming Errors</h2>
         <div class="grid-cards">
@@ -441,7 +448,7 @@
     <!-- PANEL 5: SMART QUIZ -->
     <div id="quiz" class="tab-panel">
         <h2>🧠 Smart Quiz Challenge</h2>
-        <p>🔹 10 random questions from master bank | 🔹 Difficulty levels | 🔹 Timer & Leaderboard | 🔹 After submission, correct answers are shown</p>
+        <p>🔹 10 random questions from master bank | 🔹 Difficulty levels | 🔹 Timer & Leaderboard | 🔹 After submission, correct answers are shown with colored backgrounds</p>
         
         <div class="quiz-header-stats">
             <div class="timer-box">⏱️ Time: <span id="timerDisplay">00:00</span></div>
@@ -474,7 +481,7 @@
 </div>
 
 <script>
-    // ---------- MASTER QUESTION BANK (Enhanced with more questions) ----------
+    // MASTER QUESTION BANK
     const masterQuestions = [
         { question: "What is a computer program?", options: ["A type of hardware", "A set of instructions for the computer", "A user manual", "A computer virus"], correct: 1, explanation: "A program is a set of instructions that directs a computer to perform specific tasks.", difficulty: "Easy" },
         { question: "Which error occurs when you divide by zero?", options: ["Syntax error", "Logic error", "Runtime error", "Design error"], correct: 2, explanation: "Division by zero crashes the program during execution → runtime error.", difficulty: "Easy" },
@@ -500,6 +507,9 @@
     let timerSeconds = 0;
     let timerInterval = null;
     let leaderboard = JSON.parse(localStorage.getItem("programmingQuizLeaderboard") || "[]");
+    
+    // Store feedback HTML for each question to preserve after submit
+    let feedbackCache = [];
     
     const quizContainer = document.getElementById("quizContainer");
     const timerDisplay = document.getElementById("timerDisplay");
@@ -550,10 +560,22 @@
         return correctCount;
     }
     
+    function generateFeedbackHTML(idx, selected, q) {
+        const correctAnswerText = q.options[q.correct];
+        if (selected === -1) {
+            return `<div class="quiz-feedback unanswered-feedback">❓ Not answered. Correct answer: ${correctAnswerText}. ${q.explanation}</div>`;
+        } else if (selected === q.correct) {
+            return `<div class="quiz-feedback correct-feedback">✅ Correct! ${q.explanation}</div>`;
+        } else {
+            return `<div class="quiz-feedback incorrect-feedback">❌ Incorrect. Your answer: ${q.options[selected]}. Correct answer: ${correctAnswerText}. ${q.explanation}</div>`;
+        }
+    }
+    
     function renderQuiz() {
         if (!quizContainer) return;
         let html = '';
-        currentQuestions.forEach((q, idx) => {
+        for (let idx = 0; idx < currentQuestions.length; idx++) {
+            const q = currentQuestions[idx];
             const selected = userAnswers[idx];
             const difficultyClass = q.difficulty === "Easy" ? "difficulty-easy" : (q.difficulty === "Medium" ? "difficulty-medium" : "difficulty-hard");
             html += `<div class="quiz-question" data-qidx="${idx}">
@@ -570,9 +592,16 @@
                             ${opt}
                          </label>`;
             });
-            html += `<div class="quiz-feedback" id="fb-${idx}"></div></div>`;
-        });
+            // If quiz is locked, show feedback; otherwise show empty div
+            if (quizLocked && feedbackCache[idx]) {
+                html += feedbackCache[idx];
+            } else {
+                html += `<div class="quiz-feedback" id="fb-${idx}"></div>`;
+            }
+            html += `</div>`;
+        }
         quizContainer.innerHTML = html;
+        
         if (!quizLocked) {
             document.querySelectorAll('.quiz-radio').forEach(radio => {
                 radio.addEventListener('change', (e) => {
@@ -591,16 +620,13 @@
     function loadNewQuizSet() {
         stopTimer();
         quizLocked = false;
+        feedbackCache = [];
         currentQuestions = getRandomQuestions();
         userAnswers = new Array(currentQuestions.length).fill(-1);
         totalQuestionsSpan.textContent = currentQuestions.length;
         startTimer();
         renderQuiz();
         overallFeedbackDiv.innerHTML = '';
-        for (let i = 0; i < currentQuestions.length; i++) {
-            const fb = document.getElementById(`fb-${i}`);
-            if (fb) fb.innerHTML = '';
-        }
         updateProgressAndScore();
     }
     
@@ -609,26 +635,17 @@
             overallFeedbackDiv.innerHTML = "⚠️ You already submitted this set. Press 'New Random Set' to try again!";
             return;
         }
+        
         let score = 0;
+        // Generate feedback for all questions and store in cache
+        feedbackCache = [];
         for (let i = 0; i < currentQuestions.length; i++) {
             const selected = userAnswers[i];
             const isCorrect = (selected === currentQuestions[i].correct);
             if (isCorrect) score++;
-            const fbDiv = document.getElementById(`fb-${i}`);
-            if (fbDiv) {
-                const correctAnswerText = currentQuestions[i].options[currentQuestions[i].correct];
-                if (selected === -1) {
-                    fbDiv.innerHTML = `<span style="color:#856404;">❓ Not answered. Correct answer: ${correctAnswerText}. ${currentQuestions[i].explanation}</span>`;
-                    fbDiv.className = "quiz-feedback unanswered-feedback";
-                } else if (isCorrect) {
-                    fbDiv.innerHTML = `<span style="color:#155724;">✅ Correct! ${currentQuestions[i].explanation}</span>`;
-                    fbDiv.className = "quiz-feedback correct-feedback";
-                } else {
-                    fbDiv.innerHTML = `<span style="color:#721c24;">❌ Incorrect. Your answer: ${currentQuestions[i].options[selected]}. Correct answer: ${correctAnswerText}. ${currentQuestions[i].explanation}</span>`;
-                    fbDiv.className = "quiz-feedback incorrect-feedback";
-                }
-            }
+            feedbackCache[i] = generateFeedbackHTML(i, selected, currentQuestions[i]);
         }
+        
         const percent = Math.round((score / currentQuestions.length) * 100);
         const timeTaken = timerSeconds;
         overallFeedbackDiv.innerHTML = `🎯 You scored ${score} / ${currentQuestions.length} (${percent}%). Time: ${Math.floor(timeTaken/60)}:${(timeTaken%60).toString().padStart(2,'0')}. ${percent >= 70 ? 'Great!' : 'Review notes and try again!'}`;
@@ -640,7 +657,7 @@
         localStorage.setItem("programmingQuizLeaderboard", JSON.stringify(leaderboard));
         updateLeaderboardUI();
         quizLocked = true;
-        renderQuiz();
+        renderQuiz(); // Re-render with feedback
     }
     
     function resetCurrentAnswers() {
@@ -649,12 +666,9 @@
             return;
         }
         userAnswers.fill(-1);
+        feedbackCache = [];
         renderQuiz();
         updateProgressAndScore();
-        for (let i = 0; i < currentQuestions.length; i++) {
-            const fb = document.getElementById(`fb-${i}`);
-            if (fb) { fb.innerHTML = ''; fb.className = "quiz-feedback"; }
-        }
         overallFeedbackDiv.innerHTML = "Answers reset. Keep going!";
     }
     
@@ -678,6 +692,7 @@
     function init() {
         currentQuestions = getRandomQuestions();
         userAnswers = new Array(currentQuestions.length).fill(-1);
+        feedbackCache = [];
         totalQuestionsSpan.textContent = currentQuestions.length;
         startTimer();
         renderQuiz();
