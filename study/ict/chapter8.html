@@ -242,6 +242,20 @@
         .quiz-feedback {
             margin-top: 0.5rem;
             font-style: italic;
+            padding: 0.5rem;
+            border-radius: 12px;
+        }
+        .correct-feedback {
+            background: #d4edda;
+            color: #155724;
+        }
+        .incorrect-feedback {
+            background: #f8d7da;
+            color: #721c24;
+        }
+        .unanswered-feedback {
+            background: #fff3cd;
+            color: #856404;
         }
         hr {
             margin: 2rem 0;
@@ -288,6 +302,18 @@
             .hero { flex-direction: column; text-align: center; }
             .quiz-header-stats { flex-direction: column; align-items: stretch; }
         }
+        /* Additional nota styling */
+        .note-highlight {
+            background: #e8f4fd;
+            padding: 1rem;
+            border-radius: 16px;
+            margin: 1rem 0;
+            border-left: 4px solid #1e6f9f;
+        }
+        .key-point {
+            font-weight: bold;
+            color: #0f4c5f;
+        }
     </style>
 </head>
 <body>
@@ -310,7 +336,7 @@
         <button class="tab-btn" data-tab="quiz">🧠 Smart Quiz</button>
     </div>
 
-    <!-- PANEL 1: INTRODUCTION -->
+    <!-- PANEL 1: INTRODUCTION (Enhanced Notes) -->
     <div id="intro" class="tab-panel active-panel">
         <h2>📌 What is a Computer Program?</h2>
         <div class="grid-cards">
@@ -319,54 +345,104 @@
             <div class="card"><span class="badge">⚡ Key fact</span> Programs can be written in different languages (Python, C++, Java) but achieve the same result if logic is correct.</div>
         </div>
         <h3>📜 Core Components of a Program</h3>
-        <ul><li><strong>Algorithms:</strong> logical step‑by‑step procedure.</li><li><strong>Data Structures:</strong> organizing data efficiently.</li><li><strong>Syntax:</strong> grammatical rules.</li><li><strong>Compilation/Interpretation:</strong> translation to machine code.</li></ul>
+        <ul>
+            <li><strong>Algorithms:</strong> logical step‑by‑step procedure to solve a problem.</li>
+            <li><strong>Data Structures:</strong> organizing data efficiently (arrays, lists, trees).</li>
+            <li><strong>Syntax:</strong> grammatical rules of the programming language.</li>
+            <li><strong>Compilation/Interpretation:</strong> translation to machine code for execution.</li>
+        </ul>
         <div class="code-block"># Example: Simple Python program<br>name = input("Enter your name: ")<br>print("Hello,", name, "! Welcome to programming.")</div>
-        <div class="success-example">✅ <strong>Benefits:</strong> Automation, precision, solving complex problems.</div>
-        <div class="error-example">⚠️ <strong>Consequence of Bad Program:</strong> Crashes, security vulnerabilities, wrong calculations.</div>
+        <div class="success-example">✅ <strong>Benefits of Programs:</strong> Automation of repetitive tasks, high precision, ability to solve complex mathematical and logical problems, powering everything from calculators to artificial intelligence.</div>
+        <div class="error-example">⚠️ <strong>Consequences of Bad Programs:</strong> System crashes, security vulnerabilities (hacking), incorrect financial calculations, data loss, and even safety risks in medical or automotive systems.</div>
+        <div class="note-highlight">
+            <span class="key-point">📌 Program Execution Flow:</span> Input → Processing → Output → Storage. Every program follows this fundamental model to transform data into meaningful results.
+        </div>
     </div>
 
-    <!-- PANEL 2: LANGUAGES & GENERATIONS -->
+    <!-- PANEL 2: LANGUAGES & GENERATIONS (Enhanced) -->
     <div id="langGenerations" class="tab-panel">
         <h2>🌐 Types of Programming Languages</h2>
-        <p><strong>General-purpose:</strong> Python, Java, C++ — solve many problem types.<br><strong>Special-purpose:</strong> SQL, MATLAB, LISP.</p>
-        <div class="grid-cards"><div class="card"><span class="badge">🐍 Python</span> High-level, data science & web.</div><div class="card"><span class="badge">☕ Java</span> Android, enterprise.</div><div class="card"><span class="badge">⚡ C/C++</span> Performance, game dev.</div></div>
+        <p><strong>General-purpose:</strong> Python, Java, C++ — solve many problem types across domains.<br>
+        <strong>Special-purpose:</strong> SQL (databases), MATLAB (numerical computing), LISP (AI research), R (statistics).</p>
+        <div class="grid-cards">
+            <div class="card"><span class="badge">🐍 Python</span> High-level, readable, data science, web, AI.</div>
+            <div class="card"><span class="badge">☕ Java</span> Android, enterprise systems, cross-platform.</div>
+            <div class="card"><span class="badge">⚡ C/C++</span> Performance-critical apps, game engines, OS.</div>
+            <div class="card"><span class="badge">📊 SQL</span> Special-purpose: database querying.</div>
+        </div>
         <h2>📅 Generations of Programming Languages</h2>
-        <table><tr><th>Generation</th><th>Type</th><th>Example</th><th>Pros / Cons</th></tr>
-        <tr><td>1GL</td><td>Machine Language</td><td>10110000</td><td>⚡ Fast, ❌ Not portable</td></tr>
-        <tr><td>2GL</td><td>Assembly</td><td>MOV AL, 61h</td><td>🧩 Mnemonics, machine‑dependent</td></tr>
-        <tr><td>3GL</td><td>High-Level</td><td>Python, C</td><td>✅ Portable, human-readable</td></tr>
-        <tr><td>4GL</td><td>Very High-Level</td><td>SQL</td><td>🎯 Goal-oriented</td></tr>
-        <tr><td>5GL</td><td>Natural/Constraint</td><td>Prolog</td><td>🤖 AI, logic solving</td></tr>
+        <table>
+            <tr><th>Generation</th><th>Type</th><th>Example</th><th>Pros / Cons</th></tr>
+            <tr><td style="background:#f0f0f0;">1GL</td><td>Machine Language</td><td>10110000 01100001</td><td>⚡ Fastest, direct hardware control — ❌ Not portable, extremely cryptic</td></tr>
+            <tr><td style="background:#f0f0f0;">2GL</td><td>Assembly Language</td><td>MOV AL, 61h</td><td>🧩 Mnemonics easier than binary, still machine‑dependent, needs assembler</td></tr>
+            <tr><td style="background:#f0f0f0;">3GL</td><td>High-Level (Procedural/OOP)</td><td>Python, C, Java</td><td>✅ Portable, human-readable, compiled/interpreted — most popular today</td></tr>
+            <tr><td style="background:#f0f0f0;">4GL</td><td>Very High-Level / Non-procedural</td><td>SQL, NOMAD</td><td>🎯 Goal-oriented, database queries, less coding</td></tr>
+            <tr><td style="background:#f0f0f0;">5GL</td><td>Natural / Constraint-based</td><td>Prolog, Mercury</td><td>🤖 AI, logic programming, solve using constraints rather than algorithms</td></tr>
         </table>
+        <div class="success-example">💡 <strong>Benefit of High-Level Languages (3GL):</strong> Easier to write, maintain, debug, and portable across different platforms (Windows, macOS, Linux).</div>
+        <div class="error-example">⚠️ <strong>Downside of Low-Level (1GL/2GL):</strong> Each CPU architecture requires its own version, steep learning curve, error-prone, not portable.</div>
+        <div class="note-highlight">
+            <span class="key-point">📌 5GL in Action:</span> Prolog uses facts and rules. Example: <code>human(socrates). mortal(X) :- human(X).</code> Query <code>mortal(socrates)</code> returns true without explicit algorithm.
+        </div>
     </div>
 
-    <!-- PANEL 3: DEV ENVIRONMENT -->
+    <!-- PANEL 3: DEV ENVIRONMENT (Enhanced) -->
     <div id="devEnv" class="tab-panel">
-        <h2>🛠️ From Editing to Execution</h2>
-        <div class="grid-cards"><div class="card"><span class="badge">1️⃣ EDITING</span> IDE / text editor</div><div class="card"><span class="badge">2️⃣ COMPILING</span> Compiler / Interpreter</div><div class="card"><span class="badge">3️⃣ LINKING</span> Linker → executable</div><div class="card"><span class="badge">4️⃣ EXECUTION</span> CPU runs code</div></div>
-        <div class="code-block">// hello.c<br>#include &lt;stdio.h&gt;<br>int main() { printf("Hello World"); return 0; }</div>
-        <div class="success-example">✅ IDE Advantage: Integrated debugging, syntax highlighting, faster development.</div>
+        <h2>🛠️ From Editing to Execution: Complete Workflow</h2>
+        <div class="grid-cards">
+            <div class="card"><span class="badge">1️⃣ EDITING</span> Write source code using IDE (VS Code, PyCharm) or text editor (Notepad++, Sublime). Save with proper extension (.c, .py, .java).</div>
+            <div class="card"><span class="badge">2️⃣ PREPROCESSING</span> (C/C++) Handles directives like #include, #define. Expands macros.</div>
+            <div class="card"><span class="badge">3️⃣ COMPILING</span> Compiler translates source → assembly → object code. Checks for syntax errors.</div>
+            <div class="card"><span class="badge">4️⃣ LINKING</span> Linker combines object files + libraries → single executable file (.exe, .out).</div>
+            <div class="card"><span class="badge">5️⃣ EXECUTION</span> OS loader loads executable into RAM; CPU fetches, decodes, and executes instructions.</div>
+            <div class="card"><span class="badge">🐞 DEBUGGING</span> Using debuggers (breakpoints, watch variables) to find and fix runtime/logic errors.</div>
+        </div>
+        <div class="code-block">// hello.c - C program lifecycle<br>#include &lt;stdio.h&gt;<br>int main() { printf("Hello World"); return 0; }<br>// Compile: gcc hello.c -o hello<br>// Execute: ./hello</div>
+        <div class="success-example">✅ <strong>IDE Advantage:</strong> Integrated Development Environment bundles editor, compiler, debugger, version control → accelerates development, reduces errors, provides code completion and real-time syntax checking.</div>
+        <div class="note-highlight">
+            <span class="key-point">🔁 Interpreted vs Compiled:</span> Interpreted languages (Python, JavaScript) are translated line-by-line at runtime → easier testing but slower execution. Compiled languages (C, C++) are fully translated beforehand → faster execution but longer edit-compile-debug cycle.
+        </div>
     </div>
 
-    <!-- PANEL 4: ERRORS -->
+    <!-- PANEL 4: ERRORS (Enhanced with detailed examples) -->
     <div id="errors" class="tab-panel">
         <h2>🐞 Types of Programming Errors</h2>
-        <div class="grid-cards"><div class="card"><span class="badge">🔴 SYNTAX</span> Violation of language rules → won't compile.</div><div class="card"><span class="badge">⚠️ RUNTIME</span> Division by zero, crashes during execution.</div><div class="card"><span class="badge">🧠 LOGIC</span> Wrong output, no error message.</div><div class="card"><span class="badge">📐 DESIGN</span> Flawed architecture, expensive to fix.</div></div>
-        <div class="code-block">// Syntax: missing parenthesis<br>print("Hello"<br>// Runtime: 10/0<br>// Logic: a + b / 2 (should be (a+b)/2)</div>
-        <h3>📊 Comparison</h3>
-        <table><tr><th>Error Type</th><th>When Detected</th><th>Message?</th></tr>
-        <tr><td>Syntax</td><td>Compile time</td><td>✅ Yes</td></tr>
-        <tr><td>Runtime</td><td>During execution</td><td>✅ Yes (crash)</td></tr>
-        <tr><td>Logic</td><td>After execution</td><td>❌ No</td></tr>
+        <div class="grid-cards">
+            <div class="card"><span class="badge">🔴 SYNTAX ERROR</span> Violation of language grammar rules. Example: missing semicolon, unmatched brackets, misspelled keyword. 🚫 Program won't compile/run.</div>
+            <div class="card"><span class="badge">⚠️ RUNTIME ERROR</span> Occurs during execution. Example: division by zero, accessing invalid array index, null pointer dereference. 💥 Program crashes.</div>
+            <div class="card"><span class="badge">🧠 LOGIC ERROR</span> Program runs but produces wrong output due to flawed algorithm. Example: using wrong formula or incorrect condition. ❌ No error message, just wrong results.</div>
+            <div class="card"><span class="badge">📐 DESIGN ERROR</span> Flaw in planning/architecture phase. Example: poor database schema, missing security requirements, inefficient system design. ⚠️ Expensive to fix after implementation.</div>
+        </div>
+        <h3>🔍 Code Examples</h3>
+        <div class="code-block">
+            // SYNTAX ERROR (missing closing parenthesis)
+            print("Hello World"
+            
+            // RUNTIME ERROR (division by zero)
+            int x = 10 / 0;
+            
+            // LOGIC ERROR (incorrect average calculation)
+            average = a + b / 2;   // Should be (a + b) / 2
+        </div>
+        <h3>📊 Comparison Table</h3>
+        <table>
+            <tr><th>Error Type</th><th>When Detected</th><th>Error Message?</th><th>Detection Difficulty</th><th>Example</th></tr>
+            <tr><td style="background:#f0f0f0;">Syntax</td><td>Compile/Interpret time</td><td>✅ Yes</td><td>Easy (compiler points to line)</td><td>Missing colon in Python</td></tr>
+            <tr><td style="background:#f0f0f0;">Runtime</td><td>During execution</td><td>✅ Yes (crash)</td><td>Medium (stack trace helps)</td><td>ZeroDivisionError</td></tr>
+            <tr><td style="background:#f0f0f0;">Logic</td><td>After execution (incorrect output)</td><td>❌ No</td><td>Hard (requires testing)</td><td>Wrong condition &lt;= instead of &lt;</td></tr>
+            <tr><td style="background:#f0f0f0;">Design</td><td>During testing or deployment</td><td>❌ No direct message</td><td>Very Hard (systemic)</td><td>Missing authentication in design</td></tr>
         </table>
+        <div class="success-example">🛠️ <strong>Debugging Strategies:</strong> Use print statements, debugger breakpoints, unit tests, code reviews. For logic errors: test with known inputs and verify outputs. For design errors: prototyping and requirement validation.</div>
+        <div class="note-highlight">
+            <span class="key-point">💡 Pro Tip:</span> Logic errors are the most dangerous because they silently produce wrong results. Always write test cases to verify program behavior.
+        </div>
     </div>
 
-    <!-- PANEL 5: SMART QUIZ (Random 10 questions, timer, progress, leaderboard, difficulty) -->
+    <!-- PANEL 5: SMART QUIZ -->
     <div id="quiz" class="tab-panel">
         <h2>🧠 Smart Quiz Challenge</h2>
-        <p>🔹 10 random questions from the master题库 | 🔹 Difficulty levels | 🔹 Timer & Leaderboard</p>
+        <p>🔹 10 random questions from master bank | 🔹 Difficulty levels | 🔹 Timer & Leaderboard | 🔹 After submission, correct answers are shown</p>
         
-        <!-- Quiz Stats Bar -->
         <div class="quiz-header-stats">
             <div class="timer-box">⏱️ Time: <span id="timerDisplay">00:00</span></div>
             <div class="progress-box">📊 Progress: <span id="progressCount">0</span> / <span id="totalQuestions">10</span> answered</div>
@@ -382,7 +458,6 @@
         </div>
         <div id="quizOverallFeedback" style="margin-top: 1rem; font-weight: 500;"></div>
         
-        <!-- Leaderboard Panel -->
         <div class="leaderboard">
             <h3>🏅 Top Performers (Leaderboard)</h3>
             <ol id="leaderboardList">
@@ -394,43 +469,38 @@
     
     <footer>
         <img src="/zijunlogo.png" alt="Zijun Logo" style="height: 28px;"> 
-        <span>Chapter 8: Computer Program — Random quiz, timer, difficulty & leaderboard. Powered by Zijun.</span>
+        <span>Chapter 8: Computer Program — Complete notes + random quiz with answer reveal, timer, difficulty & leaderboard. Powered by Zijun.</span>
     </footer>
 </div>
 
 <script>
-    // ---------- MASTER QUESTION BANK (30+ questions with difficulty) ----------
+    // ---------- MASTER QUESTION BANK (Enhanced with more questions) ----------
     const masterQuestions = [
-        { question: "What is a computer program?", options: ["A type of hardware", "A set of instructions for the computer", "A user manual", "A computer virus"], correct: 1, explanation: "A program directs a computer to perform tasks.", difficulty: "Easy" },
-        { question: "Which error occurs when you divide by zero?", options: ["Syntax error", "Logic error", "Runtime error", "Design error"], correct: 2, explanation: "Division by zero crashes the program at runtime.", difficulty: "Easy" },
-        { question: "What does a compiler do?", options: ["Executes line by line", "Converts source code to machine language", "Manages memory", "Creates UI"], correct: 1, explanation: "Compiler translates entire code before execution.", difficulty: "Easy" },
-        { question: "Which generation uses binary directly?", options: ["1GL", "2GL", "3GL", "4GL"], correct: 0, explanation: "Machine language (1GL) is binary.", difficulty: "Easy" },
-        { question: "A program runs but gives wrong total. Which error?", options: ["Syntax", "Runtime", "Logic", "Linker"], correct: 2, explanation: "Logic errors produce incorrect results without crashing.", difficulty: "Medium" },
-        { question: "What is the role of an interpreter?", options: ["Translates & executes line-by-line", "Creates executable file", "Optimizes hardware", "Manages databases"], correct: 0, explanation: "Interpreters execute code line by line at runtime.", difficulty: "Medium" },
-        { question: "Which is a special-purpose language?", options: ["Python", "SQL", "C++", "Java"], correct: 1, explanation: "SQL is for database queries.", difficulty: "Easy" },
-        { question: "What makes logic errors hard to find?", options: ["They crash the PC", "No error message, just wrong output", "Require supercomputer", "Only in comments"], correct: 1, explanation: "No error alert appears; logic flaws need manual testing.", difficulty: "Medium" },
-        { question: "Which tool inspects variables step-by-step?", options: ["Compiler", "Text editor", "Debugger", "Linker"], correct: 2, explanation: "Debuggers allow breakpoints and variable inspection.", difficulty: "Easy" },
-        { question: "What is an IDE?", options: ["Integrated Development Environment", "Internet Data Engine", "Internal Debugger", "Code Compiler"], correct: 0, explanation: "IDE combines editor, compiler, debugger.", difficulty: "Easy" },
-        { question: "Which language is mainly used for iOS apps?", options: ["Swift", "Kotlin", "Ruby", "PHP"], correct: 0, explanation: "Swift by Apple for iOS/macOS.", difficulty: "Medium" },
-        { question: "What does 'portability' mean in programming?", options: ["Run on different platforms", "Fast execution", "Small file size", "Easy syntax"], correct: 0, explanation: "Portable code runs across various systems with little change.", difficulty: "Medium" },
-        { question: "Which error is a design flaw like missing authentication?", options: ["Syntax", "Runtime", "Logic", "Design Error"], correct: 3, explanation: "Design errors happen in planning phase, costly to fix later.", difficulty: "Hard" },
-        { question: "What is the output of: print(10 / 2) in Python?", options: ["5", "5.0", "2", "Error"], correct: 1, explanation: "In Python3, / returns float: 5.0.", difficulty: "Medium" },
-        { question: "Which stage creates an executable file?", options: ["Editing", "Compilation", "Linking", "Interpretation"], correct: 2, explanation: "Linker combines object code into executable.", difficulty: "Hard" },
-        { question: "Fifth generation languages are based on?", options: ["Binary", "Mnemonics", "Constraints & Logic", "Procedural steps"], correct: 2, explanation: "5GL uses constraints, AI, logic programming.", difficulty: "Hard" }
+        { question: "What is a computer program?", options: ["A type of hardware", "A set of instructions for the computer", "A user manual", "A computer virus"], correct: 1, explanation: "A program is a set of instructions that directs a computer to perform specific tasks.", difficulty: "Easy" },
+        { question: "Which error occurs when you divide by zero?", options: ["Syntax error", "Logic error", "Runtime error", "Design error"], correct: 2, explanation: "Division by zero crashes the program during execution → runtime error.", difficulty: "Easy" },
+        { question: "What does a compiler do?", options: ["Executes line by line", "Converts source code to machine language", "Manages memory", "Creates UI"], correct: 1, explanation: "Compiler translates entire source code into machine code before execution.", difficulty: "Easy" },
+        { question: "Which generation uses binary directly?", options: ["1GL", "2GL", "3GL", "4GL"], correct: 0, explanation: "Machine language (1GL) consists of binary (0s and 1s) executed directly by CPU.", difficulty: "Easy" },
+        { question: "A program runs but gives wrong total. Which error?", options: ["Syntax", "Runtime", "Logic", "Linker"], correct: 2, explanation: "Logic errors produce incorrect results without crashing the program.", difficulty: "Medium" },
+        { question: "What is the role of an interpreter?", options: ["Translates & executes line-by-line", "Creates executable file", "Optimizes hardware", "Manages databases"], correct: 0, explanation: "Interpreters read and execute code line by line at runtime, no separate executable.", difficulty: "Medium" },
+        { question: "Which is a special-purpose language?", options: ["Python", "SQL", "C++", "Java"], correct: 1, explanation: "SQL is designed specifically for database querying and management.", difficulty: "Easy" },
+        { question: "What makes logic errors hard to find?", options: ["They crash the PC", "No error message, just wrong output", "Require supercomputer", "Only in comments"], correct: 1, explanation: "No error alert appears; logic flaws need manual testing to detect.", difficulty: "Medium" },
+        { question: "Which tool inspects variables step-by-step?", options: ["Compiler", "Text editor", "Debugger", "Linker"], correct: 2, explanation: "Debuggers allow breakpoints and variable inspection to locate logical errors.", difficulty: "Easy" },
+        { question: "What is an IDE?", options: ["Integrated Development Environment", "Internet Data Engine", "Internal Debugger", "Code Compiler"], correct: 0, explanation: "IDE combines editor, compiler, debugger into one application.", difficulty: "Easy" },
+        { question: "Which language is mainly used for iOS apps?", options: ["Swift", "Kotlin", "Ruby", "PHP"], correct: 0, explanation: "Swift is Apple's language for iOS/macOS development.", difficulty: "Medium" },
+        { question: "What does 'portability' mean in programming?", options: ["Run on different platforms", "Fast execution", "Small file size", "Easy syntax"], correct: 0, explanation: "Portable code can run on various operating systems with little or no modification.", difficulty: "Medium" },
+        { question: "Which error is a design flaw like missing authentication?", options: ["Syntax", "Runtime", "Logic", "Design Error"], correct: 3, explanation: "Design errors occur in planning phase (e.g., missing security features) and are costly to fix later.", difficulty: "Hard" },
+        { question: "What is the output of: print(10 / 2) in Python 3?", options: ["5", "5.0", "2", "Error"], correct: 1, explanation: "In Python 3, / operator returns a float: 10/2 = 5.0", difficulty: "Medium" },
+        { question: "Which stage creates an executable file?", options: ["Editing", "Compilation", "Linking", "Interpretation"], correct: 2, explanation: "Linker combines object code with libraries to produce the final executable file.", difficulty: "Hard" },
+        { question: "Fifth generation languages are based on?", options: ["Binary", "Mnemonics", "Constraints & Logic", "Procedural steps"], correct: 2, explanation: "5GL uses constraints, logic programming, and AI rather than explicit algorithms.", difficulty: "Hard" }
     ];
 
-    // Current quiz state
-    let currentQuestions = [];       // 10 random questions
-    let userAnswers = [];            // array of selected option indices (-1 = unanswered)
-    let quizLocked = false;          // after submission
+    let currentQuestions = [];
+    let userAnswers = [];
+    let quizLocked = false;
     let timerSeconds = 0;
     let timerInterval = null;
-    let quizStartTime = null;
-    
-    // Leaderboard storage (localStorage)
     let leaderboard = JSON.parse(localStorage.getItem("programmingQuizLeaderboard") || "[]");
     
-    // DOM elements
     const quizContainer = document.getElementById("quizContainer");
     const timerDisplay = document.getElementById("timerDisplay");
     const progressCountSpan = document.getElementById("progressCount");
@@ -443,7 +513,6 @@
     const overallFeedbackDiv = document.getElementById("quizOverallFeedback");
     const leaderboardList = document.getElementById("leaderboardList");
 
-    // Helper: get random 10 questions (no duplicates)
     function getRandomQuestions() {
         const shuffled = [...masterQuestions];
         for (let i = shuffled.length - 1; i > 0; i--) {
@@ -453,25 +522,15 @@
         return shuffled.slice(0, 10);
     }
 
-    // Stop timer
     function stopTimer() {
-        if (timerInterval) {
-            clearInterval(timerInterval);
-            timerInterval = null;
-        }
+        if (timerInterval) { clearInterval(timerInterval); timerInterval = null; }
     }
     
-    // Start timer (reset previous)
     function startTimer() {
         stopTimer();
         timerSeconds = 0;
         updateTimerDisplay();
-        timerInterval = setInterval(() => {
-            if (!quizLocked) {
-                timerSeconds++;
-                updateTimerDisplay();
-            }
-        }, 1000);
+        timerInterval = setInterval(() => { if (!quizLocked) { timerSeconds++; updateTimerDisplay(); } }, 1000);
     }
     
     function updateTimerDisplay() {
@@ -480,21 +539,17 @@
         timerDisplay.textContent = `${mins.toString().padStart(2,'0')}:${secs.toString().padStart(2,'0')}`;
     }
     
-    // Update progress & live score (based on correct answers so far)
     function updateProgressAndScore() {
         const answered = userAnswers.filter(a => a !== -1).length;
         progressCountSpan.textContent = answered;
         let correctCount = 0;
         for (let i = 0; i < currentQuestions.length; i++) {
-            if (userAnswers[i] !== -1 && userAnswers[i] === currentQuestions[i].correct) {
-                correctCount++;
-            }
+            if (userAnswers[i] !== -1 && userAnswers[i] === currentQuestions[i].correct) correctCount++;
         }
         liveScoreSpan.textContent = correctCount;
         return correctCount;
     }
     
-    // Render quiz UI
     function renderQuiz() {
         if (!quizContainer) return;
         let html = '';
@@ -518,15 +573,12 @@
             html += `<div class="quiz-feedback" id="fb-${idx}"></div></div>`;
         });
         quizContainer.innerHTML = html;
-        
-        // attach radio change events if not locked
         if (!quizLocked) {
             document.querySelectorAll('.quiz-radio').forEach(radio => {
                 radio.addEventListener('change', (e) => {
                     const qIdx = parseInt(radio.getAttribute('data-q'));
                     const optVal = parseInt(radio.getAttribute('data-opt'));
                     userAnswers[qIdx] = optVal;
-                    // clear previous feedback
                     const fbDiv = document.getElementById(`fb-${qIdx}`);
                     if (fbDiv) fbDiv.innerHTML = '';
                     updateProgressAndScore();
@@ -536,7 +588,6 @@
         updateProgressAndScore();
     }
     
-    // Load new random question set (reset everything)
     function loadNewQuizSet() {
         stopTimer();
         quizLocked = false;
@@ -546,7 +597,6 @@
         startTimer();
         renderQuiz();
         overallFeedbackDiv.innerHTML = '';
-        // clear feedbacks
         for (let i = 0; i < currentQuestions.length; i++) {
             const fb = document.getElementById(`fb-${i}`);
             if (fb) fb.innerHTML = '';
@@ -554,7 +604,6 @@
         updateProgressAndScore();
     }
     
-    // Submit: calculate score, show feedback, update leaderboard, lock quiz
     function submitQuiz() {
         if (quizLocked) {
             overallFeedbackDiv.innerHTML = "⚠️ You already submitted this set. Press 'New Random Set' to try again!";
@@ -567,13 +616,16 @@
             if (isCorrect) score++;
             const fbDiv = document.getElementById(`fb-${i}`);
             if (fbDiv) {
+                const correctAnswerText = currentQuestions[i].options[currentQuestions[i].correct];
                 if (selected === -1) {
-                    fbDiv.innerHTML = '<span style="color:#b85c00;">❓ Not answered.</span>';
+                    fbDiv.innerHTML = `<span style="color:#856404;">❓ Not answered. Correct answer: ${correctAnswerText}. ${currentQuestions[i].explanation}</span>`;
+                    fbDiv.className = "quiz-feedback unanswered-feedback";
                 } else if (isCorrect) {
-                    fbDiv.innerHTML = `<span style="color:#2b7a4b;">✅ Correct! ${currentQuestions[i].explanation}</span>`;
+                    fbDiv.innerHTML = `<span style="color:#155724;">✅ Correct! ${currentQuestions[i].explanation}</span>`;
+                    fbDiv.className = "quiz-feedback correct-feedback";
                 } else {
-                    const correctAns = currentQuestions[i].options[currentQuestions[i].correct];
-                    fbDiv.innerHTML = `<span style="color:#bc4e2c;">❌ Incorrect. Answer: ${correctAns}. ${currentQuestions[i].explanation}</span>`;
+                    fbDiv.innerHTML = `<span style="color:#721c24;">❌ Incorrect. Your answer: ${currentQuestions[i].options[selected]}. Correct answer: ${correctAnswerText}. ${currentQuestions[i].explanation}</span>`;
+                    fbDiv.className = "quiz-feedback incorrect-feedback";
                 }
             }
         }
@@ -581,7 +633,6 @@
         const timeTaken = timerSeconds;
         overallFeedbackDiv.innerHTML = `🎯 You scored ${score} / ${currentQuestions.length} (${percent}%). Time: ${Math.floor(timeTaken/60)}:${(timeTaken%60).toString().padStart(2,'0')}. ${percent >= 70 ? 'Great!' : 'Review notes and try again!'}`;
         
-        // Add to leaderboard (store name optional, but we'll store as "Player" + timestamp)
         const playerName = `Learner_${new Date().toLocaleTimeString()}`;
         leaderboard.push({ name: playerName, score: score, total: currentQuestions.length, percent: percent, time: timeTaken });
         leaderboard.sort((a,b) => b.percent - a.percent || a.time - b.time);
@@ -589,8 +640,7 @@
         localStorage.setItem("programmingQuizLeaderboard", JSON.stringify(leaderboard));
         updateLeaderboardUI();
         quizLocked = true;
-        // disable radio buttons visually
-        renderQuiz();  // re-render with disabled radios
+        renderQuiz();
     }
     
     function resetCurrentAnswers() {
@@ -603,17 +653,14 @@
         updateProgressAndScore();
         for (let i = 0; i < currentQuestions.length; i++) {
             const fb = document.getElementById(`fb-${i}`);
-            if (fb) fb.innerHTML = '';
+            if (fb) { fb.innerHTML = ''; fb.className = "quiz-feedback"; }
         }
         overallFeedbackDiv.innerHTML = "Answers reset. Keep going!";
     }
     
     function updateLeaderboardUI() {
         if (!leaderboardList) return;
-        if (leaderboard.length === 0) {
-            leaderboardList.innerHTML = "<li>— No scores yet —</li>";
-            return;
-        }
+        if (leaderboard.length === 0) { leaderboardList.innerHTML = "<li>— No scores yet —</li>"; return; }
         let html = '';
         leaderboard.forEach((entry, idx) => {
             html += `<li><strong>${idx+1}. ${entry.name}</strong> — ${entry.score}/${entry.total} (${entry.percent}%) ⏱️ ${Math.floor(entry.time/60)}:${(entry.time%60).toString().padStart(2,'0')}</li>`;
@@ -628,7 +675,6 @@
         overallFeedbackDiv.innerHTML = "Leaderboard cleared.";
     }
     
-    // Initialize everything
     function init() {
         currentQuestions = getRandomQuestions();
         userAnswers = new Array(currentQuestions.length).fill(-1);
@@ -636,30 +682,20 @@
         startTimer();
         renderQuiz();
         updateLeaderboardUI();
-        
-        refreshBtn.addEventListener("click", () => {
-            if (timerInterval) stopTimer();
-            loadNewQuizSet();
-        });
+        refreshBtn.addEventListener("click", () => { stopTimer(); loadNewQuizSet(); });
         submitBtn.addEventListener("click", submitQuiz);
         resetCurrentBtn.addEventListener("click", resetCurrentAnswers);
         if (clearLeaderboardBtn) clearLeaderboardBtn.addEventListener("click", clearLeaderboard);
     }
     
-    // Tab switching (preserve original behavior + not interfering)
     const tabs = document.querySelectorAll('.tab-btn');
     const panels = document.querySelectorAll('.tab-panel');
     function activateTab(tabId) {
         panels.forEach(panel => panel.classList.remove('active-panel'));
         document.getElementById(tabId).classList.add('active-panel');
-        tabs.forEach(btn => {
-            btn.classList.remove('active');
-            if (btn.getAttribute('data-tab') === tabId) btn.classList.add('active');
-        });
+        tabs.forEach(btn => { btn.classList.remove('active'); if (btn.getAttribute('data-tab') === tabId) btn.classList.add('active'); });
     }
-    tabs.forEach(btn => {
-        btn.addEventListener('click', () => activateTab(btn.getAttribute('data-tab')));
-    });
+    tabs.forEach(btn => { btn.addEventListener('click', () => activateTab(btn.getAttribute('data-tab'))); });
     
     init();
 </script>
