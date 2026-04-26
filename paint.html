@@ -1,0 +1,881 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no, viewport-fit=cover">
+    <title>专业绘画板 - 修复变换 | 新增图层可选白色/透明 | ibis风格</title>
+    <style>
+        * {
+            user-select: none;
+            -webkit-tap-highlight-color: transparent;
+            box-sizing: border-box;
+        }
+
+        body {
+            background: #0a0f14;
+            font-family: -apple-system, 'Segoe UI', 'Inter', system-ui, sans-serif;
+            margin: 0;
+            padding: 12px;
+            overflow-x: hidden;
+            touch-action: pan-x pan-y;
+        }
+
+        .ibis-container {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 16px;
+            max-width: 1500px;
+            margin: 0 auto;
+        }
+
+        .canvas-area {
+            flex: 4;
+            min-width: 280px;
+            background: #1a1f26;
+            border-radius: 32px;
+            padding: 16px;
+            box-shadow: 0 12px 28px rgba(0,0,0,0.5);
+        }
+
+        canvas {
+            background: white;
+            border-radius: 24px;
+            display: block;
+            width: 100%;
+            height: auto;
+            cursor: crosshair;
+            box-shadow: 0 6px 14px rgba(0,0,0,0.3);
+            touch-action: none;
+            background-image: 
+                linear-gradient(45deg, #ddd 25%, transparent 25%),
+                linear-gradient(-45deg, #ddd 25%, transparent 25%),
+                linear-gradient(45deg, transparent 75%, #ddd 75%),
+                linear-gradient(-45deg, transparent 75%, #ddd 75%);
+            background-size: 24px 24px;
+            background-position: 0 0, 0 12px, 12px -12px, -12px 0px;
+        }
+
+        .layers-ibis {
+            flex: 1.2;
+            min-width: 260px;
+            background: rgba(28, 32, 40, 0.95);
+            backdrop-filter: blur(20px);
+            border-radius: 32px;
+            padding: 16px 12px;
+            box-shadow: 0 8px 24px rgba(0,0,0,0.4);
+            border: 1px solid rgba(255,255,255,0.1);
+            height: fit-content;
+            max-height: 85vh;
+            overflow-y: auto;
+        }
+
+        .layers-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 0 8px 12px 8px;
+            color: #eef2ff;
+            font-weight: 600;
+            border-bottom: 1px solid #3a4455;
+            margin-bottom: 14px;
+            flex-wrap: wrap;
+            gap: 8px;
+        }
+
+        .add-layer-options {
+            display: flex;
+            gap: 8px;
+            background: #1e262f;
+            border-radius: 32px;
+            padding: 4px 8px;
+        }
+        .add-layer-options button {
+            background: #2c3542;
+            border: none;
+            border-radius: 28px;
+            padding: 6px 12px;
+            color: white;
+            font-size: 0.75rem;
+            cursor: pointer;
+            transition: 0.1s;
+        }
+        .add-layer-options button:active { background: #3b82f6; }
+
+        .layer-list {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+
+        .layer-item {
+            background: #232a34;
+            border-radius: 20px;
+            padding: 10px 14px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            cursor: grab;
+            transition: all 0.1s;
+            border: 1px solid rgba(255,255,255,0.08);
+        }
+        .layer-item:active { cursor: grabbing; }
+        .layer-item.active-layer {
+            background: #2f3b4c;
+            border-left: 4px solid #ff9f4a;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.2);
+        }
+        .layer-thumb {
+            width: 40px;
+            height: 40px;
+            background: rgba(0,0,0,0.3);
+            border-radius: 10px;
+            overflow: hidden;
+            margin-right: 10px;
+        }
+        .layer-info {
+            flex: 1;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        .layer-name {
+            background: #2f3b46;
+            border: none;
+            color: white;
+            font-weight: 500;
+            width: 100px;
+            font-size: 0.8rem;
+            padding: 4px 8px;
+            border-radius: 20px;
+        }
+        .layer-visibility {
+            background: none;
+            border: none;
+            font-size: 1.25rem;
+            cursor: pointer;
+            width: 36px;
+            color: #ffd966;
+        }
+        .icon-btn {
+            background: #2c3542;
+            border: none;
+            border-radius: 30px;
+            width: 34px;
+            height: 34px;
+            font-size: 1rem;
+            cursor: pointer;
+            color: white;
+        }
+
+        .bottom-toolbar {
+            margin-top: 16px;
+            background: rgba(20, 24, 30, 0.96);
+            backdrop-filter: blur(16px);
+            border-radius: 48px;
+            padding: 12px 20px;
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: center;
+            gap: 12px;
+            align-items: center;
+            border: 1px solid rgba(255,255,255,0.1);
+        }
+
+        .tool-group {
+            background: #1e262f;
+            border-radius: 40px;
+            padding: 5px 12px;
+            display: flex;
+            gap: 6px;
+            align-items: center;
+        }
+
+        .tool-btn {
+            background: #eef2f5;
+            border: none;
+            font-size: 0.95rem;
+            padding: 8px 18px;
+            border-radius: 40px;
+            font-weight: 600;
+            transition: 0.1s;
+            cursor: pointer;
+        }
+        .tool-btn.active {
+            background: #3b82f6;
+            color: white;
+            box-shadow: 0 0 0 2px white;
+        }
+        .transform-btn.active {
+            background: #f97316;
+            color: white;
+        }
+        .color-swatch {
+            width: 42px;
+            height: 42px;
+            border-radius: 30px;
+            border: 2px solid white;
+            cursor: pointer;
+        }
+        .range-label {
+            background: #1e262f;
+            padding: 0 16px;
+            border-radius: 40px;
+            color: white;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        @media (max-width: 760px) {
+            .tool-btn { padding: 6px 12px; font-size: 0.8rem; }
+            .color-swatch { width: 36px; height: 36px; }
+        }
+    </style>
+</head>
+<body>
+<div>
+    <div class="ibis-container">
+        <div class="canvas-area">
+            <canvas id="mainCanvas" width="900" height="600" style="width:100%; height:auto; aspect-ratio:900/600"></canvas>
+        </div>
+        <div class="layers-ibis">
+            <div class="layers-header">
+                <span>📁 图层</span>
+                <div class="add-layer-options">
+                    <button id="addWhiteLayerBtn">➕ 白色图层</button>
+                    <button id="addTransparentLayerBtn">🔲 透明图层</button>
+                </div>
+            </div>
+            <div id="layerList" class="layer-list"></div>
+            <div style="margin-top: 16px; display: flex; gap: 10px; justify-content: center;">
+                <button id="delLayerBtn" class="icon-btn" style="background:#c44536;">🗑️ 删除</button>
+                <button id="mergeDownBtn" class="icon-btn" style="background:#5d6d7e;">⬇️ 合并下层</button>
+            </div>
+        </div>
+    </div>
+
+    <div class="bottom-toolbar">
+        <div class="tool-group">
+            <button id="undoBtn" class="tool-btn">↩️ 撤销</button>
+            <button id="redoBtn" class="tool-btn">↪️ 重做</button>
+        </div>
+        <div class="tool-group">
+            <button id="brushBtn" class="tool-btn active">✏️ 画笔</button>
+            <button id="eraserBtn" class="tool-btn">🧽 橡皮</button>
+            <button id="bucketBtn" class="tool-btn">🪣 填充</button>
+            <button id="transformBtn" class="tool-btn">🔲 变换</button>
+        </div>
+        <div class="color-palette" id="colorPalette"></div>
+        <input type="color" id="customColor" value="#FF5722">
+        <div class="range-label">
+            <span>✏️ 粗细</span>
+            <input type="range" id="brushSize" min="2" max="48" value="7">
+            <span id="sizeValue">7</span>
+        </div>
+        <button id="clearCanvasBtn" class="tool-btn" style="background:#e67e22;">清空图层</button>
+        <button id="downloadBtn" class="tool-btn" style="background:#2ecc71;">导出 PNG</button>
+    </div>
+</div>
+
+<script>
+    (function(){
+        // ---------- 画布配置 ----------
+        const canvas = document.getElementById('mainCanvas');
+        const ctx = canvas.getContext('2d');
+        const W = 900, H = 600;
+        canvas.width = W; canvas.height = H;
+
+        // 图层数据结构: 每个元素 { id, canvas, visible, name }
+        let layers = [];
+        let currentLayerId = null;
+        let nextLayerId = 1;
+        
+        // 历史记录
+        let historyStack = [];
+        let historyPos = -1;
+        const MAX_HISTORY = 40;
+        
+        // 工具状态
+        let currentTool = 'brush';
+        let currentColor = '#000000';
+        let brushWidth = 7;
+        
+        // 绘画状态变量
+        let painting = false;
+        let lastX = 0, lastY = 0;
+        
+        // 变换工具相关 (修复后：框选+移动完美)
+        let selectionRect = null;
+        let selectionStart = null;
+        let isDraggingSelection = false;
+        let dragOffsetX = 0, dragOffsetY = 0;
+        let copiedImageData = null;      // 存储选中的图像数据 (离屏canvas)
+        let tempPreviewRect = null;       // 拖拽移动时的预览位置
+        
+        // ---------- 辅助函数 ----------
+        function createCanvas(bgWhite = true) {
+            const off = document.createElement('canvas');
+            off.width = W;
+            off.height = H;
+            const offCtx = off.getContext('2d');
+            if(bgWhite) {
+                offCtx.fillStyle = '#FFFFFF';
+                offCtx.fillRect(0, 0, W, H);
+            } else {
+                offCtx.clearRect(0, 0, W, H);
+            }
+            return off;
+        }
+        
+        // 获取当前图层对象
+        function getCurrentLayer() {
+            return layers.find(l => l.id === currentLayerId);
+        }
+        
+        // 渲染所有可见图层
+        function renderAllLayers() {
+            ctx.clearRect(0, 0, W, H);
+            for(let layer of layers) {
+                if(layer.visible) {
+                    ctx.drawImage(layer.canvas, 0, 0);
+                }
+            }
+            // 绘制变换工具的选框 (如果处于变换模式且有选区)
+            if(currentTool === 'transform' && selectionRect && !isDraggingSelection) {
+                ctx.save();
+                ctx.strokeStyle = '#3b82f6';
+                ctx.lineWidth = 2.5;
+                ctx.setLineDash([8, 8]);
+                ctx.strokeRect(selectionRect.x, selectionRect.y, selectionRect.w, selectionRect.h);
+                ctx.fillStyle = 'rgba(59,130,246,0.15)';
+                ctx.fillRect(selectionRect.x, selectionRect.y, selectionRect.w, selectionRect.h);
+                ctx.setLineDash([]);
+                ctx.restore();
+            }
+            // 拖拽移动时的实时预览
+            if(currentTool === 'transform' && isDraggingSelection && tempPreviewRect && copiedImageData) {
+                ctx.save();
+                ctx.globalAlpha = 0.7;
+                ctx.drawImage(copiedImageData, tempPreviewRect.x, tempPreviewRect.y);
+                ctx.restore();
+            }
+        }
+        
+        // 历史快照 (深拷贝)
+        function saveToHistory() {
+            const snapshotLayers = layers.map(layer => ({
+                id: layer.id,
+                visible: layer.visible,
+                name: layer.name,
+                canvasData: (() => {
+                    const off = createCanvas(false);
+                    off.getContext('2d').drawImage(layer.canvas, 0, 0);
+                    return off;
+                })()
+            }));
+            const snap = { layers: snapshotLayers, currentId: currentLayerId };
+            if(historyPos < historyStack.length - 1) historyStack = historyStack.slice(0, historyPos+1);
+            historyStack.push(snap);
+            if(historyStack.length > MAX_HISTORY) historyStack.shift();
+            historyPos = historyStack.length - 1;
+        }
+        
+        function restoreFromHistory(snap) {
+            if(!snap) return;
+            const newLayers = snap.layers.map(l => ({
+                id: l.id,
+                visible: l.visible,
+                name: l.name,
+                canvas: l.canvasData
+            }));
+            layers = newLayers;
+            currentLayerId = snap.currentId;
+            if(!layers.find(l => l.id === currentLayerId) && layers.length) currentLayerId = layers[0].id;
+            cancelTransform();
+            renderAllLayers();
+            updateLayerUI();
+        }
+        
+        function undo() { if(historyPos > 0) { historyPos--; restoreFromHistory(historyStack[historyPos]); } }
+        function redo() { if(historyPos < historyStack.length-1) { historyPos++; restoreFromHistory(historyStack[historyPos]); } }
+        
+        // 应用到当前图层的绘图函数
+        function commitDraw(drawFunc) {
+            const layer = getCurrentLayer();
+            if(!layer) return;
+            saveToHistory();
+            const layerCtx = layer.canvas.getContext('2d');
+            drawFunc(layerCtx);
+            renderAllLayers();
+            updateLayerUI();
+        }
+        
+        // ----- 绘图核心 (橡皮擦完美)-----
+        function drawDot(layerCtx, x, y, color, size, isEraser) {
+            layerCtx.save();
+            layerCtx.globalCompositeOperation = 'source-over';
+            if(isEraser) layerCtx.fillStyle = '#FFFFFF';
+            else layerCtx.fillStyle = color;
+            layerCtx.beginPath();
+            layerCtx.arc(x, y, size/2, 0, Math.PI*2);
+            layerCtx.fill();
+            layerCtx.restore();
+        }
+        
+        function drawLine(layerCtx, x0, y0, x1, y1, color, size, isEraser) {
+            layerCtx.save();
+            layerCtx.lineCap = 'round';
+            layerCtx.lineJoin = 'round';
+            layerCtx.lineWidth = size;
+            if(isEraser) layerCtx.strokeStyle = '#FFFFFF';
+            else layerCtx.strokeStyle = color;
+            layerCtx.beginPath();
+            layerCtx.moveTo(x0, y0);
+            layerCtx.lineTo(x1, y1);
+            layerCtx.stroke();
+            layerCtx.beginPath();
+            layerCtx.arc(x1, y1, size/2, 0, 2*Math.PI);
+            layerCtx.fill();
+            layerCtx.restore();
+        }
+        
+        // 油漆桶填充
+        function floodFillOnCurrent(sx, sy, newColorHex) {
+            const layer = getCurrentLayer();
+            if(!layer) return;
+            const layerCtx = layer.canvas.getContext('2d');
+            const imgData = layerCtx.getImageData(0, 0, W, H);
+            const data = imgData.data;
+            const getRGB = (x,y) => {
+                const idx = (y*W + x)*4;
+                return [data[idx], data[idx+1], data[idx+2]];
+            };
+            const setPixel = (x,y,r,g,b) => {
+                const idx = (y*W + x)*4;
+                data[idx]=r; data[idx+1]=g; data[idx+2]=b;
+            };
+            const startRGB = getRGB(sx,sy);
+            const newRGB = [parseInt(newColorHex.slice(1,3),16), parseInt(newColorHex.slice(3,5),16), parseInt(newColorHex.slice(5,7),16)];
+            if(startRGB[0]===newRGB[0] && startRGB[1]===newRGB[1] && startRGB[2]===newRGB[2]) return;
+            const stack = [{x:sx, y:sy}];
+            const visited = new Uint8Array(W*H);
+            while(stack.length) {
+                let {x,y} = stack.pop();
+                let idxV = y*W + x;
+                if(visited[idxV]) continue;
+                let curr = getRGB(x,y);
+                if(Math.abs(curr[0]-startRGB[0])>30 || Math.abs(curr[1]-startRGB[1])>30 || Math.abs(curr[2]-startRGB[2])>30) continue;
+                visited[idxV] = 1;
+                setPixel(x,y, newRGB[0],newRGB[1],newRGB[2]);
+                if(x>0) stack.push({x:x-1,y});
+                if(x<W-1) stack.push({x:x+1,y});
+                if(y>0) stack.push({x,y:y-1});
+                if(y<H-1) stack.push({x,y:y+1});
+            }
+            layerCtx.putImageData(imgData, 0, 0);
+            renderAllLayers();
+        }
+        
+        // ---------- 变换工具 (彻底修复) ----------
+        function cancelTransform() {
+            selectionRect = null;
+            selectionStart = null;
+            isDraggingSelection = false;
+            copiedImageData = null;
+            tempPreviewRect = null;
+            renderAllLayers();
+        }
+        
+        // 捕获当前图层的选区内容
+        function captureSelection(rect) {
+            const layer = getCurrentLayer();
+            if(!layer) return null;
+            const off = document.createElement('canvas');
+            off.width = rect.w;
+            off.height = rect.h;
+            const offCtx = off.getContext('2d');
+            offCtx.drawImage(layer.canvas, rect.x, rect.y, rect.w, rect.h, 0, 0, rect.w, rect.h);
+            return off;
+        }
+        
+        // 清除选区区域 (填充白色)
+        function clearSelectionArea(rect) {
+            const layer = getCurrentLayer();
+            if(!layer) return;
+            const layerCtx = layer.canvas.getContext('2d');
+            layerCtx.fillStyle = '#FFFFFF';
+            layerCtx.fillRect(rect.x, rect.y, rect.w, rect.h);
+            renderAllLayers();
+        }
+        
+        // 将缓冲区内容绘制到图层指定位置
+        function pasteBufferToLayer(destX, destY, buffer) {
+            const layer = getCurrentLayer();
+            if(!layer || !buffer) return;
+            const layerCtx = layer.canvas.getContext('2d');
+            layerCtx.drawImage(buffer, destX, destY);
+            renderAllLayers();
+        }
+        
+        // 完成移动变换
+        function commitTransformMove(newX, newY) {
+            if(!selectionRect || !copiedImageData) return;
+            saveToHistory();
+            // 清除原区域
+            clearSelectionArea(selectionRect);
+            // 绘制到新位置
+            pasteBufferToLayer(newX, newY, copiedImageData);
+            // 更新选区矩形
+            selectionRect.x = newX;
+            selectionRect.y = newY;
+            // 重新捕获选区图像（用于后续继续移动）
+            copiedImageData = captureSelection(selectionRect);
+            renderAllLayers();
+        }
+        
+        // ---------- 图层管理 (拖拽修复) ----------
+        function reorderLayers(fromIndex, toIndex) {
+            if(fromIndex === toIndex) return;
+            saveToHistory();
+            const moved = layers[fromIndex];
+            layers.splice(fromIndex, 1);
+            layers.splice(toIndex, 0, moved);
+            renderAllLayers();
+            updateLayerUI();
+        }
+        
+        // 新增图层 (可选白色或透明)
+        function addLayerWithType(isWhite) {
+            saveToHistory();
+            const newCanvas = createCanvas(isWhite);
+            const newId = nextLayerId++;
+            layers.push({
+                id: newId,
+                canvas: newCanvas,
+                visible: true,
+                name: `图层 ${layers.length+1}`
+            });
+            currentLayerId = newId;
+            cancelTransform();
+            renderAllLayers();
+            updateLayerUI();
+        }
+        
+        function deleteCurrentLayer() {
+            if(layers.length <= 1) return;
+            saveToHistory();
+            const idx = layers.findIndex(l => l.id === currentLayerId);
+            if(idx !== -1) layers.splice(idx,1);
+            if(layers.length) currentLayerId = layers[Math.min(idx, layers.length-1)].id;
+            cancelTransform();
+            renderAllLayers();
+            updateLayerUI();
+        }
+        
+        function mergeDown() {
+            const idx = layers.findIndex(l => l.id === currentLayerId);
+            if(idx <= 0) return;
+            saveToHistory();
+            const upper = layers[idx];
+            const lower = layers[idx-1];
+            const lowerCtx = lower.canvas.getContext('2d');
+            lowerCtx.drawImage(upper.canvas, 0, 0);
+            layers.splice(idx,1);
+            currentLayerId = lower.id;
+            cancelTransform();
+            renderAllLayers();
+            updateLayerUI();
+        }
+        
+        function setCurrentLayerById(id) {
+            if(layers.some(l => l.id === id)) {
+                currentLayerId = id;
+                cancelTransform();
+                renderAllLayers();
+                updateLayerUI();
+            }
+        }
+        
+        function toggleLayerVisibility(id) {
+            const layer = layers.find(l => l.id === id);
+            if(layer) {
+                saveToHistory();
+                layer.visible = !layer.visible;
+                renderAllLayers();
+                updateLayerUI();
+            }
+        }
+        
+        function renameLayer(id, newName) {
+            const layer = layers.find(l => l.id === id);
+            if(layer) {
+                layer.name = newName;
+                updateLayerUI();
+            }
+        }
+        
+        function clearCurrentLayerContent() {
+            const layer = getCurrentLayer();
+            if(layer) {
+                saveToHistory();
+                const layerCtx = layer.canvas.getContext('2d');
+                layerCtx.fillStyle = '#FFFFFF';
+                layerCtx.fillRect(0,0,W,H);
+                renderAllLayers();
+                updateLayerUI();
+            }
+        }
+        
+        // 更新UI带缩略图
+        function updateLayerUI() {
+            const container = document.getElementById('layerList');
+            container.innerHTML = '';
+            for(let i = 0; i < layers.length; i++) {
+                const layer = layers[i];
+                const div = document.createElement('div');
+                div.className = `layer-item ${currentLayerId === layer.id ? 'active-layer' : ''}`;
+                div.setAttribute('data-id', layer.id);
+                // 生成缩略图
+                const thumbCanvas = document.createElement('canvas');
+                thumbCanvas.width = 40;
+                thumbCanvas.height = 40;
+                const thumbCtx = thumbCanvas.getContext('2d');
+                thumbCtx.drawImage(layer.canvas, 0, 0, 40, 40);
+                const thumbUrl = thumbCanvas.toDataURL();
+                div.innerHTML = `
+                    <div style="display:flex; align-items:center; gap:8px; flex:1;">
+                        <img src="${thumbUrl}" style="width:38px; height:38px; border-radius:8px; background:#2f3540;" />
+                        <input type="text" class="layer-name" value="${layer.name.replace(/"/g, '&quot;')}" maxlength="20">
+                        <button class="layer-visibility">${layer.visible ? '👁️' : '🙈'}</button>
+                    </div>
+                `;
+                const nameInput = div.querySelector('.layer-name');
+                nameInput.addEventListener('change', (e) => renameLayer(layer.id, e.target.value));
+                const visBtn = div.querySelector('.layer-visibility');
+                visBtn.addEventListener('click', (e) => {
+                    e.stopPropagation();
+                    toggleLayerVisibility(layer.id);
+                });
+                div.addEventListener('click', (e) => {
+                    if(e.target === visBtn || e.target === nameInput) return;
+                    setCurrentLayerById(layer.id);
+                });
+                // 拖拽排序
+                div.setAttribute('draggable', 'true');
+                div.ondragstart = (e) => {
+                    e.dataTransfer.setData('text/plain', i);
+                    e.dataTransfer.effectAllowed = 'move';
+                };
+                div.ondragover = (e) => e.preventDefault();
+                div.ondrop = (e) => {
+                    e.preventDefault();
+                    const fromIdx = parseInt(e.dataTransfer.getData('text/plain'));
+                    const toIdx = i;
+                    if(!isNaN(fromIdx) && fromIdx !== toIdx && layers.length > 1) {
+                        reorderLayers(fromIdx, toIdx);
+                    }
+                };
+                container.appendChild(div);
+            }
+        }
+        
+        // ---------- 事件绑定 (鼠标+触摸) ----------
+        function getCanvasCoords(e) {
+            const rect = canvas.getBoundingClientRect();
+            const scaleX = canvas.width / rect.width;
+            const scaleY = canvas.height / rect.height;
+            let cx, cy;
+            if(e.touches) {
+                if(e.touches.length === 0) return null;
+                cx = e.touches[0].clientX;
+                cy = e.touches[0].clientY;
+            } else {
+                cx = e.clientX;
+                cy = e.clientY;
+            }
+            let x = (cx - rect.left) * scaleX;
+            let y = (cy - rect.top) * scaleY;
+            x = Math.min(Math.max(0, x), W);
+            y = Math.min(Math.max(0, y), H);
+            return { x, y };
+        }
+        
+        function onPointerStart(e) {
+            e.preventDefault();
+            const pos = getCanvasCoords(e);
+            if(!pos) return;
+            const { x, y } = pos;
+            
+            // 变换工具处理
+            if(currentTool === 'transform') {
+                // 如果已有选区且点击在选区内 => 开启拖拽移动
+                if(selectionRect && !isDraggingSelection) {
+                    const inside = (x >= selectionRect.x && x <= selectionRect.x+selectionRect.w && y >= selectionRect.y && y <= selectionRect.y+selectionRect.h);
+                    if(inside) {
+                        isDraggingSelection = true;
+                        dragOffsetX = x - selectionRect.x;
+                        dragOffsetY = y - selectionRect.y;
+                        tempPreviewRect = { x: selectionRect.x, y: selectionRect.y };
+                        renderAllLayers();
+                        return;
+                    } else {
+                        cancelTransform();
+                        selectionStart = { x, y };
+                        return;
+                    }
+                } else if(!selectionRect && !selectionStart) {
+                    selectionStart = { x, y };
+                }
+                return;
+            }
+            
+            // 油漆桶
+            if(currentTool === 'bucket') {
+                saveToHistory();
+                floodFillOnCurrent(Math.floor(x), Math.floor(y), currentColor);
+                return;
+            }
+            
+            painting = true;
+            lastX = x; lastY = y;
+            commitDraw((layerCtx) => {
+                drawDot(layerCtx, x, y, currentColor, brushWidth, currentTool === 'eraser');
+            });
+        }
+        
+        function onPointerMove(e) {
+            if(currentTool === 'transform') {
+                const pos = getCanvasCoords(e);
+                if(!pos) return;
+                const { x, y } = pos;
+                // 正在创建选区
+                if(selectionStart && !selectionRect && !isDraggingSelection) {
+                    const sx = selectionStart.x, sy = selectionStart.y;
+                    const w = x - sx, h = y - sy;
+                    if(Math.abs(w) > 5 && Math.abs(h) > 5) {
+                        selectionRect = { x: Math.min(sx, x), y: Math.min(sy, y), w: Math.abs(w), h: Math.abs(h) };
+                        renderAllLayers();
+                    }
+                    return;
+                }
+                // 拖拽移动选区内容
+                if(isDraggingSelection && selectionRect && copiedImageData) {
+                    let newX = x - dragOffsetX;
+                    let newY = y - dragOffsetY;
+                    // 边界限制 (可选)
+                    newX = Math.min(Math.max(newX, 0), W - selectionRect.w);
+                    newY = Math.min(Math.max(newY, 0), H - selectionRect.h);
+                    tempPreviewRect = { x: newX, y: newY };
+                    renderAllLayers();
+                    return;
+                }
+                return;
+            }
+            
+            if(!painting) return;
+            e.preventDefault();
+            const pos = getCanvasCoords(e);
+            if(!pos) return;
+            const { x, y } = pos;
+            commitDraw((layerCtx) => {
+                drawLine(layerCtx, lastX, lastY, x, y, currentColor, brushWidth, currentTool === 'eraser');
+            });
+            lastX = x; lastY = y;
+        }
+        
+        function onPointerEnd(e) {
+            if(currentTool === 'transform') {
+                // 完成选区创建
+                if(selectionStart && !selectionRect && !isDraggingSelection) {
+                    selectionStart = null;
+                    renderAllLayers();
+                }
+                if(selectionRect && !isDraggingSelection && selectionStart) {
+                    if(selectionRect.w > 4 && selectionRect.h > 4) {
+                        copiedImageData = captureSelection(selectionRect);
+                        renderAllLayers();
+                    } else cancelTransform();
+                    selectionStart = null;
+                }
+                // 完成移动拖拽
+                if(isDraggingSelection && tempPreviewRect && selectionRect && copiedImageData) {
+                    const finalX = tempPreviewRect.x;
+                    const finalY = tempPreviewRect.y;
+                    if((finalX !== selectionRect.x || finalY !== selectionRect.y)) {
+                        commitTransformMove(finalX, finalY);
+                    }
+                    isDraggingSelection = false;
+                    tempPreviewRect = null;
+                    renderAllLayers();
+                }
+                return;
+            }
+            painting = false;
+        }
+        
+        function bindEvents() {
+            canvas.addEventListener('mousedown', onPointerStart);
+            canvas.addEventListener('mousemove', onPointerMove);
+            canvas.addEventListener('mouseup', onPointerEnd);
+            canvas.addEventListener('touchstart', onPointerStart, { passive: false });
+            canvas.addEventListener('touchmove', onPointerMove, { passive: false });
+            canvas.addEventListener('touchend', onPointerEnd);
+        }
+        
+        // UI 初始化
+        function setupUI() {
+            document.getElementById('brushBtn').onclick = () => { currentTool = 'brush'; cancelTransform(); setActive('brush'); };
+            document.getElementById('eraserBtn').onclick = () => { currentTool = 'eraser'; cancelTransform(); setActive('eraser'); };
+            document.getElementById('bucketBtn').onclick = () => { currentTool = 'bucket'; cancelTransform(); setActive('bucket'); };
+            document.getElementById('transformBtn').onclick = () => { currentTool = 'transform'; cancelTransform(); setActive('transform'); };
+            document.getElementById('undoBtn').onclick = undo;
+            document.getElementById('redoBtn').onclick = redo;
+            document.getElementById('addWhiteLayerBtn').onclick = () => addLayerWithType(true);
+            document.getElementById('addTransparentLayerBtn').onclick = () => addLayerWithType(false);
+            document.getElementById('delLayerBtn').onclick = deleteCurrentLayer;
+            document.getElementById('mergeDownBtn').onclick = mergeDown;
+            document.getElementById('clearCanvasBtn').onclick = clearCurrentLayerContent;
+            document.getElementById('downloadBtn').onclick = () => { const link = document.createElement('a'); link.download = 'artwork.png'; link.href = canvas.toDataURL(); link.click(); };
+            const sizeSlider = document.getElementById('brushSize');
+            sizeSlider.oninput = (e) => { brushWidth = parseInt(e.target.value); document.getElementById('sizeValue').innerText = brushWidth; };
+            const colors = ['#000000','#FF3B30','#FF9500','#FFCC00','#34C759','#007AFF','#AF52DE','#FFFFFF'];
+            const palDiv = document.getElementById('colorPalette');
+            palDiv.innerHTML = '';
+            colors.forEach(col => {
+                const sw = document.createElement('div');
+                sw.className = 'color-swatch';
+                sw.style.backgroundColor = col;
+                sw.onclick = () => { currentColor = col; document.getElementById('customColor').value = col; };
+                palDiv.appendChild(sw);
+            });
+            document.getElementById('customColor').addEventListener('input', (e) => { currentColor = e.target.value; });
+            function setActive(tool) {
+                document.querySelectorAll('.tool-btn').forEach(btn => btn.classList.remove('active'));
+                if(tool === 'brush') document.getElementById('brushBtn').classList.add('active');
+                if(tool === 'eraser') document.getElementById('eraserBtn').classList.add('active');
+                if(tool === 'bucket') document.getElementById('bucketBtn').classList.add('active');
+                if(tool === 'transform') document.getElementById('transformBtn').classList.add('active');
+            }
+            setActive('brush');
+        }
+        
+        // 启动
+        function init() {
+            const baseCanvas = createCanvas(true);
+            layers = [{
+                id: nextLayerId++,
+                canvas: baseCanvas,
+                visible: true,
+                name: "背景"
+            }];
+            currentLayerId = layers[0].id;
+            renderAllLayers();
+            saveToHistory();
+            updateLayerUI();
+            bindEvents();
+            setupUI();
+        }
+        init();
+    })();
+</script>
+</body>
+</html>
