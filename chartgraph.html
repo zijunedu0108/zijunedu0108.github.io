@@ -3,72 +3,96 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>图表生成器</title>
+    <title>图表生成器 - 显式百分比版</title>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-datalabels@2.0.0"></script>
     <script src="https://cdn.jsdelivr.net/npm/html2canvas@1.4.1/dist/html2canvas.min.js"></script>
     <style>
-        body { font-family: sans-serif; background: #f4f4f9; padding: 20px; display: flex; gap: 20px; }
-        .input-panel { width: 350px; background: white; padding: 20px; border-radius: 8px; box-shadow: 0 2px 10px rgba(0,0,0,0.1); }
-        .preview-panel { flex-grow: 1; background: white; padding: 40px; border-radius: 8px; box-shadow: 0 2px 10px rgba(0,0,0,0.1); display: flex; flex-direction: column; align-items: center; }
-        .form-group { margin-bottom: 15px; }
-        label { display: block; margin-bottom: 5px; font-weight: bold; }
-        input, select { width: 100%; padding: 8px; box-sizing: border-box; border: 1px solid #ddd; border-radius: 4px; }
-        .data-row { display: flex; gap: 5px; margin-bottom: 5px; }
-        button { cursor: pointer; padding: 10px 15px; border: none; border-radius: 4px; transition: 0.3s; }
-        .btn-add { background: #28a745; color: white; width: 100%; margin-top: 10px; }
-        .btn-generate { background: #007bff; color: white; width: 100%; margin-top: 10px; font-size: 16px; }
-        .btn-download { background: #6c757d; color: white; margin-top: 20px; }
+        body { font-family: "Arial", sans-serif; background: #f0f2f5; padding: 20px; display: flex; gap: 20px; }
+        .input-panel { width: 320px; background: white; padding: 20px; border-radius: 12px; box-shadow: 0 4px 15px rgba(0,0,0,0.1); height: fit-content; }
+        .preview-panel { flex-grow: 1; background: white; padding: 30px; border-radius: 12px; box-shadow: 0 4px 15px rgba(0,0,0,0.1); display: flex; flex-direction: column; align-items: center; }
         
-        /* 模拟图片中的样式 */
-        #capture-area { padding: 20px; width: 600px; background: white; position: relative; }
-        #chart-title { font-size: 20px; color: #333; margin-bottom: 5px; text-align: left; }
-        #chart-responses { font-size: 14px; color: #666; margin-bottom: 20px; text-align: left; }
-        .chart-container { display: flex; align-items: center; justify-content: center; }
-        canvas { max-width: 400px !important; max-height: 400px !important; }
+        .form-group { margin-bottom: 12px; }
+        label { display: block; margin-bottom: 6px; font-weight: bold; color: #444; }
+        input { width: 100%; padding: 10px; box-sizing: border-box; border: 1px solid #ccc; border-radius: 6px; }
+        
+        .data-list { max-height: 300px; overflow-y: auto; margin-bottom: 10px; padding-right: 5px; }
+        .data-row { display: flex; gap: 8px; margin-bottom: 8px; }
+        .data-row input[type="text"] { flex: 2; }
+        .data-row input[type="number"] { flex: 1; }
+
+        button { cursor: pointer; border: none; border-radius: 6px; font-weight: bold; transition: 0.2s; }
+        .btn-add { background: #e8f0fe; color: #1a73e8; width: 100%; padding: 8px; margin-bottom: 10px; }
+        .btn-add:hover { background: #d2e3fc; }
+        .btn-generate { background: #1a73e8; color: white; width: 100%; padding: 12px; font-size: 16px; }
+        .btn-generate:hover { background: #1557b0; }
+        .btn-download { background: #34a853; color: white; margin-top: 25px; padding: 12px 24px; font-size: 14px; }
+        .btn-download:hover { background: #2d8e47; }
+
+        /* 模拟 Google Forms 的预览样式 */
+        #capture-area { padding: 40px; width: 750px; background: white; }
+        #chart-title { font-size: 24px; color: #202124; margin-bottom: 4px; }
+        #chart-responses { font-size: 14px; color: #70757a; margin-bottom: 30px; }
+        .chart-layout { display: flex; align-items: center; justify-content: space-between; }
+        .canvas-box { width: 380px; height: 380px; }
     </style>
 </head>
 <body>
 
 <div class="input-panel">
-    <h3>设置参数</h3>
+    <h3>图表配置</h3>
     <div class="form-group">
-        <label>标题 (Title)</label>
+        <label>标题</label>
         <input type="text" id="in-title" value="Pekerjaan">
     </div>
     <div class="form-group">
-        <label>响应数量 (Responses)</label>
+        <label>响应人数</label>
         <input type="text" id="in-responses" value="8 responses">
     </div>
-    <div class="form-group">
-        <label>数据内容 (标签 | 数值)</label>
-        <div id="data-inputs">
-            <div class="data-row">
-                <input type="text" placeholder="标签" value="Pelajar">
-                <input type="number" placeholder="值" value="3">
-            </div>
-            <div class="data-row">
-                <input type="text" placeholder="标签" value="Sektor Awam">
-                <input type="number" placeholder="值" value="1">
-            </div>
+    <label>数据项 (标签 | 数量)</label>
+    <div id="data-inputs" class="data-list">
+        <div class="data-row">
+            <input type="text" placeholder="标签" value="Pelajar">
+            <input type="number" placeholder="值" value="3">
         </div>
-        <button class="btn-add" onclick="addDataRow()">+ 添加行</button>
+        <div class="data-row">
+            <input type="text" placeholder="标签" value="Sektor Swasta">
+            <input type="number" placeholder="值" value="2">
+        </div>
+        <div class="data-row">
+            <input type="text" placeholder="标签" value="Sektor Awam">
+            <input type="number" placeholder="值" value="1">
+        </div>
+        <div class="data-row">
+            <input type="text" placeholder="标签" value="Bekerja Sendiri">
+            <input type="number" placeholder="值" value="1">
+        </div>
+        <div class="data-row">
+            <input type="text" placeholder="标签" value="Lain-lain">
+            <input type="number" placeholder="值" value="1">
+        </div>
     </div>
-    <button class="btn-generate" onclick="updateChart()">生成预览</button>
+    <button class="btn-add" onclick="addDataRow()">+ 添加新数据</button>
+    <button class="btn-generate" onclick="updateChart()">刷新图表预览</button>
 </div>
 
 <div class="preview-panel">
     <div id="capture-area">
         <div id="chart-title">Pekerjaan</div>
         <div id="chart-responses">8 responses</div>
-        <div class="chart-container">
-            <canvas id="myChart"></canvas>
+        <div class="chart-layout">
+            <div class="canvas-box">
+                <canvas id="myChart"></canvas>
+            </div>
         </div>
     </div>
-    <button class="btn-download" onclick="downloadImage()">点击截图保存到下载</button>
+    <button class="btn-download" onclick="downloadImage()">保存图表为图片 (Download)</button>
 </div>
 
 <script>
     let myChart = null;
+    // 注册插件以显示百分比
+    Chart.register(ChartDataLabels);
 
     function addDataRow() {
         const container = document.getElementById('data-inputs');
@@ -98,7 +122,6 @@
         });
 
         const ctx = document.getElementById('myChart').getContext('2d');
-        
         if (myChart) myChart.destroy();
 
         myChart = new Chart(ctx, {
@@ -108,30 +131,37 @@
                 datasets: [{
                     data: dataValues,
                     backgroundColor: [
-                        '#3366cc', '#dc3912', '#ff9900', '#109618', '#990099', '#0099c6'
+                        '#4285F4', '#EA4335', '#FBBC05', '#34A853', '#9C27B0', '#00ACC1', '#FF7043'
                     ],
-                    borderWidth: 1,
-                    borderColor: '#fff'
+                    borderWidth: 2,
+                    borderColor: '#ffffff'
                 }]
             },
             options: {
                 responsive: true,
+                maintainAspectRatio: false,
                 plugins: {
                     legend: {
                         position: 'right',
-                        labels: { boxWidth: 15, padding: 15 }
-                    },
-                    tooltip: {
-                        callbacks: {
-                            label: function(context) {
-                                let total = context.dataset.data.reduce((a, b) => a + b, 0);
-                                let percentage = ((context.raw / total) * 100).toFixed(1) + '%';
-                                return context.label + ': ' + percentage;
-                            }
+                        labels: {
+                            usePointStyle: true,
+                            pointStyle: 'circle',
+                            padding: 20,
+                            font: { size: 14 }
                         }
                     },
-                    // 在饼图块上直接显示百分比
-                    datalabels: false // 此处简单处理，Chart.js默认在Hover显示
+                    // 百分比标签的核心配置
+                    datalabels: {
+                        color: '#fff',
+                        font: { weight: 'bold', size: 14 },
+                        formatter: (value, ctx) => {
+                            let sum = 0;
+                            let dataArr = ctx.chart.data.datasets[0].data;
+                            dataArr.map(data => { sum += data; });
+                            let percentage = (value * 100 / sum).toFixed(1) + "%";
+                            return percentage;
+                        }
+                    }
                 }
             }
         });
@@ -141,16 +171,16 @@
         const target = document.getElementById('capture-area');
         html2canvas(target, {
             backgroundColor: "#ffffff",
-            scale: 2 // 提高清晰度
+            scale: 2 
         }).then(canvas => {
             const link = document.createElement('a');
-            link.download = 'chart-export.png';
+            link.className = 'download-link';
+            link.download = document.getElementById('in-title').value + '.png';
             link.href = canvas.toDataURL('image/png');
             link.click();
         });
     }
 
-    // 初始化加载
     window.onload = updateChart;
 </script>
 
