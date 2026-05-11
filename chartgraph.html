@@ -31,7 +31,7 @@
         /* 右侧预览区 */
         .preview-panel { flex-grow: 1; display: flex; flex-direction: column; align-items: center; justify-content: center; background: #e9ecef; padding: 20px; }
         
-        /* 截图区域 - 重点在居中 */
+        /* 截图区域 */
         #capture-area { 
             background: white; 
             width: 800px; 
@@ -40,30 +40,35 @@
             box-sizing: border-box;
             display: flex;
             flex-direction: column;
-            justify-content: center; /* 垂直居中 */
-            overflow: hidden; /* 防止任何内容溢出边界 */
+            justify-content: center; 
+            overflow: hidden; 
         }
         
-        .header-box { width: 100%; text-align: left; margin-bottom: 20px; box-sizing: border-box; }
+        /* 核心修复：限制头部盒子的最大宽度，并强制换行 */
+        .header-box { 
+            width: 100%; 
+            max-width: 700px; /* 留出左右 padding 空间 */
+            text-align: left; 
+            margin-bottom: 20px; 
+            box-sizing: border-box;
+            word-break: break-all; /* 强制在任何字符间断行，防止长单词撑开 */
+        }
         
-        /* 标题样式：强制换行并限制最大宽度 */
         #chart-title { 
             font-size: 26px; 
             color: #202124; 
             margin: 0; 
             display: block;
             width: 100%;
-            word-wrap: break-word; /* 允许长单词换行 */
-            overflow-wrap: break-word; /* 现代浏览器标准 */
-            white-space: normal; /* 确保文字正常换行而不是单行显示 */
-            line-height: 1.3;
+            white-space: normal; /* 允许正常换行 */
+            line-height: 1.4;
         }
         
         #chart-responses { font-size: 15px; color: #70757a; margin-top: 5px; }
 
         .chart-wrapper { 
             display: flex; 
-            justify-content: center; /* 水平居中图表内容 */
+            justify-content: center; 
             align-items: center;
             width: 100%;
         }
