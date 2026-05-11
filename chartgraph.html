@@ -171,6 +171,9 @@
                         color: '#ffffff',
                         font: { weight: 'bold', size: 16 },
                         formatter: (value, ctx) => {
+                            // 如果值为 0，则不显示 label
+                            if (value === 0) return '';
+                            
                             let sum = 0;
                             let dataArr = ctx.chart.data.datasets[0].data;
                             dataArr.map(data => { sum += data; });
