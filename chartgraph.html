@@ -1,0 +1,158 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>图表生成器</title>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/html2canvas@1.4.1/dist/html2canvas.min.js"></script>
+    <style>
+        body { font-family: sans-serif; background: #f4f4f9; padding: 20px; display: flex; gap: 20px; }
+        .input-panel { width: 350px; background: white; padding: 20px; border-radius: 8px; box-shadow: 0 2px 10px rgba(0,0,0,0.1); }
+        .preview-panel { flex-grow: 1; background: white; padding: 40px; border-radius: 8px; box-shadow: 0 2px 10px rgba(0,0,0,0.1); display: flex; flex-direction: column; align-items: center; }
+        .form-group { margin-bottom: 15px; }
+        label { display: block; margin-bottom: 5px; font-weight: bold; }
+        input, select { width: 100%; padding: 8px; box-sizing: border-box; border: 1px solid #ddd; border-radius: 4px; }
+        .data-row { display: flex; gap: 5px; margin-bottom: 5px; }
+        button { cursor: pointer; padding: 10px 15px; border: none; border-radius: 4px; transition: 0.3s; }
+        .btn-add { background: #28a745; color: white; width: 100%; margin-top: 10px; }
+        .btn-generate { background: #007bff; color: white; width: 100%; margin-top: 10px; font-size: 16px; }
+        .btn-download { background: #6c757d; color: white; margin-top: 20px; }
+        
+        /* 模拟图片中的样式 */
+        #capture-area { padding: 20px; width: 600px; background: white; position: relative; }
+        #chart-title { font-size: 20px; color: #333; margin-bottom: 5px; text-align: left; }
+        #chart-responses { font-size: 14px; color: #666; margin-bottom: 20px; text-align: left; }
+        .chart-container { display: flex; align-items: center; justify-content: center; }
+        canvas { max-width: 400px !important; max-height: 400px !important; }
+    </style>
+</head>
+<body>
+
+<div class="input-panel">
+    <h3>设置参数</h3>
+    <div class="form-group">
+        <label>标题 (Title)</label>
+        <input type="text" id="in-title" value="Pekerjaan">
+    </div>
+    <div class="form-group">
+        <label>响应数量 (Responses)</label>
+        <input type="text" id="in-responses" value="8 responses">
+    </div>
+    <div class="form-group">
+        <label>数据内容 (标签 | 数值)</label>
+        <div id="data-inputs">
+            <div class="data-row">
+                <input type="text" placeholder="标签" value="Pelajar">
+                <input type="number" placeholder="值" value="3">
+            </div>
+            <div class="data-row">
+                <input type="text" placeholder="标签" value="Sektor Awam">
+                <input type="number" placeholder="值" value="1">
+            </div>
+        </div>
+        <button class="btn-add" onclick="addDataRow()">+ 添加行</button>
+    </div>
+    <button class="btn-generate" onclick="updateChart()">生成预览</button>
+</div>
+
+<div class="preview-panel">
+    <div id="capture-area">
+        <div id="chart-title">Pekerjaan</div>
+        <div id="chart-responses">8 responses</div>
+        <div class="chart-container">
+            <canvas id="myChart"></canvas>
+        </div>
+    </div>
+    <button class="btn-download" onclick="downloadImage()">点击截图保存到下载</button>
+</div>
+
+<script>
+    let myChart = null;
+
+    function addDataRow() {
+        const container = document.getElementById('data-inputs');
+        const row = document.createElement('div');
+        row.className = 'data-row';
+        row.innerHTML = '<input type="text" placeholder="标签"><input type="number" placeholder="值">';
+        container.appendChild(row);
+    }
+
+    function updateChart() {
+        const title = document.getElementById('in-title').value;
+        const resp = document.getElementById('in-responses').value;
+        
+        document.getElementById('chart-title').innerText = title;
+        document.getElementById('chart-responses').innerText = resp;
+
+        const rows = document.querySelectorAll('.data-row');
+        const labels = [];
+        const dataValues = [];
+
+        rows.forEach(row => {
+            const inputs = row.querySelectorAll('input');
+            if(inputs[0].value) {
+                labels.push(inputs[0].value);
+                dataValues.push(parseFloat(inputs[1].value) || 0);
+            }
+        });
+
+        const ctx = document.getElementById('myChart').getContext('2d');
+        
+        if (myChart) myChart.destroy();
+
+        myChart = new Chart(ctx, {
+            type: 'pie',
+            data: {
+                labels: labels,
+                datasets: [{
+                    data: dataValues,
+                    backgroundColor: [
+                        '#3366cc', '#dc3912', '#ff9900', '#109618', '#990099', '#0099c6'
+                    ],
+                    borderWidth: 1,
+                    borderColor: '#fff'
+                }]
+            },
+            options: {
+                responsive: true,
+                plugins: {
+                    legend: {
+                        position: 'right',
+                        labels: { boxWidth: 15, padding: 15 }
+                    },
+                    tooltip: {
+                        callbacks: {
+                            label: function(context) {
+                                let total = context.dataset.data.reduce((a, b) => a + b, 0);
+                                let percentage = ((context.raw / total) * 100).toFixed(1) + '%';
+                                return context.label + ': ' + percentage;
+                            }
+                        }
+                    },
+                    // 在饼图块上直接显示百分比
+                    datalabels: false // 此处简单处理，Chart.js默认在Hover显示
+                }
+            }
+        });
+    }
+
+    function downloadImage() {
+        const target = document.getElementById('capture-area');
+        html2canvas(target, {
+            backgroundColor: "#ffffff",
+            scale: 2 // 提高清晰度
+        }).then(canvas => {
+            const link = document.createElement('a');
+            link.download = 'chart-export.png';
+            link.href = canvas.toDataURL('image/png');
+            link.click();
+        });
+    }
+
+    // 初始化加载
+    window.onload = updateChart;
+</script>
+
+</body>
+</html>
