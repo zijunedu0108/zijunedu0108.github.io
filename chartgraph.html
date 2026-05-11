@@ -44,7 +44,15 @@
         }
         
         .header-box { width: 100%; text-align: left; margin-bottom: 20px; }
-        #chart-title { font-size: 26px; color: #202124; margin: 0; }
+        /* 修复：增加自动换行处理 */
+        #chart-title { 
+            font-size: 26px; 
+            color: #202124; 
+            margin: 0; 
+            word-wrap: break-word; 
+            white-space: normal; 
+            max-width: 100%;
+        }
         #chart-responses { font-size: 15px; color: #70757a; margin-top: 5px; }
 
         .chart-wrapper { 
