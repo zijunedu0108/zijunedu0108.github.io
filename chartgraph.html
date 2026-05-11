@@ -3,109 +3,126 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>图表生成器 - 显式百分比版</title>
+    <title>图表生成器 - 居中增删版</title>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-datalabels@2.0.0"></script>
     <script src="https://cdn.jsdelivr.net/npm/html2canvas@1.4.1/dist/html2canvas.min.js"></script>
     <style>
-        body { font-family: "Arial", sans-serif; background: #f0f2f5; padding: 20px; display: flex; gap: 20px; }
-        .input-panel { width: 320px; background: white; padding: 20px; border-radius: 12px; box-shadow: 0 4px 15px rgba(0,0,0,0.1); height: fit-content; }
-        .preview-panel { flex-grow: 1; background: white; padding: 30px; border-radius: 12px; box-shadow: 0 4px 15px rgba(0,0,0,0.1); display: flex; flex-direction: column; align-items: center; }
+        body { font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif; background: #f8f9fa; margin: 0; display: flex; height: 100vh; }
         
-        .form-group { margin-bottom: 12px; }
-        label { display: block; margin-bottom: 6px; font-weight: bold; color: #444; }
-        input { width: 100%; padding: 10px; box-sizing: border-box; border: 1px solid #ccc; border-radius: 6px; }
+        /* 左侧输入区 */
+        .input-panel { width: 380px; background: white; padding: 25px; border-right: 1px solid #dee2e6; box-shadow: 2px 0 10px rgba(0,0,0,0.05); overflow-y: auto; }
+        h3 { margin-top: 0; color: #1a73e8; }
+        .form-group { margin-bottom: 15px; }
+        label { display: block; margin-bottom: 5px; font-size: 14px; font-weight: 600; color: #5f6368; }
+        input { width: 100%; padding: 10px; border: 1px solid #dadce0; border-radius: 4px; box-sizing: border-box; outline: none; }
+        input:focus { border-color: #1a73e8; }
         
-        .data-list { max-height: 300px; overflow-y: auto; margin-bottom: 10px; padding-right: 5px; }
-        .data-row { display: flex; gap: 8px; margin-bottom: 8px; }
+        .data-row { display: flex; gap: 8px; margin-bottom: 10px; align-items: center; }
         .data-row input[type="text"] { flex: 2; }
         .data-row input[type="number"] { flex: 1; }
+        .btn-del { background: #fce8e6; color: #d93025; padding: 8px 12px; border-radius: 4px; cursor: pointer; font-size: 12px; }
+        .btn-del:hover { background: #f9d2ce; }
 
-        button { cursor: pointer; border: none; border-radius: 6px; font-weight: bold; transition: 0.2s; }
-        .btn-add { background: #e8f0fe; color: #1a73e8; width: 100%; padding: 8px; margin-bottom: 10px; }
-        .btn-add:hover { background: #d2e3fc; }
-        .btn-generate { background: #1a73e8; color: white; width: 100%; padding: 12px; font-size: 16px; }
-        .btn-generate:hover { background: #1557b0; }
-        .btn-download { background: #34a853; color: white; margin-top: 25px; padding: 12px 24px; font-size: 14px; }
-        .btn-download:hover { background: #2d8e47; }
+        .btn-add { background: #f1f3f4; color: #3c4043; width: 100%; padding: 10px; margin: 10px 0; border: 1px dashed #dadce0; }
+        .btn-add:hover { background: #e8eaed; }
+        .btn-generate { background: #1a73e8; color: white; width: 100%; padding: 15px; font-size: 16px; margin-top: 10px; box-shadow: 0 1px 3px rgba(0,0,0,0.2); }
 
-        /* 模拟 Google Forms 的预览样式 */
-        #capture-area { padding: 40px; width: 750px; background: white; }
-        #chart-title { font-size: 24px; color: #202124; margin-bottom: 4px; }
-        #chart-responses { font-size: 14px; color: #70757a; margin-bottom: 30px; }
-        .chart-layout { display: flex; align-items: center; justify-content: space-between; }
-        .canvas-box { width: 380px; height: 380px; }
+        /* 右侧预览区 */
+        .preview-panel { flex-grow: 1; display: flex; flex-direction: column; align-items: center; justify-content: center; background: #e9ecef; padding: 20px; }
+        
+        /* 截图区域 - 重点在居中 */
+        #capture-area { 
+            background: white; 
+            width: 800px; 
+            min-height: 500px; 
+            padding: 50px; 
+            box-sizing: border-box;
+            display: flex;
+            flex-direction: column;
+            justify-content: center; /* 垂直居中 */
+        }
+        
+        .header-box { width: 100%; text-align: left; margin-bottom: 20px; }
+        #chart-title { font-size: 26px; color: #202124; margin: 0; }
+        #chart-responses { font-size: 15px; color: #70757a; margin-top: 5px; }
+
+        .chart-wrapper { 
+            display: flex; 
+            justify-content: center; /* 水平居中图表内容 */
+            align-items: center;
+            width: 100%;
+        }
+        .canvas-container { width: 450px; height: 450px; }
+
+        .btn-download { background: #34a853; color: white; margin-top: 30px; padding: 15px 30px; border-radius: 30px; font-size: 15px; }
     </style>
 </head>
 <body>
 
 <div class="input-panel">
-    <h3>图表配置</h3>
+    <h3>配置你的图表</h3>
     <div class="form-group">
         <label>标题</label>
         <input type="text" id="in-title" value="Pekerjaan">
     </div>
     <div class="form-group">
-        <label>响应人数</label>
+        <label>备注 (如: 8 responses)</label>
         <input type="text" id="in-responses" value="8 responses">
     </div>
-    <label>数据项 (标签 | 数量)</label>
-    <div id="data-inputs" class="data-list">
+    
+    <label>数据管理</label>
+    <div id="data-inputs">
         <div class="data-row">
-            <input type="text" placeholder="标签" value="Pelajar">
+            <input type="text" placeholder="项目" value="Pelajar">
             <input type="number" placeholder="值" value="3">
+            <div class="btn-del" onclick="this.parentElement.remove()">删除项</div>
         </div>
         <div class="data-row">
-            <input type="text" placeholder="标签" value="Sektor Swasta">
+            <input type="text" placeholder="项目" value="Sektor Swasta">
             <input type="number" placeholder="值" value="2">
-        </div>
-        <div class="data-row">
-            <input type="text" placeholder="标签" value="Sektor Awam">
-            <input type="number" placeholder="值" value="1">
-        </div>
-        <div class="data-row">
-            <input type="text" placeholder="标签" value="Bekerja Sendiri">
-            <input type="number" placeholder="值" value="1">
-        </div>
-        <div class="data-row">
-            <input type="text" placeholder="标签" value="Lain-lain">
-            <input type="number" placeholder="值" value="1">
+            <div class="btn-del" onclick="this.parentElement.remove()">删除项</div>
         </div>
     </div>
-    <button class="btn-add" onclick="addDataRow()">+ 添加新数据</button>
-    <button class="btn-generate" onclick="updateChart()">刷新图表预览</button>
+    
+    <button class="btn-add" onclick="addDataRow()">+ 添加新数据项</button>
+    <button class="btn-generate" onclick="updateChart()">更新并居中图表</button>
 </div>
 
 <div class="preview-panel">
     <div id="capture-area">
-        <div id="chart-title">Pekerjaan</div>
-        <div id="chart-responses">8 responses</div>
-        <div class="chart-layout">
-            <div class="canvas-box">
+        <div class="header-box">
+            <h2 id="chart-title">Pekerjaan</h2>
+            <div id="chart-responses">8 responses</div>
+        </div>
+        <div class="chart-wrapper">
+            <div class="canvas-container">
                 <canvas id="myChart"></canvas>
             </div>
         </div>
     </div>
-    <button class="btn-download" onclick="downloadImage()">保存图表为图片 (Download)</button>
+    <button class="btn-download" onclick="downloadImage()">保存截图到下载 (Download PNG)</button>
 </div>
 
 <script>
     let myChart = null;
-    // 注册插件以显示百分比
     Chart.register(ChartDataLabels);
 
     function addDataRow() {
         const container = document.getElementById('data-inputs');
         const row = document.createElement('div');
         row.className = 'data-row';
-        row.innerHTML = '<input type="text" placeholder="标签"><input type="number" placeholder="值">';
+        row.innerHTML = `
+            <input type="text" placeholder="项目">
+            <input type="number" placeholder="值">
+            <div class="btn-del" onclick="this.parentElement.remove()">删除项</div>
+        `;
         container.appendChild(row);
     }
 
     function updateChart() {
         const title = document.getElementById('in-title').value;
         const resp = document.getElementById('in-responses').value;
-        
         document.getElementById('chart-title').innerText = title;
         document.getElementById('chart-responses').innerText = resp;
 
@@ -131,7 +148,7 @@
                 datasets: [{
                     data: dataValues,
                     backgroundColor: [
-                        '#4285F4', '#EA4335', '#FBBC05', '#34A853', '#9C27B0', '#00ACC1', '#FF7043'
+                        '#4285F4', '#EA4335', '#FBBC05', '#34A853', '#9C27B0', '#00ACC1', '#FF7043', '#546E7A'
                     ],
                     borderWidth: 2,
                     borderColor: '#ffffff'
@@ -146,14 +163,13 @@
                         labels: {
                             usePointStyle: true,
                             pointStyle: 'circle',
-                            padding: 20,
-                            font: { size: 14 }
+                            padding: 25,
+                            font: { size: 15 }
                         }
                     },
-                    // 百分比标签的核心配置
                     datalabels: {
-                        color: '#fff',
-                        font: { weight: 'bold', size: 14 },
+                        color: '#ffffff',
+                        font: { weight: 'bold', size: 16 },
                         formatter: (value, ctx) => {
                             let sum = 0;
                             let dataArr = ctx.chart.data.datasets[0].data;
@@ -169,18 +185,21 @@
 
     function downloadImage() {
         const target = document.getElementById('capture-area');
+        // 渲染前确保样式已应用
         html2canvas(target, {
             backgroundColor: "#ffffff",
-            scale: 2 
+            scale: 2,
+            logging: false,
+            useCORS: true
         }).then(canvas => {
             const link = document.createElement('a');
-            link.className = 'download-link';
-            link.download = document.getElementById('in-title').value + '.png';
+            link.download = document.getElementById('in-title').value + '_Report.png';
             link.href = canvas.toDataURL('image/png');
             link.click();
         });
     }
 
+    // 初始化显示
     window.onload = updateChart;
 </script>
 
