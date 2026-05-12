@@ -44,14 +44,16 @@
             overflow: hidden; 
         }
         
-        /* 核心修复：限制头部盒子的最大宽度，并强制换行 */
+        /* 核心修复：限制头部盒子的最大宽度，并保持单词完整换行 */
         .header-box { 
             width: 100%; 
-            max-width: 700px; /* 留出左右 padding 空间 */
+            max-width: 700px; /* 留出左右间距 */
             text-align: left; 
             margin-bottom: 20px; 
             box-sizing: border-box;
-            word-break: break-all; /* 强制在任何字符间断行，防止长单词撑开 */
+            /* 关键修改：允许长内容换行，但尽量不在单词内断开 */
+            overflow-wrap: break-word; 
+            word-break: normal; 
         }
         
         #chart-title { 
@@ -60,7 +62,7 @@
             margin: 0; 
             display: block;
             width: 100%;
-            white-space: normal; /* 允许正常换行 */
+            white-space: normal; 
             line-height: 1.4;
         }
         
@@ -83,23 +85,23 @@
     <h3>配置你的图表</h3>
     <div class="form-group">
         <label>标题</label>
-        <input type="text" id="in-title" value="Pekerjaan">
+        <input type="text" id="in-title" value="Lokasi: Lokasi MR.DIY PLUS Kangar adalah sangat strategik dan mudah dikunjungi.">
     </div>
     <div class="form-group">
         <label>备注 (如: 8 responses)</label>
-        <input type="text" id="in-responses" value="8 responses">
+        <input type="text" id="in-responses" value="30 responses">
     </div>
     
     <label>数据管理</label>
     <div id="data-inputs">
         <div class="data-row">
-            <input type="text" placeholder="项目" value="Pelajar">
-            <input type="number" placeholder="值" value="3">
+            <input type="text" placeholder="项目" value="Sangat Setuju">
+            <input type="number" placeholder="值" value="19">
             <div class="btn-del" onclick="this.parentElement.remove()">删除项</div>
         </div>
         <div class="data-row">
-            <input type="text" placeholder="项目" value="Sektor Swasta">
-            <input type="number" placeholder="值" value="2">
+            <input type="text" placeholder="项目" value="Setuju">
+            <input type="number" placeholder="值" value="8">
             <div class="btn-del" onclick="this.parentElement.remove()">删除项</div>
         </div>
     </div>
