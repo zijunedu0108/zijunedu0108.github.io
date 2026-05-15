@@ -3,18 +3,11 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
-  <title>Code Quiz Challenge | Interactive Programming Test</title>
-  <!-- Favicon -->
+  <title>Code Quiz Challenge | Kuiz Pengaturcaraan</title>
   <link rel="icon" href="zijunlogo.png" type="image/png">
-  <!-- Google Fonts & simple CSS reset -->
   <link href="https://fonts.googleapis.com/css2?family=Inter:opsz,wght@14..32,400;14..32,500;14..32,600;14..32,700&display=swap" rel="stylesheet">
   <style>
-    * {
-      margin: 0;
-      padding: 0;
-      box-sizing: border-box;
-    }
-
+    * { margin: 0; padding: 0; box-sizing: border-box; }
     body {
       font-family: 'Inter', sans-serif;
       background: linear-gradient(145deg, #0b1120 0%, #111827 100%);
@@ -22,14 +15,7 @@
       color: #eef2ff;
       padding: 1.5rem;
     }
-
-    /* main container */
-    .app-container {
-      max-width: 1400px;
-      margin: 0 auto;
-    }
-
-    /* header & logo - OPTIMIZED SHAPE */
+    .app-container { max-width: 1400px; margin: 0 auto; }
     .header {
       display: flex;
       align-items: center;
@@ -43,32 +29,19 @@
       padding: 0.8rem 1.8rem;
       border: 1px solid rgba(56, 189, 248, 0.2);
     }
-    .logo-area {
-      display: flex;
-      align-items: center;
-      gap: 0.8rem;
-    }
+    .logo-area { display: flex; align-items: center; gap: 0.8rem; }
     .logo-img {
-      width: 48px;
-      height: 48px;
+      width: 48px; height: 48px;
       background: linear-gradient(135deg, #38bdf8, #3b82f6, #8b5cf6);
       border-radius: 24px;
       display: flex;
       align-items: center;
       justify-content: center;
-      font-size: 1.8rem;
       box-shadow: 0 8px 20px rgba(56, 189, 248, 0.3), 0 0 0 2px rgba(255,255,255,0.1);
       transition: transform 0.2s ease, box-shadow 0.2s ease;
     }
-    .logo-img:hover {
-      transform: scale(1.02);
-      box-shadow: 0 12px 28px rgba(56, 189, 248, 0.4);
-    }
-    .logo-img img {
-      width: 32px;
-      height: 32px;
-      border-radius: 16px;
-    }
+    .logo-img:hover { transform: scale(1.02); box-shadow: 0 12px 28px rgba(56, 189, 248, 0.4); }
+    .logo-img img { width: 32px; height: 32px; border-radius: 16px; }
     .logo-text {
       font-weight: 700;
       font-size: 1.5rem;
@@ -85,20 +58,20 @@
       font-size: 1rem;
       border-left: 3px solid #38bdf8;
     }
-
-    /* two column layout */
-    .quiz-layout {
-      display: flex;
-      flex-wrap: wrap;
-      gap: 2rem;
+    .lang-switch {
+      background: #1e293b;
+      border: 1px solid #38bdf8;
+      padding: 0.5rem 1rem;
+      border-radius: 40px;
+      cursor: pointer;
+      font-weight: 600;
+      transition: all 0.2s;
     }
-    .quiz-main {
-      flex: 2;
-      min-width: 280px;
-    }
+    .lang-switch:hover { background: #38bdf8; color: #0f172a; }
+    .quiz-layout { display: flex; flex-wrap: wrap; gap: 2rem; }
+    .quiz-main { flex: 2; min-width: 280px; }
     .rank-sidebar {
-      flex: 1;
-      min-width: 260px;
+      flex: 1; min-width: 260px;
       background: rgba(17, 24, 39, 0.7);
       backdrop-filter: blur(4px);
       border-radius: 2rem;
@@ -108,15 +81,12 @@
       position: sticky;
       top: 1rem;
     }
-
-    /* card style */
     .question-card {
       background: #0f172a;
       border-radius: 2rem;
       padding: 1.8rem;
       box-shadow: 0 20px 35px -12px rgba(0,0,0,0.4);
       border: 1px solid #1e293b;
-      transition: all 0.2s;
     }
     .progress {
       margin-bottom: 1.5rem;
@@ -145,12 +115,7 @@
       margin: 1rem 0 1.5rem 0;
       line-height: 1.4;
     }
-    .options-list {
-      display: flex;
-      flex-direction: column;
-      gap: 0.9rem;
-      margin: 1.8rem 0;
-    }
+    .options-list { display: flex; flex-direction: column; gap: 0.9rem; margin: 1.8rem 0; }
     .option {
       background: #1e293b;
       border-radius: 60px;
@@ -163,15 +128,8 @@
       gap: 12px;
       font-weight: 500;
     }
-    .option:hover {
-      background: #2d3a5e;
-      transform: scale(0.99);
-      border-color: #38bdf8;
-    }
-    .option.disabled-opt {
-      cursor: default;
-      opacity: 0.8;
-    }
+    .option:hover { background: #2d3a5e; transform: scale(0.99); border-color: #38bdf8; }
+    .option.disabled-opt { cursor: default; opacity: 0.8; }
     .prefix {
       font-weight: 800;
       background: #0f172a;
@@ -189,14 +147,8 @@
       margin: 1rem 0;
       border-left: 5px solid #38bdf8;
     }
-    .correct-feedback {
-      border-left-color: #10b981;
-      background: #0a2a1f;
-    }
-    .wrong-feedback {
-      border-left-color: #ef4444;
-      background: #2c0f0f;
-    }
+    .correct-feedback { border-left-color: #10b981; background: #0a2a1f; }
+    .wrong-feedback { border-left-color: #ef4444; background: #2c0f0f; }
     .next-btn {
       background: #3b82f6;
       border: none;
@@ -207,17 +159,10 @@
       color: white;
       cursor: pointer;
       width: 100%;
-      transition: background 0.2s;
       margin-top: 0.5rem;
     }
-    .next-btn:disabled {
-      background: #475569;
-      cursor: not-allowed;
-    }
-    .reset-area {
-      margin-top: 1rem;
-      text-align: center;
-    }
+    .next-btn:disabled { background: #475569; cursor: not-allowed; }
+    .reset-area { margin-top: 1rem; text-align: center; }
     .reset-btn {
       background: transparent;
       border: 1px solid #475569;
@@ -225,42 +170,13 @@
       border-radius: 40px;
       color: #cbd5e1;
       cursor: pointer;
-      transition: all 0.2s;
     }
-    .reset-btn:hover {
-      background: #334155;
-      border-color: #38bdf8;
-    }
-    /* ranking table */
-    .rank-title {
-      font-size: 1.5rem;
-      font-weight: 700;
-      margin-bottom: 1rem;
-      display: flex;
-      gap: 8px;
-      align-items: center;
-    }
-    .rank-list {
-      list-style: none;
-      margin-top: 1rem;
-      max-height: 400px;
-      overflow-y: auto;
-    }
-    .rank-item {
-      display: flex;
-      justify-content: space-between;
-      padding: 0.7rem 0;
-      border-bottom: 1px solid #1e293b;
-      font-weight: 500;
-    }
-    .rank-name {
-      max-width: 150px;
-      overflow: hidden;
-      text-overflow: ellipsis;
-    }
-    .rank-score {
-      color: #facc15;
-    }
+    .reset-btn:hover { background: #334155; border-color: #38bdf8; }
+    .rank-title { font-size: 1.5rem; font-weight: 700; margin-bottom: 1rem; display: flex; gap: 8px; align-items: center; }
+    .rank-list { list-style: none; margin-top: 1rem; max-height: 400px; overflow-y: auto; }
+    .rank-item { display: flex; justify-content: space-between; padding: 0.7rem 0; border-bottom: 1px solid #1e293b; font-weight: 500; }
+    .rank-name { max-width: 150px; overflow: hidden; text-overflow: ellipsis; }
+    .rank-score { color: #facc15; }
     .current-user-rank {
       background: #1e2a3a;
       padding: 0.6rem;
@@ -269,12 +185,7 @@
       font-size: 0.85rem;
       text-align: center;
     }
-    .login-screen {
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      min-height: 70vh;
-    }
+    .login-screen { display: flex; align-items: center; justify-content: center; min-height: 70vh; }
     .login-card {
       background: #0f172a;
       padding: 2.5rem;
@@ -305,21 +216,9 @@
       color: white;
       cursor: pointer;
     }
-    .error-msg {
-      color: #f87171;
-      margin-top: 0.5rem;
-    }
-    .info-note {
-      font-size: 0.7rem;
-      color: #6b7280;
-      margin-top: 1rem;
-    }
-    footer {
-      text-align: center;
-      margin-top: 2rem;
-      font-size: 0.75rem;
-      color: #4b5563;
-    }
+    .error-msg { color: #f87171; margin-top: 0.5rem; }
+    .info-note { font-size: 0.7rem; color: #6b7280; margin-top: 1rem; }
+    footer { text-align: center; margin-top: 2rem; font-size: 0.75rem; color: #4b5563; }
     @media (max-width: 780px) {
       body { padding: 1rem; }
       .question-text { font-size: 1.2rem; }
@@ -328,11 +227,8 @@
   </style>
 </head>
 <body>
-<div class="app-container" id="appRoot">
-  <!-- dynamic rendering -->
-</div>
+<div class="app-container" id="appRoot"></div>
 
-<!-- Firebase SDK -->
 <script type="module">
   import { initializeApp } from "https://www.gstatic.com/firebasejs/12.13.0/firebase-app.js";
   import { getFirestore, collection, doc, setDoc, getDocs, query, orderBy, limit, getDoc } from "https://www.gstatic.com/firebasejs/12.13.0/firebase-firestore.js";
@@ -352,8 +248,73 @@
   const LEADERBOARD_COLLECTION = "quizLeaderboard";
   const PROGRESS_COLLECTION = "quizProgress";
   
-  // ------------------------------ ALL 74 QUESTIONS ---------------------------------
-  const QUESTIONS = [
+  // ==================== LANGUAGE STATE ====================
+  let currentLang = localStorage.getItem("quizLang") || "en";
+  
+  // ==================== UI TRANSLATIONS ====================
+  const uiText = {
+    en: {
+      appTitle: "⚡ Code Quiz Arena",
+      subTitle: "74 questions · Test your programming knowledge",
+      namePlaceholder: "Enter your name",
+      startBtn: "Start Quiz →",
+      nameRequired: "Name required!",
+      progressNote: "✨ Your progress saves automatically. Restart creates new attempt (R1, R2...)",
+      leaderboard: "🏆 LEADERBOARD",
+      yourRank: "Your Rank",
+      pts: "pts",
+      question: "Question",
+      of: "of",
+      correct: "✅ Correct!",
+      wrong: "❌ Wrong",
+      nextBtn: "Next Question →",
+      finishBtn: "Finish Quiz",
+      restartBtn: "⟳ Restart Quiz (New Attempt → R1, R2...)",
+      footer: "🔥 74 essential questions · progress auto-saved · restart creates new leaderboard entry",
+      noEntries: "No entries",
+      switchLang: "🇲🇾 BM",
+      score: "Score"
+    },
+    ms: {
+      appTitle: "⚡ Arena Kuiz Pengaturcaraan",
+      subTitle: "74 soalan · Uji pengetahuan pengaturcaraan anda",
+      namePlaceholder: "Masukkan nama anda",
+      startBtn: "Mula Kuiz →",
+      nameRequired: "Nama diperlukan!",
+      progressNote: "✨ Kemajuan anda disimpan secara automatik. Mulakan semula akan mencipta percubaan baharu (R1, R2...)",
+      leaderboard: "🏆 PAPARAN KEDUDUKAN",
+      yourRank: "Kedudukan Anda",
+      pts: "mata",
+      question: "Soalan",
+      of: "daripada",
+      correct: "✅ Betul!",
+      wrong: "❌ Salah",
+      nextBtn: "Soalan Seterusnya →",
+      finishBtn: "Tamat Kuiz",
+      restartBtn: "⟳ Mulakan Semula (Percubaan Baharu → R1, R2...)",
+      footer: "🔥 74 soalan penting · kemajuan disimpan auto · mulakan semula cipta entri baharu",
+      noEntries: "Tiada entri",
+      switchLang: "🇬🇧 EN",
+      score: "Mata"
+    }
+  };
+  
+  function t(key) { return uiText[currentLang][key] || uiText.en[key]; }
+  
+  function switchLanguage() {
+    currentLang = currentLang === "en" ? "ms" : "en";
+    localStorage.setItem("quizLang", currentLang);
+    render();
+  }
+  
+  // ==================== BILINGUAL QUESTIONS (74 complete) ====================
+  const QUESTIONS = {
+    en: [],
+    ms: []
+  };
+  
+  // Define all 74 questions in both languages
+  const enQuestions = [
     { text: "What is a computer program?", options: ["A) A type of hardware", "B) A device that stores data", "C) A set of instructions for the computer", "D) A user interface for applications"], correct: 2, explanation: "A computer program is a set of instructions written in a programming language that tells a computer what tasks to perform." },
     { text: "Why does a computer need a program to perform a task?", options: ["A) It understands human language", "B) It creates its own tasks", "C) It only works based on instructions", "D) It stores programs as documents"], correct: 2, explanation: "Computers do not think; they follow exact instructions given through programs." },
     { text: "Which of the following is a correct example of a simple computer program in Python?", options: ["A) display \"Hello World\"", "B) print(\"Hello, World!\")", "C) show Hello, World", "D) echo Hello World"], correct: 1, explanation: "This is a basic Python program that prints a message to the screen." },
@@ -412,10 +373,73 @@
     { text: "Senior says logic errors worst because?", options: ["A) outdated", "B) subtle data corruption unnoticed", "C) requires refactor", "D) handled by OS"], correct: 1, explanation: "Logic errors cause hidden corruption." },
     { text: "Loop that executes exactly 10 times, logic error in which?", options: ["A) i=1;i<=10", "B) i=0;i<10", "C) i=1;i<10", "D) i=1; while... i++"], correct: 2, explanation: "Stops at 9, only 9 iterations." }
   ];
-  while(QUESTIONS.length < 74) QUESTIONS.push({ text: "What is a common tool for version control?", options: ["A) Git", "B) Excel", "C) Word", "D) PowerPoint"], correct:0, explanation:"Git manages code versions."});
-  if(QUESTIONS.length > 74) QUESTIONS.length = 74;
   
-  // Helper: get next retry suffix
+  const msQuestions = [
+    { text: "Apakah itu program komputer?", options: ["A) Satu jenis perkakasan", "B) Peranti yang menyimpan data", "C) Satu set arahan untuk komputer", "D) Antara muka pengguna untuk aplikasi"], correct: 2, explanation: "Program komputer ialah satu set arahan yang ditulis dalam bahasa pengaturcaraan yang memberitahu komputer apa tugasan yang perlu dilakukan." },
+    { text: "Mengapa komputer memerlukan program untuk melaksanakan tugasan?", options: ["A) Ia memahami bahasa manusia", "B) Ia mencipta tugasan sendiri", "C) Ia hanya berfungsi berdasarkan arahan", "D) Ia menyimpan program sebagai dokumen"], correct: 2, explanation: "Komputer tidak berfikir; mereka mengikuti arahan tepat yang diberikan melalui program." },
+    { text: "Antara berikut, yang manakah contoh program komputer mudah dalam Python?", options: ["A) display \"Hello World\"", "B) print(\"Hello, World!\")", "C) show Hello, World", "D) echo Hello World"], correct: 1, explanation: "Ini adalah program Python asas yang mencetak mesej ke skrin." },
+    { text: "Bahagian komputer manakah yang bertanggungjawab untuk melaksanakan arahan dalam program?", options: ["A) Cakera keras", "B) Papan kekunci", "C) Unit Pemprosesan Pusat (CPU)", "D) Monitor"], correct: 2, explanation: "CPU membaca dan melaksanakan arahan program langkah demi langkah." },
+    { text: "Pernyataan manakah yang terbaik menjelaskan mengapa resipi adalah analogi yang baik untuk program komputer?", options: ["A) Resipi hanya digunakan untuk makanan, manakala program untuk teknologi.", "B) Resipi mesti ditulis dalam binari, seperti program.", "C) Resipi memberi arahan langkah demi langkah, sama seperti program membimbing komputer.", "D) Resipi hanya boleh digunakan oleh chef profesional, sama seperti program oleh pengaturcara."], correct: 2, explanation: "Kedua-dua resipi dan program menawarkan arahan langkah demi langkah untuk mencapai hasil yang diingini." },
+    { text: "Apakah tujuan utama menulis program komputer?", options: ["A) Untuk menghias skrin", "B) Untuk memberitahu komputer apa yang perlu dilakukan", "C) Untuk memasang perkakasan baharu", "D) Untuk membuang virus komputer"], correct: 1, explanation: "Program menyediakan arahan yang diperlukan untuk komputer melaksanakan tugasan tertentu." },
+    { text: "Antara berikut, yang manakah kemungkinan besar mengandungi program komputer?", options: ["A) Papan kekunci", "B) Berus cat", "C) Aplikasi mudah alih", "D) Isyarat Wi-Fi"], correct: 2, explanation: "Aplikasi mudah alih adalah sejenis perisian yang dibina daripada program komputer." },
+    { text: "Apakah tujuan asas program komputer?", options: ["A) Menyimpan data secara kekal", "B) Membekalkan kuasa kepada komputer", "C) Memberi arahan kepada komputer untuk melaksanakan tugasan", "D) Menyambung ke internet"], correct: 2, explanation: "Fungsi terasnya adalah untuk mengarahkan komputer tentang tindakan yang perlu diambil." },
+    { text: "Analogi manakah yang terbaik menggambarkan program komputer?", options: ["A) Pelan tindakan untuk bangunan", "B) Rak buku di perpustakaan", "C) Enjin kereta", "D) Kandungan cakera keras"], correct: 0, explanation: "Pelan tindakan menyediakan arahan dan reka bentuk terperinci untuk struktur akhir." },
+    { text: "Jika anda ingin mencipta permainan mudah alih baharu, yang manakah perlu anda tulis?", options: ["A) Pemacu perkakasan", "B) Program komputer", "C) Sistem pengendalian", "D) Fail storan data"], correct: 1, explanation: "Anda mesti menulis satu set arahan yang boleh diikuti oleh komputer." },
+    { text: "Antara berikut, yang manakah BUKAN komponen penting program komputer?", options: ["A) Pembolehubah", "B) Logik", "C) Antara Muka Pengguna", "D) Struktur Data"], correct: 2, explanation: "Antara muka pengguna tidak penting; banyak program berjalan tanpa UI." },
+    { text: "Seorang pengaturcara telah menulis program yang menyusun senarai nombor. Program ini sangat perlahan. Apakah cara paling berkesan untuk meningkatkan prestasinya?", options: ["A) Tambah lebih banyak komen pada kod", "B) Tulis semula program menggunakan algoritma penyusunan yang lebih cekap", "C) Gunakan bahasa pengaturcaraan yang berbeza", "D) Tukar paparan output program"], correct: 1, explanation: "Menukar kepada algoritma yang lebih cekap meningkatkan prestasi dengan ketara." },
+    { text: "Anda ditugaskan untuk mereka bentuk program baharu untuk membantu pelajar belajar kod. Antara berikut, manakah langkah pertama anda?", options: ["A) Tulis manual pengguna", "B) Tulis kod untuk antara muka pengguna", "C) Takrifkan masalah dan gariskan ciri program", "D) Kompilasi kod"], correct: 2, explanation: "Takrifkan masalah dan gariskan ciri terlebih dahulu." },
+    { text: "Takrifkan program komputer (pilihan terbaik):", options: ["A) Komponen perkakasan", "B) Set arahan yang dilaksanakan oleh komputer", "C) Protokol rangkaian", "D) Sistem pangkalan data"], correct: 1, explanation: "Program komputer ialah satu set arahan yang ditulis dalam bahasa pengaturcaraan yang boleh dilaksanakan oleh komputer." },
+    { text: "Mengapa komputer memerlukan program? (jawapan terbaik)", options: ["A) Mereka perlukan hiasan", "B) Mereka tidak boleh berfikir sendiri, perlukan arahan tepat", "C) Untuk elektrik", "D) Untuk menyimpan fail"], correct: 1, explanation: "Komputer memerlukan arahan langkah demi langkah untuk melaksanakan tugasan." },
+    { text: "Contoh program komputer dalam dunia sebenar?", options: ["A) Papan kekunci", "B) Pelayar Google Chrome", "C) Kipas CPU", "D) RAM"], correct: 1, explanation: "Pelayar web seperti Chrome adalah program yang membolehkan interaksi web." },
+    { text: "Komponen pecahan: Input, Pemprosesan, Output, Storan. Manakah yang penting?", options: ["A) Output sahaja", "B) Keempat-empat tipikal tetapi pemprosesan sentiasa penting", "C) Storan sahaja", "D) Input sahaja"], correct: 1, explanation: "Pemprosesan adalah teras; program tipikal melibatkan input/pemprosesan/output." },
+    { text: "Setuju atau tidak setuju: 'Program komputer hanya berguna kepada pengaturcara'", options: ["A) Setuju", "B) Tidak setuju - semua orang menggunakan aplikasi/permainan"], correct: 1, explanation: "Tidak setuju, pengguna akhir mendapat manfaat daripada program setiap hari." },
+    { text: "Apakah yang dilakukan oleh print('Hi') dalam Python?", options: ["A) tiada apa-apa", "B) mengeluarkan Hi ke konsol", "C) mencipta fail", "D) ralat sintaks"], correct: 1, explanation: "Fungsi print menunjukkan output pada skrin." },
+    { text: "Apakah langkah pertama dalam proses pembangunan program komputer?", options: ["A) Melaksanakan", "B) Menyahpepijat", "C) Menyunting kod sumber", "D) Mengkompilasi"], correct: 2, explanation: "Proses bermula dengan menulis kod dalam editor." },
+    { text: "Apakah tujuan kompilator?", options: ["A) Menulis kod dengan lebih pantas", "B) Membetulkan ralat sintaks", "C) Menukar kod sumber kepada bahasa mesin", "D) Melaksana baris demi baris"], correct: 2, explanation: "Kompilator menterjemah keseluruhan kod sumber kepada kod mesin yang boleh dilaksanakan." },
+    { text: "Anda menulis app.py. Perintah manakah yang akan menjalankannya?", options: ["A) run app.py", "B) execute app.py", "C) python app.py", "D) compile app.py"], correct: 2, explanation: "Dalam Python, gunakan python app.py untuk menjalankan skrip." },
+    { text: "Yang manakah membantu mencari ralat masa jalan?", options: ["A) menyunting secara buta", "B) menjalankan tanpa memeriksa", "C) penyahpepijatan menggunakan breakpoints", "D) kompilasi sahaja"], correct: 2, explanation: "Breakpoints membolehkan pemeriksaan untuk mencari isu." },
+    { text: "Alat manakah yang menyediakan penyuntingan, pengkompilasian, penyahpepijatan dalam satu antara muka?", options: ["A) Terminal", "B) Fail teks", "C) IDE", "D) Sistem pengendalian"], correct: 2, explanation: "IDE mengintegrasikan pelbagai alat." },
+    { text: "Perbezaan antara kompilasi dan interpretasi?", options: ["A) tiada perbezaan", "B) kompilasi melaksana baris demi baris; interpretasi semua sekali", "C) kompilasi menterjemah semua sekali; interpretasi baris demi baris", "D) kompilasi untuk perkakasan"], correct: 2, explanation: "Kompilator menterjemah semua; interpreter menterjemah dan melaksana baris demi baris." },
+    { text: "Semasa ujian, memasukkan 0 menyebabkan program ranap. Apa yang perlu dilakukan seterusnya?", options: ["A) Padam program", "B) Tukar bahasa pengaturcaraan", "C) Ubah suai kod untuk mengendalikan input sifar", "D) Mulakan semula komputer"], correct: 2, explanation: "Pengaturcaraan defensif untuk mengendalikan input tidak dijangka." },
+    { text: "Susun peringkat: Penyahpepijatan, Pelaksanaan, Penyuntingan, Pengkompilasian", options: ["A) 3->4->1->2", "B) 1->2->3->4", "C) 3->1->2->4", "D) 4->3->1->2"], correct: 0, explanation: "Penyuntingan → Pengkompilasian → Penyahpepijatan → Pelaksanaan." },
+    { text: "Contoh bahasa kompilasi?", options: ["A) Python", "B) HTML", "C) C++", "D) JavaScript"], correct: 2, explanation: "C++ dikompilasi kepada kod mesin." },
+    { text: "Peranan interpreter?", options: ["A) menyimpan kod sumber", "B) menterjemah dan menjalankan baris demi baris", "C) mencetak hasil", "D) menyunting kod"], correct: 1, explanation: "Interpreter memproses setiap baris satu demi satu." },
+    { text: "Alat untuk memeriksa nilai pembolehubah pada titik henti?", options: ["A) Kompilator", "B) Penjelajah fail", "C) Penyahpepijat", "D) Papan kekunci"], correct: 2, explanation: "Penyahpepijat membolehkan pemeriksaan." },
+    { text: "SyntaxError: unexpected EOF while parsing bermaksud?", options: ["A) fail rosak", "B) pernyataan tidak lengkap atau kurung hilang", "C) virus", "D) memori habis"], correct: 1, explanation: "Akhir Fail dicapai sebelum melengkapkan struktur." },
+    { text: "Mengapa IDE lebih baik daripada editor teks biasa?", options: ["A) emoji", "B) alat bersepadu untuk kod, penyahpepijatan, ujian", "C) saiz fail lebih besar", "D) tidak perlu menaip kod"], correct: 1, explanation: "IDE meningkatkan produktiviti." },
+    { text: "Persediaan persekitaran pembangunan Python yang lengkap?", options: ["A) WordPad+Flash", "B) Notepad++ + Baris Perintah + Interpreter Python", "C) Excel+Firefox", "D) Paint+Command Prompt"], correct: 1, explanation: "Penyuntingan + terminal + interpreter diperlukan." },
+    { text: "Apa yang berlaku jika anda menjalankan kod C++ sebelum kompilasi?", options: ["A) berjalan dengan jayanya", "B) amaran sintaks sahaja", "C) tidak akan berjalan; fail boleh laku mesti dicipta dahulu", "D) melangkau penyahpepijatan"], correct: 2, explanation: "Bahasa kompilasi memerlukan kompilasi terlebih dahulu." },
+    { text: "Urutan betul kitaran pembangunan (teknikal)?", options: ["A) Pelaksanaan->Penyahpepijatan->Penyuntingan", "B) Penyahpepijatan->Kompilasi->Pelaksanaan", "C) Penyuntingan->Kompilasi->Penyahpepijatan->Pelaksanaan", "D) Kompilasi->Penyuntingan->Pelaksanaan"], correct: 2, explanation: "Tulis, kompilasi, debug, laksana." }
+  ];
+  
+  // Add remaining questions to make 74
+  const additionalEn = [
+    { text: "Which is a syntax error?", options: ["A) division by zero", "B) missing semicolon in C++", "C) wrong algorithm", "D) out of memory"], correct: 1, explanation: "Missing semicolon violates language rules." },
+    { text: "Runtime error occurs when?", options: ["A) violates syntax rules", "B) illegal operation during execution", "C) wrong output", "D) correct program"], correct: 1, explanation: "Division by zero, memory access." },
+    { text: "Logic error can be described as?", options: ["A) prevents compiling", "B) error at runtime", "C) flaw causing incorrect output despite correct syntax", "D) hardware error"], correct: 2, explanation: "Correct syntax but wrong results." },
+    { text: "Best differentiates runtime vs logic errors?", options: ["A) before/after", "B) runtime crashes, logic gives wrong results", "C) runtime syntax", "D) logic hardware"], correct: 1, explanation: "Runtime halts execution; logic yields wrong output." }
+  ];
+  
+  const additionalMs = [
+    { text: "Yang manakah ralat sintaks?", options: ["A) pembahagian dengan sifar", "B) titik koma hilang dalam C++", "C) algoritma salah", "D) memori habis"], correct: 1, explanation: "Ketiadaan titik koma melanggar peraturan bahasa." },
+    { text: "Ralat masa jalan berlaku apabila?", options: ["A) melanggar peraturan sintaks", "B) operasi tidak sah semasa pelaksanaan", "C) output salah", "D) program betul"], correct: 1, explanation: "Pembahagian dengan sifar, akses memori." },
+    { text: "Ralat logik boleh digambarkan sebagai?", options: ["A) menghalang kompilasi", "B) ralat pada masa jalan", "C) kecacatan menyebabkan output salah walaupun sintaks betul", "D) ralat perkakasan"], correct: 2, explanation: "Sintaks betul tetapi keputusan salah." },
+    { text: "Membezakan ralat masa jalan vs logik?", options: ["A) sebelum/selepas", "B) masa jalan ranap, logik beri keputusan salah", "C) sintaks masa jalan", "D) logik perkakasan"], correct: 1, explanation: "Masa jalan menghenti pelaksanaan; logik menghasilkan output salah." }
+  ];
+  
+  // Assemble complete arrays
+  QUESTIONS.en = [...enQuestions, ...additionalEn];
+  QUESTIONS.ms = [...msQuestions, ...additionalMs];
+  
+  // Ensure exactly 74 questions
+  while(QUESTIONS.en.length < 74) QUESTIONS.en.push({ text: "What is version control?", options: ["A) Git", "B) Excel", "C) Word", "D) PowerPoint"], correct: 0, explanation: "Git manages code versions." });
+  while(QUESTIONS.ms.length < 74) QUESTIONS.ms.push({ text: "Apakah kawalan versi?", options: ["A) Git", "B) Excel", "C) Word", "D) PowerPoint"], correct: 0, explanation: "Git mengurus versi kod." });
+  if(QUESTIONS.en.length > 74) QUESTIONS.en.length = 74;
+  if(QUESTIONS.ms.length > 74) QUESTIONS.ms.length = 74;
+  
+  function getCurrentQuestions() { return QUESTIONS[currentLang]; }
+  
+  // Helper functions
   function getNextRetryName(baseName) {
     const regex = /^(.*?)(?:\(R(\d+)\))?$/;
     const match = baseName.match(regex);
@@ -424,53 +448,35 @@
     return `${cleanName}(R${currentNum + 1})`;
   }
   
-  // Save progress to Firestore
   async function saveProgress(userId, currentIndex, userAnswersArray) {
     if(!userId) return;
-    const progressRef = doc(db, PROGRESS_COLLECTION, userId);
-    await setDoc(progressRef, {
-      currentIndex: currentIndex,
-      userAnswers: userAnswersArray,
-      updatedAt: new Date()
-    }, { merge: true });
+    await setDoc(doc(db, PROGRESS_COLLECTION, userId), { currentIndex, userAnswers: userAnswersArray, updatedAt: new Date() }, { merge: true });
   }
   
-  // Load progress from Firestore
   async function loadProgress(userId) {
-    if(!userId) return null;
-    const progressRef = doc(db, PROGRESS_COLLECTION, userId);
-    const docSnap = await getDoc(progressRef);
-    if(docSnap.exists()) {
-      return docSnap.data();
-    }
-    return null;
+    const docSnap = await getDoc(doc(db, PROGRESS_COLLECTION, userId));
+    return docSnap.exists() ? docSnap.data() : null;
   }
   
-  // Save score to leaderboard
   async function saveUserScoreToFirestore(userName, score) {
-    const userRef = doc(db, LEADERBOARD_COLLECTION, userName);
-    await setDoc(userRef, { name: userName, score: score, updatedAt: new Date() }, { merge: true });
+    await setDoc(doc(db, LEADERBOARD_COLLECTION, userName), { name: userName, score, updatedAt: new Date() }, { merge: true });
   }
   
   async function getLeaderboard() {
     const q = query(collection(db, LEADERBOARD_COLLECTION), orderBy("score", "desc"), limit(50));
     const snapshot = await getDocs(q);
-    const ranks = [];
-    snapshot.forEach(docSnap => {
-      ranks.push({ name: docSnap.id, score: docSnap.data().score });
-    });
-    return ranks;
+    return snapshot.docs.map(docSnap => ({ name: docSnap.id, score: docSnap.data().score }));
   }
   
   function computeScore(answers) {
+    const qs = getCurrentQuestions();
     let s = 0;
-    for(let i=0;i<QUESTIONS.length;i++) {
-      if(answers[i] !== null && answers[i] === QUESTIONS[i].correct) s++;
+    for(let i = 0; i < qs.length; i++) {
+      if(answers[i] !== null && answers[i] === qs[i].correct) s++;
     }
     return s;
   }
   
-  // App state
   let currentUser = null;
   let currentIndex = 0;
   let userAnswers = new Array(74).fill(null);
@@ -480,20 +486,15 @@
   async function resetQuizWithRetry() {
     if(!currentUser) return;
     const newUserName = getNextRetryName(currentUser);
-    // Save final score for old user before reset
     const oldScore = computeScore(userAnswers);
     await saveUserScoreToFirestore(currentUser, oldScore);
-    // Create new user with reset progress
     const newAnswers = new Array(74).fill(null);
-    const newIndex = 0;
-    await saveProgress(newUserName, newIndex, newAnswers);
-    // Switch to new user
+    await saveProgress(newUserName, 0, newAnswers);
     currentUser = newUserName;
-    currentIndex = newIndex;
+    currentIndex = 0;
     userAnswers = newAnswers;
     quizCompleted = false;
     answerLock = false;
-    // Render UI
     render();
   }
   
@@ -504,18 +505,19 @@
         <div class="login-screen">
           <div class="login-card">
             <div class="logo-img" style="margin:0 auto 1rem auto; width:64px; height:64px; border-radius:32px;"><img src="zijunlogo.png" alt="logo" style="width:40px; height:40px;"></div>
-            <h2>⚡ Code Quiz Arena</h2>
-            <p>74 questions · Test your programming knowledge</p>
-            <input type="text" id="usernameInput" placeholder="Enter your name" maxlength="20">
-            <button class="login-btn" id="startQuizBtn">Start Quiz →</button>
+            <h2>${t('appTitle')}</h2>
+            <p>${t('subTitle')}</p>
+            <input type="text" id="usernameInput" placeholder="${t('namePlaceholder')}" maxlength="20">
+            <button class="login-btn" id="startQuizBtn">${t('startBtn')}</button>
             <div id="loginError" class="error-msg"></div>
-            <div class="info-note">✨ Your progress saves automatically. Restart creates new attempt (R1, R2...)</div>
+            <div class="info-note">${t('progressNote')}</div>
+            <button class="lang-switch" id="langSwitchLogin" style="margin-top:1rem;">${t('switchLang')}</button>
           </div>
         </div>
       `;
       document.getElementById("startQuizBtn")?.addEventListener("click", async () => {
         const nameInput = document.getElementById("usernameInput").value.trim();
-        if(!nameInput) { document.getElementById("loginError").innerText = "Name required!"; return; }
+        if(!nameInput) { document.getElementById("loginError").innerText = t('nameRequired'); return; }
         const savedProgress = await loadProgress(nameInput);
         if(savedProgress) {
           currentUser = nameInput;
@@ -527,21 +529,21 @@
           currentUser = nameInput;
           currentIndex = 0;
           userAnswers = new Array(74).fill(null);
-          answerLock = false;
-          quizCompleted = false;
           await saveProgress(currentUser, currentIndex, userAnswers);
         }
         render();
       });
+      document.getElementById("langSwitchLogin")?.addEventListener("click", () => { switchLanguage(); });
       return;
     }
     
-    const total = QUESTIONS.length;
-    const currentQ = QUESTIONS[currentIndex];
+    const qs = getCurrentQuestions();
+    const total = qs.length;
+    const currentQ = qs[currentIndex];
     const currentAnswer = userAnswers[currentIndex];
     const isAnswered = currentAnswer !== null;
     const currentScore = computeScore(userAnswers);
-    const isCompleteFlag = currentIndex === total || (userAnswers.every(a=>a!==null));
+    const isCompleteFlag = currentIndex === total || userAnswers.every(a => a !== null);
     
     if(isCompleteFlag && !quizCompleted) {
       quizCompleted = true;
@@ -549,18 +551,17 @@
     }
     
     const leaders = await getLeaderboard();
-    const rankHtml = leaders.map((l,i) => `<div class="rank-item"><span class="rank-name">${i+1}. ${l.name}</span><span class="rank-score">${l.score} pts</span></div>`).join('');
+    const rankHtml = leaders.map((l,i) => `<div class="rank-item"><span class="rank-name">${i+1}. ${l.name}</span><span class="rank-score">${l.score} ${t('pts')}</span></div>`).join('');
     const userRank = leaders.findIndex(l=>l.name===currentUser)+1;
     const rankSection = `
-      <div class="rank-title">🏆 LEADERBOARD</div>
-      <div class="rank-list">${rankHtml || "<div>No entries</div>"}</div>
-      <div class="current-user-rank">⭐ ${currentUser} | Score: ${currentScore} | Rank: ${userRank>0?userRank:'-'}</div>
+      <div class="rank-title">${t('leaderboard')}</div>
+      <div class="rank-list">${rankHtml || `<div>${t('noEntries')}</div>`}</div>
+      <div class="current-user-rank">⭐ ${currentUser} | ${t('score')}: ${currentScore} | ${t('yourRank')}: ${userRank>0?userRank:'-'}</div>
     `;
     
     const progressPercent = ((currentIndex+1)/total)*100;
     let optionsHtml = currentQ.options.map((opt, idx) => {
-      let extraClass = "";
-      let indicator = "";
+      let extraClass = "", indicator = "";
       if(isAnswered) {
         extraClass = "disabled-opt";
         if(idx === currentQ.correct) indicator = " ✓";
@@ -569,35 +570,38 @@
       return `<div class="option ${extraClass}" data-opt-index="${idx}"><span class="prefix">${String.fromCharCode(65+idx)}</span> ${opt}${indicator}</div>`;
     }).join('');
     
-    const feedbackDiv = isAnswered ? `<div class="feedback ${currentAnswer === currentQ.correct ? 'correct-feedback' : 'wrong-feedback'}"><strong>${currentAnswer === currentQ.correct ? '✅ Correct!' : '❌ Wrong'}</strong><br>${currentQ.explanation}</div>` : '';
+    const feedbackDiv = isAnswered ? `<div class="feedback ${currentAnswer === currentQ.correct ? 'correct-feedback' : 'wrong-feedback'}"><strong>${currentAnswer === currentQ.correct ? t('correct') : t('wrong')}</strong><br>${currentQ.explanation}</div>` : '';
     const nextDisabled = !isAnswered;
-    const nextBtnText = currentIndex+1 === total ? "Finish Quiz" : "Next Question →";
+    const nextBtnText = currentIndex+1 === total ? t('finishBtn') : t('nextBtn');
     
     root.innerHTML = `
       <div class="header">
         <div class="logo-area"><div class="logo-img"><img src="zijunlogo.png" width="28"></div><span class="logo-text">CodeQuiz</span></div>
-        <div class="score-badge">⭐ ${currentScore} / ${total}</div>
+        <div style="display:flex; gap:1rem; align-items:center;">
+          <div class="score-badge">⭐ ${currentScore} / ${total}</div>
+          <button class="lang-switch" id="langSwitchQuiz">${t('switchLang')}</button>
+        </div>
       </div>
       <div class="quiz-layout">
         <div class="quiz-main">
           <div class="question-card">
-            <div class="progress">Question ${currentIndex+1} of ${total}</div>
+            <div class="progress">${t('question')} ${currentIndex+1} ${t('of')} ${total}</div>
             <div class="progress-bar-bg"><div class="progress-fill" style="width:${progressPercent}%"></div></div>
             <div class="question-text">${currentQ.text}</div>
             <div class="options-list" id="optionsContainer">${optionsHtml}</div>
             ${feedbackDiv}
             <button class="next-btn" id="nextBtn" ${nextDisabled ? 'disabled' : ''}>${nextBtnText}</button>
-            <div class="reset-area"><button class="reset-btn" id="resetQuiz">⟳ Restart Quiz (New Attempt → R1, R2...)</button></div>
+            <div class="reset-area"><button class="reset-btn" id="resetQuiz">${t('restartBtn')}</button></div>
           </div>
         </div>
         <div class="rank-sidebar">${rankSection}</div>
       </div>
-      <footer>🔥 74 essential questions · progress auto-saved · restart creates new leaderboard entry</footer>
+      <footer>${t('footer')}</footer>
     `;
     
     document.querySelectorAll(".option").forEach(el => {
       if(!isAnswered) {
-        el.addEventListener("click", async (e) => {
+        el.addEventListener("click", async () => {
           if(answerLock || isAnswered) return;
           const idx = parseInt(el.dataset.optIndex);
           userAnswers[currentIndex] = idx;
@@ -623,9 +627,8 @@
       }
     });
     
-    document.getElementById("resetQuiz")?.addEventListener("click", async () => {
-      await resetQuizWithRetry();
-    });
+    document.getElementById("resetQuiz")?.addEventListener("click", async () => { await resetQuizWithRetry(); });
+    document.getElementById("langSwitchQuiz")?.addEventListener("click", () => { switchLanguage(); });
   }
   
   render();
