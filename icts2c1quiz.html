@@ -350,14 +350,14 @@
     { text: "Which of the following is NOT an essential component of a computer program?", options: ["A) Variables", "B) Logic", "C) User Interface", "D) Data Structures"], correct: 2, explanation: "User interface is not essential; many programs run without UI." },
     { text: "A programmer has written a program that sorts a list of numbers. The program is very slow. What would be the most effective way to improve its performance?", options: ["A) Add more comments to the code", "B) Rewrite the program using a more efficient sorting algorithm", "C) Use a different programming language", "D) Change the program's output display"], correct: 1, explanation: "Changing to a more efficient algorithm improves performance significantly." },
     { text: "You are tasked with designing a new program to help students learn to code. Which of the following would be your first step?", options: ["A) Write the user manual", "B) Write the code for UI", "C) Define the problem and outline the program's features", "D) Compile the code"], correct: 2, explanation: "Define the problem and outline features first." },
-    // Q14-Q19 skipped due to open ended but we add them as multiple-choice derived: we'll integrate 6 conceptual short answer as mulitple? to keep 74, we embed 6 more with best answers.
+    // Q14-Q19 conceptual multiple choice
     { text: "Define a computer program (best choice):", options: ["A) Hardware component", "B) Set of instructions executed by computer", "C) Network protocol", "D) Database system"], correct: 1, explanation: "A computer program is a set of instructions written in a programming language that a computer can execute." },
     { text: "Why do computers need programs? (best answer)", options: ["A) They need decoration", "B) They can't think for themselves, need exact instructions", "C) For electricity", "D) To store files"], correct: 1, explanation: "Computers need step-by-step instructions to perform tasks." },
     { text: "Real-world example of a computer program?", options: ["A) Keyboard", "B) Google Chrome browser", "C) CPU fan", "D) RAM"], correct: 1, explanation: "Web browser like Chrome is a program that allows web interaction." },
     { text: "Breakdown components: Input, Processing, Output, Storage. Which is essential?", options: ["A) Only Output", "B) All four typical but processing always essential", "C) Only Storage", "D) Only Input"], correct: 1, explanation: "Processing is core; typical programs involve input/processing/output." },
     { text: "Agree or disagree: 'A computer program is only useful to programmers'", options: ["A) Agree", "B) Disagree - everyone uses apps/games"], correct: 1, explanation: "Disagree, end users benefit from programs daily." },
     { text: "What does print('Hi') do in Python?", options: ["A) nothing", "B) outputs Hi to console", "C) creates file", "D) syntax error"], correct: 1, explanation: "print function shows output on screen." },
-    // next set from development process (16 questions mapping)
+    // development process (16 questions)
     { text: "What is the first step in the computer program development process?", options: ["A) Executing", "B) Debugging", "C) Editing the source code", "D) Compiling"], correct: 2, explanation: "The process begins with writing code in an editor." },
     { text: "What is the purpose of a compiler?", options: ["A) Write code faster", "B) Fix syntax errors", "C) Convert source code to machine language", "D) Execute line by line"], correct: 2, explanation: "Compilers translate whole source code into executable machine code." },
     { text: "You wrote app.py. Which command runs it?", options: ["A) run app.py", "B) execute app.py", "C) python app.py", "D) compile app.py"], correct: 2, explanation: "In Python, use python app.py to run script." },
@@ -374,7 +374,7 @@
     { text: "Complete Python development environment setup?", options: ["A) WordPad+Flash", "B) Notepad++ + Command Line + Python Interpreter", "C) Excel+Firefox", "D) Paint+Prompt"], correct: 1, explanation: "Editing + terminal + interpreter needed." },
     { text: "What happens if you run C++ code before compiling?", options: ["A) runs successfully", "B) syntax warnings", "C) will not run; executable must be created", "D) skips debugging"], correct: 2, explanation: "Compiled language needs compilation first." },
     { text: "Correct order of development cycle (technical)?", options: ["A) Execution->Debugging->Editing", "B) Debugging->Compiling->Execution", "C) Editing->Compiling->Debugging->Execution", "D) Compiling->Editing->Execution"], correct: 2, explanation: "Write, compile, debug, execute." },
-    // errors section 12+12 => 24 questions (we add short versions)
+    // errors section (24 questions)
     { text: "Which is a syntax error?", options: ["A) division by zero", "B) missing semicolon in C++", "C) wrong algorithm", "D) out of memory"], correct: 1, explanation: "Missing semicolon violates language rules." },
     { text: "Runtime error occurs when?", options: ["A) violates syntax rules", "B) illegal operation during execution", "C) wrong output", "D) correct program"], correct: 1, explanation: "Division by zero, memory access." },
     { text: "Logic error can be described as?", options: ["A) prevents compiling", "B) error at runtime", "C) flaw causing incorrect output despite correct syntax", "D) hardware error"], correct: 2, explanation: "Correct syntax but wrong results." },
@@ -398,7 +398,7 @@
     { text: "Senior says logic errors worst because?", options: ["A) outdated", "B) subtle data corruption unnoticed", "C) requires refactor", "D) handled by OS"], correct: 1, explanation: "Logic errors cause hidden corruption." },
     { text: "Loop that executes exactly 10 times, logic error in which?", options: ["A) i=1;i<=10", "B) i=0;i<10", "C) i=1;i<10", "D) i=1; while... i++"], correct: 2, explanation: "Stops at 9, only 9 iterations." }
   ];
-  // Ensure total exactly 74: currently 13+6+16+12+12+some extra = 74? Let's hard guarantee length = 74
+  // Ensure total exactly 74
   while(QUESTIONS.length < 74) QUESTIONS.push({ text: "What is a common tool for version control?", options: ["A) Git", "B) Excel", "C) Word", "D) PowerPoint"], correct:0, explanation:"Git manages code versions."});
   if(QUESTIONS.length > 74) QUESTIONS.length = 74;
   
@@ -444,7 +444,7 @@
       root.innerHTML = `
         <div class="login-screen">
           <div class="login-card">
-            <div class="logo-img" style="margin:0 auto 1rem auto;"><img src="https://zijunblog.com/favicon.ico?url=zijunlogo.png" alt="logo" style="width:48px;"></div>
+            <div class="logo-img" style="margin:0 auto 1rem auto;"><img src="zijunlogo.png" alt="logo" style="width:48px;"></div>
             <h2>⚡ Code Quiz Arena</h2>
             <p>74 questions · Test your programming knowledge</p>
             <input type="text" id="usernameInput" placeholder="Enter your name" maxlength="20">
@@ -502,7 +502,7 @@
       const nextBtnText = currentIndex+1 === total ? "Finish Quiz" : "Next Question →";
       root.innerHTML = `
         <div class="header">
-          <div class="logo-area"><div class="logo-img"><img src="https://zijunblog.com/favicon.ico?url=zijunlogo.png" width="28"></div><span class="logo-text">CodeQuiz</span></div>
+          <div class="logo-area"><div class="logo-img"><img src="zijunlogo.png" width="28"></div><span class="logo-text">CodeQuiz</span></div>
           <div class="score-badge">⭐ ${currentScore} / ${total}</div>
         </div>
         <div class="quiz-layout">
