@@ -29,7 +29,7 @@
       margin: 0 auto;
     }
 
-    /* header & logo */
+    /* header & logo - OPTIMIZED SHAPE */
     .header {
       display: flex;
       align-items: center;
@@ -49,19 +49,25 @@
       gap: 0.8rem;
     }
     .logo-img {
-      width: 42px;
-      height: 42px;
-      background: #0f172a;
-      border-radius: 16px;
+      width: 48px;
+      height: 48px;
+      background: linear-gradient(135deg, #38bdf8, #3b82f6, #8b5cf6);
+      border-radius: 24px;
       display: flex;
       align-items: center;
       justify-content: center;
       font-size: 1.8rem;
-      box-shadow: 0 4px 10px rgba(0,0,0,0.3);
+      box-shadow: 0 8px 20px rgba(56, 189, 248, 0.3), 0 0 0 2px rgba(255,255,255,0.1);
+      transition: transform 0.2s ease, box-shadow 0.2s ease;
+    }
+    .logo-img:hover {
+      transform: scale(1.02);
+      box-shadow: 0 12px 28px rgba(56, 189, 248, 0.4);
     }
     .logo-img img {
       width: 32px;
       height: 32px;
+      border-radius: 16px;
     }
     .logo-text {
       font-weight: 700;
@@ -219,6 +225,11 @@
       border-radius: 40px;
       color: #cbd5e1;
       cursor: pointer;
+      transition: all 0.2s;
+    }
+    .reset-btn:hover {
+      background: #334155;
+      border-color: #38bdf8;
     }
     /* ranking table */
     .rank-title {
@@ -232,6 +243,8 @@
     .rank-list {
       list-style: none;
       margin-top: 1rem;
+      max-height: 400px;
+      overflow-y: auto;
     }
     .rank-item {
       display: flex;
@@ -241,7 +254,7 @@
       font-weight: 500;
     }
     .rank-name {
-      max-width: 130px;
+      max-width: 150px;
       overflow: hidden;
       text-overflow: ellipsis;
     }
@@ -296,6 +309,11 @@
       color: #f87171;
       margin-top: 0.5rem;
     }
+    .info-note {
+      font-size: 0.7rem;
+      color: #6b7280;
+      margin-top: 1rem;
+    }
     footer {
       text-align: center;
       margin-top: 2rem;
@@ -311,15 +329,14 @@
 </head>
 <body>
 <div class="app-container" id="appRoot">
-  <!-- dynamic rendering with vue-like state, but plain JS -->
+  <!-- dynamic rendering -->
 </div>
 
-<!-- Firebase SDK (modular) -->
+<!-- Firebase SDK -->
 <script type="module">
   import { initializeApp } from "https://www.gstatic.com/firebasejs/12.13.0/firebase-app.js";
-  import { getFirestore, collection, doc, setDoc, getDocs, query, orderBy, limit, getDoc, updateDoc } from "https://www.gstatic.com/firebasejs/12.13.0/firebase-firestore.js";
+  import { getFirestore, collection, doc, setDoc, getDocs, query, orderBy, limit, getDoc } from "https://www.gstatic.com/firebasejs/12.13.0/firebase-firestore.js";
   
-  // Firebase config (provided)
   const firebaseConfig = {
     apiKey: "AIzaSyBhc2JVAoxfk3wEsLee-Gr4I1StgqsPkBU",
     authDomain: "zijunblog.firebaseapp.com",
@@ -333,10 +350,10 @@
   const app = initializeApp(firebaseConfig);
   const db = getFirestore(app);
   const LEADERBOARD_COLLECTION = "quizLeaderboard";
+  const PROGRESS_COLLECTION = "quizProgress";
   
-  // ------------------------------ ALL 74 QUESTIONS (compiled from document) ---------------------------------
+  // ------------------------------ ALL 74 QUESTIONS ---------------------------------
   const QUESTIONS = [
-    // Q1-Q13 (basic)
     { text: "What is a computer program?", options: ["A) A type of hardware", "B) A device that stores data", "C) A set of instructions for the computer", "D) A user interface for applications"], correct: 2, explanation: "A computer program is a set of instructions written in a programming language that tells a computer what tasks to perform." },
     { text: "Why does a computer need a program to perform a task?", options: ["A) It understands human language", "B) It creates its own tasks", "C) It only works based on instructions", "D) It stores programs as documents"], correct: 2, explanation: "Computers do not think; they follow exact instructions given through programs." },
     { text: "Which of the following is a correct example of a simple computer program in Python?", options: ["A) display \"Hello World\"", "B) print(\"Hello, World!\")", "C) show Hello, World", "D) echo Hello World"], correct: 1, explanation: "This is a basic Python program that prints a message to the screen." },
@@ -350,14 +367,12 @@
     { text: "Which of the following is NOT an essential component of a computer program?", options: ["A) Variables", "B) Logic", "C) User Interface", "D) Data Structures"], correct: 2, explanation: "User interface is not essential; many programs run without UI." },
     { text: "A programmer has written a program that sorts a list of numbers. The program is very slow. What would be the most effective way to improve its performance?", options: ["A) Add more comments to the code", "B) Rewrite the program using a more efficient sorting algorithm", "C) Use a different programming language", "D) Change the program's output display"], correct: 1, explanation: "Changing to a more efficient algorithm improves performance significantly." },
     { text: "You are tasked with designing a new program to help students learn to code. Which of the following would be your first step?", options: ["A) Write the user manual", "B) Write the code for UI", "C) Define the problem and outline the program's features", "D) Compile the code"], correct: 2, explanation: "Define the problem and outline features first." },
-    // Q14-Q19 conceptual multiple choice
     { text: "Define a computer program (best choice):", options: ["A) Hardware component", "B) Set of instructions executed by computer", "C) Network protocol", "D) Database system"], correct: 1, explanation: "A computer program is a set of instructions written in a programming language that a computer can execute." },
     { text: "Why do computers need programs? (best answer)", options: ["A) They need decoration", "B) They can't think for themselves, need exact instructions", "C) For electricity", "D) To store files"], correct: 1, explanation: "Computers need step-by-step instructions to perform tasks." },
     { text: "Real-world example of a computer program?", options: ["A) Keyboard", "B) Google Chrome browser", "C) CPU fan", "D) RAM"], correct: 1, explanation: "Web browser like Chrome is a program that allows web interaction." },
     { text: "Breakdown components: Input, Processing, Output, Storage. Which is essential?", options: ["A) Only Output", "B) All four typical but processing always essential", "C) Only Storage", "D) Only Input"], correct: 1, explanation: "Processing is core; typical programs involve input/processing/output." },
     { text: "Agree or disagree: 'A computer program is only useful to programmers'", options: ["A) Agree", "B) Disagree - everyone uses apps/games"], correct: 1, explanation: "Disagree, end users benefit from programs daily." },
     { text: "What does print('Hi') do in Python?", options: ["A) nothing", "B) outputs Hi to console", "C) creates file", "D) syntax error"], correct: 1, explanation: "print function shows output on screen." },
-    // development process (16 questions)
     { text: "What is the first step in the computer program development process?", options: ["A) Executing", "B) Debugging", "C) Editing the source code", "D) Compiling"], correct: 2, explanation: "The process begins with writing code in an editor." },
     { text: "What is the purpose of a compiler?", options: ["A) Write code faster", "B) Fix syntax errors", "C) Convert source code to machine language", "D) Execute line by line"], correct: 2, explanation: "Compilers translate whole source code into executable machine code." },
     { text: "You wrote app.py. Which command runs it?", options: ["A) run app.py", "B) execute app.py", "C) python app.py", "D) compile app.py"], correct: 2, explanation: "In Python, use python app.py to run script." },
@@ -374,7 +389,6 @@
     { text: "Complete Python development environment setup?", options: ["A) WordPad+Flash", "B) Notepad++ + Command Line + Python Interpreter", "C) Excel+Firefox", "D) Paint+Prompt"], correct: 1, explanation: "Editing + terminal + interpreter needed." },
     { text: "What happens if you run C++ code before compiling?", options: ["A) runs successfully", "B) syntax warnings", "C) will not run; executable must be created", "D) skips debugging"], correct: 2, explanation: "Compiled language needs compilation first." },
     { text: "Correct order of development cycle (technical)?", options: ["A) Execution->Debugging->Editing", "B) Debugging->Compiling->Execution", "C) Editing->Compiling->Debugging->Execution", "D) Compiling->Editing->Execution"], correct: 2, explanation: "Write, compile, debug, execute." },
-    // errors section (24 questions)
     { text: "Which is a syntax error?", options: ["A) division by zero", "B) missing semicolon in C++", "C) wrong algorithm", "D) out of memory"], correct: 1, explanation: "Missing semicolon violates language rules." },
     { text: "Runtime error occurs when?", options: ["A) violates syntax rules", "B) illegal operation during execution", "C) wrong output", "D) correct program"], correct: 1, explanation: "Division by zero, memory access." },
     { text: "Logic error can be described as?", options: ["A) prevents compiling", "B) error at runtime", "C) flaw causing incorrect output despite correct syntax", "D) hardware error"], correct: 2, explanation: "Correct syntax but wrong results." },
@@ -398,33 +412,44 @@
     { text: "Senior says logic errors worst because?", options: ["A) outdated", "B) subtle data corruption unnoticed", "C) requires refactor", "D) handled by OS"], correct: 1, explanation: "Logic errors cause hidden corruption." },
     { text: "Loop that executes exactly 10 times, logic error in which?", options: ["A) i=1;i<=10", "B) i=0;i<10", "C) i=1;i<10", "D) i=1; while... i++"], correct: 2, explanation: "Stops at 9, only 9 iterations." }
   ];
-  // Ensure total exactly 74
   while(QUESTIONS.length < 74) QUESTIONS.push({ text: "What is a common tool for version control?", options: ["A) Git", "B) Excel", "C) Word", "D) PowerPoint"], correct:0, explanation:"Git manages code versions."});
   if(QUESTIONS.length > 74) QUESTIONS.length = 74;
   
-  // app state
-  let currentUser = null;
-  let currentIndex = 0;
-  let userAnswers = new Array(74).fill(null);
-  let score = 0;
-  let quizCompleted = false;
-  let selectedOptionIndex = null;
-  let answerLock = false;
-  
-  // helper to compute score from answers
-  function computeScore() {
-    let s = 0;
-    for(let i=0;i<QUESTIONS.length;i++) {
-      if(userAnswers[i] !== null && userAnswers[i] === QUESTIONS[i].correct) s++;
-    }
-    return s;
+  // Helper: get next retry suffix
+  function getNextRetryName(baseName) {
+    const regex = /^(.*?)(?:\(R(\d+)\))?$/;
+    const match = baseName.match(regex);
+    const cleanName = match[1];
+    const currentNum = match[2] ? parseInt(match[2]) : 0;
+    return `${cleanName}(R${currentNum + 1})`;
   }
   
-  async function saveUserScoreToFirestore() {
-    if(!currentUser) return;
-    const userRef = doc(db, LEADERBOARD_COLLECTION, currentUser);
-    const finalScore = computeScore();
-    await setDoc(userRef, { name: currentUser, score: finalScore, updatedAt: new Date() }, { merge: true });
+  // Save progress to Firestore
+  async function saveProgress(userId, currentIndex, userAnswersArray) {
+    if(!userId) return;
+    const progressRef = doc(db, PROGRESS_COLLECTION, userId);
+    await setDoc(progressRef, {
+      currentIndex: currentIndex,
+      userAnswers: userAnswersArray,
+      updatedAt: new Date()
+    }, { merge: true });
+  }
+  
+  // Load progress from Firestore
+  async function loadProgress(userId) {
+    if(!userId) return null;
+    const progressRef = doc(db, PROGRESS_COLLECTION, userId);
+    const docSnap = await getDoc(progressRef);
+    if(docSnap.exists()) {
+      return docSnap.data();
+    }
+    return null;
+  }
+  
+  // Save score to leaderboard
+  async function saveUserScoreToFirestore(userName, score) {
+    const userRef = doc(db, LEADERBOARD_COLLECTION, userName);
+    await setDoc(userRef, { name: userName, score: score, updatedAt: new Date() }, { merge: true });
   }
   
   async function getLeaderboard() {
@@ -437,124 +462,172 @@
     return ranks;
   }
   
-  // Render dynamic UI
-  function render() {
+  function computeScore(answers) {
+    let s = 0;
+    for(let i=0;i<QUESTIONS.length;i++) {
+      if(answers[i] !== null && answers[i] === QUESTIONS[i].correct) s++;
+    }
+    return s;
+  }
+  
+  // App state
+  let currentUser = null;
+  let currentIndex = 0;
+  let userAnswers = new Array(74).fill(null);
+  let quizCompleted = false;
+  let answerLock = false;
+  
+  async function resetQuizWithRetry() {
+    if(!currentUser) return;
+    const newUserName = getNextRetryName(currentUser);
+    // Save final score for old user before reset
+    const oldScore = computeScore(userAnswers);
+    await saveUserScoreToFirestore(currentUser, oldScore);
+    // Create new user with reset progress
+    const newAnswers = new Array(74).fill(null);
+    const newIndex = 0;
+    await saveProgress(newUserName, newIndex, newAnswers);
+    // Switch to new user
+    currentUser = newUserName;
+    currentIndex = newIndex;
+    userAnswers = newAnswers;
+    quizCompleted = false;
+    answerLock = false;
+    // Render UI
+    render();
+  }
+  
+  async function render() {
     const root = document.getElementById("appRoot");
     if(!currentUser) {
       root.innerHTML = `
         <div class="login-screen">
           <div class="login-card">
-            <div class="logo-img" style="margin:0 auto 1rem auto;"><img src="zijunlogo.png" alt="logo" style="width:48px;"></div>
+            <div class="logo-img" style="margin:0 auto 1rem auto; width:64px; height:64px; border-radius:32px;"><img src="zijunlogo.png" alt="logo" style="width:40px; height:40px;"></div>
             <h2>⚡ Code Quiz Arena</h2>
             <p>74 questions · Test your programming knowledge</p>
             <input type="text" id="usernameInput" placeholder="Enter your name" maxlength="20">
             <button class="login-btn" id="startQuizBtn">Start Quiz →</button>
             <div id="loginError" class="error-msg"></div>
+            <div class="info-note">✨ Your progress saves automatically. Restart creates new attempt (R1, R2...)</div>
           </div>
         </div>
       `;
       document.getElementById("startQuizBtn")?.addEventListener("click", async () => {
         const nameInput = document.getElementById("usernameInput").value.trim();
         if(!nameInput) { document.getElementById("loginError").innerText = "Name required!"; return; }
-        currentUser = nameInput;
-        currentIndex = 0;
-        userAnswers.fill(null);
-        answerLock = false;
-        selectedOptionIndex = null;
+        const savedProgress = await loadProgress(nameInput);
+        if(savedProgress) {
+          currentUser = nameInput;
+          currentIndex = savedProgress.currentIndex || 0;
+          userAnswers = savedProgress.userAnswers || new Array(74).fill(null);
+          answerLock = false;
+          quizCompleted = currentIndex === 74 || userAnswers.every(a => a !== null);
+        } else {
+          currentUser = nameInput;
+          currentIndex = 0;
+          userAnswers = new Array(74).fill(null);
+          answerLock = false;
+          quizCompleted = false;
+          await saveProgress(currentUser, currentIndex, userAnswers);
+        }
         render();
       });
       return;
     }
-    // main quiz interface
+    
     const total = QUESTIONS.length;
     const currentQ = QUESTIONS[currentIndex];
     const currentAnswer = userAnswers[currentIndex];
     const isAnswered = currentAnswer !== null;
-    const currentScore = computeScore();
+    const currentScore = computeScore(userAnswers);
     const isCompleteFlag = currentIndex === total || (userAnswers.every(a=>a!==null));
     
     if(isCompleteFlag && !quizCompleted) {
       quizCompleted = true;
-      saveUserScoreToFirestore();
+      await saveUserScoreToFirestore(currentUser, currentScore);
     }
     
-    getLeaderboard().then(leaders => {
-      const rankHtml = leaders.map((l,i) => `<div class="rank-item"><span class="rank-name">${i+1}. ${l.name}</span><span class="rank-score">${l.score} pts</span></div>`).join('');
-      const userRank = leaders.findIndex(l=>l.name===currentUser)+1;
-      const rankSection = `
-        <div class="rank-title">🏆 LEADERBOARD</div>
-        <div class="rank-list">${rankHtml || "<div>No entries</div>"}</div>
-        <div class="current-user-rank">⭐ ${currentUser} | Score: ${currentScore} | Rank: ${userRank>0?userRank:'-'}</div>
-      `;
-      const progressPercent = ((currentIndex+1)/total)*100;
-      let optionsHtml = currentQ.options.map((opt, idx) => {
-        let extraClass = "";
-        let indicator = "";
-        if(isAnswered) {
-          extraClass = "disabled-opt";
-          if(idx === currentQ.correct) indicator = " ✓";
-          if(idx === currentAnswer && idx !== currentQ.correct) indicator = " ✗";
-        }
-        return `<div class="option ${extraClass}" data-opt-index="${idx}"><span class="prefix">${String.fromCharCode(65+idx)}</span> ${opt}${indicator}</div>`;
-      }).join('');
-      const feedbackDiv = isAnswered ? `<div class="feedback ${currentAnswer === currentQ.correct ? 'correct-feedback' : 'wrong-feedback'}"><strong>${currentAnswer === currentQ.correct ? '✅ Correct!' : '❌ Wrong'}</strong><br>${currentQ.explanation}</div>` : '';
-      const nextDisabled = !isAnswered;
-      const nextBtnText = currentIndex+1 === total ? "Finish Quiz" : "Next Question →";
-      root.innerHTML = `
-        <div class="header">
-          <div class="logo-area"><div class="logo-img"><img src="zijunlogo.png" width="28"></div><span class="logo-text">CodeQuiz</span></div>
-          <div class="score-badge">⭐ ${currentScore} / ${total}</div>
-        </div>
-        <div class="quiz-layout">
-          <div class="quiz-main">
-            <div class="question-card">
-              <div class="progress">Question ${currentIndex+1} of ${total}</div>
-              <div class="progress-bar-bg"><div class="progress-fill" style="width:${progressPercent}%"></div></div>
-              <div class="question-text">${currentQ.text}</div>
-              <div class="options-list" id="optionsContainer">${optionsHtml}</div>
-              ${feedbackDiv}
-              <button class="next-btn" id="nextBtn" ${nextDisabled ? 'disabled' : ''}>${nextBtnText}</button>
-              <div class="reset-area"><button class="reset-btn" id="resetQuiz">⟳ Restart Quiz</button></div>
-            </div>
+    const leaders = await getLeaderboard();
+    const rankHtml = leaders.map((l,i) => `<div class="rank-item"><span class="rank-name">${i+1}. ${l.name}</span><span class="rank-score">${l.score} pts</span></div>`).join('');
+    const userRank = leaders.findIndex(l=>l.name===currentUser)+1;
+    const rankSection = `
+      <div class="rank-title">🏆 LEADERBOARD</div>
+      <div class="rank-list">${rankHtml || "<div>No entries</div>"}</div>
+      <div class="current-user-rank">⭐ ${currentUser} | Score: ${currentScore} | Rank: ${userRank>0?userRank:'-'}</div>
+    `;
+    
+    const progressPercent = ((currentIndex+1)/total)*100;
+    let optionsHtml = currentQ.options.map((opt, idx) => {
+      let extraClass = "";
+      let indicator = "";
+      if(isAnswered) {
+        extraClass = "disabled-opt";
+        if(idx === currentQ.correct) indicator = " ✓";
+        if(idx === currentAnswer && idx !== currentQ.correct) indicator = " ✗";
+      }
+      return `<div class="option ${extraClass}" data-opt-index="${idx}"><span class="prefix">${String.fromCharCode(65+idx)}</span> ${opt}${indicator}</div>`;
+    }).join('');
+    
+    const feedbackDiv = isAnswered ? `<div class="feedback ${currentAnswer === currentQ.correct ? 'correct-feedback' : 'wrong-feedback'}"><strong>${currentAnswer === currentQ.correct ? '✅ Correct!' : '❌ Wrong'}</strong><br>${currentQ.explanation}</div>` : '';
+    const nextDisabled = !isAnswered;
+    const nextBtnText = currentIndex+1 === total ? "Finish Quiz" : "Next Question →";
+    
+    root.innerHTML = `
+      <div class="header">
+        <div class="logo-area"><div class="logo-img"><img src="zijunlogo.png" width="28"></div><span class="logo-text">CodeQuiz</span></div>
+        <div class="score-badge">⭐ ${currentScore} / ${total}</div>
+      </div>
+      <div class="quiz-layout">
+        <div class="quiz-main">
+          <div class="question-card">
+            <div class="progress">Question ${currentIndex+1} of ${total}</div>
+            <div class="progress-bar-bg"><div class="progress-fill" style="width:${progressPercent}%"></div></div>
+            <div class="question-text">${currentQ.text}</div>
+            <div class="options-list" id="optionsContainer">${optionsHtml}</div>
+            ${feedbackDiv}
+            <button class="next-btn" id="nextBtn" ${nextDisabled ? 'disabled' : ''}>${nextBtnText}</button>
+            <div class="reset-area"><button class="reset-btn" id="resetQuiz">⟳ Restart Quiz (New Attempt → R1, R2...)</button></div>
           </div>
-          <div class="rank-sidebar">${rankSection}</div>
         </div>
-        <footer>🔥 74 essential questions · programming fundamentals</footer>
-      `;
-      document.querySelectorAll(".option").forEach(el => {
-        if(!isAnswered) {
-          el.addEventListener("click", (e) => {
-            if(answerLock || isAnswered) return;
-            const idx = parseInt(el.dataset.optIndex);
-            userAnswers[currentIndex] = idx;
-            answerLock = true;
-            saveUserScoreToFirestore();
-            render();
-          });
-        }
-      });
-      document.getElementById("nextBtn")?.addEventListener("click", () => {
-        if(!isAnswered) return;
-        if(currentIndex+1 < total) {
-          currentIndex++;
-          answerLock = false;
-          selectedOptionIndex = null;
+        <div class="rank-sidebar">${rankSection}</div>
+      </div>
+      <footer>🔥 74 essential questions · progress auto-saved · restart creates new leaderboard entry</footer>
+    `;
+    
+    document.querySelectorAll(".option").forEach(el => {
+      if(!isAnswered) {
+        el.addEventListener("click", async (e) => {
+          if(answerLock || isAnswered) return;
+          const idx = parseInt(el.dataset.optIndex);
+          userAnswers[currentIndex] = idx;
+          answerLock = true;
+          await saveProgress(currentUser, currentIndex, userAnswers);
+          await saveUserScoreToFirestore(currentUser, computeScore(userAnswers));
           render();
-        } else {
-          quizCompleted = true;
-          saveUserScoreToFirestore();
-          render();
-        }
-      });
-      document.getElementById("resetQuiz")?.addEventListener("click", async () => {
-        userAnswers.fill(null);
-        currentIndex = 0;
+        });
+      }
+    });
+    
+    document.getElementById("nextBtn")?.addEventListener("click", async () => {
+      if(!isAnswered) return;
+      if(currentIndex+1 < total) {
+        currentIndex++;
         answerLock = false;
-        quizCompleted = false;
+        await saveProgress(currentUser, currentIndex, userAnswers);
         render();
-      });
+      } else {
+        quizCompleted = true;
+        await saveUserScoreToFirestore(currentUser, computeScore(userAnswers));
+        render();
+      }
+    });
+    
+    document.getElementById("resetQuiz")?.addEventListener("click", async () => {
+      await resetQuizWithRetry();
     });
   }
+  
   render();
 </script>
 </body>
