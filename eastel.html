@@ -1,0 +1,171 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+    <title>ZIJUN | Eastel</title>
+    <link rel="icon" href="zijunlogo.png" type="image/png">
+    <style>
+        :root {
+            --neon-blue: #00f2ff;
+            --panel-bg: rgba(20, 20, 25, 0.7); 
+            --border-glow: rgba(255, 255, 255, 0.1);
+            --text-main: #ffffff;
+            --ios-blur: blur(20px);
+            --whatsapp-green: #25D366;
+        }
+
+        body, html {
+            margin: 0; padding: 0;
+            background-color: #000;
+            color: var(--text-main);
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+            overflow-x: hidden;
+            min-height: 100%;
+        }
+
+        /* 统一扫描线特效 */
+        body::before {
+            content: " ";
+            position: fixed; top: 0; left: 0; bottom: 0; right: 0;
+            background: linear-gradient(rgba(18, 16, 16, 0) 50%, rgba(0, 0, 0, 0.1) 50%);
+            z-index: 100;
+            background-size: 100% 4px;
+            pointer-events: none;
+        }
+
+        .bg-video {
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            z-index: -1; object-fit: cover; filter: brightness(0.35);
+        }
+
+        header {
+            padding: 15px 25px;
+            background: rgba(0, 0, 0, 0.5);
+            border-bottom: 0.5px solid rgba(255, 255, 255, 0.2);
+            display: flex; justify-content: space-between; align-items: center;
+            backdrop-filter: var(--ios-blur);
+            -webkit-backdrop-filter: var(--ios-blur);
+            z-index: 200; position: sticky; top: 0;
+        }
+
+        .logo-area { display: flex; align-items: center; gap: 12px; }
+        .logo-area img { width: 35px; height: 35px; border-radius: 8px; }
+
+        .container {
+            max-width: 600px; margin: 0 auto;
+            padding: 40px 20px;
+            position: relative; z-index: 150;
+            display: flex; flex-direction: column; align-items: center;
+        }
+
+        .menu-title {
+            font-family: monospace; font-size: 14px; color: var(--neon-blue);
+            text-transform: uppercase; letter-spacing: 4px;
+            text-align: center; margin-bottom: 30px;
+        }
+
+        /* 海报展示卡片 */
+        .poster-card {
+            background: var(--panel-bg);
+            backdrop-filter: var(--ios-blur);
+            -webkit-backdrop-filter: var(--ios-blur);
+            border: 1px solid var(--border-glow);
+            padding: 24px;
+            border-radius: 28px;
+            width: 100%;
+            box-sizing: border-box;
+            text-align: center;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
+            margin-bottom: 30px;
+        }
+
+        /* A5海报比例适配 */
+        .poster-img {
+            width: 100%;
+            height: auto;
+            max-height: 65vh;
+            object-fit: contain;
+            border-radius: 16px;
+            box-shadow: 0 0 20px rgba(0, 242, 255, 0.2);
+            border: 1px solid rgba(255, 255, 255, 0.05);
+        }
+
+        /* WhatsApp 联络按钮 */
+        .btn-whatsapp {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+            background: linear-gradient(135deg, #25D366, #128C7E);
+            color: #fff;
+            text-decoration: none;
+            width: 100%;
+            padding: 16px;
+            border-radius: 20px;
+            font-size: 16px;
+            font-weight: 700;
+            letter-spacing: 1px;
+            box-shadow: 0 4px 15px rgba(37, 211, 102, 0.3);
+            transition: 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .btn-whatsapp:active {
+            transform: scale(0.95);
+            box-shadow: 0 2px 8px rgba(37, 211, 102, 0.2);
+            filter: brightness(0.9);
+        }
+
+        .whatsapp-icon {
+            width: 22px;
+            height: 22px;
+            fill: currentColor;
+        }
+
+        .btn-back {
+            color: #fff; text-decoration: none; background: rgba(255,255,255,0.1);
+            padding: 8px 18px; border-radius: 15px; font-size: 12px; font-weight: 600;
+            border: 1px solid var(--border-glow);
+        }
+    </style>
+</head>
+<body>
+
+    <video autoplay muted loop playsinline class="bg-video">
+        <source src="zijunbg.mp4" type="video/mp4">
+    </video>
+
+    <header>
+        <div class="logo-area">
+            <img src="zijunlogo.png" alt="ZIJUN">
+            <div>
+                <div style="font-size: 15px; font-weight: 800; letter-spacing: 2px;">EASTEL_MODULE</div>
+                <div style="font-size: 9px; opacity: 0.6;">// OPERATION_LOGS</div>
+            </div>
+        </div>
+        <a href="more.html" class="btn-back">BACK_MORE</a>
+    </header>
+
+    <div class="container">
+        <div class="menu-title">-- EASTEL INFORMATION --</div>
+
+        <div class="poster-card">
+            <img src="Eastel_Zijun.png" alt="Eastel A5 Poster" class="poster-img">
+        </div>
+
+        <a href="https://wa.me/601153789909?text=Hi%2C%20I%20would%20like%20to%20inquire%20about%20Eastel%20details%21" target="_blank" class="btn-whatsapp">
+            <svg class="whatsapp-icon" viewBox="0 0 24 24">
+                <path d="M.057 24l1.687-6.163c-1.041-1.804-1.588-3.849-1.587-5.946C.06 5.348 5.397 0 11.93 0c3.166.001 6.141 1.233 8.377 3.469 2.235 2.235 3.465 5.211 3.464 8.377-.003 6.534-5.339 11.883-11.87 11.883-2.003-.001-3.973-.511-5.716-1.483L0 24zm6.59-4.846c1.657.982 3.31 1.532 5.28 1.533 5.4 0 9.79-4.386 9.793-9.793 0-2.617-1.02-5.077-2.875-6.932E-13C16.738 2.108 14.282 1.084 11.66 1.084c-5.403 0-9.794 4.386-9.797 9.793-.001 2.073.546 4.05 1.583 5.79l-1.04 3.801 3.905-1.023zM17.91 14.8c-.346-.173-2.049-1.012-2.364-1.127-.315-.115-.545-.173-.775.173-.23.346-.888 1.127-1.088 1.358-.2.23-.4.259-.746.086-1.352-.674-2.352-1.18-3.286-2.793-.248-.426.248-.396.71-.131.415.239.545.346.66.49.115.144.058.259-.029.432-.086.173-.775 1.873-.962 2.32-.18.432-.36.36-.66.346-.244-.012-.524-.015-.804-.015-.279 0-.734.105-1.118.525-.384.419-1.467 1.434-1.467 3.497 0 2.063 1.503 4.053 1.712 4.341.209.288 2.96 4.521 7.17 6.335 1.002.431 1.784.689 2.395.882 1.007.32 1.924.275 2.648.167.807-.12 2.47-.1 4.1.378.115.346.173.635.173.865 0 .749-.374 1.154-.549 1.327z"/>
+            </svg>
+            <span>CONTACT VIA WHATSAPP</span>
+        </a>
+
+        <p style="text-align: center; font-family: monospace; opacity: 0.3; font-size: 9px; margin-top: 50px; letter-spacing: 2px;">
+            SECURE_CONNECTION_ESTABLISHED<br>
+            V.2026.MODULE_EXPANSION
+        </p>
+    </div>
+
+</body>
+</html>
