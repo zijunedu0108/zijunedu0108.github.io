@@ -1,171 +1,610 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
-    <title>ZIJUN | Eastel</title>
-    <link rel="icon" href="zijunlogo.png" type="image/png">
-    <style>
-        :root {
-            --neon-blue: #00f2ff;
-            --panel-bg: rgba(20, 20, 25, 0.7); 
-            --border-glow: rgba(255, 255, 255, 0.1);
-            --text-main: #ffffff;
-            --ios-blur: blur(20px);
-            --whatsapp-green: #25D366;
-        }
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Eastel Ultra5G Plans</title>
 
-        body, html {
-            margin: 0; padding: 0;
-            background-color: #000;
-            color: var(--text-main);
-            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
-            overflow-x: hidden;
-            min-height: 100%;
-        }
+  <!-- Favicon -->
+  <link rel="icon" type="image/png" href="/eastel.png">
 
-        /* 统一扫描线特效 */
-        body::before {
-            content: " ";
-            position: fixed; top: 0; left: 0; bottom: 0; right: 0;
-            background: linear-gradient(rgba(18, 16, 16, 0) 50%, rgba(0, 0, 0, 0.1) 50%);
-            z-index: 100;
-            background-size: 100% 4px;
-            pointer-events: none;
-        }
+  <!-- Google Font -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
 
-        .bg-video {
-            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
-            z-index: -1; object-fit: cover; filter: brightness(0.35);
-        }
+  <style>
+    *{
+      margin:0;
+      padding:0;
+      box-sizing:border-box;
+      font-family:'Poppins',sans-serif;
+    }
 
-        header {
-            padding: 15px 25px;
-            background: rgba(0, 0, 0, 0.5);
-            border-bottom: 0.5px solid rgba(255, 255, 255, 0.2);
-            display: flex; justify-content: space-between; align-items: center;
-            backdrop-filter: var(--ios-blur);
-            -webkit-backdrop-filter: var(--ios-blur);
-            z-index: 200; position: sticky; top: 0;
-        }
+    body{
+      background:
+      radial-gradient(circle at top left,#6c2bff22,transparent 30%),
+      radial-gradient(circle at bottom right,#00b7ff22,transparent 30%),
+      #f7f8fc;
+      overflow-x:hidden;
+      color:#1b1b1b;
+    }
 
-        .logo-area { display: flex; align-items: center; gap: 12px; }
-        .logo-area img { width: 35px; height: 35px; border-radius: 8px; }
+    .container{
+      width:100%;
+      max-width:1400px;
+      margin:auto;
+      padding:40px 20px 80px;
+    }
 
-        .container {
-            max-width: 600px; margin: 0 auto;
-            padding: 40px 20px;
-            position: relative; z-index: 150;
-            display: flex; flex-direction: column; align-items: center;
-        }
+    /* HERO */
+    .hero{
+      display:flex;
+      align-items:center;
+      justify-content:space-between;
+      gap:40px;
+      flex-wrap:wrap;
+      margin-bottom:50px;
+    }
 
-        .menu-title {
-            font-family: monospace; font-size: 14px; color: var(--neon-blue);
-            text-transform: uppercase; letter-spacing: 4px;
-            text-align: center; margin-bottom: 30px;
-        }
+    .hero-left{
+      flex:1;
+      min-width:320px;
+    }
 
-        /* 海报展示卡片 */
-        .poster-card {
-            background: var(--panel-bg);
-            backdrop-filter: var(--ios-blur);
-            -webkit-backdrop-filter: var(--ios-blur);
-            border: 1px solid var(--border-glow);
-            padding: 24px;
-            border-radius: 28px;
-            width: 100%;
-            box-sizing: border-box;
-            text-align: center;
-            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
-            margin-bottom: 30px;
-        }
+    .logo{
+      width:220px;
+      margin-bottom:25px;
+    }
 
-        /* A5海报比例适配 */
-        .poster-img {
-            width: 100%;
-            height: auto;
-            max-height: 65vh;
-            object-fit: contain;
-            border-radius: 16px;
-            box-shadow: 0 0 20px rgba(0, 242, 255, 0.2);
-            border: 1px solid rgba(255, 255, 255, 0.05);
-        }
+    .hero h1{
+      font-size:70px;
+      line-height:1;
+      font-weight:800;
+      margin-bottom:20px;
+      background:linear-gradient(90deg,#008cff,#8d2dff);
+      -webkit-background-clip:text;
+      -webkit-text-fill-color:transparent;
+    }
 
-        /* WhatsApp 联络按钮 */
-        .btn-whatsapp {
-            display: inline-flex;
-            align-items: center;
-            justify-content: center;
-            gap: 10px;
-            background: linear-gradient(135deg, #25D366, #128C7E);
-            color: #fff;
-            text-decoration: none;
-            width: 100%;
-            padding: 16px;
-            border-radius: 20px;
-            font-size: 16px;
-            font-weight: 700;
-            letter-spacing: 1px;
-            box-shadow: 0 4px 15px rgba(37, 211, 102, 0.3);
-            transition: 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-            border: 1px solid rgba(255, 255, 255, 0.1);
-        }
+    .hero p{
+      font-size:22px;
+      color:#555;
+      margin-bottom:30px;
+    }
 
-        .btn-whatsapp:active {
-            transform: scale(0.95);
-            box-shadow: 0 2px 8px rgba(37, 211, 102, 0.2);
-            filter: brightness(0.9);
-        }
+    .hero-buttons{
+      display:flex;
+      gap:15px;
+      flex-wrap:wrap;
+    }
 
-        .whatsapp-icon {
-            width: 22px;
-            height: 22px;
-            fill: currentColor;
-        }
+    .btn{
+      padding:15px 30px;
+      border-radius:50px;
+      text-decoration:none;
+      font-weight:600;
+      transition:0.3s;
+      display:inline-flex;
+      align-items:center;
+      gap:10px;
+    }
 
-        .btn-back {
-            color: #fff; text-decoration: none; background: rgba(255,255,255,0.1);
-            padding: 8px 18px; border-radius: 15px; font-size: 12px; font-weight: 600;
-            border: 1px solid var(--border-glow);
-        }
-    </style>
+    .btn-primary{
+      background:linear-gradient(90deg,#008cff,#8d2dff);
+      color:white;
+      box-shadow:0 10px 30px #7f36ff40;
+    }
+
+    .btn-primary:hover{
+      transform:translateY(-3px);
+    }
+
+    .btn-secondary{
+      background:white;
+      color:#5b2cff;
+      border:2px solid #7b2fff33;
+    }
+
+    .hero-right{
+      flex:1;
+      min-width:300px;
+      position:relative;
+      display:flex;
+      justify-content:center;
+      align-items:center;
+    }
+
+    .hero-circle{
+      width:420px;
+      height:420px;
+      border-radius:50%;
+      background:linear-gradient(135deg,#008cff,#9b2fff);
+      position:absolute;
+      filter:blur(10px);
+      opacity:0.12;
+    }
+
+    .fiveg{
+      font-size:170px;
+      font-weight:800;
+      color:#fff;
+      text-shadow:
+      0 0 25px #6c2bff,
+      0 0 60px #00aeff;
+      position:relative;
+      z-index:2;
+      background:linear-gradient(135deg,#00b3ff,#8f2fff);
+      -webkit-background-clip:text;
+      -webkit-text-fill-color:transparent;
+    }
+
+    /* FEATURES */
+    .features{
+      display:grid;
+      grid-template-columns:repeat(auto-fit,minmax(220px,1fr));
+      gap:20px;
+      margin-bottom:50px;
+    }
+
+    .feature{
+      background:white;
+      padding:25px;
+      border-radius:25px;
+      text-align:center;
+      box-shadow:0 10px 30px rgba(0,0,0,0.05);
+      transition:0.3s;
+    }
+
+    .feature:hover{
+      transform:translateY(-5px);
+    }
+
+    .feature-icon{
+      font-size:40px;
+      margin-bottom:10px;
+    }
+
+    .feature h3{
+      margin-bottom:8px;
+      color:#5d2fff;
+    }
+
+    /* PLANS */
+    .plans-title{
+      text-align:center;
+      margin-bottom:40px;
+    }
+
+    .plans-title h2{
+      font-size:50px;
+      font-weight:800;
+      background:linear-gradient(90deg,#008cff,#8d2dff);
+      -webkit-background-clip:text;
+      -webkit-text-fill-color:transparent;
+    }
+
+    .plans{
+      display:grid;
+      grid-template-columns:repeat(auto-fit,minmax(280px,1fr));
+      gap:30px;
+    }
+
+    .plan{
+      background:white;
+      border-radius:30px;
+      overflow:hidden;
+      position:relative;
+      box-shadow:0 15px 40px rgba(0,0,0,0.08);
+      transition:0.35s;
+    }
+
+    .plan:hover{
+      transform:translateY(-10px);
+    }
+
+    .plan-header{
+      padding:30px;
+      color:white;
+      text-align:center;
+    }
+
+    .plan1 .plan-header{
+      background:linear-gradient(135deg,#00a6ff,#006eff);
+    }
+
+    .plan2 .plan-header{
+      background:linear-gradient(135deg,#3366ff,#7c2fff);
+    }
+
+    .plan3 .plan-header{
+      background:linear-gradient(135deg,#7a2fff,#9d00ff);
+    }
+
+    .plan4 .plan-header{
+      background:linear-gradient(135deg,#ff00aa,#7f2fff);
+    }
+
+    .plan-header h3{
+      font-size:24px;
+      margin-bottom:5px;
+    }
+
+    .price{
+      font-size:65px;
+      font-weight:800;
+      line-height:1;
+    }
+
+    .plan-body{
+      padding:30px;
+    }
+
+    .plan-body ul{
+      list-style:none;
+      margin-bottom:25px;
+    }
+
+    .plan-body li{
+      padding:12px 0;
+      border-bottom:1px solid #eee;
+      color:#444;
+      font-size:16px;
+    }
+
+    .highlight{
+      font-size:20px;
+      font-weight:700;
+      color:#5f2fff;
+    }
+
+    .plan-btn{
+      display:block;
+      text-align:center;
+      text-decoration:none;
+      padding:15px;
+      border-radius:15px;
+      background:linear-gradient(90deg,#0099ff,#8a2fff);
+      color:white;
+      font-weight:600;
+      transition:0.3s;
+    }
+
+    .plan-btn:hover{
+      opacity:0.9;
+    }
+
+    /* CTA */
+    .cta{
+      margin-top:70px;
+      background:
+      linear-gradient(135deg,#008cff,#8d2dff);
+      border-radius:35px;
+      padding:50px 30px;
+      text-align:center;
+      color:white;
+      position:relative;
+      overflow:hidden;
+    }
+
+    .cta::before{
+      content:'';
+      position:absolute;
+      width:300px;
+      height:300px;
+      background:#ffffff18;
+      border-radius:50%;
+      top:-100px;
+      left:-80px;
+    }
+
+    .cta::after{
+      content:'';
+      position:absolute;
+      width:300px;
+      height:300px;
+      background:#ffffff10;
+      border-radius:50%;
+      bottom:-120px;
+      right:-100px;
+    }
+
+    .cta h2{
+      font-size:48px;
+      margin-bottom:15px;
+      position:relative;
+      z-index:2;
+    }
+
+    .cta p{
+      font-size:20px;
+      margin-bottom:30px;
+      position:relative;
+      z-index:2;
+    }
+
+    .whatsapp-btn{
+      display:inline-flex;
+      align-items:center;
+      gap:12px;
+      padding:18px 35px;
+      border-radius:60px;
+      text-decoration:none;
+      background:white;
+      color:#5a2cff;
+      font-size:20px;
+      font-weight:700;
+      position:relative;
+      z-index:2;
+      transition:0.3s;
+    }
+
+    .whatsapp-btn:hover{
+      transform:scale(1.05);
+    }
+
+    footer{
+      text-align:center;
+      margin-top:40px;
+      color:#777;
+      font-size:15px;
+    }
+
+    @media(max-width:768px){
+
+      .hero h1{
+        font-size:48px;
+      }
+
+      .fiveg{
+        font-size:110px;
+      }
+
+      .plans-title h2{
+        font-size:38px;
+      }
+
+      .cta h2{
+        font-size:35px;
+      }
+    }
+  </style>
 </head>
+
 <body>
 
-    <video autoplay muted loop playsinline class="bg-video">
-        <source src="zijunbg.mp4" type="video/mp4">
-    </video>
+  <div class="container">
 
-    <header>
-        <div class="logo-area">
-            <img src="zijunlogo.png" alt="ZIJUN">
-            <div>
-                <div style="font-size: 15px; font-weight: 800; letter-spacing: 2px;">EASTEL_MODULE</div>
-                <div style="font-size: 9px; opacity: 0.6;">// OPERATION_LOGS</div>
-            </div>
-        </div>
-        <a href="more.html" class="btn-back">BACK_MORE</a>
-    </header>
+    <!-- HERO -->
+    <section class="hero">
 
-    <div class="container">
-        <div class="menu-title">-- EASTEL INFORMATION --</div>
+      <div class="hero-left">
 
-        <div class="poster-card">
-            <img src="Eastel_Zijun.png" alt="Eastel A5 Poster" class="poster-img">
-        </div>
+        <img src="/eastel.png" class="logo" alt="Eastel Logo">
 
-        <a href="https://wa.me/601153789909?text=Hi%2C%20I%20would%20like%20to%20inquire%20about%20Eastel%20details%21" target="_blank" class="btn-whatsapp">
-            <svg class="whatsapp-icon" viewBox="0 0 24 24">
-                <path d="M.057 24l1.687-6.163c-1.041-1.804-1.588-3.849-1.587-5.946C.06 5.348 5.397 0 11.93 0c3.166.001 6.141 1.233 8.377 3.469 2.235 2.235 3.465 5.211 3.464 8.377-.003 6.534-5.339 11.883-11.87 11.883-2.003-.001-3.973-.511-5.716-1.483L0 24zm6.59-4.846c1.657.982 3.31 1.532 5.28 1.533 5.4 0 9.79-4.386 9.793-9.793 0-2.617-1.02-5.077-2.875-6.932E-13C16.738 2.108 14.282 1.084 11.66 1.084c-5.403 0-9.794 4.386-9.797 9.793-.001 2.073.546 4.05 1.583 5.79l-1.04 3.801 3.905-1.023zM17.91 14.8c-.346-.173-2.049-1.012-2.364-1.127-.315-.115-.545-.173-.775.173-.23.346-.888 1.127-1.088 1.358-.2.23-.4.259-.746.086-1.352-.674-2.352-1.18-3.286-2.793-.248-.426.248-.396.71-.131.415.239.545.346.66.49.115.144.058.259-.029.432-.086.173-.775 1.873-.962 2.32-.18.432-.36.36-.66.346-.244-.012-.524-.015-.804-.015-.279 0-.734.105-1.118.525-.384.419-1.467 1.434-1.467 3.497 0 2.063 1.503 4.053 1.712 4.341.209.288 2.96 4.521 7.17 6.335 1.002.431 1.784.689 2.395.882 1.007.32 1.924.275 2.648.167.807-.12 2.47-.1 4.1.378.115.346.173.635.173.865 0 .749-.374 1.154-.549 1.327z"/>
-            </svg>
-            <span>CONTACT VIA WHATSAPP</span>
-        </a>
+        <h1>CONNECT MORE.<br>LIVE MORE.</h1>
 
-        <p style="text-align: center; font-family: monospace; opacity: 0.3; font-size: 9px; margin-top: 50px; letter-spacing: 2px;">
-            SECURE_CONNECTION_ESTABLISHED<br>
-            V.2026.MODULE_EXPANSION
+        <p>
+          Premium Ultra5G mobile plans with massive data,
+          blazing speed and seamless roaming.
         </p>
-    </div>
+
+        <div class="hero-buttons">
+
+          <a href="#plans" class="btn btn-primary">
+            🚀 View Plans
+          </a>
+
+          <a
+            href="https://wa.me/601153789909?text=Hi%20ZiJun%2C%20I%20would%20like%20to%20know%20more%20about%20Eastel%20Ultra5G%20plans."
+            target="_blank"
+            class="btn btn-secondary"
+          >
+            💬 Contact WhatsApp
+          </a>
+
+        </div>
+
+      </div>
+
+      <div class="hero-right">
+        <div class="hero-circle"></div>
+        <div class="fiveg">5G</div>
+      </div>
+
+    </section>
+
+    <!-- FEATURES -->
+    <section class="features">
+
+      <div class="feature">
+        <div class="feature-icon">⚡</div>
+        <h3>Ultra-Fast 5G</h3>
+        <p>Experience blazing internet speed anytime.</p>
+      </div>
+
+      <div class="feature">
+        <div class="feature-icon">📶</div>
+        <h3>Reliable Coverage</h3>
+        <p>Stay connected wherever you go.</p>
+      </div>
+
+      <div class="feature">
+        <div class="feature-icon">🌏</div>
+        <h3>Roaming Included</h3>
+        <p>Travel worry-free in Singapore, Thailand & Indonesia.</p>
+      </div>
+
+      <div class="feature">
+        <div class="feature-icon">💬</div>
+        <h3>Unlimited Calls</h3>
+        <p>Talk without limits every single day.</p>
+      </div>
+
+    </section>
+
+    <!-- PLANS -->
+    <section id="plans">
+
+      <div class="plans-title">
+        <h2>Eastel Ultra5G Plans</h2>
+      </div>
+
+      <div class="plans">
+
+        <!-- PLAN 1 -->
+        <div class="plan plan1">
+
+          <div class="plan-header">
+            <h3>PLAN 1</h3>
+            <div class="price">RM35</div>
+          </div>
+
+          <div class="plan-body">
+
+            <ul>
+              <li><span class="highlight">200GB</span> Ultra5G Data</li>
+              <li><span class="highlight">100GB</span> Hotspot</li>
+              <li>Unlimited Call</li>
+              <li>10 SMS</li>
+              <li>30 Days Validity</li>
+            </ul>
+
+            <a
+              class="plan-btn"
+              target="_blank"
+              href="https://wa.me/601153789909?text=Hi%20ZiJun%2C%20I%20am%20interested%20in%20Eastel%20Plan%201%20(RM35)."
+            >
+              Get This Plan
+            </a>
+
+          </div>
+
+        </div>
+
+        <!-- PLAN 2 -->
+        <div class="plan plan2">
+
+          <div class="plan-header">
+            <h3>PLAN 2</h3>
+            <div class="price">RM50</div>
+          </div>
+
+          <div class="plan-body">
+
+            <ul>
+              <li><span class="highlight">500GB</span> Ultra5G Data</li>
+              <li>Full Hotspot</li>
+              <li>Unlimited Call</li>
+              <li>10 SMS</li>
+              <li>30 Days Validity</li>
+              <li><span class="highlight">3GB</span> Roaming Data</li>
+              <li>Indonesia • Singapore • Thailand</li>
+            </ul>
+
+            <a
+              class="plan-btn"
+              target="_blank"
+              href="https://wa.me/601153789909?text=Hi%20ZiJun%2C%20I%20am%20interested%20in%20Eastel%20Plan%202%20(RM50)."
+            >
+              Get This Plan
+            </a>
+
+          </div>
+
+        </div>
+
+        <!-- PLAN 3 -->
+        <div class="plan plan3">
+
+          <div class="plan-header">
+            <h3>PLAN 3</h3>
+            <div class="price">RM68</div>
+          </div>
+
+          <div class="plan-body">
+
+            <ul>
+              <li><span class="highlight">700GB</span> Ultra5G Data</li>
+              <li>Full Hotspot</li>
+              <li>Unlimited Call</li>
+              <li>10 SMS</li>
+              <li>30 Days Validity</li>
+              <li><span class="highlight">5GB</span> Roaming Data</li>
+              <li>Indonesia • Singapore • Thailand</li>
+            </ul>
+
+            <a
+              class="plan-btn"
+              target="_blank"
+              href="https://wa.me/601153789909?text=Hi%20ZiJun%2C%20I%20am%20interested%20in%20Eastel%20Plan%203%20(RM68)."
+            >
+              Get This Plan
+            </a>
+
+          </div>
+
+        </div>
+
+        <!-- PLAN 4 -->
+        <div class="plan plan4">
+
+          <div class="plan-header">
+            <h3>PLAN 4</h3>
+            <div class="price">RM98</div>
+          </div>
+
+          <div class="plan-body">
+
+            <ul>
+              <li><span class="highlight">999GB</span> Ultra5G Data</li>
+              <li>Full Hotspot</li>
+              <li>Unlimited Call</li>
+              <li>10 SMS</li>
+              <li>30 Days Validity</li>
+              <li><span class="highlight">10GB</span> Roaming Data</li>
+              <li>Indonesia • Singapore • Thailand</li>
+            </ul>
+
+            <a
+              class="plan-btn"
+              target="_blank"
+              href="https://wa.me/601153789909?text=Hi%20ZiJun%2C%20I%20am%20interested%20in%20Eastel%20Plan%204%20(RM98)."
+            >
+              Get This Plan
+            </a>
+
+          </div>
+
+        </div>
+
+      </div>
+
+    </section>
+
+    <!-- CTA -->
+    <section class="cta">
+
+      <h2>Ready To Switch To Eastel?</h2>
+
+      <p>
+        More Data. More Freedom. More Possibilities.
+      </p>
+
+      <a
+        href="https://wa.me/601153789909?text=Hi%20ZiJun%2C%20I%20would%20like%20to%20know%20more%20about%20Eastel%20Ultra5G%20plans."
+        target="_blank"
+        class="whatsapp-btn"
+      >
+        💬 WhatsApp ZiJun Now
+      </a>
+
+    </section>
+
+    <footer>
+      © 2026 Eastel Ultra5G • Connecting You To What Matters Most
+    </footer>
+
+  </div>
 
 </body>
 </html>
