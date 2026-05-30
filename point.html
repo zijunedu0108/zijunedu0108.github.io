@@ -30,8 +30,430 @@
         // 将 db 挂载到 window 上，以便全局函数使用
         window.db = db;
         
-        // 提示初始化完成 (可选)
         console.log("Firebase 初始化完成");
+        
+        // 等待DOM加载完成后初始化按钮事件
+        document.addEventListener('DOMContentLoaded', () => {
+            console.log("DOM加载完成，初始化按钮事件");
+            initButtons();
+        });
+        
+        function initButtons() {
+            const btnCheck = document.getElementById('btnCheck');
+            const btnRecharge = document.getElementById('btnRecharge');
+            const btnRegister = document.getElementById('btnRegister');
+            const btnDeleteUser = document.getElementById('btnDeleteUser');
+            
+            if (btnCheck) {
+                btnCheck.onclick = (e) => {
+                    e.preventDefault();
+                    console.log("按钮1被点击");
+                    performScanAndProcess('check');
+                };
+            }
+            
+            if (btnRecharge) {
+                btnRecharge.onclick = (e) => {
+                    e.preventDefault();
+                    console.log("按钮2被点击");
+                    performScanAndProcess('recharge');
+                };
+            }
+            
+            if (btnRegister) {
+                btnRegister.onclick = (e) => {
+                    e.preventDefault();
+                    console.log("按钮3被点击");
+                    performScanAndProcess('register');
+                };
+            }
+            
+            if (btnDeleteUser) {
+                btnDeleteUser.onclick = (e) => {
+                    e.preventDefault();
+                    console.log("按钮4被点击");
+                    performScanAndProcess('deleteUser');
+                };
+            }
+        }
+        
+        // 全局函数供调用
+        window.performScanAndProcess = performScanAndProcess;
+        window.closeModal = closeModal;
+        window.showModal = showModal;
+        window.scanNFCCard = scanNFCCard;
+        
+        // 辅助函数
+        let currentModalCloseCallback = null;
+        
+        function closeModal() {
+            const modal = document.getElementById('modalOverlay');
+            if (modal) modal.style.display = 'none';
+            if (currentModalCloseCallback) {
+                currentModalCloseCallback();
+                currentModalCloseCallback = null;
+            }
+        }
+        
+        function showModal(html, onClose = null) {
+            const modal = document.getElementById('modalOverlay');
+            const modalContent = document.getElementById('modalContent');
+            if (!modal || !modalContent) return;
+            
+            modalContent.innerHTML = html;
+            modal.style.display = 'flex';
+            currentModalCloseCallback = onClose;
+            
+            // 绑定关闭按钮
+            const closeBtn = document.getElementById('closeModalBtn');
+            if (closeBtn) {
+                closeBtn.onclick = () => closeModal();
+            }
+            const cancelBtn = document.getElementById('cancelScanBtn');
+            if (cancelBtn) {
+                cancelBtn.onclick = () => closeModal();
+            }
+        }
+        
+        function showScanningUI(message = "请将 NFC 卡片靠近手机背面扫描...") {
+            const html = `
+                <h3>📡 扫描中</h3>
+                <div class="nfc-hint" style="background:#fff3cd; color:#856404;">${message}</div>
+                <div class="info-text" style="text-align:center;">🔄 等待读取卡片UID...</div>
+                <div class="modal-buttons">
+                    <button id="cancelScanBtn">取消</button>
+                </div>
+            `;
+            showModal(html);
+        }
+        
+        async function scanNFCCard(timeout = 15000) {
+            return new Promise((resolve, reject) => {
+                // 检查是否支持NFC
+                if (!("NDEFReader" in window)) {
+                    reject(new Error("❌ 当前浏览器不支持 Web NFC。\n请使用 Android Chrome 浏览器，并确保：\n1. 网站使用 HTTPS 协议\n2. 手机已开启 NFC 功能\n3. 将卡片贴近手机背面"));
+                    return;
+                }
+                
+                // 检查是否在安全上下文中
+                if (!window.isSecureContext) {
+                    reject(new Error("❌ 不在安全上下文中！\n请确保使用 HTTPS 协议访问页面。\n本地测试请使用 localhost 或 HTTPS。"));
+                    return;
+                }
+                
+                const reader = new NDEFReader();
+                let timeoutId = setTimeout(() => {
+                    reader.stop();
+                    reject(new Error("⏰ 扫描超时，请确保卡片已贴近手机背面"));
+                }, timeout);
+                
+                reader.onreading = (event) => {
+                    clearTimeout(timeoutId);
+                    const uid = event.serialNumber;
+                    if (uid && uid.length > 0) {
+                        reader.stop();
+                        resolve(uid);
+                    } else {
+                        reader.stop();
+                        reject(new Error("无法获取卡片UID，请重试"));
+                    }
+                };
+                
+                reader.onreadingerror = (err) => {
+                    clearTimeout(timeoutId);
+                    reject(new Error("NFC读取错误：" + (err.message || "请确保卡片贴合")));
+                };
+                
+                reader.scan().catch((err) => {
+                    clearTimeout(timeoutId);
+                    reject(new Error("启动NFC扫描失败：" + err.message + "\n请确保已授权NFC权限"));
+                });
+            });
+        }
+        
+        async function performScanAndProcess(mode) {
+            console.log("开始执行模式:", mode);
+            // 显示提示
+            showScanningUI(`正在扫描 → ${mode === 'check' ? '检查余额' : mode === 'recharge' ? '充值' : mode === 'register' ? '注册新用户' : '删除用户'}`);
+            
+            try {
+                const uid = await scanNFCCard();
+                console.log("扫描到UID:", uid);
+                
+                if (mode === 'check') {
+                    await showBalanceInfo(uid);
+                } else if (mode === 'recharge') {
+                    await showRechargeAmountPanel(uid);
+                } else if (mode === 'register') {
+                    await showRegisterFormWithUid(uid);
+                } else if (mode === 'deleteUser') {
+                    await showDeleteUserConfirm(uid);
+                }
+            } catch (err) {
+                console.error("扫描错误:", err);
+                showModal(`
+                    <h3>⚠️ 扫描失败</h3>
+                    <div class="info-text" style="white-space: pre-line;">${err.message}</div>
+                    <div class="modal-buttons"><button id="closeModalBtn">关闭</button></div>
+                `);
+            }
+        }
+        
+        async function showBalanceInfo(uid) {
+            try {
+                const userRef = doc(db, "users", uid);
+                const userSnap = await getDoc(userRef);
+                if (!userSnap.exists()) {
+                    showModal(`
+                        <h3>❌ 用户不存在</h3>
+                        <div class="info-text">卡片UID: ${uid}<br>该用户尚未注册，请先注册。</div>
+                        <div class="modal-buttons"><button id="closeModalBtn">关闭</button></div>
+                    `);
+                    return;
+                }
+                const data = userSnap.data();
+                const balance = data.balance || 0;
+                const expireDate = data.expireDate || "无期限";
+                const name = data.name || "无名";
+                const isExpired = expireDate !== "无期限" && new Date(expireDate) < new Date();
+                showModal(`
+                    <h3>💳 用户信息</h3>
+                    <div class="info-text">
+                        <strong>🆔 UID:</strong> ${uid}<br>
+                        <strong>👤 姓名:</strong> ${name}<br>
+                        <strong>💰 剩余点数:</strong> ${balance} 点<br>
+                        <strong>📅 过期日期:</strong> ${expireDate}<br>
+                        ${isExpired ? '<span style="color:red;">⚠️ 卡片已过期！</span>' : ''}
+                    </div>
+                    <div class="modal-buttons"><button id="closeModalBtn">关闭</button></div>
+                `);
+            } catch (error) {
+                showModal(`<h3>错误</h3><div class="info-text">${error.message}</div><div class="modal-buttons"><button id="closeModalBtn">关闭</button></div>`);
+            }
+        }
+        
+        async function showRechargeAmountPanel(uid) {
+            const userRef = doc(db, "users", uid);
+            const userSnap = await getDoc(userRef);
+            if (!userSnap.exists()) {
+                showModal(`
+                    <h3>❌ 用户未注册</h3>
+                    <div class="info-text">该卡片未注册，请先注册后再充值。</div>
+                    <div class="modal-buttons"><button id="closeModalBtn">关闭</button></div>
+                `);
+                return;
+            }
+            
+            const html = `
+                <h3>💎 充值点数</h3>
+                <div class="info-text">卡片UID: ${uid}</div>
+                <div class="amount-selector" id="amountSelector">
+                    <div class="amount-chip" data-amount="1">1</div>
+                    <div class="amount-chip" data-amount="5">5</div>
+                    <div class="amount-chip" data-amount="10">10</div>
+                    <div class="amount-chip" data-amount="20">20</div>
+                    <div class="amount-chip" data-amount="50">50</div>
+                    <div class="amount-chip" data-amount="100">100</div>
+                    <div class="amount-chip" data-amount="custom">任意</div>
+                </div>
+                <div id="customAmountArea" style="display:none;" class="custom-amount">
+                    <input type="number" id="customAmountInput" placeholder="输入点数 (正整数)" min="1" step="1">
+                </div>
+                <div class="modal-buttons">
+                    <button id="confirmRechargeBtn">确认充值</button>
+                    <button id="cancelRechargeBtn">取消</button>
+                </div>
+            `;
+            showModal(html);
+            
+            let chosenAmount = null;
+            const chips = document.querySelectorAll('.amount-chip');
+            const customArea = document.getElementById('customAmountArea');
+            
+            chips.forEach(chip => {
+                chip.onclick = () => {
+                    chips.forEach(c => c.classList.remove('selected'));
+                    chip.classList.add('selected');
+                    const amountVal = chip.getAttribute('data-amount');
+                    if (amountVal === 'custom') {
+                        if (customArea) customArea.style.display = 'flex';
+                        chosenAmount = null;
+                    } else {
+                        if (customArea) customArea.style.display = 'none';
+                        chosenAmount = parseInt(amountVal, 10);
+                    }
+                };
+            });
+            
+            const confirmBtn = document.getElementById('confirmRechargeBtn');
+            const cancelBtn = document.getElementById('cancelRechargeBtn');
+            
+            if (confirmBtn) {
+                confirmBtn.onclick = async () => {
+                    let finalAmount = chosenAmount;
+                    if (customArea && customArea.style.display === 'flex') {
+                        const customInput = document.getElementById('customAmountInput');
+                        const customVal = customInput ? parseInt(customInput.value, 10) : NaN;
+                        if (isNaN(customVal) || customVal <= 0) {
+                            alert("请输入有效的正数点数");
+                            return;
+                        }
+                        finalAmount = customVal;
+                    }
+                    if (!finalAmount || finalAmount <= 0) {
+                        alert("请选择或输入充值金额");
+                        return;
+                    }
+                    try {
+                        const userRef = doc(db, "users", uid);
+                        const userData = (await getDoc(userRef)).data();
+                        const currentBalance = userData.balance || 0;
+                        const newBalance = currentBalance + finalAmount;
+                        await updateDoc(userRef, { balance: newBalance });
+                        showModal(`
+                            <h3>✅ 充值成功</h3>
+                            <div class="info-text">UID: ${uid}<br>充值金额: +${finalAmount}<br>当前余额: ${newBalance}</div>
+                            <div class="modal-buttons"><button id="closeModalBtn">关闭</button></div>
+                        `);
+                    } catch (err) {
+                        alert("充值失败: " + err.message);
+                        closeModal();
+                    }
+                };
+            }
+            
+            if (cancelBtn) {
+                cancelBtn.onclick = () => closeModal();
+            }
+        }
+        
+        async function showRegisterFormWithUid(uid) {
+            const userRef = doc(db, "users", uid);
+            const snap = await getDoc(userRef);
+            if (snap.exists()) {
+                showModal(`
+                    <h3>⚠️ 用户已存在</h3>
+                    <div class="info-text">该UID (${uid}) 已经注册，请勿重复注册。</div>
+                    <div class="modal-buttons"><button id="closeModalBtn">关闭</button></div>
+                `);
+                return;
+            }
+            
+            const html = `
+                <h3>📝 注册新用户</h3>
+                <input type="text" id="regUid" placeholder="卡 UID (已自动扫描)" value="${uid}" readonly disabled style="background:#f0f0f0;">
+                <input type="text" id="regName" placeholder="请输入姓名 *" required>
+                <input type="date" id="regExpireDate" placeholder="到期日期 (留空表示永久)">
+                <div class="info-text">若设置到期时间，卡片将在该日期后失效</div>
+                <div class="modal-buttons">
+                    <button id="confirmRegBtn">确认注册</button>
+                    <button id="cancelRegBtn">取消</button>
+                </div>
+            `;
+            showModal(html);
+            
+            const confirmBtn = document.getElementById('confirmRegBtn');
+            const cancelBtn = document.getElementById('cancelRegBtn');
+            
+            if (confirmBtn) {
+                confirmBtn.onclick = async () => {
+                    const nameInput = document.getElementById('regName');
+                    const name = nameInput ? nameInput.value.trim() : "";
+                    if (!name) {
+                        alert("请填写姓名");
+                        return;
+                    }
+                    const expireDateInput = document.getElementById('regExpireDate');
+                    const expireDate = expireDateInput && expireDateInput.value ? expireDateInput.value : "无期限";
+                    const balance = 0;
+                    try {
+                        await setDoc(doc(db, "users", uid), {
+                            uid: uid,
+                            name: name,
+                            balance: balance,
+                            expireDate: expireDate,
+                            createdAt: new Date().toISOString()
+                        });
+                        showModal(`
+                            <h3>🎉 注册成功</h3>
+                            <div class="info-text">UID: ${uid}<br>姓名: ${name}<br>到期: ${expireDate}<br>初始点数: 0</div>
+                            <div class="modal-buttons"><button id="closeModalBtn">关闭</button></div>
+                        `);
+                    } catch (err) {
+                        alert("注册失败: " + err.message);
+                    }
+                };
+            }
+            
+            if (cancelBtn) {
+                cancelBtn.onclick = () => closeModal();
+            }
+        }
+        
+        async function showDeleteUserConfirm(uid) {
+            const userRef = doc(db, "users", uid);
+            const userSnap = await getDoc(userRef);
+            if (!userSnap.exists()) {
+                showModal(`
+                    <h3>❌ 用户不存在</h3>
+                    <div class="info-text">该卡片未注册，无法删除。</div>
+                    <div class="modal-buttons"><button id="closeModalBtn">关闭</button></div>
+                `);
+                return;
+            }
+            
+            const userData = userSnap.data();
+            const dummyRecords = [
+                { item: "示例购物1", points: -5, date: "2025-01-01" },
+                { item: "示例购物2", points: -10, date: "2025-01-15" }
+            ];
+            let recordHtml = `<ul style="margin-top:8px; max-height:150px; overflow-y:auto;">`;
+            dummyRecords.forEach(rec => {
+                recordHtml += `<li style="margin:6px 0;">${rec.item} | 消耗${Math.abs(rec.points)}点 | ${rec.date}</li>`;
+            });
+            recordHtml += `</ul><div style="font-size:12px;color:gray;">※ 后续购物页面会自动记录真实消费。</div>`;
+            
+            const html = `
+                <h3>🗑️ 删除用户 & 消费记录</h3>
+                <div class="info-text">
+                    <strong>UID:</strong> ${uid}<br>
+                    <strong>姓名:</strong> ${userData.name}<br>
+                    <strong>当前余额:</strong> ${userData.balance}<br>
+                    <strong>过期时间:</strong> ${userData.expireDate}<br>
+                    <strong>📋 历史消费记录(演示):</strong> ${recordHtml}
+                </div>
+                <div class="modal-buttons">
+                    <button id="forceDeleteUserBtn" class="danger-btn">⚠️ 永久废除用户</button>
+                    <button id="closeDelModal">关闭</button>
+                </div>
+            `;
+            showModal(html);
+            
+            const deleteBtn = document.getElementById('forceDeleteUserBtn');
+            const closeBtn = document.getElementById('closeDelModal');
+            
+            if (deleteBtn) {
+                deleteBtn.onclick = async () => {
+                    if (confirm(`确定要彻底删除用户 "${userData.name}" (${uid}) 吗？此操作不可逆！`)) {
+                        try {
+                            await deleteDoc(doc(db, "users", uid));
+                            showModal(`
+                                <h3>✅ 用户已删除</h3>
+                                <div class="info-text">用户 ${userData.name} 的资料已被完全废除。</div>
+                                <div class="modal-buttons"><button id="closeModalBtn">关闭</button></div>
+                            `);
+                        } catch (err) {
+                            alert("删除失败: " + err.message);
+                            closeModal();
+                        }
+                    }
+                };
+            }
+            
+            if (closeBtn) {
+                closeBtn.onclick = () => closeModal();
+            }
+        }
     </script>
     <style>
         * {
@@ -51,7 +473,6 @@
             align-items: center;
         }
 
-        /* 主容器 - 手机卡片风格 */
         .app-container {
             max-width: 500px;
             width: 100%;
@@ -82,7 +503,6 @@
             padding-bottom: 12px;
         }
 
-        /* 四宫格按钮区域 */
         .button-grid {
             display: grid;
             grid-template-columns: repeat(2, 1fr);
@@ -110,13 +530,11 @@
             background: rgba(255,255,255,0.3);
         }
 
-        /* 不同按钮个性色 */
         .btn-check { background: rgba(52,152,219,0.75); border-color: #74b9ff; }
         .btn-recharge { background: rgba(46,204,113,0.75); border-color: #55efc4; }
         .btn-register { background: rgba(241,196,15,0.8); border-color: #ffeaa7; color: #2d3436; }
         .btn-delete { background: rgba(231,76,60,0.75); border-color: #ff7675; }
 
-        /* 模态窗 (全屏浮层) */
         .modal {
             display: none;
             position: fixed;
@@ -295,411 +713,11 @@
         <div class="action-btn btn-register" id="btnRegister">③ 注册新用户</div>
         <div class="action-btn btn-delete" id="btnDeleteUser">④ 删除用户</div>
     </div>
-    <footer>🔘 请确保手机支持NFC并已开启 | 点按按钮触发扫描</footer>
+    <footer>🔘 请确保手机支持NFC并已开启 | 必须使用 HTTPS 访问</footer>
 </div>
 
-<!-- 模态窗：通用扫描等待 + 各功能展示 -->
 <div id="modalOverlay" class="modal">
-    <div class="modal-card" id="modalContent">
-        <!-- 动态内容 -->
-    </div>
+    <div class="modal-card" id="modalContent"></div>
 </div>
-
-<script type="module">
-    import { getFirestore, doc, getDoc, setDoc, updateDoc, deleteDoc, collection, query, where, getDocs } from "https://www.gstatic.com/firebasejs/12.14.0/firebase-firestore.js";
-    
-    // 获取db实例 (已在window挂载)
-    const db = window.db;
-    
-    // DOM 元素
-    const modal = document.getElementById('modalOverlay');
-    const modalContent = document.getElementById('modalContent');
-    
-    // 当前激活的功能模式: 'check', 'recharge', 'register', 'deleteUser'
-    let activeMode = null;
-    // 临时存储扫描到的uid
-    let scannedUid = null;
-    // 充值相关选择的金额
-    let selectedAmount = null;
-    // 注册时暂存扫卡uid
-    let regUid = null;
-    // 删除用户模式暂存uid
-    let delUid = null;
-    
-    // ---------- 辅助函数 ----------
-    function closeModal() {
-        modal.style.display = 'none';
-        activeMode = null;
-        scannedUid = null;
-        selectedAmount = null;
-        regUid = null;
-        delUid = null;
-        if (window.abortNFCHandler) {
-            // 如果有正在监听的nfc，可尝试取消 (仅标记，实际nfc无法中断但忽略后续)
-        }
-    }
-    
-    function showModal(html) {
-        modalContent.innerHTML = html;
-        modal.style.display = 'flex';
-        // 绑定动态生成的按钮事件（后续统一处理）
-        attachDynamicButtons();
-    }
-    
-    // 显示扫描等待界面 (因为需要扫描卡片)
-    function showScanningUI(message = "请将 NFC 卡片靠近手机背面扫描...") {
-        const html = `
-            <h3>📡 扫描中</h3>
-            <div class="nfc-hint">${message}</div>
-            <div class="info-text" style="text-align:center;">🔄 等待读取卡片UID...</div>
-            <div class="modal-buttons">
-                <button id="cancelScanBtn">取消</button>
-            </div>
-        `;
-        showModal(html);
-        // 监听取消
-        const cancelBtn = document.getElementById('cancelScanBtn');
-        if (cancelBtn) cancelBtn.onclick = () => closeModal();
-    }
-    
-    // 封装NFC扫描 (返回uid Promise)
-    async function scanNFCCard(timeout = 15000) {
-        return new Promise((resolve, reject) => {
-            // @ts-ignore 检查NDEFReader存在性 (支持NFC)
-            if (!("NDEFReader" in window)) {
-                reject(new Error("当前浏览器/设备不支持 Web NFC。请使用 Android Chrome 并开启NFC"));
-                return;
-            }
-            const reader = new NDEFReader();
-            let timeoutId = setTimeout(() => {
-                reader.stop();
-                reject(new Error("扫描超时，请重试或确保卡片已靠近"));
-            }, timeout);
-            
-            reader.onreading = (event) => {
-                clearTimeout(timeoutId);
-                // 获取UID: 标准NFC TAG 可以通过 serialNumber 获得
-                const uid = event.serialNumber;
-                if (uid && uid.length > 0) {
-                    reader.stop();
-                    resolve(uid);
-                } else {
-                    reader.stop();
-                    reject(new Error("无法获取卡片UID，请重试"));
-                }
-            };
-            reader.onreadingerror = (err) => {
-                clearTimeout(timeoutId);
-                reject(new Error("NFC读取错误，请确保卡片贴合"));
-            };
-            reader.scan().catch((err) => {
-                clearTimeout(timeoutId);
-                reject(new Error("NFC 扫描启动失败: " + err.message));
-            });
-        });
-    }
-    
-    // 执行扫描并根据当前模式处理
-    async function performScanAndProcess(mode) {
-        activeMode = mode;
-        showScanningUI(`正在扫描 → ${mode === 'check' ? '检查余额' : mode === 'recharge' ? '充值' : mode === 'register' ? '注册新用户' : '删除用户'}`);
-        try {
-            const uid = await scanNFCCard();
-            scannedUid = uid;
-            // 根据不同模式跳转后续界面
-            if (mode === 'check') {
-                await showBalanceInfo(uid);
-            } else if (mode === 'recharge') {
-                await showRechargeAmountPanel(uid);
-            } else if (mode === 'register') {
-                await showRegisterFormWithUid(uid);
-            } else if (mode === 'deleteUser') {
-                await showDeleteUserConfirm(uid);
-            }
-        } catch (err) {
-            showModal(`
-                <h3>⚠️ 扫描失败</h3>
-                <div class="info-text">${err.message}</div>
-                <div class="modal-buttons"><button id="closeModalBtn">关闭</button></div>
-            `);
-            const closeBtn = document.getElementById('closeModalBtn');
-            if (closeBtn) closeBtn.onclick = () => closeModal();
-        }
-    }
-    
-    // 按钮1: 检查点数余额和过期日期
-    async function showBalanceInfo(uid) {
-        try {
-            const userRef = doc(db, "users", uid);
-            const userSnap = await getDoc(userRef);
-            if (!userSnap.exists()) {
-                showModal(`
-                    <h3>❌ 用户不存在</h3>
-                    <div class="info-text">卡片UID: ${uid}<br>该用户尚未注册，请先注册。</div>
-                    <div class="modal-buttons"><button id="closeModalBtn">关闭</button></div>
-                `);
-                const closeBtn = document.getElementById('closeModalBtn');
-                if (closeBtn) closeBtn.onclick = () => closeModal();
-                return;
-            }
-            const data = userSnap.data();
-            const balance = data.balance || 0;
-            const expireDate = data.expireDate || "无期限";
-            const name = data.name || "无名";
-            showModal(`
-                <h3>💳 用户信息</h3>
-                <div class="info-text">
-                    <strong>🆔 UID:</strong> ${uid}<br>
-                    <strong>👤 姓名:</strong> ${name}<br>
-                    <strong>💰 剩余点数:</strong> ${balance} 点<br>
-                    <strong>📅 过期日期:</strong> ${expireDate}<br>
-                    ${expireDate !== "无期限" && new Date(expireDate) < new Date() ? '<span style="color:red;">⚠️ 卡片已过期！</span>' : ''}
-                </div>
-                <div class="modal-buttons"><button id="closeModalBtn">关闭</button></div>
-            `);
-            document.getElementById('closeModalBtn')?.addEventListener('click', () => closeModal());
-        } catch (error) {
-            showModal(`<h3>错误</h3><div class="info-text">${error.message}</div><button id="closeModalBtn">关闭</button>`);
-            document.getElementById('closeModalBtn')?.onclick = () => closeModal();
-        }
-    }
-    
-    // 充值: 选择金额界面 (展示金额选择，需要uid)
-    async function showRechargeAmountPanel(uid) {
-        // 先校验用户是否存在
-        const userRef = doc(db, "users", uid);
-        const userSnap = await getDoc(userRef);
-        if (!userSnap.exists()) {
-            showModal(`
-                <h3>❌ 用户未注册</h3>
-                <div class="info-text">该卡片未注册，请先注册后再充值。</div>
-                <div class="modal-buttons"><button id="closeModalBtn">关闭</button></div>
-            `);
-            document.getElementById('closeModalBtn')?.onclick = () => closeModal();
-            return;
-        }
-        
-        const html = `
-            <h3>💎 充值点数</h3>
-            <div class="info-text">卡片UID: ${uid}</div>
-            <div class="amount-selector" id="amountSelector">
-                <div class="amount-chip" data-amount="1">1</div>
-                <div class="amount-chip" data-amount="5">5</div>
-                <div class="amount-chip" data-amount="10">10</div>
-                <div class="amount-chip" data-amount="20">20</div>
-                <div class="amount-chip" data-amount="50">50</div>
-                <div class="amount-chip" data-amount="100">100</div>
-                <div class="amount-chip" data-amount="custom">任意</div>
-            </div>
-            <div id="customAmountArea" style="display:none;" class="custom-amount">
-                <input type="number" id="customAmountInput" placeholder="输入点数 (正整数)" min="1" step="1">
-            </div>
-            <div class="modal-buttons">
-                <button id="confirmRechargeBtn">确认充值</button>
-                <button id="cancelRechargeBtn">取消</button>
-            </div>
-        `;
-        showModal(html);
-        let chosenAmount = null;
-        const chips = document.querySelectorAll('.amount-chip');
-        const customArea = document.getElementById('customAmountArea');
-        chips.forEach(chip => {
-            chip.addEventListener('click', () => {
-                chips.forEach(c => c.classList.remove('selected'));
-                chip.classList.add('selected');
-                const amountVal = chip.getAttribute('data-amount');
-                if (amountVal === 'custom') {
-                    customArea.style.display = 'flex';
-                    chosenAmount = null;
-                } else {
-                    customArea.style.display = 'none';
-                    chosenAmount = parseInt(amountVal, 10);
-                }
-            });
-        });
-        document.getElementById('confirmRechargeBtn').onclick = async () => {
-            let finalAmount = chosenAmount;
-            if (customArea.style.display === 'flex') {
-                const customInput = document.getElementById('customAmountInput');
-                const customVal = parseInt(customInput.value, 10);
-                if (isNaN(customVal) || customVal <= 0) {
-                    alert("请输入有效的正数点数");
-                    return;
-                }
-                finalAmount = customVal;
-            }
-            if (!finalAmount || finalAmount <= 0) {
-                alert("请选择或输入充值金额");
-                return;
-            }
-            // 执行充值逻辑
-            try {
-                const userRef = doc(db, "users", uid);
-                const userData = (await getDoc(userRef)).data();
-                const currentBalance = userData.balance || 0;
-                const newBalance = currentBalance + finalAmount;
-                await updateDoc(userRef, { balance: newBalance });
-                showModal(`
-                    <h3>✅ 充值成功</h3>
-                    <div class="info-text">UID: ${uid}<br>充值金额: +${finalAmount}<br>当前余额: ${newBalance}</div>
-                    <div class="modal-buttons"><button id="closeModalBtn">关闭</button></div>
-                `);
-                document.getElementById('closeModalBtn')?.onclick = () => closeModal();
-            } catch (err) {
-                alert("充值失败: " + err.message);
-                closeModal();
-            }
-        };
-        document.getElementById('cancelRechargeBtn').onclick = () => closeModal();
-    }
-    
-    // 注册新用户: 输入uid(扫描自动填充)，姓名，到期时间
-    async function showRegisterFormWithUid(uid) {
-        // 检查是否已存在
-        const userRef = doc(db, "users", uid);
-        const snap = await getDoc(userRef);
-        if (snap.exists()) {
-            showModal(`
-                <h3>⚠️ 用户已存在</h3>
-                <div class="info-text">该UID (${uid}) 已经注册，请勿重复注册。</div>
-                <div class="modal-buttons"><button id="closeModalBtn">关闭</button></div>
-            `);
-            document.getElementById('closeModalBtn')?.onclick = () => closeModal();
-            return;
-        }
-        const html = `
-            <h3>📝 注册新用户</h3>
-            <input type="text" id="regUid" placeholder="卡 UID (已自动扫描)" value="${uid}" readonly disabled style="background:#f0f0f0;">
-            <input type="text" id="regName" placeholder="请输入姓名 *" required>
-            <input type="date" id="regExpireDate" placeholder="到期日期 (留空表示永久)">
-            <div class="info-text">若设置到期时间，卡片将在该日期后失效</div>
-            <div class="modal-buttons">
-                <button id="confirmRegBtn">确认注册</button>
-                <button id="cancelRegBtn">取消</button>
-            </div>
-        `;
-        showModal(html);
-        document.getElementById('confirmRegBtn').onclick = async () => {
-            const name = document.getElementById('regName').value.trim();
-            if (!name) {
-                alert("请填写姓名");
-                return;
-            }
-            const expireDateInput = document.getElementById('regExpireDate').value;
-            const expireDate = expireDateInput ? expireDateInput : "无期限";
-            // 初始点数可根据需求设置，默认为0
-            const balance = 0;
-            try {
-                await setDoc(doc(db, "users", uid), {
-                    uid: uid,
-                    name: name,
-                    balance: balance,
-                    expireDate: expireDate,
-                    createdAt: new Date().toISOString()
-                });
-                showModal(`
-                    <h3>🎉 注册成功</h3>
-                    <div class="info-text">UID: ${uid}<br>姓名: ${name}<br>到期: ${expireDate}<br>初始点数: 0</div>
-                    <div class="modal-buttons"><button id="closeModalBtn">关闭</button></div>
-                `);
-                document.getElementById('closeModalBtn')?.onclick = () => closeModal();
-            } catch (err) {
-                alert("注册失败: " + err.message);
-            }
-        };
-        document.getElementById('cancelRegBtn').onclick = () => closeModal();
-    }
-    
-    // 删除用户: 先扫描uid，然后展示消费记录和删除选项 (额外要求: 查看消费记录，后续做购物功能，现在显示模拟记录并提供删除)
-    async function showDeleteUserConfirm(uid) {
-        const userRef = doc(db, "users", uid);
-        const userSnap = await getDoc(userRef);
-        if (!userSnap.exists()) {
-            showModal(`
-                <h3>❌ 用户不存在</h3>
-                <div class="info-text">该卡片未注册，无法删除。</div>
-                <div class="modal-buttons"><button id="closeModalBtn">关闭</button></div>
-            `);
-            document.getElementById('closeModalBtn')?.onclick = () => closeModal();
-            return;
-        }
-        const userData = userSnap.data();
-        // 模拟消费记录 (因未来购物，先展示模拟数据)
-        // 此处我们从Firestore一个子集合读取消费记录(可选扩展)，但为满足需求简单展示模拟, 同时支持删除用户彻底消除。
-        // 为了展示消费记录的架子，我这里建立一个虚拟记录数组(以后对接购物记录集合)
-        // 注意: 实际项目中您可添加集合 "purchases" 存储日志，这里提示后续购物对接。
-        const dummyRecords = [
-            { item: "示例购物1", points: -5, date: "2025-01-01" },
-            { item: "示例购物2", points: -10, date: "2025-01-15" }
-        ];
-        let recordHtml = `<ul style="margin-top:8px; max-height:150px; overflow-y:auto;">`;
-        dummyRecords.forEach(rec => {
-            recordHtml += `<li style="margin:6px 0;">${rec.item} | 消耗${Math.abs(rec.points)}点 | ${rec.date}</li>`;
-        });
-        recordHtml += `</ul><div style="font-size:12px;color:gray;">※ 后续购物页面会自动记录真实消费。</div>`;
-        
-        const html = `
-            <h3>🗑️ 删除用户 & 消费记录</h3>
-            <div class="info-text">
-                <strong>UID:</strong> ${uid}<br>
-                <strong>姓名:</strong> ${userData.name}<br>
-                <strong>当前余额:</strong> ${userData.balance}<br>
-                <strong>过期时间:</strong> ${userData.expireDate}<br>
-                <strong>📋 历史消费记录(演示):</strong> ${recordHtml}
-            </div>
-            <div class="modal-buttons">
-                <button id="forceDeleteUserBtn" class="danger-btn">⚠️ 永久废除用户</button>
-                <button id="closeDelModal">关闭</button>
-            </div>
-        `;
-        showModal(html);
-        document.getElementById('forceDeleteUserBtn')?.addEventListener('click', async () => {
-            if (confirm(`确定要彻底删除用户 "${userData.name}" (${uid}) 吗？此操作不可逆！`)) {
-                try {
-                    await deleteDoc(doc(db, "users", uid));
-                    // 可选删除相关的消费子集合 (暂未实现子集合 保持简单)
-                    showModal(`
-                        <h3>✅ 用户已删除</h3>
-                        <div class="info-text">用户 ${userData.name} 的资料已被完全废除。</div>
-                        <div class="modal-buttons"><button id="closeModalBtn">关闭</button></div>
-                    `);
-                    document.getElementById('closeModalBtn')?.onclick = () => closeModal();
-                } catch (err) {
-                    alert("删除失败: " + err.message);
-                    closeModal();
-                }
-            }
-        });
-        document.getElementById('closeDelModal')?.addEventListener('click', () => closeModal());
-    }
-    
-    // 动态绑定模态框内部按钮 (回调辅助)
-    function attachDynamicButtons() {
-        // 已经各自处理，但全局可以确保关闭相关
-        const anyClose = document.querySelectorAll('.close-modal-generic');
-        anyClose.forEach(btn => btn.onclick = () => closeModal());
-    }
-    
-    // 主按钮事件绑定
-    document.getElementById('btnCheck').addEventListener('click', () => performScanAndProcess('check'));
-    document.getElementById('btnRecharge').addEventListener('click', () => performScanAndProcess('recharge'));
-    document.getElementById('btnRegister').addEventListener('click', () => performScanAndProcess('register'));
-    document.getElementById('btnDeleteUser').addEventListener('click', () => performScanAndProcess('deleteUser'));
-    
-    // 优雅处理未支持NFC情况：提前提示
-    window.addEventListener('load', () => {
-        if (!("NDEFReader" in window)) {
-            const warnDiv = document.createElement('div');
-            warnDiv.style.background = '#e67e22';
-            warnDiv.style.color = 'white';
-            warnDiv.style.padding = '12px';
-            warnDiv.style.borderRadius = '60px';
-            warnDiv.style.marginTop = '16px';
-            warnDiv.style.textAlign = 'center';
-            warnDiv.innerText = '⚠️ 当前浏览器不支持Web NFC，请使用Android Chrome并开启NFC功能。模拟演示请在支持环境测试。';
-            document.querySelector('.app-container').appendChild(warnDiv);
-        }
-    });
-</script>
 </body>
 </html>
