@@ -3,15 +3,12 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=yes, viewport-fit=cover">
-    <title>NFC 点数管理系统</title>
-    <!-- 引入 Firebase SDK -->
+    <title>点数系统 - 支持模拟测试</title>
     <script type="module">
-        // Import the functions you need from the SDKs you need
         import { initializeApp } from "https://www.gstatic.com/firebasejs/12.14.0/firebase-app.js";
         import { getAnalytics } from "https://www.gstatic.com/firebasejs/12.14.0/firebase-analytics.js";
-        import { getFirestore, doc, getDoc, setDoc, updateDoc, deleteDoc, collection, query, where, getDocs } from "https://www.gstatic.com/firebasejs/12.14.0/firebase-firestore.js";
+        import { getFirestore, doc, getDoc, setDoc, updateDoc, deleteDoc } from "https://www.gstatic.com/firebasejs/12.14.0/firebase-firestore.js";
         
-        // Your web app's Firebase configuration
         const firebaseConfig = {
             apiKey: "AIzaSyBhc2JVAoxfk3wEsLee-Gr4I1StgqsPkBU",
             authDomain: "zijunblog.firebaseapp.com",
@@ -22,131 +19,77 @@
             measurementId: "G-M8540FQZQD"
         };
 
-        // Initialize Firebase
         const app = initializeApp(firebaseConfig);
         const analytics = getAnalytics(app);
         const db = getFirestore(app);
-        
-        // 将 db 挂载到 window 上，以便全局函数使用
         window.db = db;
+
+        let activeMode = null;
+        let currentUid = null;
+
+        // 检测NFC支持情况
+        const hasNFC = "NDEFReader" in window && window.isSecureContext;
         
-        console.log("Firebase 初始化完成");
-        
-        // 等待DOM加载完成后初始化按钮事件
+        // 模拟UID（用于电脑端测试）
+        const mockUid = "04:12:34:56:78:90:AB";
+
         document.addEventListener('DOMContentLoaded', () => {
-            console.log("DOM加载完成，初始化按钮事件");
             initButtons();
+            updateStatus();
         });
-        
+
         function initButtons() {
-            const btnCheck = document.getElementById('btnCheck');
-            const btnRecharge = document.getElementById('btnRecharge');
-            const btnRegister = document.getElementById('btnRegister');
-            const btnDeleteUser = document.getElementById('btnDeleteUser');
+            document.getElementById('btnCheck').onclick = () => startScan('check');
+            document.getElementById('btnRecharge').onclick = () => startScan('recharge');
+            document.getElementById('btnRegister').onclick = () => startScan('register');
+            document.getElementById('btnDeleteUser').onclick = () => startScan('delete');
+        }
+
+        function updateStatus() {
+            const statusEl = document.getElementById('nfcStatus');
+            const modeEl = document.getElementById('workMode');
             
-            if (btnCheck) {
-                btnCheck.onclick = (e) => {
-                    e.preventDefault();
-                    console.log("按钮1被点击");
-                    performScanAndProcess('check');
-                };
-            }
-            
-            if (btnRecharge) {
-                btnRecharge.onclick = (e) => {
-                    e.preventDefault();
-                    console.log("按钮2被点击");
-                    performScanAndProcess('recharge');
-                };
-            }
-            
-            if (btnRegister) {
-                btnRegister.onclick = (e) => {
-                    e.preventDefault();
-                    console.log("按钮3被点击");
-                    performScanAndProcess('register');
-                };
-            }
-            
-            if (btnDeleteUser) {
-                btnDeleteUser.onclick = (e) => {
-                    e.preventDefault();
-                    console.log("按钮4被点击");
-                    performScanAndProcess('deleteUser');
-                };
+            if (hasNFC) {
+                statusEl.innerHTML = '✅ NFC已就绪 | 点击按钮后直接扫卡';
+                statusEl.className = 'status-ready';
+                modeEl.innerHTML = '📱 NFC模式 - 请将卡片贴近手机';
+            } else {
+                statusEl.innerHTML = '💻 模拟模式 | 点击按钮后使用模拟卡测试';
+                statusEl.className = 'status-simulate';
+                modeEl.innerHTML = '🖥️ 电脑测试模式 - 将使用模拟UID进行测试';
             }
         }
-        
-        // 全局函数供调用
-        window.performScanAndProcess = performScanAndProcess;
-        window.closeModal = closeModal;
-        window.showModal = showModal;
-        window.scanNFCCard = scanNFCCard;
-        
-        // 辅助函数
-        let currentModalCloseCallback = null;
-        
-        function closeModal() {
-            const modal = document.getElementById('modalOverlay');
-            if (modal) modal.style.display = 'none';
-            if (currentModalCloseCallback) {
-                currentModalCloseCallback();
-                currentModalCloseCallback = null;
-            }
-        }
-        
-        function showModal(html, onClose = null) {
-            const modal = document.getElementById('modalOverlay');
-            const modalContent = document.getElementById('modalContent');
-            if (!modal || !modalContent) return;
+
+        async function startScan(mode) {
+            activeMode = mode;
+            showScanModal(mode);
             
-            modalContent.innerHTML = html;
-            modal.style.display = 'flex';
-            currentModalCloseCallback = onClose;
-            
-            // 绑定关闭按钮
-            const closeBtn = document.getElementById('closeModalBtn');
-            if (closeBtn) {
-                closeBtn.onclick = () => closeModal();
-            }
-            const cancelBtn = document.getElementById('cancelScanBtn');
-            if (cancelBtn) {
-                cancelBtn.onclick = () => closeModal();
-            }
-        }
-        
-        function showScanningUI(message = "请将 NFC 卡片靠近手机背面扫描...") {
-            const html = `
-                <h3>📡 扫描中</h3>
-                <div class="nfc-hint" style="background:#fff3cd; color:#856404;">${message}</div>
-                <div class="info-text" style="text-align:center;">🔄 等待读取卡片UID...</div>
-                <div class="modal-buttons">
-                    <button id="cancelScanBtn">取消</button>
-                </div>
-            `;
-            showModal(html);
-        }
-        
-        async function scanNFCCard(timeout = 15000) {
-            return new Promise((resolve, reject) => {
-                // 检查是否支持NFC
-                if (!("NDEFReader" in window)) {
-                    reject(new Error("❌ 当前浏览器不支持 Web NFC。\n请使用 Android Chrome 浏览器，并确保：\n1. 网站使用 HTTPS 协议\n2. 手机已开启 NFC 功能\n3. 将卡片贴近手机背面"));
-                    return;
+            // 短暂延迟后开始获取UID
+            setTimeout(async () => {
+                let uid = null;
+                
+                if (hasNFC) {
+                    uid = await scanRealNFC();
+                } else {
+                    // 模拟模式：显示选择框让用户输入或使用默认
+                    uid = await getMockUid();
                 }
                 
-                // 检查是否在安全上下文中
-                if (!window.isSecureContext) {
-                    reject(new Error("❌ 不在安全上下文中！\n请确保使用 HTTPS 协议访问页面。\n本地测试请使用 localhost 或 HTTPS。"));
-                    return;
+                if (uid) {
+                    await processWithUid(mode, uid);
                 }
-                
+            }, 100);
+        }
+
+        async function scanRealNFC() {
+            return new Promise((resolve) => {
                 const reader = new NDEFReader();
                 let timeoutId = setTimeout(() => {
                     reader.stop();
-                    reject(new Error("⏰ 扫描超时，请确保卡片已贴近手机背面"));
-                }, timeout);
-                
+                    showErrorModal("扫描超时，请重试");
+                    resolve(null);
+                }, 15000);
+
                 reader.onreading = (event) => {
                     clearTimeout(timeoutId);
                     const uid = event.serialNumber;
@@ -154,317 +97,358 @@
                         reader.stop();
                         resolve(uid);
                     } else {
-                        reader.stop();
-                        reject(new Error("无法获取卡片UID，请重试"));
+                        resolve(null);
                     }
                 };
-                
-                reader.onreadingerror = (err) => {
+
+                reader.onreadingerror = () => {
                     clearTimeout(timeoutId);
-                    reject(new Error("NFC读取错误：" + (err.message || "请确保卡片贴合")));
+                    showErrorModal("读取失败，请重新贴近卡片");
+                    resolve(null);
                 };
-                
+
                 reader.scan().catch((err) => {
                     clearTimeout(timeoutId);
-                    reject(new Error("启动NFC扫描失败：" + err.message + "\n请确保已授权NFC权限"));
+                    showErrorModal("请授权NFC权限：" + err.message);
+                    resolve(null);
                 });
             });
         }
-        
-        async function performScanAndProcess(mode) {
-            console.log("开始执行模式:", mode);
-            // 显示提示
-            showScanningUI(`正在扫描 → ${mode === 'check' ? '检查余额' : mode === 'recharge' ? '充值' : mode === 'register' ? '注册新用户' : '删除用户'}`);
-            
-            try {
-                const uid = await scanNFCCard();
-                console.log("扫描到UID:", uid);
+
+        async function getMockUid() {
+            return new Promise((resolve) => {
+                const html = `
+                    <h3>🔧 测试模式</h3>
+                    <div class="info-text">
+                        当前在电脑端测试，请输入一个卡片UID进行测试<br>
+                        <small>真实环境会自动扫描NFC</small>
+                    </div>
+                    <input type="text" id="mockUidInput" placeholder="输入UID" value="${mockUid}">
+                    <div class="quick-uid-buttons">
+                        <button class="quick-uid" data-uid="04:12:34:56:78:90:AB">测试卡1</button>
+                        <button class="quick-uid" data-uid="AA:BB:CC:DD:EE:FF">测试卡2</button>
+                        <button class="quick-uid" data-uid="12:34:56:78:90:AB:CD">测试卡3</button>
+                    </div>
+                    <div class="modal-buttons">
+                        <button id="confirmMockBtn" class="btn-primary">确认</button>
+                        <button id="cancelMockBtn" class="btn-outline">取消</button>
+                    </div>
+                `;
+                showModal(html);
                 
-                if (mode === 'check') {
+                // 快捷选择
+                document.querySelectorAll('.quick-uid').forEach(btn => {
+                    btn.onclick = () => {
+                        const uid = btn.getAttribute('data-uid');
+                        document.getElementById('mockUidInput').value = uid;
+                    };
+                });
+                
+                document.getElementById('confirmMockBtn').onclick = () => {
+                    const input = document.getElementById('mockUidInput');
+                    let uid = input.value.trim();
+                    if (!uid) {
+                        alert("请输入UID");
+                        return;
+                    }
+                    uid = uid.replace(/[:-\s]/g, '').toUpperCase();
+                    closeModal();
+                    resolve(uid);
+                };
+                
+                document.getElementById('cancelMockBtn').onclick = () => {
+                    closeModal();
+                    resolve(null);
+                };
+            });
+        }
+
+        async function processWithUid(mode, uid) {
+            currentUid = uid;
+            
+            switch(mode) {
+                case 'check':
                     await showBalanceInfo(uid);
-                } else if (mode === 'recharge') {
-                    await showRechargeAmountPanel(uid);
-                } else if (mode === 'register') {
-                    await showRegisterFormWithUid(uid);
-                } else if (mode === 'deleteUser') {
-                    await showDeleteUserConfirm(uid);
-                }
-            } catch (err) {
-                console.error("扫描错误:", err);
-                showModal(`
-                    <h3>⚠️ 扫描失败</h3>
-                    <div class="info-text" style="white-space: pre-line;">${err.message}</div>
-                    <div class="modal-buttons"><button id="closeModalBtn">关闭</button></div>
-                `);
+                    break;
+                case 'recharge':
+                    await showRechargeOptions(uid);
+                    break;
+                case 'register':
+                    await showRegisterForm(uid);
+                    break;
+                case 'delete':
+                    await confirmAndDeleteUser(uid);
+                    break;
             }
         }
-        
+
         async function showBalanceInfo(uid) {
             try {
                 const userRef = doc(db, "users", uid);
                 const userSnap = await getDoc(userRef);
+                
                 if (!userSnap.exists()) {
-                    showModal(`
+                    showResultModal(`
                         <h3>❌ 用户不存在</h3>
-                        <div class="info-text">卡片UID: ${uid}<br>该用户尚未注册，请先注册。</div>
-                        <div class="modal-buttons"><button id="closeModalBtn">关闭</button></div>
+                        <div class="info-text">UID: ${uid}<br>该卡片尚未注册</div>
+                        <button class="btn-primary" onclick="location.reload()">关闭</button>
                     `);
                     return;
                 }
+                
                 const data = userSnap.data();
-                const balance = data.balance || 0;
-                const expireDate = data.expireDate || "无期限";
-                const name = data.name || "无名";
-                const isExpired = expireDate !== "无期限" && new Date(expireDate) < new Date();
-                showModal(`
-                    <h3>💳 用户信息</h3>
+                const isExpired = data.expireDate !== "无期限" && new Date(data.expireDate) < new Date();
+                
+                showResultModal(`
+                    <h3>💳 ${data.name}</h3>
                     <div class="info-text">
-                        <strong>🆔 UID:</strong> ${uid}<br>
-                        <strong>👤 姓名:</strong> ${name}<br>
-                        <strong>💰 剩余点数:</strong> ${balance} 点<br>
-                        <strong>📅 过期日期:</strong> ${expireDate}<br>
-                        ${isExpired ? '<span style="color:red;">⚠️ 卡片已过期！</span>' : ''}
+                        <div class="balance-big">${data.balance || 0}</div>
+                        <div class="balance-label">剩余点数</div>
+                        <hr>
+                        <div>📅 过期: ${data.expireDate}</div>
+                        <div>🆔 UID: ${uid.substring(0,8)}...</div>
+                        ${isExpired ? '<div class="warning-text">⚠️ 卡片已过期</div>' : ''}
                     </div>
-                    <div class="modal-buttons"><button id="closeModalBtn">关闭</button></div>
+                    <button class="btn-primary" onclick="location.reload()">关闭</button>
                 `);
-            } catch (error) {
-                showModal(`<h3>错误</h3><div class="info-text">${error.message}</div><div class="modal-buttons"><button id="closeModalBtn">关闭</button></div>`);
+            } catch (err) {
+                showErrorModal(err.message);
             }
         }
-        
-        async function showRechargeAmountPanel(uid) {
+
+        async function showRechargeOptions(uid) {
             const userRef = doc(db, "users", uid);
             const userSnap = await getDoc(userRef);
+            
             if (!userSnap.exists()) {
-                showModal(`
-                    <h3>❌ 用户未注册</h3>
-                    <div class="info-text">该卡片未注册，请先注册后再充值。</div>
-                    <div class="modal-buttons"><button id="closeModalBtn">关闭</button></div>
+                showResultModal(`
+                    <h3>❌ 用户不存在</h3>
+                    <div class="info-text">该卡片尚未注册</div>
+                    <button class="btn-primary" onclick="location.reload()">关闭</button>
                 `);
                 return;
             }
             
+            const currentBalance = userSnap.data().balance || 0;
+            
             const html = `
                 <h3>💎 充值点数</h3>
-                <div class="info-text">卡片UID: ${uid}</div>
-                <div class="amount-selector" id="amountSelector">
-                    <div class="amount-chip" data-amount="1">1</div>
-                    <div class="amount-chip" data-amount="5">5</div>
-                    <div class="amount-chip" data-amount="10">10</div>
-                    <div class="amount-chip" data-amount="20">20</div>
-                    <div class="amount-chip" data-amount="50">50</div>
-                    <div class="amount-chip" data-amount="100">100</div>
-                    <div class="amount-chip" data-amount="custom">任意</div>
+                <div class="info-text">
+                    <div>${userSnap.data().name}</div>
+                    <div>当前: <strong>${currentBalance}</strong> 点</div>
                 </div>
-                <div id="customAmountArea" style="display:none;" class="custom-amount">
-                    <input type="number" id="customAmountInput" placeholder="输入点数 (正整数)" min="1" step="1">
+                <div class="amount-grid">
+                    <div class="amount-btn" data-amount="1">+1</div>
+                    <div class="amount-btn" data-amount="5">+5</div>
+                    <div class="amount-btn" data-amount="10">+10</div>
+                    <div class="amount-btn" data-amount="20">+20</div>
+                    <div class="amount-btn" data-amount="50">+50</div>
+                    <div class="amount-btn" data-amount="100">+100</div>
                 </div>
-                <div class="modal-buttons">
-                    <button id="confirmRechargeBtn">确认充值</button>
-                    <button id="cancelRechargeBtn">取消</button>
+                <div class="custom-amount-row">
+                    <input type="number" id="customAmount" placeholder="自定义金额" min="1">
+                    <button id="customRechargeBtn" class="btn-secondary">充值</button>
                 </div>
+                <button id="cancelRecharge" class="btn-outline">取消</button>
             `;
+            
             showModal(html);
             
-            let chosenAmount = null;
-            const chips = document.querySelectorAll('.amount-chip');
-            const customArea = document.getElementById('customAmountArea');
-            
-            chips.forEach(chip => {
-                chip.onclick = () => {
-                    chips.forEach(c => c.classList.remove('selected'));
-                    chip.classList.add('selected');
-                    const amountVal = chip.getAttribute('data-amount');
-                    if (amountVal === 'custom') {
-                        if (customArea) customArea.style.display = 'flex';
-                        chosenAmount = null;
-                    } else {
-                        if (customArea) customArea.style.display = 'none';
-                        chosenAmount = parseInt(amountVal, 10);
-                    }
+            document.querySelectorAll('.amount-btn').forEach(btn => {
+                btn.onclick = async () => {
+                    const amount = parseInt(btn.getAttribute('data-amount'));
+                    await processRecharge(uid, amount, currentBalance);
                 };
             });
             
-            const confirmBtn = document.getElementById('confirmRechargeBtn');
-            const cancelBtn = document.getElementById('cancelRechargeBtn');
+            document.getElementById('customRechargeBtn').onclick = async () => {
+                const input = document.getElementById('customAmount');
+                const amount = parseInt(input.value);
+                if (isNaN(amount) || amount <= 0) {
+                    alert("请输入有效金额");
+                    return;
+                }
+                await processRecharge(uid, amount, currentBalance);
+            };
             
-            if (confirmBtn) {
-                confirmBtn.onclick = async () => {
-                    let finalAmount = chosenAmount;
-                    if (customArea && customArea.style.display === 'flex') {
-                        const customInput = document.getElementById('customAmountInput');
-                        const customVal = customInput ? parseInt(customInput.value, 10) : NaN;
-                        if (isNaN(customVal) || customVal <= 0) {
-                            alert("请输入有效的正数点数");
-                            return;
-                        }
-                        finalAmount = customVal;
-                    }
-                    if (!finalAmount || finalAmount <= 0) {
-                        alert("请选择或输入充值金额");
-                        return;
-                    }
-                    try {
-                        const userRef = doc(db, "users", uid);
-                        const userData = (await getDoc(userRef)).data();
-                        const currentBalance = userData.balance || 0;
-                        const newBalance = currentBalance + finalAmount;
-                        await updateDoc(userRef, { balance: newBalance });
-                        showModal(`
-                            <h3>✅ 充值成功</h3>
-                            <div class="info-text">UID: ${uid}<br>充值金额: +${finalAmount}<br>当前余额: ${newBalance}</div>
-                            <div class="modal-buttons"><button id="closeModalBtn">关闭</button></div>
-                        `);
-                    } catch (err) {
-                        alert("充值失败: " + err.message);
-                        closeModal();
-                    }
-                };
-            }
-            
-            if (cancelBtn) {
-                cancelBtn.onclick = () => closeModal();
+            document.getElementById('cancelRecharge').onclick = () => closeModal();
+        }
+
+        async function processRecharge(uid, amount, oldBalance) {
+            try {
+                const userRef = doc(db, "users", uid);
+                const newBalance = oldBalance + amount;
+                await updateDoc(userRef, { balance: newBalance });
+                
+                showResultModal(`
+                    <h3>✅ 充值成功</h3>
+                    <div class="info-text">
+                        <div>+${amount} 点</div>
+                        <div>${oldBalance} → ${newBalance}</div>
+                    </div>
+                    <button class="btn-primary" onclick="location.reload()">完成</button>
+                `);
+            } catch (err) {
+                showErrorModal("充值失败: " + err.message);
             }
         }
-        
-        async function showRegisterFormWithUid(uid) {
+
+        async function showRegisterForm(uid) {
             const userRef = doc(db, "users", uid);
             const snap = await getDoc(userRef);
+            
             if (snap.exists()) {
-                showModal(`
-                    <h3>⚠️ 用户已存在</h3>
-                    <div class="info-text">该UID (${uid}) 已经注册，请勿重复注册。</div>
-                    <div class="modal-buttons"><button id="closeModalBtn">关闭</button></div>
+                showResultModal(`
+                    <h3>⚠️ 已注册</h3>
+                    <div class="info-text">该卡片已注册: ${snap.data().name}</div>
+                    <button class="btn-primary" onclick="location.reload()">关闭</button>
                 `);
                 return;
             }
             
             const html = `
                 <h3>📝 注册新用户</h3>
-                <input type="text" id="regUid" placeholder="卡 UID (已自动扫描)" value="${uid}" readonly disabled style="background:#f0f0f0;">
-                <input type="text" id="regName" placeholder="请输入姓名 *" required>
-                <input type="date" id="regExpireDate" placeholder="到期日期 (留空表示永久)">
-                <div class="info-text">若设置到期时间，卡片将在该日期后失效</div>
+                <div class="info-text">UID: ${uid.substring(0,8)}...${uid.substring(uid.length-4)}</div>
+                <input type="text" id="regName" placeholder="请输入姓名" autocomplete="off">
+                <input type="date" id="regExpireDate">
+                <div class="hint-text">💡 留空表示永久有效</div>
                 <div class="modal-buttons">
-                    <button id="confirmRegBtn">确认注册</button>
-                    <button id="cancelRegBtn">取消</button>
+                    <button id="confirmRegBtn" class="btn-primary">注册</button>
+                    <button id="cancelRegBtn" class="btn-outline">取消</button>
                 </div>
             `;
+            
             showModal(html);
             
-            const confirmBtn = document.getElementById('confirmRegBtn');
-            const cancelBtn = document.getElementById('cancelRegBtn');
+            document.getElementById('confirmRegBtn').onclick = async () => {
+                const name = document.getElementById('regName').value.trim();
+                if (!name) {
+                    alert("请输入姓名");
+                    return;
+                }
+                const expireDate = document.getElementById('regExpireDate').value || "无期限";
+                
+                try {
+                    await setDoc(doc(db, "users", uid), {
+                        uid: uid,
+                        name: name,
+                        balance: 0,
+                        expireDate: expireDate,
+                        createdAt: new Date().toISOString()
+                    });
+                    showResultModal(`
+                        <h3>🎉 注册成功</h3>
+                        <div class="info-text">
+                            姓名: ${name}<br>
+                            到期: ${expireDate}<br>
+                            初始点数: 0
+                        </div>
+                        <button class="btn-primary" onclick="location.reload()">完成</button>
+                    `);
+                } catch (err) {
+                    showErrorModal("注册失败: " + err.message);
+                }
+            };
             
-            if (confirmBtn) {
-                confirmBtn.onclick = async () => {
-                    const nameInput = document.getElementById('regName');
-                    const name = nameInput ? nameInput.value.trim() : "";
-                    if (!name) {
-                        alert("请填写姓名");
-                        return;
-                    }
-                    const expireDateInput = document.getElementById('regExpireDate');
-                    const expireDate = expireDateInput && expireDateInput.value ? expireDateInput.value : "无期限";
-                    const balance = 0;
-                    try {
-                        await setDoc(doc(db, "users", uid), {
-                            uid: uid,
-                            name: name,
-                            balance: balance,
-                            expireDate: expireDate,
-                            createdAt: new Date().toISOString()
-                        });
-                        showModal(`
-                            <h3>🎉 注册成功</h3>
-                            <div class="info-text">UID: ${uid}<br>姓名: ${name}<br>到期: ${expireDate}<br>初始点数: 0</div>
-                            <div class="modal-buttons"><button id="closeModalBtn">关闭</button></div>
-                        `);
-                    } catch (err) {
-                        alert("注册失败: " + err.message);
-                    }
-                };
-            }
-            
-            if (cancelBtn) {
-                cancelBtn.onclick = () => closeModal();
-            }
+            document.getElementById('cancelRegBtn').onclick = () => closeModal();
         }
-        
-        async function showDeleteUserConfirm(uid) {
+
+        async function confirmAndDeleteUser(uid) {
             const userRef = doc(db, "users", uid);
             const userSnap = await getDoc(userRef);
+            
             if (!userSnap.exists()) {
-                showModal(`
+                showResultModal(`
                     <h3>❌ 用户不存在</h3>
-                    <div class="info-text">该卡片未注册，无法删除。</div>
-                    <div class="modal-buttons"><button id="closeModalBtn">关闭</button></div>
+                    <div class="info-text">该卡片尚未注册</div>
+                    <button class="btn-primary" onclick="location.reload()">关闭</button>
                 `);
                 return;
             }
             
             const userData = userSnap.data();
-            const dummyRecords = [
-                { item: "示例购物1", points: -5, date: "2025-01-01" },
-                { item: "示例购物2", points: -10, date: "2025-01-15" }
-            ];
-            let recordHtml = `<ul style="margin-top:8px; max-height:150px; overflow-y:auto;">`;
-            dummyRecords.forEach(rec => {
-                recordHtml += `<li style="margin:6px 0;">${rec.item} | 消耗${Math.abs(rec.points)}点 | ${rec.date}</li>`;
-            });
-            recordHtml += `</ul><div style="font-size:12px;color:gray;">※ 后续购物页面会自动记录真实消费。</div>`;
             
             const html = `
-                <h3>🗑️ 删除用户 & 消费记录</h3>
+                <h3>⚠️ 删除用户</h3>
                 <div class="info-text">
-                    <strong>UID:</strong> ${uid}<br>
-                    <strong>姓名:</strong> ${userData.name}<br>
-                    <strong>当前余额:</strong> ${userData.balance}<br>
-                    <strong>过期时间:</strong> ${userData.expireDate}<br>
-                    <strong>📋 历史消费记录(演示):</strong> ${recordHtml}
+                    <div><strong>${userData.name}</strong></div>
+                    <div>余额: ${userData.balance} 点</div>
+                    <div class="warning-text">⚠️ 此操作不可恢复！</div>
                 </div>
                 <div class="modal-buttons">
-                    <button id="forceDeleteUserBtn" class="danger-btn">⚠️ 永久废除用户</button>
-                    <button id="closeDelModal">关闭</button>
+                    <button id="confirmDeleteBtn" class="btn-danger">确认删除</button>
+                    <button id="cancelDeleteBtn" class="btn-outline">取消</button>
                 </div>
             `;
+            
             showModal(html);
             
-            const deleteBtn = document.getElementById('forceDeleteUserBtn');
-            const closeBtn = document.getElementById('closeDelModal');
+            document.getElementById('confirmDeleteBtn').onclick = async () => {
+                try {
+                    await deleteDoc(doc(db, "users", uid));
+                    showResultModal(`
+                        <h3>🗑️ 已删除</h3>
+                        <div class="info-text">用户已移除</div>
+                        <button class="btn-primary" onclick="location.reload()">关闭</button>
+                    `);
+                } catch (err) {
+                    showErrorModal("删除失败: " + err.message);
+                }
+            };
             
-            if (deleteBtn) {
-                deleteBtn.onclick = async () => {
-                    if (confirm(`确定要彻底删除用户 "${userData.name}" (${uid}) 吗？此操作不可逆！`)) {
-                        try {
-                            await deleteDoc(doc(db, "users", uid));
-                            showModal(`
-                                <h3>✅ 用户已删除</h3>
-                                <div class="info-text">用户 ${userData.name} 的资料已被完全废除。</div>
-                                <div class="modal-buttons"><button id="closeModalBtn">关闭</button></div>
-                            `);
-                        } catch (err) {
-                            alert("删除失败: " + err.message);
-                            closeModal();
-                        }
-                    }
-                };
-            }
-            
-            if (closeBtn) {
-                closeBtn.onclick = () => closeModal();
-            }
+            document.getElementById('cancelDeleteBtn').onclick = () => closeModal();
         }
+
+        // UI辅助
+        function showScanModal(mode) {
+            const modeNames = { check: '检查余额', recharge: '充值', register: '注册', delete: '删除用户' };
+            const html = `
+                <h3>📡 ${modeNames[mode]}</h3>
+                <div class="scanning-area">
+                    <div class="wave"></div>
+                    <div class="scan-text">${hasNFC ? '请将卡片贴近手机' : '请点击确认使用测试卡'}</div>
+                    <div class="hint-text">${hasNFC ? '等待NFC扫描...' : '电脑测试模式'}</div>
+                </div>
+                <button id="cancelScan" class="btn-outline">取消</button>
+            `;
+            showModal(html);
+            document.getElementById('cancelScan').onclick = () => closeModal();
+        }
+
+        function showModal(html) {
+            const modal = document.getElementById('modalOverlay');
+            const content = document.getElementById('modalContent');
+            content.innerHTML = html;
+            modal.style.display = 'flex';
+        }
+
+        function showResultModal(html) {
+            showModal(html);
+        }
+
+        function showErrorModal(message) {
+            showModal(`
+                <h3>⚠️ 错误</h3>
+                <div class="info-text" style="color:#c0392b;">${message}</div>
+                <button class="btn-primary" onclick="location.reload()">重试</button>
+            `);
+        }
+
+        function closeModal() {
+            document.getElementById('modalOverlay').style.display = 'none';
+        }
+
+        window.closeModal = closeModal;
     </script>
     <style>
         * {
             margin: 0;
             padding: 0;
             box-sizing: border-box;
-            -webkit-tap-highlight-color: transparent;
         }
 
         body {
-            font-family: system-ui, -apple-system, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
             background: linear-gradient(145deg, #1a2639 0%, #2c3e50 100%);
             min-height: 100vh;
             padding: 20px;
@@ -474,66 +458,65 @@
         }
 
         .app-container {
-            max-width: 500px;
+            max-width: 450px;
             width: 100%;
             margin: 0 auto;
-            background: rgba(255,255,255,0.1);
-            backdrop-filter: blur(2px);
-            border-radius: 48px;
-            padding: 24px 20px 32px;
-            box-shadow: 0 25px 45px rgba(0,0,0,0.3), 0 0 0 1px rgba(255,255,255,0.2);
+            background: rgba(255,255,255,0.12);
+            backdrop-filter: blur(10px);
+            border-radius: 56px;
+            padding: 28px 20px 36px;
+            box-shadow: 0 25px 45px rgba(0,0,0,0.3);
         }
 
         h1 {
             text-align: center;
-            font-size: 28px;
-            font-weight: 700;
-            color: #f5f9ff;
-            letter-spacing: -0.5px;
+            font-size: 32px;
+            font-weight: 800;
+            color: white;
             margin-bottom: 8px;
-            text-shadow: 0 2px 5px rgba(0,0,0,0.2);
         }
 
         .sub {
             text-align: center;
-            color: #cbd5e6;
+            color: rgba(255,255,255,0.7);
             font-size: 13px;
             margin-bottom: 32px;
-            border-bottom: 1px dashed rgba(255,255,255,0.3);
-            padding-bottom: 12px;
         }
 
         .button-grid {
-            display: grid;
-            grid-template-columns: repeat(2, 1fr);
-            gap: 16px;
-            margin-bottom: 28px;
+            display: flex;
+            flex-direction: column;
+            gap: 14px;
+            margin-bottom: 24px;
         }
 
         .action-btn {
             background: rgba(255,255,255,0.18);
-            backdrop-filter: blur(8px);
-            border: 1px solid rgba(255,255,255,0.35);
-            border-radius: 32px;
-            padding: 18px 6px;
-            font-size: 18px;
-            font-weight: 600;
+            border: 1px solid rgba(255,255,255,0.3);
+            border-radius: 60px;
+            padding: 20px;
+            font-size: 20px;
+            font-weight: 700;
             color: white;
             text-align: center;
             cursor: pointer;
             transition: all 0.2s ease;
-            box-shadow: 0 5px 12px rgba(0,0,0,0.2);
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding-left: 28px;
+            padding-right: 28px;
         }
 
         .action-btn:active {
-            transform: scale(0.96);
-            background: rgba(255,255,255,0.3);
+            transform: scale(0.97);
         }
 
-        .btn-check { background: rgba(52,152,219,0.75); border-color: #74b9ff; }
-        .btn-recharge { background: rgba(46,204,113,0.75); border-color: #55efc4; }
-        .btn-register { background: rgba(241,196,15,0.8); border-color: #ffeaa7; color: #2d3436; }
-        .btn-delete { background: rgba(231,76,60,0.75); border-color: #ff7675; }
+        .btn-icon { font-size: 28px; }
+        .btn-check { background: linear-gradient(135deg, #3498db, #2980b9); }
+        .btn-recharge { background: linear-gradient(135deg, #2ecc71, #27ae60); }
+        .btn-register { background: linear-gradient(135deg, #f39c12, #e67e22); }
+        .btn-delete { background: linear-gradient(135deg, #e74c3c, #c0392b); }
 
         .modal {
             display: none;
@@ -542,8 +525,8 @@
             left: 0;
             width: 100%;
             height: 100%;
-            background: rgba(0,0,0,0.7);
-            backdrop-filter: blur(5px);
+            background: rgba(0,0,0,0.8);
+            backdrop-filter: blur(8px);
             justify-content: center;
             align-items: center;
             z-index: 1000;
@@ -551,169 +534,80 @@
         }
 
         .modal-card {
-            background: #fef9f0;
+            background: white;
             border-radius: 48px;
             width: 100%;
-            max-width: 420px;
-            padding: 28px 24px;
-            box-shadow: 0 30px 40px rgba(0,0,0,0.4);
-            animation: fadeSlideUp 0.25s ease-out;
-        }
-
-        @keyframes fadeSlideUp {
-            from {
-                opacity: 0;
-                transform: translateY(30px);
-            }
-            to {
-                opacity: 1;
-                transform: translateY(0);
-            }
-        }
-
-        .modal-card h3 {
-            font-size: 24px;
-            font-weight: 700;
-            margin-bottom: 20px;
-            color: #1e2a3a;
-            border-left: 6px solid #2980b9;
-            padding-left: 15px;
-        }
-
-        .modal-card input, .modal-card select {
-            width: 100%;
-            padding: 14px 18px;
-            margin: 12px 0;
-            border: 1.5px solid #dcdde1;
-            border-radius: 44px;
-            font-size: 16px;
-            background: white;
-            transition: 0.2s;
-        }
-
-        .modal-card input:focus {
-            border-color: #3498db;
-            outline: none;
-            box-shadow: 0 0 0 3px rgba(52,152,219,0.2);
-        }
-
-        .amount-selector {
-            display: flex;
-            flex-wrap: wrap;
-            gap: 12px;
-            margin: 15px 0;
-            justify-content: center;
-        }
-
-        .amount-chip {
-            background: #e9ecef;
-            padding: 10px 18px;
-            border-radius: 40px;
-            font-weight: 600;
-            color: #2c3e50;
-            cursor: pointer;
-            transition: all 0.15s;
-            border: 1px solid transparent;
-        }
-
-        .amount-chip.selected {
-            background: #2ecc71;
-            color: white;
-            border-color: #27ae60;
-            box-shadow: 0 2px 8px rgba(46,204,113,0.4);
-        }
-
-        .custom-amount {
-            display: flex;
-            gap: 10px;
-            align-items: center;
-        }
-
-        .custom-amount input {
-            flex: 1;
-            margin: 0;
-        }
-
-        .modal-buttons {
-            display: flex;
-            gap: 12px;
-            margin-top: 24px;
-        }
-
-        .modal-buttons button {
-            flex: 1;
-            padding: 12px;
-            border-radius: 60px;
-            font-weight: 600;
-            font-size: 16px;
-            border: none;
-            background: #2c3e50;
-            color: white;
-            cursor: pointer;
-        }
-
-        .modal-buttons button:first-child {
-            background: #3498db;
-        }
-
-        .modal-buttons button:last-child {
-            background: #7f8c8d;
-        }
-
-        .info-text {
-            background: #ecf0f1;
-            padding: 12px;
-            border-radius: 28px;
-            margin: 15px 0;
-            font-size: 15px;
-            color: #2c3e50;
-            word-break: break-all;
-        }
-
-        .danger-btn {
-            background: #e74c3c !important;
-        }
-
-        .nfc-hint {
-            background: #ffe6e6;
-            color: #c0392b;
-            padding: 10px;
-            border-radius: 32px;
-            font-size: 13px;
+            max-width: 400px;
+            padding: 32px 24px;
+            animation: slideUp 0.3s ease;
             text-align: center;
-            margin: 10px 0;
         }
 
-        footer {
-            text-align: center;
-            font-size: 12px;
-            color: #bdc3c7;
-            margin-top: 30px;
+        @keyframes slideUp {
+            from { opacity: 0; transform: translateY(30px); }
+            to { opacity: 1; transform: translateY(0); }
         }
 
-        @media (max-width: 480px) {
-            .button-grid {
-                gap: 12px;
-            }
-            .action-btn {
-                padding: 14px 4px;
-                font-size: 16px;
-            }
+        .modal-card h3 { font-size: 28px; font-weight: 700; margin-bottom: 24px; color: #2c3e50; }
+        .info-text { background: #f8f9fa; padding: 16px; border-radius: 28px; margin: 16px 0; font-size: 15px; color: #2c3e50; }
+        .balance-big { font-size: 56px; font-weight: 800; color: #27ae60; line-height: 1; }
+        .balance-label { font-size: 14px; color: #7f8c8d; margin-top: 4px; }
+        
+        .amount-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; margin: 20px 0; }
+        .amount-btn { background: #e9ecef; padding: 14px; border-radius: 44px; font-weight: 700; font-size: 18px; cursor: pointer; text-align: center; }
+        .amount-btn:active { background: #2ecc71; color: white; transform: scale(0.95); }
+        
+        .custom-amount-row { display: flex; gap: 10px; margin: 16px 0; }
+        .custom-amount-row input { flex: 1; padding: 14px; border: 1.5px solid #ddd; border-radius: 44px; font-size: 16px; text-align: center; }
+        
+        .btn-primary, .btn-secondary, .btn-outline, .btn-danger {
+            width: 100%; padding: 14px; border: none; border-radius: 44px; font-size: 16px; font-weight: 600; cursor: pointer;
         }
+        .btn-primary { background: #3498db; color: white; }
+        .btn-danger { background: #e74c3c; color: white; }
+        .btn-outline { background: transparent; border: 1.5px solid #bdc3c7; color: #7f8c8d; }
+        .btn-secondary { background: #95a5a6; color: white; }
+        
+        .scanning-area { padding: 30px 20px; text-align: center; }
+        .wave { width: 80px; height: 80px; margin: 0 auto 20px; background: #3498db; border-radius: 50%; animation: pulse 1.5s infinite; }
+        @keyframes pulse {
+            0% { transform: scale(0.8); opacity: 0.5; box-shadow: 0 0 0 0 rgba(52,152,219,0.7); }
+            70% { transform: scale(1); opacity: 1; box-shadow: 0 0 0 20px rgba(52,152,219,0); }
+            100% { transform: scale(0.8); opacity: 0.5; }
+        }
+        .scan-text { font-size: 18px; font-weight: 600; color: #2c3e50; margin-bottom: 8px; }
+        .hint-text { font-size: 13px; color: #95a5a6; }
+        .warning-text { color: #e74c3c; font-weight: 600; margin-top: 10px; }
+        
+        hr { margin: 12px 0; border: none; border-top: 1px solid #ecf0f1; }
+        .modal-buttons { display: flex; gap: 12px; margin-top: 16px; }
+        .modal-buttons button { flex: 1; }
+        
+        .quick-uid-buttons { display: flex; gap: 8px; margin: 12px 0; }
+        .quick-uid { flex: 1; padding: 10px; background: #e9ecef; border: none; border-radius: 32px; font-size: 12px; cursor: pointer; }
+        
+        .status-ready { background: #d4edda; color: #155724; padding: 10px; border-radius: 32px; font-size: 12px; text-align: center; margin-top: 20px; }
+        .status-simulate { background: #fff3cd; color: #856404; padding: 10px; border-radius: 32px; font-size: 12px; text-align: center; margin-top: 20px; }
+        
+        footer { text-align: center; font-size: 11px; color: rgba(255,255,255,0.5); margin-top: 20px; }
+        #workMode { text-align: center; font-size: 12px; color: rgba(255,255,255,0.6); margin-top: 10px; }
     </style>
 </head>
 <body>
 <div class="app-container">
-    <h1>⚡ NFC 点数系统</h1>
-    <div class="sub">轻触卡片 · 智能管理</div>
+    <h1>⚡ 点数系统</h1>
+    <div class="sub">点击按钮 → 获取UID → 自动处理</div>
 
     <div class="button-grid">
-        <div class="action-btn btn-check" id="btnCheck">① 检查余额</div>
-        <div class="action-btn btn-recharge" id="btnRecharge">② 充值余额</div>
-        <div class="action-btn btn-register" id="btnRegister">③ 注册新用户</div>
-        <div class="action-btn btn-delete" id="btnDeleteUser">④ 删除用户</div>
+        <div class="action-btn btn-check"><span class="btn-icon">💰</span><span>检查余额</span><span style="width:28px;"></span></div>
+        <div class="action-btn btn-recharge"><span class="btn-icon">💎</span><span>充值点数</span><span style="width:28px;"></span></div>
+        <div class="action-btn btn-register"><span class="btn-icon">📝</span><span>注册新卡</span><span style="width:28px;"></span></div>
+        <div class="action-btn btn-delete"><span class="btn-icon">🗑️</span><span>删除用户</span><span style="width:28px;"></span></div>
     </div>
-    <footer>🔘 请确保手机支持NFC并已开启 | 必须使用 HTTPS 访问</footer>
+
+    <div id="nfcStatus">检测中...</div>
+    <div id="workMode"></div>
+    <footer>💡 电脑端自动进入测试模式，可选择测试卡</footer>
 </div>
 
 <div id="modalOverlay" class="modal">
