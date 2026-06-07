@@ -95,7 +95,6 @@
             align-items: center;
             justify-content: center;
         }
-        /* Tap Feedback Effect for Smooth Responsiveness */
         .key-btn:active {
             background: #e2e6ea;
             transform: scale(0.96);
@@ -105,11 +104,25 @@
         .key-btn.action-clear {
             background: #e9ecef;
             color: #495057;
-            font-size: 20px;
+            font-size: 14px;
             font-weight: 800;
+            text-align: center;
+            line-height: 1.2;
+            padding: 10px 5px;
         }
         .key-btn.action-clear:active {
             background: #dee2e6;
+        }
+        
+        /* Specific styling for the function clear text */
+        .key-btn.action-remove {
+            background: #6c757d;
+            color: white;
+            font-size: 13px;
+            font-weight: 800;
+        }
+        .key-btn.action-remove:active {
+            background: #5a6268;
         }
 
         /* Giant Signature CALL ENTER Key Block */
@@ -166,7 +179,7 @@
             <button class="key-btn" onclick="pressNum('8')">8</button>
             <button class="key-btn" onclick="pressNum('9')">9</button>
             
-            <button class="key-btn action-clear" onclick="clearInput()">CLEAR</button>
+            <button class="key-btn action-clear action-remove" onclick="removeReadyOrder()">REMOVE<br>READY</button>
             <button class="key-btn" onclick="pressNum('0')">0</button>
             <button class="key-btn action-clear" onclick="backspaceInput()">⌫</button>
             
@@ -175,7 +188,7 @@
 
     </div>
 
-    <div class="system-reset-link" onclick="clearAllOrders()">Reset Screen Environment</div>
+    <div class="system-reset-link" onclick="clearAllOrders()">Wipe All System Records</div>
 
     <script>
         const SUPABASE_URL = 'https://ogjgdxzhbjikmxkgbxjg.supabase.co';
@@ -211,6 +224,7 @@
             updateMonitor();
         }
 
+        // 📢 叫号：把输入的单号的状态从 preparing 改成 ready
         async function completeOrder() {
             const num = currentInputStr.trim();
             if (!num) return;
@@ -229,6 +243,27 @@
             }
         }
 
+        // ✨ 核心新增功能：顾客把茶拿走了，输入单号，点击这个键，直接把该单号从大屏幕删除
+        async function removeReadyOrder() {
+            const num = currentInputStr.trim();
+            if (!num) return;
+
+            // 从数据库中直接把这个单号的纪录彻底删掉
+            const { error } = await supabaseClient
+                .from('orders')
+                .delete()
+                .eq('order_num', num);
+
+            if (error) {
+                console.error('Database delete exception:', error);
+                alert("Remove operation failed!");
+            } else {
+                // 清空本地输入框，大屏右边对应的号码会因为长连接实时消失！
+                clearInput();
+            }
+        }
+
+        // 一键清空全场纪录
         async function clearAllOrders() {
             if (confirm("Are you sure you want to completely flush out the board records?")) {
                 const { error } = await supabaseClient
