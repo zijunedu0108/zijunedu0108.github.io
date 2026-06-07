@@ -4,13 +4,13 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>MIXUE Calling System - Display Screen</title>
-    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.43.4/dist/umd/supabase.js"></script>
     <style>
         * { box-sizing: border-box; margin: 0; padding: 0; }
         body { font-family: 'Helvetica Neue', Arial, sans-serif; background: #ff0033; color: white; height: 100vh; overflow: hidden; display: flex; flex-direction: column; }
         
         /* Brand Header */
-        .header { height: 12vh; display: flex; align-items: center; justify-content: center; background: white; color: #ff0033; font-size: 4vw; font-weight: bold; box-shadow: 0 4px 15px rgba(0,0,0,0.2); z-index: 10; }
+        .header { height: 12vh; display: flex; align-items: center; justify-content: center; background: white; color: #ff0033; font-size: 4vw; font-weight: bold; box-shadow: 0 4px 15px rgba(0,0,0,0.2); z-index: 10; cursor: pointer; }
         
         /* Main Layout split into 2 Columns */
         .container { display: flex; height: 88vh; }
@@ -35,7 +35,7 @@
 </head>
 <body>
 
-    <div class="header">MIXUE ICE CREAM & TEA 🥤</div>
+    <div class="header" onclick="alert('Audio broadcast activated successfully!')">MIXUE ICE CREAM & TEA 🥤</div>
 
     <div class="container">
         <div class="column col-preparing">
@@ -55,24 +55,25 @@
     </div>
 
     <script>
-        // Config your Supabase info
         const SUPABASE_URL = 'https://ogjgdxzhbjikmxkgbxjg.supabase.co';
         const SUPABASE_KEY = 'sb_publishable_zjtgnzjDRN7dfU3AAXqx0w_GA10b7iO';
-        const supabase = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+        
+        // Fix: Changed name to supabaseClient to prevent global object namespace conflicts
+        const supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 
-        // Track order count locally to detect new 'ready' events
         let knownReadyOrders = new Set();
         let isInitialLoad = true;
 
+        // Fetch current orders immediately when application starts
         loadOrders();
 
-        // Realtime Subscription
-        supabase
+        // Establish connection to Supabase Realtime Channel
+        supabaseClient
             .channel('schema-db-changes')
             .on('postgres_changes', { event: '*', schema: 'public', table: 'orders' }, (payload) => {
-                console.log('Database updated, refreshing lists...', payload);
+                console.log('Realtime database update received:', payload);
                 
-                // If a new order is updated to 'ready', trigger announcement
+                // Trigger full screen visual and vocal audio broadcast if order status changes to 'ready'
                 if (payload.eventType === 'UPDATE' && payload.new.status === 'ready') {
                     const orderNum = payload.new.order_num;
                     if (!knownReadyOrders.has(orderNum)) {
@@ -84,42 +85,41 @@
             .subscribe();
 
         async function loadOrders() {
-            const { data: orders, error } = await supabase
+            const { data: orders, error } = await supabaseClient
                 .from('orders')
                 .select('*')
                 .order('created_at', { ascending: true });
 
-            if (error) return console.error(error);
+            if (error) return console.error('Error fetching data from Supabase:', error);
 
             const prepOrders = orders.filter(o => o.status === 'preparing');
             const readyOrders = orders.filter(o => o.status === 'ready');
 
-            // Update current ready set
-            if (isInitialLoad) {
-                readyOrders.forEach(o => knownReadyOrders.add(o.order_num));
-                isInitialLoad = false;
-            } else {
-                readyOrders.forEach(o => knownReadyOrders.add(o.order_num));
-            }
+            // Sync the known ready orders cache
+            readyOrders.forEach(o => knownReadyOrders.add(o.order_num));
+            isInitialLoad = false;
 
+            // Render elements on HTML UI dynamically
             document.getElementById('prepList').innerHTML = prepOrders.map(o => `<div class="num-box">${o.order_num}</div>`).join('');
             document.getElementById('readyList').innerHTML = readyOrders.map(o => `<div class="num-box ready">${o.order_num}</div>`).join('');
         }
 
-        // Fullscreen Alert and English TTS Voice Announcement
+        // Fullscreen Alert overlay handler with native TTS Voice Engine
         function triggerVoiceAndAnimation(num) {
             const overlay = document.getElementById('callOverlay');
             document.getElementById('overlayNum').innerText = num;
             overlay.classList.add('active');
+            
+            // Auto hide the animation flash window after 4 seconds
             setTimeout(() => overlay.classList.remove('active'), 4000);
 
-            // Audio broadcast formatting: "Please number A 1 0 2 collect your meal"
+            // Audio text generation logic: "Please number M 1 0 1, collect your meal."
             const spacedNum = num.split('').join(' '); 
             const text = `Please number ${spacedNum}, collect your meal.`;
             
             const utterance = new SpeechSynthesisUtterance(text);
-            utterance.lang = 'en-US'; // Standard English voice
-            utterance.rate = 0.85;    // Smooth clear pace
+            utterance.lang = 'en-US'; 
+            utterance.rate = 0.82;    // Slightly relaxed speech speed for clear broadcasting
             window.speechSynthesis.speak(utterance);
         }
     </script>
