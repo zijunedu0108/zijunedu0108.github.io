@@ -1,0 +1,70 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>MIXUE Calling System - Counter Console</title>
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <style>
+        body { font-family: Arial, sans-serif; background: #f4f4f6; padding: 40px; text-align: center; color: #333; }
+        .card { background: white; max-width: 450px; margin: 0 auto; padding: 30px; border-radius: 16px; box-shadow: 0 4px 20px rgba(0,0,0,0.08); }
+        h2 { color: #ff0033; margin-bottom: 20px; font-size: 26px; }
+        input { font-size: 24px; padding: 12px; width: 80%; text-align: center; border: 2px solid #ddd; border-radius: 8px; margin-bottom: 20px; font-weight: bold; text-transform: uppercase; }
+        input:focus { border-color: #ff0033; outline: none; }
+        button { font-size: 18px; padding: 12px 24px; width: 85%; border: none; background: #ff0033; color: white; border-radius: 8px; cursor: pointer; font-weight: bold; margin-bottom: 10px; transition: background 0.2s; }
+        button:hover { background: #cc0029; }
+        .btn-clear { background: #666; }
+        .btn-clear:hover { background: #444; }
+    </style>
+</head>
+<body>
+
+    <div class="card">
+        <h2>Counter Controller</h2>
+        <p style="margin-bottom: 15px; color: #666;">Enter order number to notify customer</p>
+        <input type="text" id="orderInput" placeholder="e.g. A102" autofocus onkeyup="if(event.keyCode==13)completeOrder()">
+        <br>
+        <button onclick="completeOrder()">📢 CALL ORDER</button>
+        <button class="btn-clear" onclick="clearAllOrders()">Reset All Numbers</button>
+    </div>
+
+    <script>
+        const SUPABASE_URL = 'https://ogjgdxzhbjikmxkgbxjg.supabase.co';
+        const SUPABASE_KEY = 'sb_publishable_zjtgnzjDRN7dfU3AAXqx0w_GA10b7iO';
+        const supabase = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+
+        async function completeOrder() {
+            const inputEl = document.getElementById('orderInput');
+            const num = inputEl.value.trim().toUpperCase();
+            if (!num) return;
+
+            // Move status from 'preparing' to 'ready'
+            const { data, error } = await supabase
+                .from('orders')
+                .update({ status: 'ready' })
+                .eq('order_num', num)
+                .eq('status', 'preparing');
+
+            if (error) {
+                alert("Database update error!");
+            } else {
+                inputEl.value = '';
+                inputEl.focus();
+            }
+        }
+
+        async function clearAllOrders() {
+            if (confirm("Are you sure you want to clear all orders from the screen?")) {
+                const { error } = await supabase
+                    .from('orders')
+                    .delete()
+                    .neq('id', 0); // Delete all entries Safely
+                
+                if (!error) {
+                    alert("All clear!");
+                }
+            }
+        }
+    </script>
+</body>
+</html>
