@@ -28,12 +28,12 @@
             align-items: center;
         }
         .brand-header img {
-            width: 85px;          /* 固定宽度 */
-            height: 85px;         /* 固定高度，确保1:1正方形 */
-            object-fit: cover;    /* 居中裁剪填充，防止图片拉伸变形 */
-            border-radius: 50%;   /* ✨ 核心：强行裁剪成正圆形 */
-            border: 3px solid #ff0033; /* ✨ 核心：加入蜜雪红色的精致描边 */
-            box-shadow: 0 4px 10px rgba(255, 0, 51, 0.15); /* 给头像加一点点高级呼吸感阴影 */
+            width: 85px;          
+            height: 85px;         
+            object-fit: cover;    
+            border-radius: 50%;   
+            border: 3px solid #ff0033; 
+            box-shadow: 0 4px 10px rgba(255, 0, 51, 0.15); 
         }
 
         /* Main Controller Container */
@@ -114,7 +114,7 @@
 
         /* Giant Signature CALL ENTER Key Block */
         .key-btn.action-enter {
-            grid-column: span 3; /* Full width row stretch */
+            grid-column: span 3; 
             background: #ff0033;
             color: white;
             font-size: 24px;
@@ -144,7 +144,7 @@
 <body>
 
     <div class="brand-header">
-        <img src="/mixue.png" alt="MIXUE Logo">
+        <img src="mixue.png" alt="MIXUE Logo">
     </div>
 
     <div class="console-container">
@@ -201,7 +201,6 @@
             updateMonitor();
         }
 
-        优化
         function clearInput() {
             currentInputStr = "";
             updateMonitor();
