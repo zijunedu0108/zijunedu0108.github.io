@@ -4,64 +4,71 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>MIXUE Calling System - Counter Console</title>
-    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.43.4/dist/umd/supabase.js"></script>
     <style>
-        body { font-family: Arial, sans-serif; background: #f4f4f6; padding: 40px; text-align: center; color: #333; }
+        body { font-family: -apple-system, BlinkMacSystemFont, Arial, sans-serif; background: #f4f4f6; padding: 40px; text-align: center; color: #333; }
         .card { background: white; max-width: 450px; margin: 0 auto; padding: 30px; border-radius: 16px; box-shadow: 0 4px 20px rgba(0,0,0,0.08); }
-        h2 { color: #ff0033; margin-bottom: 20px; font-size: 26px; }
-        input { font-size: 24px; padding: 12px; width: 80%; text-align: center; border: 2px solid #ddd; border-radius: 8px; margin-bottom: 20px; font-weight: bold; text-transform: uppercase; }
-        input:focus { border-color: #ff0033; outline: none; }
-        button { font-size: 18px; padding: 12px 24px; width: 85%; border: none; background: #ff0033; color: white; border-radius: 8px; cursor: pointer; font-weight: bold; margin-bottom: 10px; transition: background 0.2s; }
+        h2 { color: #ff0033; margin-bottom: 20px; font-size: 26px; font-weight: bold; }
+        input { font-size: 24px; padding: 12px; width: 85%; text-align: center; border: 2px solid #ddd; border-radius: 8px; margin-bottom: 20px; font-weight: bold; text-transform: uppercase; }
+        input:focus { border-color: #ff0033; outline: none; box-shadow: 0 0 8px rgba(255, 0, 51, 0.2); }
+        button { font-size: 18px; padding: 14px 24px; width: 85%; border: none; background: #ff0033; color: white; border-radius: 8px; cursor: pointer; font-weight: bold; margin-bottom: 12px; transition: background 0.2s; text-transform: uppercase; letter-spacing: 1px; }
         button:hover { background: #cc0029; }
-        .btn-clear { background: #666; }
-        .btn-clear:hover { background: #444; }
+        .btn-clear { background: #555; }
+        .btn-clear:hover { background: #333; }
     </style>
 </head>
 <body>
 
     <div class="card">
         <h2>Counter Controller</h2>
-        <p style="margin-bottom: 15px; color: #666;">Enter order number to notify customer</p>
-        <input type="text" id="orderInput" placeholder="e.g. A102" autofocus onkeyup="if(event.keyCode==13)completeOrder()">
+        <p style="margin-bottom: 18px; color: #666; font-size: 14px;">Type order number and press Enter to notify display screen</p>
+        
+        <input type="text" id="orderInput" placeholder="e.g. 100" autofocus onkeyup="if(event.keyCode==13)completeOrder()">
         <br>
         <button onclick="completeOrder()">📢 CALL ORDER</button>
-        <button class="btn-clear" onclick="clearAllOrders()">Reset All Numbers</button>
+        <button class="btn-clear" onclick="clearAllOrders()">Reset Screen Numbers</button>
     </div>
 
     <script>
         const SUPABASE_URL = 'https://ogjgdxzhbjikmxkgbxjg.supabase.co';
         const SUPABASE_KEY = 'sb_publishable_zjtgnzjDRN7dfU3AAXqx0w_GA10b7iO';
-        const supabase = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+        
+        // Fix: Changed name to supabaseClient to prevent global object namespace conflicts
+        const supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 
         async function completeOrder() {
             const inputEl = document.getElementById('orderInput');
             const num = inputEl.value.trim().toUpperCase();
             if (!num) return;
 
-            // Move status from 'preparing' to 'ready'
-            const { data, error } = await supabase
+            // Database Operation: Update record state from 'preparing' to 'ready'
+            const { data, error } = await supabaseClient
                 .from('orders')
                 .update({ status: 'ready' })
                 .eq('order_num', num)
                 .eq('status', 'preparing');
 
             if (error) {
-                alert("Database update error!");
+                console.error('Update operation failure:', error);
+                alert("Database transmission failed!");
             } else {
                 inputEl.value = '';
                 inputEl.focus();
             }
         }
 
+        // Drop entire entries inside the collection safely
         async function clearAllOrders() {
-            if (confirm("Are you sure you want to clear all orders from the screen?")) {
-                const { error } = await supabase
+            if (confirm("Are you sure you want to clear all history records from the screen?")) {
+                const { error } = await supabaseClient
                     .from('orders')
                     .delete()
-                    .neq('id', 0); // Delete all entries Safely
+                    .neq('id', 0); 
                 
-                if (!error) {
-                    alert("All clear!");
+                if (error) {
+                    alert("Clear action failed!");
+                } else {
+                    alert("Screen environment refreshed successfully!");
                 }
             }
         }
