@@ -2,46 +2,220 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>MIXUE Calling System - Counter Console</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>MIXUE Calling System - Keypad Console</title>
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.43.4/dist/umd/supabase.js"></script>
     <style>
-        body { font-family: -apple-system, BlinkMacSystemFont, Arial, sans-serif; background: #f4f4f6; padding: 40px; text-align: center; color: #333; }
-        .card { background: white; max-width: 450px; margin: 0 auto; padding: 30px; border-radius: 16px; box-shadow: 0 4px 20px rgba(0,0,0,0.08); }
-        h2 { color: #ff0033; margin-bottom: 20px; font-size: 26px; font-weight: bold; }
-        input { font-size: 24px; padding: 12px; width: 85%; text-align: center; border: 2px solid #ddd; border-radius: 8px; margin-bottom: 20px; font-weight: bold; text-transform: uppercase; }
-        input:focus { border-color: #ff0033; outline: none; box-shadow: 0 0 8px rgba(255, 0, 51, 0.2); }
-        button { font-size: 18px; padding: 14px 24px; width: 85%; border: none; background: #ff0033; color: white; border-radius: 8px; cursor: pointer; font-weight: bold; margin-bottom: 12px; transition: background 0.2s; text-transform: uppercase; letter-spacing: 1px; }
-        button:hover { background: #cc0029; }
-        .btn-clear { background: #555; }
-        .btn-clear:hover { background: #333; }
+        * { box-sizing: border-box; margin: 0; padding: 0; user-select: none; }
+        body { 
+            font-family: -apple-system, BlinkMacSystemFont, Arial, sans-serif; 
+            background: #f8f9fa; 
+            height: 100vh; 
+            display: flex; 
+            flex-direction: column; 
+            align-items: center; 
+            justify-content: flex-start;
+            padding: 20px;
+        }
+
+        /* Top Brand Logo - Centered Header with Circular Mask and Border */
+        .brand-header {
+            margin-top: 10px;
+            margin-bottom: 20px;
+            text-align: center;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+        .brand-header img {
+            width: 85px;          /* 固定宽度 */
+            height: 85px;         /* 固定高度，确保1:1正方形 */
+            object-fit: cover;    /* 居中裁剪填充，防止图片拉伸变形 */
+            border-radius: 50%;   /* ✨ 核心：强行裁剪成正圆形 */
+            border: 3px solid #ff0033; /* ✨ 核心：加入蜜雪红色的精致描边 */
+            box-shadow: 0 4px 10px rgba(255, 0, 51, 0.15); /* 给头像加一点点高级呼吸感阴影 */
+        }
+
+        /* Main Controller Container */
+        .console-container { 
+            background: white; 
+            width: 100%;
+            max-width: 400px; 
+            padding: 20px; 
+            border-radius: 24px; 
+            box-shadow: 0 10px 30px rgba(0,0,0,0.06); 
+            display: flex;
+            flex-direction: column;
+        }
+
+        /* Ticket Display Monitor Area */
+        .display-monitor {
+            background: #fff5f6;
+            border: 2px solid #ffccd5;
+            border-radius: 16px;
+            padding: 15px;
+            text-align: center;
+            margin-bottom: 20px;
+            height: 75px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        .display-monitor .current-val {
+            font-size: 42px;
+            font-weight: 800;
+            color: #ff0033;
+            letter-spacing: 2px;
+        }
+        .display-monitor .placeholder {
+            color: #ffa3b1;
+            font-size: 20px;
+            font-weight: 600;
+        }
+
+        /* Dedicated Custom Grid Keypad */
+        .keypad-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 12px;
+        }
+
+        /* Generic Keypad Button Style */
+        .key-btn {
+            background: #f1f3f5;
+            border: none;
+            color: #212529;
+            font-size: 30px;
+            font-weight: 700;
+            padding: 18px 0;
+            border-radius: 16px;
+            cursor: pointer;
+            transition: all 0.1s ease;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        /* Tap Feedback Effect for Smooth Responsiveness */
+        .key-btn:active {
+            background: #e2e6ea;
+            transform: scale(0.96);
+        }
+
+        /* Special Operations Utility Button (Clear/Backspace) */
+        .key-btn.action-clear {
+            background: #e9ecef;
+            color: #495057;
+            font-size: 20px;
+            font-weight: 800;
+        }
+        .key-btn.action-clear:active {
+            background: #dee2e6;
+        }
+
+        /* Giant Signature CALL ENTER Key Block */
+        .key-btn.action-enter {
+            grid-column: span 3; /* Full width row stretch */
+            background: #ff0033;
+            color: white;
+            font-size: 24px;
+            font-weight: 800;
+            margin-top: 8px;
+            padding: 20px 0;
+            box-shadow: 0 6px 15px rgba(255, 0, 51, 0.25);
+            letter-spacing: 1px;
+            border-radius: 16px;
+        }
+        .key-btn.action-enter:active {
+            background: #cc0029;
+            box-shadow: 0 2px 5px rgba(255, 0, 51, 0.2);
+        }
+
+        /* Global Database Reset Utility Link */
+        .system-reset-link {
+            margin-top: 20px;
+            color: #adb5bd;
+            font-size: 13px;
+            text-decoration: underline;
+            cursor: pointer;
+            font-weight: 500;
+        }
     </style>
 </head>
 <body>
 
-    <div class="card">
-        <h2>Counter Controller</h2>
-        <p style="margin-bottom: 18px; color: #666; font-size: 14px;">Type order number and press Enter to notify display screen</p>
-        
-        <input type="text" id="orderInput" placeholder="e.g. 100" autofocus onkeyup="if(event.keyCode==13)completeOrder()">
-        <br>
-        <button onclick="completeOrder()">📢 CALL ORDER</button>
-        <button class="btn-clear" onclick="clearAllOrders()">Reset Screen Numbers</button>
+    <div class="brand-header">
+        <img src="/mixue.png" alt="MIXUE Logo">
     </div>
+
+    <div class="console-container">
+        
+        <div class="display-monitor">
+            <div id="monitorContent" class="placeholder">Enter Ticket Number</div>
+        </div>
+        
+        <div class="keypad-grid">
+            <button class="key-btn" onclick="pressNum('1')">1</button>
+            <button class="key-btn" onclick="pressNum('2')">2</button>
+            <button class="key-btn" onclick="pressNum('3')">3</button>
+            
+            <button class="key-btn" onclick="pressNum('4')">4</button>
+            <button class="key-btn" onclick="pressNum('5')">5</button>
+            <button class="key-btn" onclick="pressNum('6')">6</button>
+            
+            <button class="key-btn" onclick="pressNum('7')">7</button>
+            <button class="key-btn" onclick="pressNum('8')">8</button>
+            <button class="key-btn" onclick="pressNum('9')">9</button>
+            
+            <button class="key-btn action-clear" onclick="clearInput()">CLEAR</button>
+            <button class="key-btn" onclick="pressNum('0')">0</button>
+            <button class="key-btn action-clear" onclick="backspaceInput()">⌫</button>
+            
+            <button class="key-btn action-enter" onclick="completeOrder()">📢 CALL ENTER</button>
+        </div>
+
+    </div>
+
+    <div class="system-reset-link" onclick="clearAllOrders()">Reset Screen Environment</div>
 
     <script>
         const SUPABASE_URL = 'https://ogjgdxzhbjikmxkgbxjg.supabase.co';
         const SUPABASE_KEY = 'sb_publishable_zjtgnzjDRN7dfU3AAXqx0w_GA10b7iO';
-        
-        // Fix: Changed name to supabaseClient to prevent global object namespace conflicts
         const supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 
+        let currentInputStr = "";
+
+        function updateMonitor() {
+            const monitor = document.getElementById('monitorContent');
+            if (currentInputStr === "") {
+                monitor.className = "placeholder";
+                monitor.innerText = "Enter Ticket Number";
+            } else {
+                monitor.className = "current-val";
+                monitor.innerText = currentInputStr;
+            }
+        }
+
+        function pressNum(num) {
+            if (currentInputStr.length >= 5) return; 
+            currentInputStr += num;
+            updateMonitor();
+        }
+
+        优化
+        function clearInput() {
+            currentInputStr = "";
+            updateMonitor();
+        }
+
+        function backspaceInput() {
+            currentInputStr = currentInputStr.slice(0, -1);
+            updateMonitor();
+        }
+
         async function completeOrder() {
-            const inputEl = document.getElementById('orderInput');
-            const num = inputEl.value.trim().toUpperCase();
+            const num = currentInputStr.trim();
             if (!num) return;
 
-            // Database Operation: Update record state from 'preparing' to 'ready'
             const { data, error } = await supabaseClient
                 .from('orders')
                 .update({ status: 'ready' })
@@ -49,26 +223,25 @@
                 .eq('status', 'preparing');
 
             if (error) {
-                console.error('Update operation failure:', error);
-                alert("Database transmission failed!");
+                console.error('Database exception:', error);
+                alert("Transmission failed!");
             } else {
-                inputEl.value = '';
-                inputEl.focus();
+                clearInput();
             }
         }
 
-        // Drop entire entries inside the collection safely
         async function clearAllOrders() {
-            if (confirm("Are you sure you want to clear all history records from the screen?")) {
+            if (confirm("Are you sure you want to completely flush out the board records?")) {
                 const { error } = await supabaseClient
                     .from('orders')
                     .delete()
                     .neq('id', 0); 
                 
                 if (error) {
-                    alert("Clear action failed!");
+                    alert("Wipe action rejected!");
                 } else {
-                    alert("Screen environment refreshed successfully!");
+                    clearInput();
+                    alert("System cache cleaned!");
                 }
             }
         }
