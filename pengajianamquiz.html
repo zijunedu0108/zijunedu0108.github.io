@@ -1,0 +1,592 @@
+<!DOCTYPE html>
+<html lang="ms">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+  <title>Pengajian Am SEM2 · Kuiz</title>
+  <link rel="icon" href="zijunlogo.png" type="image/png">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:opsz,wght@14..32,400;14..32,500;14..32,600;14..32,700&display=swap" rel="stylesheet">
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body {
+      font-family: 'Inter', sans-serif;
+      background: linear-gradient(145deg, #0b1120 0%, #111827 100%);
+      min-height: 100vh;
+      color: #eef2ff;
+      padding: 1.5rem;
+    }
+    .app-container { max-width: 1400px; margin: 0 auto; }
+    .header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      flex-wrap: wrap;
+      gap: 1rem;
+      margin-bottom: 2rem;
+      background: rgba(15, 23, 42, 0.7);
+      backdrop-filter: blur(8px);
+      border-radius: 2rem;
+      padding: 0.8rem 1.8rem;
+      border: 1px solid rgba(56, 189, 248, 0.2);
+    }
+    .logo-area { display: flex; align-items: center; gap: 0.8rem; }
+    .logo-img {
+      width: 48px; height: 48px;
+      background: linear-gradient(135deg, #38bdf8, #3b82f6, #8b5cf6);
+      border-radius: 24px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      box-shadow: 0 8px 20px rgba(56, 189, 248, 0.3), 0 0 0 2px rgba(255,255,255,0.1);
+      transition: transform 0.2s ease, box-shadow 0.2s ease;
+    }
+    .logo-img:hover { transform: scale(1.02); box-shadow: 0 12px 28px rgba(56, 189, 248, 0.4); }
+    .logo-img img { width: 32px; height: 32px; border-radius: 16px; }
+    .logo-text {
+      font-weight: 700;
+      font-size: 1.5rem;
+      background: linear-gradient(135deg, #a5f3fc, #38bdf8);
+      -webkit-background-clip: text;
+      background-clip: text;
+      color: transparent;
+    }
+    .score-badge {
+      background: #1e293b;
+      padding: 0.5rem 1.2rem;
+      border-radius: 40px;
+      font-weight: 600;
+      font-size: 1rem;
+      border-left: 3px solid #38bdf8;
+    }
+    .lang-switch {
+      background: #1e293b;
+      border: 1px solid #38bdf8;
+      padding: 0.5rem 1rem;
+      border-radius: 40px;
+      cursor: pointer;
+      font-weight: 600;
+      transition: all 0.2s;
+    }
+    .lang-switch:hover { background: #38bdf8; color: #0f172a; }
+    .quiz-layout { display: flex; flex-wrap: wrap; gap: 2rem; }
+    .quiz-main { flex: 2; min-width: 280px; }
+    .rank-sidebar {
+      flex: 1; min-width: 260px;
+      background: rgba(17, 24, 39, 0.7);
+      backdrop-filter: blur(4px);
+      border-radius: 2rem;
+      padding: 1.5rem;
+      border: 1px solid rgba(56, 189, 248, 0.3);
+      height: fit-content;
+      position: sticky;
+      top: 1rem;
+    }
+    .question-card {
+      background: #0f172a;
+      border-radius: 2rem;
+      padding: 1.8rem;
+      box-shadow: 0 20px 35px -12px rgba(0,0,0,0.4);
+      border: 1px solid #1e293b;
+    }
+    .progress {
+      margin-bottom: 1.5rem;
+      display: flex;
+      justify-content: space-between;
+      font-size: 0.85rem;
+      color: #94a3b8;
+    }
+    .progress-bar-bg {
+      background: #1e293b;
+      border-radius: 20px;
+      height: 8px;
+      width: 100%;
+      margin-top: 8px;
+    }
+    .progress-fill {
+      background: #38bdf8;
+      width: 0%;
+      height: 8px;
+      border-radius: 20px;
+      transition: width 0.2s ease;
+    }
+    .question-text {
+      font-size: 1.5rem;
+      font-weight: 600;
+      margin: 1rem 0 1.5rem 0;
+      line-height: 1.4;
+    }
+    .isi-input-area {
+      background: #1e293b;
+      border-radius: 1.5rem;
+      padding: 1.5rem;
+      margin: 1.5rem 0;
+      border: 1px solid #334155;
+    }
+    .isi-input-area label {
+      display: block;
+      font-weight: 600;
+      margin-bottom: 0.75rem;
+      color: #cbd5e1;
+    }
+    .isi-row {
+      display: flex;
+      align-items: center;
+      gap: 0.75rem;
+      margin-bottom: 0.75rem;
+      flex-wrap: wrap;
+    }
+    .isi-row input {
+      flex: 1;
+      padding: 0.7rem 1rem;
+      border-radius: 40px;
+      border: 1px solid #334155;
+      background: #0f172a;
+      color: #f1f5f9;
+      font-size: 0.95rem;
+      outline: none;
+      min-width: 180px;
+    }
+    .isi-row input:focus { border-color: #38bdf8; }
+    .isi-status {
+      font-size: 0.85rem;
+      font-weight: 500;
+      padding: 0.2rem 0.8rem;
+      border-radius: 20px;
+      white-space: nowrap;
+    }
+    .status-green { background: #065f46; color: #a7f3d0; }
+    .status-yellow { background: #78350f; color: #fde68a; }
+    .status-red { background: #7f1d1d; color: #fca5a5; }
+    .status-default { background: #1e293b; color: #94a3b8; }
+    .skema-box {
+      background: #111827;
+      border-radius: 1rem;
+      padding: 1rem 1.2rem;
+      margin-top: 1rem;
+      border-left: 4px solid #facc15;
+    }
+    .skema-box strong { color: #facc15; }
+    .skema-box ul { margin: 0.5rem 0 0 1.2rem; color: #d1d5db; }
+    .feedback-isi {
+      margin-top: 1rem;
+      font-size: 0.9rem;
+    }
+    .next-btn {
+      background: #3b82f6;
+      border: none;
+      padding: 0.9rem 1.8rem;
+      border-radius: 60px;
+      font-weight: 700;
+      font-size: 1rem;
+      color: white;
+      cursor: pointer;
+      width: 100%;
+      margin-top: 1rem;
+    }
+    .next-btn:disabled { background: #475569; cursor: not-allowed; }
+    .reset-area { margin-top: 1rem; text-align: center; }
+    .reset-btn {
+      background: transparent;
+      border: 1px solid #475569;
+      padding: 0.5rem 1.2rem;
+      border-radius: 40px;
+      color: #cbd5e1;
+      cursor: pointer;
+    }
+    .reset-btn:hover { background: #334155; border-color: #38bdf8; }
+    .rank-title { font-size: 1.5rem; font-weight: 700; margin-bottom: 1rem; display: flex; gap: 8px; align-items: center; }
+    .rank-list { list-style: none; margin-top: 1rem; max-height: 400px; overflow-y: auto; }
+    .rank-item { display: flex; justify-content: space-between; padding: 0.7rem 0; border-bottom: 1px solid #1e293b; font-weight: 500; }
+    .rank-name { max-width: 150px; overflow: hidden; text-overflow: ellipsis; }
+    .rank-score { color: #facc15; }
+    .current-user-rank {
+      background: #1e2a3a;
+      padding: 0.6rem;
+      border-radius: 40px;
+      margin-top: 1rem;
+      font-size: 0.85rem;
+      text-align: center;
+    }
+    .login-screen { display: flex; align-items: center; justify-content: center; min-height: 70vh; }
+    .login-card {
+      background: #0f172a;
+      padding: 2.5rem;
+      border-radius: 2rem;
+      width: 100%;
+      max-width: 420px;
+      text-align: center;
+      border: 1px solid #38bdf8;
+    }
+    .login-card input {
+      width: 100%;
+      padding: 1rem;
+      margin: 1.5rem 0;
+      border-radius: 60px;
+      border: none;
+      background: #1e293b;
+      color: white;
+      font-size: 1rem;
+      outline: none;
+    }
+    .login-btn {
+      background: #3b82f6;
+      width: 100%;
+      padding: 0.9rem;
+      border-radius: 60px;
+      font-weight: bold;
+      border: none;
+      color: white;
+      cursor: pointer;
+    }
+    .error-msg { color: #f87171; margin-top: 0.5rem; }
+    .info-note { font-size: 0.7rem; color: #6b7280; margin-top: 1rem; }
+    footer { text-align: center; margin-top: 2rem; font-size: 0.75rem; color: #4b5563; }
+    @media (max-width: 780px) {
+      body { padding: 1rem; }
+      .question-text { font-size: 1.2rem; }
+    }
+  </style>
+</head>
+<body>
+<div class="app-container" id="appRoot"></div>
+
+<script type="module">
+  // Firebase imports (v12.14.0)
+  import { initializeApp } from "https://www.gstatic.com/firebasejs/12.14.0/firebase-app.js";
+  import { getFirestore, collection, doc, setDoc, getDocs, query, orderBy, limit, getDoc } from "https://www.gstatic.com/firebasejs/12.14.0/firebase-firestore.js";
+  
+  const firebaseConfig = {
+    apiKey: "AIzaSyBhc2JVAoxfk3wEsLee-Gr4I1StgqsPkBU",
+    authDomain: "zijunblog.firebaseapp.com",
+    projectId: "zijunblog",
+    storageBucket: "zijunblog.firebasestorage.app",
+    messagingSenderId: "689359220073",
+    appId: "1:689359220073:web:be9d4a467f438b6e8de1f8",
+    measurementId: "G-M8540FQZQD"
+  };
+  const app = initializeApp(firebaseConfig);
+  const db = getFirestore(app);
+  const LEADERBOARD_COLLECTION = "quizLeaderboard";
+  const PROGRESS_COLLECTION = "quizProgress";
+
+  // ==================== STATE ====================
+  let currentUser = null;
+  let currentIndex = 0;
+  let userAnswers = [];       // store selected option index (0-based)
+  let quizCompleted = false;
+  let answerLock = false;
+  let questions = [];        // will be loaded from soalan.json
+  let soalanData = null;     // raw json
+
+  // ==================== LOAD SOALAN.JSON ====================
+  async function loadSoalan() {
+    try {
+      const res = await fetch('soalan.json');
+      if (!res.ok) throw new Error('soalan.json not found');
+      const data = await res.json();
+      soalanData = data;
+      // transform to internal format
+      questions = data.map(item => ({
+        text: item.soalan || item.question || '',
+        options: item.pilihan || item.options || [],
+        correct: item.jawapan !== undefined ? item.jawapan : (item.correct !== undefined ? item.correct : 0),
+        skema: item.skema || item.skema || []
+      }));
+      // ensure each has skema array
+      questions = questions.map(q => ({ ...q, skema: q.skema || [] }));
+      return true;
+    } catch (e) {
+      console.warn('Gagal muat soalan.json, gunakan data contoh.', e);
+      // fallback contoh (soalan PA)
+      questions = [
+        {
+          text: "Usaha untuk melindungi keselamatan kanak-kanak",
+          options: ["", "", "", ""],
+          correct: -1, // not used in isi mode
+          skema: [
+            "memperkasa penguatkuasaan undang-undang tentang keselamatan kanak-kanak",
+            "meningkatkan kesedaran dan Pendidikan keselamatan",
+            "meningkatkan keselamatan di rumah dan sekolah"
+          ]
+        }
+      ];
+      soalanData = questions;
+      return false;
+    }
+  }
+
+  // ==================== FIREBASE HELPERS ====================
+  async function saveProgress(userId, currentIndex, userAnswersArray) {
+    if(!userId) return;
+    await setDoc(doc(db, PROGRESS_COLLECTION, userId), { 
+      currentIndex, 
+      userAnswers: userAnswersArray, 
+      updatedAt: new Date() 
+    }, { merge: true });
+  }
+  async function loadProgress(userId) {
+    const docSnap = await getDoc(doc(db, PROGRESS_COLLECTION, userId));
+    return docSnap.exists() ? docSnap.data() : null;
+  }
+  async function saveUserScoreToFirestore(userName, score) {
+    await setDoc(doc(db, LEADERBOARD_COLLECTION, userName), { 
+      name: userName, 
+      score, 
+      updatedAt: new Date() 
+    }, { merge: true });
+  }
+  async function getLeaderboard() {
+    const q = query(collection(db, LEADERBOARD_COLLECTION), orderBy("score", "desc"), limit(50));
+    const snapshot = await getDocs(q);
+    return snapshot.docs.map(docSnap => ({ name: docSnap.id, score: docSnap.data().score }));
+  }
+
+  // ==================== SCORE (isi mode: count correct skema matches) ====================
+  function computeScore(answers) {
+    // answers: array of user input strings per question (or null)
+    let total = 0;
+    for (let i = 0; i < questions.length; i++) {
+      const userAns = answers[i];
+      if (!userAns) continue;
+      const skema = questions[i].skema || [];
+      if (skema.length === 0) continue;
+      // count how many skema items are matched (exact or partial)
+      let matchCount = 0;
+      const userLines = userAns.split('\n').filter(s => s.trim().length > 0);
+      for (const line of userLines) {
+        const trimmed = line.trim().toLowerCase();
+        for (const s of skema) {
+          const sk = s.toLowerCase();
+          if (trimmed === sk) { matchCount += 1; break; }
+          else if (sk.includes(trimmed) || trimmed.includes(sk)) { matchCount += 0.5; break; }
+        }
+      }
+      total += Math.min(matchCount, skema.length);
+    }
+    return Math.round(total);
+  }
+
+  // ==================== RENDER ====================
+  async function render() {
+    const root = document.getElementById("appRoot");
+    if (!currentUser) {
+      // Login screen
+      root.innerHTML = `
+        <div class="login-screen">
+          <div class="login-card">
+            <div class="logo-img" style="margin:0 auto 1rem auto; width:64px; height:64px; border-radius:32px;"><img src="zijunlogo.png" alt="logo" style="width:40px; height:40px;"></div>
+            <h2>📘 Pengajian Am SEM2</h2>
+            <p style="color:#94a3b8;">Kuiz berdasarkan soalan.json</p>
+            <input type="text" id="usernameInput" placeholder="Masukkan nama anda" maxlength="30">
+            <button class="login-btn" id="startQuizBtn">Mula Kuiz →</button>
+            <div id="loginError" class="error-msg"></div>
+            <div class="info-note">✨ Kemajuan disimpan secara automatik.</div>
+          </div>
+        </div>
+      `;
+      document.getElementById("startQuizBtn")?.addEventListener("click", async () => {
+        const nameInput = document.getElementById("usernameInput").value.trim();
+        if(!nameInput) { document.getElementById("loginError").innerText = "Nama diperlukan!"; return; }
+        // load soalan.json first
+        await loadSoalan();
+        const saved = await loadProgress(nameInput);
+        if (saved) {
+          currentUser = nameInput;
+          currentIndex = saved.currentIndex || 0;
+          userAnswers = saved.userAnswers || new Array(questions.length).fill(null);
+          answerLock = false;
+          quizCompleted = currentIndex >= questions.length || userAnswers.every(a => a !== null);
+        } else {
+          currentUser = nameInput;
+          currentIndex = 0;
+          userAnswers = new Array(questions.length).fill(null);
+          await saveProgress(currentUser, currentIndex, userAnswers);
+        }
+        render();
+      });
+      return;
+    }
+
+    // Ensure questions loaded
+    if (questions.length === 0) {
+      await loadSoalan();
+      if (userAnswers.length === 0) userAnswers = new Array(questions.length).fill(null);
+    }
+
+    const total = questions.length;
+    if (currentIndex >= total) { currentIndex = total - 1; }
+    const currentQ = questions[currentIndex];
+    const currentAnswer = userAnswers[currentIndex]; // string or null
+    const isAnswered = currentAnswer !== null && currentAnswer.trim().length > 0;
+    const currentScore = computeScore(userAnswers);
+
+    // leaderboard
+    const leaders = await getLeaderboard();
+    const rankHtml = leaders.map((l,i) => `<div class="rank-item"><span class="rank-name">${i+1}. ${l.name}</span><span class="rank-score">${l.score} pts</span></div>`).join('');
+    const userRank = leaders.findIndex(l=>l.name===currentUser)+1;
+    const rankSection = `
+      <div class="rank-title">🏆 PAPARAN KEDUDUKAN</div>
+      <div class="rank-list">${rankHtml || '<div>Tiada entri</div>'}</div>
+      <div class="current-user-rank">⭐ ${currentUser} | Skor: ${currentScore} | Kedudukan: ${userRank>0?userRank:'-'}</div>
+    `;
+
+    const progressPercent = ((currentIndex+1)/total)*100;
+
+    // Build ISI input area
+    let isiInputsHtml = '';
+    const skema = currentQ.skema || [];
+    // user input lines
+    const userLines = currentAnswer ? currentAnswer.split('\n').filter(s => s.trim().length > 0) : [];
+    // status for each line
+    const lineStatus = userLines.map(line => {
+      const trimmed = line.trim().toLowerCase();
+      let status = 'red'; // default
+      for (const s of skema) {
+        const sk = s.toLowerCase();
+        if (trimmed === sk) { status = 'green'; break; }
+        else if (sk.includes(trimmed) || trimmed.includes(sk)) { status = 'yellow'; }
+      }
+      return status;
+    });
+
+    // build rows for user input (max 3 rows shown, but user can add more via textarea)
+    // We'll use a textarea for simplicity + 3 labeled inputs
+    const inputRows = [];
+    for (let i = 0; i < 3; i++) {
+      const val = userLines[i] || '';
+      const status = lineStatus[i] || 'default';
+      const statusClass = status === 'green' ? 'status-green' : status === 'yellow' ? 'status-yellow' : status === 'red' ? 'status-red' : 'status-default';
+      const statusLabel = status === 'green' ? '✓ Tepat' : status === 'yellow' ? '~ Separuh' : status === 'red' ? '✗ Tiada' : '';
+      inputRows.push(`
+        <div class="isi-row">
+          <label style="min-width:50px; font-weight:600;">${i+1}.</label>
+          <input type="text" class="isi-input" data-idx="${i}" value="${val}" placeholder="Isi ${i+1}..." />
+          <span class="isi-status ${statusClass}">${statusLabel}</span>
+        </div>
+      `);
+    }
+
+    // show skema
+    const skemaHtml = skema.length > 0 ? `
+      <div class="skema-box">
+        <strong>📋 Skema Jawapan:</strong>
+        <ul>${skema.map(s => `<li>${s}</li>`).join('')}</ul>
+      </div>
+    ` : '';
+
+    const feedbackHtml = isAnswered ? `
+      <div class="feedback-isi">
+        <span style="color:#94a3b8;">✅ Anda telah menjawab. Klik "Seterusnya" untuk teruskan.</span>
+      </div>
+    ` : '';
+
+    root.innerHTML = `
+      <div class="header">
+        <div class="logo-area"><div class="logo-img"><img src="zijunlogo.png" width="28"></div><span class="logo-text">PA SEM2</span></div>
+        <div style="display:flex; gap:1rem; align-items:center;">
+          <div class="score-badge">⭐ ${currentScore} / ${total}</div>
+        </div>
+      </div>
+      <div class="quiz-layout">
+        <div class="quiz-main">
+          <div class="question-card">
+            <div class="progress">Soalan ${currentIndex+1} / ${total}</div>
+            <div class="progress-bar-bg"><div class="progress-fill" style="width:${progressPercent}%"></div></div>
+            <div class="question-text">${currentQ.text}</div>
+            
+            <div class="isi-input-area">
+              <label>📝 Masukkan sekurang-kurangnya 3 isi (tekan Enter untuk baris baharu)</label>
+              ${inputRows.join('')}
+              <div style="margin-top:0.5rem; font-size:0.8rem; color:#6b7280;">💡 Taip isi dan tekan Enter / klik di luar untuk simpan.</div>
+            </div>
+            
+            ${skemaHtml}
+            ${feedbackHtml}
+
+            <button class="next-btn" id="nextBtn">${currentIndex+1 === total ? 'Tamat Kuiz' : 'Seterusnya →'}</button>
+            <div class="reset-area"><button class="reset-btn" id="resetQuiz">⟳ Mulakan Semula (Percubaan Baharu)</button></div>
+          </div>
+        </div>
+        <div class="rank-sidebar">${rankSection}</div>
+      </div>
+      <footer>🔥 PA SEM2 · soalan.json · kemajuan disimpan auto</footer>
+    `;
+
+    // --- event listeners ---
+    // input change: save on blur or Enter
+    const inputs = document.querySelectorAll('.isi-input');
+    inputs.forEach(inp => {
+      const saveInput = async () => {
+        const idx = parseInt(inp.dataset.idx);
+        // gather all input values
+        const allInputs = document.querySelectorAll('.isi-input');
+        const values = Array.from(allInputs).map(i => i.value.trim()).filter(v => v.length > 0);
+        // join with newline
+        const combined = values.join('\n');
+        userAnswers[currentIndex] = combined;
+        await saveProgress(currentUser, currentIndex, userAnswers);
+        await saveUserScoreToFirestore(currentUser, computeScore(userAnswers));
+        render(); // re-render to update status
+      };
+      inp.addEventListener('change', saveInput);
+      inp.addEventListener('keydown', (e) => {
+        if (e.key === 'Enter') {
+          e.preventDefault();
+          saveInput();
+        }
+      });
+    });
+
+    // next button
+    document.getElementById("nextBtn")?.addEventListener("click", async () => {
+      // force save current inputs
+      const allInputs = document.querySelectorAll('.isi-input');
+      const values = Array.from(allInputs).map(i => i.value.trim()).filter(v => v.length > 0);
+      const combined = values.join('\n');
+      userAnswers[currentIndex] = combined;
+      await saveProgress(currentUser, currentIndex, userAnswers);
+      await saveUserScoreToFirestore(currentUser, computeScore(userAnswers));
+
+      if (currentIndex+1 < total) {
+        currentIndex++;
+        answerLock = false;
+        await saveProgress(currentUser, currentIndex, userAnswers);
+        render();
+      } else {
+        quizCompleted = true;
+        await saveUserScoreToFirestore(currentUser, computeScore(userAnswers));
+        render();
+      }
+    });
+
+    // reset
+    document.getElementById("resetQuiz")?.addEventListener("click", async () => {
+      if (!currentUser) return;
+      // create new attempt name (R1, R2...)
+      const base = currentUser.replace(/\(R\d+\)$/, '').trim();
+      const regex = /^(.*?)(?:\(R(\d+)\))?$/;
+      const match = base.match(regex);
+      const cleanName = match[1] || base;
+      const num = match[2] ? parseInt(match[2]) : 0;
+      const newName = `${cleanName}(R${num+1})`;
+      // save old score
+      await saveUserScoreToFirestore(currentUser, computeScore(userAnswers));
+      // reset
+      currentUser = newName;
+      currentIndex = 0;
+      userAnswers = new Array(questions.length).fill(null);
+      await saveProgress(currentUser, currentIndex, userAnswers);
+      render();
+    });
+  }
+
+  // ==================== INIT ====================
+  (async function init() {
+    await loadSoalan();
+    // check if user already logged in from session? no, we start fresh.
+    render();
+  })();
+
+</script>
+</body>
+</html>
