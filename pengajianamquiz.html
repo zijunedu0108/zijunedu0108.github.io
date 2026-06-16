@@ -272,11 +272,10 @@
   // ==================== STATE ====================
   let currentUser = null;
   let currentIndex = 0;
-  let userAnswers = [];       // store selected option index (0-based)
+  let userAnswers = [];        // store user input strings
   let quizCompleted = false;
-  let answerLock = false;
-  let questions = [];        // will be loaded from soalan.json
-  let soalanData = null;     // raw json
+  let questions = [];          // loaded from soalan.json
+  let isLoading = true;
 
   // ==================== LOAD SOALAN.JSON ====================
   async function loadSoalan() {
@@ -284,13 +283,10 @@
       const res = await fetch('soalan.json');
       if (!res.ok) throw new Error('soalan.json not found');
       const data = await res.json();
-      soalanData = data;
       // transform to internal format
       questions = data.map(item => ({
         text: item.soalan || item.question || '',
-        options: item.pilihan || item.options || [],
-        correct: item.jawapan !== undefined ? item.jawapan : (item.correct !== undefined ? item.correct : 0),
-        skema: item.skema || item.skema || []
+        skema: item.skema || []
       }));
       // ensure each has skema array
       questions = questions.map(q => ({ ...q, skema: q.skema || [] }));
@@ -301,16 +297,21 @@
       questions = [
         {
           text: "Usaha untuk melindungi keselamatan kanak-kanak",
-          options: ["", "", "", ""],
-          correct: -1, // not used in isi mode
           skema: [
             "memperkasa penguatkuasaan undang-undang tentang keselamatan kanak-kanak",
             "meningkatkan kesedaran dan Pendidikan keselamatan",
             "meningkatkan keselamatan di rumah dan sekolah"
           ]
+        },
+        {
+          text: "Langkah-langkah untuk mengatasi masalah kesesakan lalu lintas",
+          skema: [
+            "membina lebih banyak jalan raya dan lebuh raya",
+            "meningkatkan sistem pengangkutan awam",
+            "menggalakkan perkongsian kenderaan"
+          ]
         }
       ];
-      soalanData = questions;
       return false;
     }
   }
@@ -318,63 +319,93 @@
   // ==================== FIREBASE HELPERS ====================
   async function saveProgress(userId, currentIndex, userAnswersArray) {
     if(!userId) return;
-    await setDoc(doc(db, PROGRESS_COLLECTION, userId), { 
-      currentIndex, 
-      userAnswers: userAnswersArray, 
-      updatedAt: new Date() 
-    }, { merge: true });
+    try {
+      await setDoc(doc(db, PROGRESS_COLLECTION, userId), { 
+        currentIndex, 
+        userAnswers: userAnswersArray, 
+        updatedAt: new Date() 
+      }, { merge: true });
+    } catch (e) {
+      console.warn('Error saving progress:', e);
+    }
   }
+  
   async function loadProgress(userId) {
-    const docSnap = await getDoc(doc(db, PROGRESS_COLLECTION, userId));
-    return docSnap.exists() ? docSnap.data() : null;
+    try {
+      const docSnap = await getDoc(doc(db, PROGRESS_COLLECTION, userId));
+      return docSnap.exists() ? docSnap.data() : null;
+    } catch (e) {
+      console.warn('Error loading progress:', e);
+      return null;
+    }
   }
+  
   async function saveUserScoreToFirestore(userName, score) {
-    await setDoc(doc(db, LEADERBOARD_COLLECTION, userName), { 
-      name: userName, 
-      score, 
-      updatedAt: new Date() 
-    }, { merge: true });
+    try {
+      await setDoc(doc(db, LEADERBOARD_COLLECTION, userName), { 
+        name: userName, 
+        score, 
+        updatedAt: new Date() 
+      }, { merge: true });
+    } catch (e) {
+      console.warn('Error saving score:', e);
+    }
   }
+  
   async function getLeaderboard() {
-    const q = query(collection(db, LEADERBOARD_COLLECTION), orderBy("score", "desc"), limit(50));
-    const snapshot = await getDocs(q);
-    return snapshot.docs.map(docSnap => ({ name: docSnap.id, score: docSnap.data().score }));
+    try {
+      const q = query(collection(db, LEADERBOARD_COLLECTION), orderBy("score", "desc"), limit(50));
+      const snapshot = await getDocs(q);
+      return snapshot.docs.map(docSnap => ({ name: docSnap.id, score: docSnap.data().score }));
+    } catch (e) {
+      console.warn('Error loading leaderboard:', e);
+      return [];
+    }
   }
 
-  // ==================== SCORE (isi mode: count correct skema matches) ====================
+  // ==================== SCORE CALCULATION ====================
   function computeScore(answers) {
-    // answers: array of user input strings per question (or null)
     let total = 0;
     for (let i = 0; i < questions.length; i++) {
       const userAns = answers[i];
-      if (!userAns) continue;
+      if (!userAns || typeof userAns !== 'string' || userAns.trim().length === 0) continue;
+      
       const skema = questions[i].skema || [];
       if (skema.length === 0) continue;
-      // count how many skema items are matched (exact or partial)
-      let matchCount = 0;
+      
       const userLines = userAns.split('\n').filter(s => s.trim().length > 0);
+      let matchCount = 0;
+      
       for (const line of userLines) {
         const trimmed = line.trim().toLowerCase();
         for (const s of skema) {
           const sk = s.toLowerCase();
-          if (trimmed === sk) { matchCount += 1; break; }
-          else if (sk.includes(trimmed) || trimmed.includes(sk)) { matchCount += 0.5; break; }
+          if (trimmed === sk) { 
+            matchCount += 1; 
+            break; 
+          } else if (sk.includes(trimmed) || trimmed.includes(sk)) { 
+            matchCount += 0.5; 
+            break; 
+          }
         }
       }
-      total += Math.min(matchCount, skema.length);
+      total += Math.min(Math.round(matchCount), skema.length);
     }
-    return Math.round(total);
+    return total;
   }
 
   // ==================== RENDER ====================
   async function render() {
     const root = document.getElementById("appRoot");
+    
+    // Login screen
     if (!currentUser) {
-      // Login screen
       root.innerHTML = `
         <div class="login-screen">
           <div class="login-card">
-            <div class="logo-img" style="margin:0 auto 1rem auto; width:64px; height:64px; border-radius:32px;"><img src="zijunlogo.png" alt="logo" style="width:40px; height:40px;"></div>
+            <div class="logo-img" style="margin:0 auto 1rem auto; width:64px; height:64px; border-radius:32px;">
+              <img src="zijunlogo.png" alt="logo" style="width:40px; height:40px;">
+            </div>
             <h2>📘 Pengajian Am SEM2</h2>
             <p style="color:#94a3b8;">Kuiz berdasarkan soalan.json</p>
             <input type="text" id="usernameInput" placeholder="Masukkan nama anda" maxlength="30">
@@ -384,24 +415,43 @@
           </div>
         </div>
       `;
+      
       document.getElementById("startQuizBtn")?.addEventListener("click", async () => {
         const nameInput = document.getElementById("usernameInput").value.trim();
-        if(!nameInput) { document.getElementById("loginError").innerText = "Nama diperlukan!"; return; }
-        // load soalan.json first
-        await loadSoalan();
+        if(!nameInput) { 
+          document.getElementById("loginError").innerText = "Nama diperlukan!"; 
+          return; 
+        }
+        
+        // Load questions first
+        if (questions.length === 0) {
+          await loadSoalan();
+        }
+        
+        // Initialize user answers if empty
+        if (userAnswers.length === 0) {
+          userAnswers = new Array(questions.length).fill(null);
+        }
+        
+        // Check for saved progress
         const saved = await loadProgress(nameInput);
-        if (saved) {
+        if (saved && saved.userAnswers) {
           currentUser = nameInput;
           currentIndex = saved.currentIndex || 0;
           userAnswers = saved.userAnswers || new Array(questions.length).fill(null);
-          answerLock = false;
-          quizCompleted = currentIndex >= questions.length || userAnswers.every(a => a !== null);
+          // Ensure userAnswers length matches questions
+          while (userAnswers.length < questions.length) {
+            userAnswers.push(null);
+          }
+          quizCompleted = currentIndex >= questions.length || userAnswers.every(a => a !== null && a.trim().length > 0);
         } else {
           currentUser = nameInput;
           currentIndex = 0;
           userAnswers = new Array(questions.length).fill(null);
           await saveProgress(currentUser, currentIndex, userAnswers);
         }
+        
+        isLoading = false;
         render();
       });
       return;
@@ -410,19 +460,31 @@
     // Ensure questions loaded
     if (questions.length === 0) {
       await loadSoalan();
-      if (userAnswers.length === 0) userAnswers = new Array(questions.length).fill(null);
+      if (userAnswers.length === 0) {
+        userAnswers = new Array(questions.length).fill(null);
+      }
     }
 
     const total = questions.length;
-    if (currentIndex >= total) { currentIndex = total - 1; }
+    if (total === 0) {
+      root.innerHTML = `<div style="text-align:center;padding:3rem;">⚠️ Tiada soalan dimuatkan. Sila semak soalan.json</div>`;
+      return;
+    }
+    
+    if (currentIndex >= total) { 
+      currentIndex = total - 1; 
+    }
+    
     const currentQ = questions[currentIndex];
-    const currentAnswer = userAnswers[currentIndex]; // string or null
-    const isAnswered = currentAnswer !== null && currentAnswer.trim().length > 0;
+    const currentAnswer = userAnswers[currentIndex] || ''; // Ensure it's a string
+    const isAnswered = currentAnswer && currentAnswer.trim().length > 0;
     const currentScore = computeScore(userAnswers);
 
-    // leaderboard
+    // Leaderboard
     const leaders = await getLeaderboard();
-    const rankHtml = leaders.map((l,i) => `<div class="rank-item"><span class="rank-name">${i+1}. ${l.name}</span><span class="rank-score">${l.score} pts</span></div>`).join('');
+    const rankHtml = leaders.map((l,i) => 
+      `<div class="rank-item"><span class="rank-name">${i+1}. ${l.name}</span><span class="rank-score">${l.score} pts</span></div>`
+    ).join('');
     const userRank = leaders.findIndex(l=>l.name===currentUser)+1;
     const rankSection = `
       <div class="rank-title">🏆 PAPARAN KEDUDUKAN</div>
@@ -433,40 +495,44 @@
     const progressPercent = ((currentIndex+1)/total)*100;
 
     // Build ISI input area
-    let isiInputsHtml = '';
     const skema = currentQ.skema || [];
-    // user input lines
     const userLines = currentAnswer ? currentAnswer.split('\n').filter(s => s.trim().length > 0) : [];
-    // status for each line
+    
+    // Calculate status for each line
     const lineStatus = userLines.map(line => {
       const trimmed = line.trim().toLowerCase();
-      let status = 'red'; // default
+      let status = 'red';
       for (const s of skema) {
         const sk = s.toLowerCase();
         if (trimmed === sk) { status = 'green'; break; }
-        else if (sk.includes(trimmed) || trimmed.includes(sk)) { status = 'yellow'; }
+        else if (sk.includes(trimmed) || trimmed.includes(sk)) { 
+          if (status !== 'green') status = 'yellow'; 
+        }
       }
       return status;
     });
 
-    // build rows for user input (max 3 rows shown, but user can add more via textarea)
-    // We'll use a textarea for simplicity + 3 labeled inputs
+    // Build input rows (3 rows)
     const inputRows = [];
     for (let i = 0; i < 3; i++) {
       const val = userLines[i] || '';
       const status = lineStatus[i] || 'default';
-      const statusClass = status === 'green' ? 'status-green' : status === 'yellow' ? 'status-yellow' : status === 'red' ? 'status-red' : 'status-default';
-      const statusLabel = status === 'green' ? '✓ Tepat' : status === 'yellow' ? '~ Separuh' : status === 'red' ? '✗ Tiada' : '';
+      const statusClass = status === 'green' ? 'status-green' : 
+                         status === 'yellow' ? 'status-yellow' : 
+                         status === 'red' ? 'status-red' : 'status-default';
+      const statusLabel = status === 'green' ? '✓ Tepat' : 
+                         status === 'yellow' ? '~ Separuh' : 
+                         status === 'red' ? '✗ Tiada' : '';
       inputRows.push(`
         <div class="isi-row">
           <label style="min-width:50px; font-weight:600;">${i+1}.</label>
-          <input type="text" class="isi-input" data-idx="${i}" value="${val}" placeholder="Isi ${i+1}..." />
+          <input type="text" class="isi-input" data-idx="${i}" value="${val.replace(/"/g, '&quot;')}" placeholder="Isi ${i+1}..." />
           <span class="isi-status ${statusClass}">${statusLabel}</span>
         </div>
       `);
     }
 
-    // show skema
+    // Show skema
     const skemaHtml = skema.length > 0 ? `
       <div class="skema-box">
         <strong>📋 Skema Jawapan:</strong>
@@ -482,7 +548,10 @@
 
     root.innerHTML = `
       <div class="header">
-        <div class="logo-area"><div class="logo-img"><img src="zijunlogo.png" width="28"></div><span class="logo-text">PA SEM2</span></div>
+        <div class="logo-area">
+          <div class="logo-img"><img src="zijunlogo.png" width="28"></div>
+          <span class="logo-text">PA SEM2</span>
+        </div>
         <div style="display:flex; gap:1rem; align-items:center;">
           <div class="score-badge">⭐ ${currentScore} / ${total}</div>
         </div>
@@ -495,7 +564,7 @@
             <div class="question-text">${currentQ.text}</div>
             
             <div class="isi-input-area">
-              <label>📝 Masukkan sekurang-kurangnya 3 isi (tekan Enter untuk baris baharu)</label>
+              <label>📝 Masukkan sekurang-kurangnya 3 isi (tekan Enter untuk simpan)</label>
               ${inputRows.join('')}
               <div style="margin-top:0.5rem; font-size:0.8rem; color:#6b7280;">💡 Taip isi dan tekan Enter / klik di luar untuk simpan.</div>
             </div>
@@ -512,22 +581,19 @@
       <footer>🔥 PA SEM2 · soalan.json · kemajuan disimpan auto</footer>
     `;
 
-    // --- event listeners ---
-    // input change: save on blur or Enter
+    // --- Event listeners for inputs ---
     const inputs = document.querySelectorAll('.isi-input');
     inputs.forEach(inp => {
       const saveInput = async () => {
-        const idx = parseInt(inp.dataset.idx);
-        // gather all input values
         const allInputs = document.querySelectorAll('.isi-input');
         const values = Array.from(allInputs).map(i => i.value.trim()).filter(v => v.length > 0);
-        // join with newline
         const combined = values.join('\n');
         userAnswers[currentIndex] = combined;
         await saveProgress(currentUser, currentIndex, userAnswers);
         await saveUserScoreToFirestore(currentUser, computeScore(userAnswers));
         render(); // re-render to update status
       };
+      
       inp.addEventListener('change', saveInput);
       inp.addEventListener('keydown', (e) => {
         if (e.key === 'Enter') {
@@ -537,9 +603,9 @@
       });
     });
 
-    // next button
+    // Next button
     document.getElementById("nextBtn")?.addEventListener("click", async () => {
-      // force save current inputs
+      // Save current inputs
       const allInputs = document.querySelectorAll('.isi-input');
       const values = Array.from(allInputs).map(i => i.value.trim()).filter(v => v.length > 0);
       const combined = values.join('\n');
@@ -547,10 +613,8 @@
       await saveProgress(currentUser, currentIndex, userAnswers);
       await saveUserScoreToFirestore(currentUser, computeScore(userAnswers));
 
-      if (currentIndex+1 < total) {
+      if (currentIndex + 1 < total) {
         currentIndex++;
-        answerLock = false;
-        await saveProgress(currentUser, currentIndex, userAnswers);
         render();
       } else {
         quizCompleted = true;
@@ -559,19 +623,22 @@
       }
     });
 
-    // reset
+    // Reset button
     document.getElementById("resetQuiz")?.addEventListener("click", async () => {
       if (!currentUser) return;
-      // create new attempt name (R1, R2...)
+      
+      // Save current score before reset
+      await saveUserScoreToFirestore(currentUser, computeScore(userAnswers));
+      
+      // Create new attempt name (R1, R2...)
       const base = currentUser.replace(/\(R\d+\)$/, '').trim();
       const regex = /^(.*?)(?:\(R(\d+)\))?$/;
       const match = base.match(regex);
-      const cleanName = match[1] || base;
-      const num = match[2] ? parseInt(match[2]) : 0;
+      const cleanName = match ? match[1] : base;
+      const num = (match && match[2]) ? parseInt(match[2]) : 0;
       const newName = `${cleanName}(R${num+1})`;
-      // save old score
-      await saveUserScoreToFirestore(currentUser, computeScore(userAnswers));
-      // reset
+      
+      // Reset state
       currentUser = newName;
       currentIndex = 0;
       userAnswers = new Array(questions.length).fill(null);
@@ -583,7 +650,6 @@
   // ==================== INIT ====================
   (async function init() {
     await loadSoalan();
-    // check if user already logged in from session? no, we start fresh.
     render();
   })();
 
