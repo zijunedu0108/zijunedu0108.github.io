@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>AWADO - 拼字游戏</title>
+    <title>AWADO - 拼字游戏 Pro</title>
     <style>
         :root {
             --bg-color: #5ea443;
@@ -12,6 +12,7 @@
             --tile-text: #1d3c1a;
             --selected-bg: #e1eedb;
             --line-color: rgba(255, 255, 255, 0.6);
+            --panel-bg: rgba(0, 0, 0, 0.2);
         }
 
         body {
@@ -22,27 +23,46 @@
             display: flex;
             flex-direction: column;
             align-items: center;
-            justify-content: center;
+            justify-content: flex-start;
             min-height: 100vh;
             color: white;
             user-select: none;
-            overflow: hidden;
+            padding-top: 20px;
+            box-sizing: border-box;
         }
 
         header {
             text-align: center;
-            margin-bottom: 10px;
+            width: 100%;
+            max-width: 400px;
         }
 
         h1 {
-            font-size: 2.5rem;
+            font-size: 2.3rem;
             margin: 0;
             letter-spacing: 2px;
             text-shadow: 0 2px 4px rgba(0,0,0,0.2);
         }
 
+        /* 顶部面板：分数与提示 */
+        .status-panel {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            background: var(--panel-bg);
+            padding: 10px 20px;
+            border-radius: 12px;
+            margin: 10px 0;
+            font-weight: bold;
+            font-size: 1.1rem;
+        }
+
+        .score-box {
+            color: #ffd700;
+        }
+
         .word-display {
-            min-height: 40px;
+            min-height: 45px;
             font-size: 1.8rem;
             font-weight: bold;
             letter-spacing: 3px;
@@ -50,7 +70,7 @@
             color: var(--tile-text);
             padding: 5px 20px;
             border-radius: 20px;
-            margin: 15px 0;
+            margin: 10px 0;
             box-shadow: inset 0 2px 5px rgba(0,0,0,0.2);
             display: flex;
             align-items: center;
@@ -64,7 +84,7 @@
             padding: 15px;
             border-radius: 24px;
             box-shadow: 0 8px 16px rgba(0,0,0,0.3);
-            touch-action: none; /* 禁用手机默认滚动，方便滑动连词 */
+            touch-action: none;
         }
 
         .grid {
@@ -74,7 +94,6 @@
             gap: 12px;
         }
 
-        /* 每个字母格子 */
         .tile {
             background-color: var(--tile-bg);
             color: var(--tile-text);
@@ -95,7 +114,6 @@
             box-shadow: 0 1px 0px #d3cebf;
         }
 
-        /* 画布用于绘制字母之间的连接线 */
         canvas {
             position: absolute;
             top: 15px;
@@ -105,10 +123,55 @@
         }
 
         .msg {
-            margin-top: 15px;
-            font-size: 1.1rem;
-            height: 20px;
+            margin: 10px 0;
+            font-size: 1rem;
+            height: 24px;
             font-weight: bold;
+            text-align: center;
+        }
+
+        /* 本局历史记录面板 */
+        .history-panel {
+            width: 100%;
+            max-width: 330px;
+            background: var(--panel-bg);
+            border-radius: 16px;
+            padding: 15px;
+            margin-top: 15px;
+            box-sizing: border-box;
+        }
+
+        .history-title {
+            font-size: 1rem;
+            margin-top: 0;
+            margin-bottom: 10px;
+            border-bottom: 1px solid rgba(255,255,255,0.2);
+            padding-bottom: 5px;
+            color: #eee;
+        }
+
+        .history-list {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+            max-height: 100px;
+            overflow-y: auto;
+            padding: 0;
+            margin: 0;
+            list-style: none;
+        }
+
+        .history-item {
+            background: rgba(255,255,255,0.2);
+            padding: 4px 10px;
+            border-radius: 10px;
+            font-size: 0.9rem;
+            animation: popIn 0.3s ease;
+        }
+
+        @keyframes popIn {
+            0% { transform: scale(0.7); opacity: 0; }
+            100% { transform: scale(1); opacity: 1; }
         }
     </style>
 </head>
@@ -116,8 +179,12 @@
 
     <header>
         <h1>AWADO</h1>
+        <div class="status-panel">
+            <span>得分: <span class="score-box" id="gameScore">0</span></span>
+            <span>目标: 6字及以上</span>
+        </div>
         <div class="word-display" id="wordDisplay"></div>
-        <div class="msg" id="message">按住并滑动来连出单词</div>
+        <div class="msg" id="message">请长按并滑动字母连词</div>
     </header>
 
     <div class="grid-container" id="gridContainer">
@@ -125,8 +192,22 @@
         <canvas id="lineCanvas"></canvas>
     </div>
 
+    <!-- 当局正确历史记录 -->
+    <div class="history-panel">
+        <div class="history-title">本局已找到的单词</div>
+        <ul class="history-list" id="historyList">
+            <!-- 动态插入找到的单词 -->
+        </ul>
+    </div>
+
     <script>
-        // 模拟一个4x4的字母盘面（可以根据需要换成你想要的字母）
+        // 1. 本地简单常用词库（你可以根据需要无限往里塞标准英文单词，全部大写）
+        const DICTIONARY = new Set([
+            "SILENT", "STOLEN", "LATEST", "LATINS", "ALINES", "LISTEN", "ENLIST", 
+            "LATENT", "SALINE", "ELASTIN", "ISLANDS", "LESSON"
+        ]);
+
+        // 依然用上一局的盘面字母作为测试
         const boardLetters = [
             ['I', 'S', 'N', 'I'],
             ['L', 'O', 'L', 'S'],
@@ -135,8 +216,10 @@
         ];
 
         let isDrawing = false;
-        let selectedTiles = []; // 存放当前选中格子的坐标 {r, c, element}
+        let selectedTiles = []; 
         let currentWord = "";
+        let totalScore = 0;
+        let foundWords = new Set(); // 防止重复提交同一个单词
 
         const gridElement = document.getElementById('letterGrid');
         const container = document.getElementById('gridContainer');
@@ -144,8 +227,10 @@
         const ctx = canvas.getContext('2d');
         const wordDisplay = document.getElementById('wordDisplay');
         const messageDisplay = document.getElementById('message');
+        const scoreDisplay = document.getElementById('gameScore');
+        const historyList = document.getElementById('historyList');
 
-        // 1. 初始化生成 4x4 盘面
+        // 初始化生成 4x4 盘面
         function initBoard() {
             gridElement.innerHTML = '';
             for (let r = 0; r < 4; r++) {
@@ -161,21 +246,19 @@
             resizeCanvas();
         }
 
-        // 调整 Canvas 分辨率适配网格
         function resizeCanvas() {
             canvas.width = gridElement.clientWidth;
             canvas.height = gridElement.clientHeight;
         }
 
-        // 2. 核心算法：检测新格子是否与上一个格子“绝对相邻”
+        // 核心算法：检测新格子是否与上一个格子“绝对相邻”
         function isAdjacent(tile1, tile2) {
             const dr = Math.abs(tile1.r - tile2.r);
             const dc = Math.abs(tile1.c - tile2.c);
-            // 只要行距和列距都不超过1，且不全是0（不是同一个格子），就是相邻
             return dr <= 1 && dc <= 1 && !(dr === 0 && dc === 0);
         }
 
-        // 3. 处理格子选中的逻辑
+        // 处理格子选中的逻辑
         function handleTileSelection(element) {
             if (!element.classList.contains('tile')) return;
             
@@ -183,7 +266,7 @@
             const c = parseInt(element.dataset.col);
             const currentTile = { r, c, element };
 
-            // 如果选中的是队伍中的最后一个，允许往回倒退一格（撤销上一步）
+            // 允许倒退一格（撤销）
             if (selectedTiles.length > 1 && 
                 selectedTiles[selectedTiles.length - 2].r === r && 
                 selectedTiles[selectedTiles.length - 2].c === c) {
@@ -195,19 +278,14 @@
                 return;
             }
 
-            // 检查该格子是否已经用过了（不走回头路）
             const alreadySelected = selectedTiles.some(t => t.r === r && t.c === c);
             if (alreadySelected) return;
 
-            // 如果已经有选中的格子，判断新格子是否和最新的一格相邻
             if (selectedTiles.length > 0) {
                 const lastTile = selectedTiles[selectedTiles.length - 1];
-                if (!isAdjacent(lastTile, currentTile)) {
-                    return; // 不相邻，不给连！
-                }
+                if (!isAdjacent(lastTile, currentTile)) return; 
             }
 
-            // 满足条件，加入连词队列
             element.classList.add('selected');
             selectedTiles.push(currentTile);
             updateWord();
@@ -219,7 +297,7 @@
             wordDisplay.innerText = currentWord;
         }
 
-        // 4. 绘制丝滑的连接线
+        // 绘制连接线
         function drawLines() {
             ctx.clearRect(0, 0, canvas.width, canvas.height);
             if (selectedTiles.length < 2) return;
@@ -231,38 +309,65 @@
             ctx.lineJoin = "round";
 
             selectedTiles.forEach((tile, index) => {
-                // 计算格子中心点的 Canvas 相对坐标
                 const el = tile.element;
                 const x = el.offsetLeft + el.clientWidth / 2;
                 const y = el.offsetTop + el.clientHeight / 2;
 
-                if (index === 0) {
-                    ctx.moveTo(x, y);
-                } else {
-                    ctx.lineTo(x, y);
-                }
+                if (index === 0) ctx.moveTo(x, y);
+                else ctx.lineTo(x, y);
             });
             ctx.stroke();
         }
 
-        // 5. 结算单词
+        // 判断与结算核心逻辑
         function finishWord() {
-            if (currentWord.length >= 6) {
-                messageDisplay.innerText = `🎉 触发大招！连出超长词: ${currentWord}`;
+            if (currentWord.length === 0) return;
+
+            // 规则1：必须大于等于6个字母
+            if (currentWord.length < 6) {
+                messageDisplay.innerText = "❌ 单词太短！我们需要6个字母以上的单词";
+                messageDisplay.style.color = "#ff4d4d";
+            } 
+            // 规则2：不能重复提交已经找到的词
+            else if (foundWords.has(currentWord)) {
+                messageDisplay.innerText = `⚠️ 单词 "${currentWord}" 之前已经找过了！`;
+                messageDisplay.style.color = "#ffcc00";
+            }
+            // 规则3：验证词库判断正确性
+            else if (DICTIONARY.has(currentWord)) {
+                // 计算分数：6字100分，7字200分，8字400分
+                let scoreEarned = 100;
+                if (currentWord.length === 7) scoreEarned = 200;
+                if (currentWord.length >= 8) scoreEarned = 400;
+
+                totalScore += scoreEarned;
+                foundWords.add(currentWord);
+
+                // 更新UI
+                scoreDisplay.innerText = totalScore;
+                messageDisplay.innerText = `🎉 正确！${currentWord} (+${scoreEarned}分)`;
                 messageDisplay.style.color = "#fff";
-            } else if (currentWord.length > 0) {
-                messageDisplay.innerText = `成功连出单词: ${currentWord}`;
-                messageDisplay.style.color = "#eee";
+
+                // 添加到当局历史记录面板
+                const li = document.createElement('li');
+                li.classList.add('history-item');
+                li.innerText = `${currentWord} (+${scoreEarned})`;
+                historyList.appendChild(li);
+            } 
+            // 规则4：词库里没有的错词
+            else {
+                messageDisplay.innerText = `❌ 未知单词或拼写错误: "${currentWord}"`;
+                messageDisplay.style.color = "#ff4d4d";
             }
             
-            // 重置状态
+            // 状态清理重置
             selectedTiles.forEach(t => t.element.classList.remove('selected'));
             selectedTiles = [];
             currentWord = "";
             ctx.clearRect(0, 0, canvas.width, canvas.height);
         }
 
-        // 6. 绑定事件（同时支持 PC 鼠标和手机触屏）
+        // 鼠标和手机触屏事件监听
         function getEventTargetTile(e) {
             const clientX = e.touches ? e.touches[0].clientX : e.clientX;
             const clientY = e.touches ? e.touches[0].clientY : e.clientY;
@@ -287,7 +392,6 @@
             }
         });
 
-        // 手机端事件
         container.addEventListener('touchstart', (e) => {
             isDrawing = true;
             const target = getEventTargetTile(e);
@@ -307,7 +411,6 @@
             }
         });
 
-        // 启动游戏
         initBoard();
         window.addEventListener('resize', resizeCanvas);
     </script>
