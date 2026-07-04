@@ -1,0 +1,315 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AWADO - 拼字游戏</title>
+    <style>
+        :root {
+            --bg-color: #5ea443;
+            --grid-bg: #2d662e;
+            --tile-bg: #f7f4eb;
+            --tile-text: #1d3c1a;
+            --selected-bg: #e1eedb;
+            --line-color: rgba(255, 255, 255, 0.6);
+        }
+
+        body {
+            margin: 0;
+            padding: 0;
+            background-color: var(--bg-color);
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            min-height: 100vh;
+            color: white;
+            user-select: none;
+            overflow: hidden;
+        }
+
+        header {
+            text-align: center;
+            margin-bottom: 10px;
+        }
+
+        h1 {
+            font-size: 2.5rem;
+            margin: 0;
+            letter-spacing: 2px;
+            text-shadow: 0 2px 4px rgba(0,0,0,0.2);
+        }
+
+        .word-display {
+            min-height: 40px;
+            font-size: 1.8rem;
+            font-weight: bold;
+            letter-spacing: 3px;
+            background: white;
+            color: var(--tile-text);
+            padding: 5px 20px;
+            border-radius: 20px;
+            margin: 15px 0;
+            box-shadow: inset 0 2px 5px rgba(0,0,0,0.2);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        /* 4x4 字母盘面外壳 */
+        .grid-container {
+            position: relative;
+            background-color: var(--grid-bg);
+            padding: 15px;
+            border-radius: 24px;
+            box-shadow: 0 8px 16px rgba(0,0,0,0.3);
+            touch-action: none; /* 禁用手机默认滚动，方便滑动连词 */
+        }
+
+        .grid {
+            display: grid;
+            grid-template-columns: repeat(4, 75px);
+            grid-template-rows: repeat(4, 75px);
+            gap: 12px;
+        }
+
+        /* 每个字母格子 */
+        .tile {
+            background-color: var(--tile-bg);
+            color: var(--tile-text);
+            font-size: 1.8rem;
+            font-weight: bold;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 16px;
+            box-shadow: 0 4px 0px #d3cebf;
+            cursor: pointer;
+            transition: transform 0.1s, background-color 0.2s;
+        }
+
+        .tile.selected {
+            background-color: var(--selected-bg);
+            transform: scale(0.95);
+            box-shadow: 0 1px 0px #d3cebf;
+        }
+
+        /* 画布用于绘制字母之间的连接线 */
+        canvas {
+            position: absolute;
+            top: 15px;
+            left: 15px;
+            pointer-events: none;
+            z-index: 10;
+        }
+
+        .msg {
+            margin-top: 15px;
+            font-size: 1.1rem;
+            height: 20px;
+            font-weight: bold;
+        }
+    </style>
+</head>
+<body>
+
+    <header>
+        <h1>AWADO</h1>
+        <div class="word-display" id="wordDisplay"></div>
+        <div class="msg" id="message">按住并滑动来连出单词</div>
+    </header>
+
+    <div class="grid-container" id="gridContainer">
+        <div class="grid" id="letterGrid"></div>
+        <canvas id="lineCanvas"></canvas>
+    </div>
+
+    <script>
+        // 模拟一个4x4的字母盘面（可以根据需要换成你想要的字母）
+        const boardLetters = [
+            ['I', 'S', 'N', 'I'],
+            ['L', 'O', 'L', 'S'],
+            ['N', 'A', 'T', 'E'],
+            ['E', 'L', 'I', 'N']
+        ];
+
+        let isDrawing = false;
+        let selectedTiles = []; // 存放当前选中格子的坐标 {r, c, element}
+        let currentWord = "";
+
+        const gridElement = document.getElementById('letterGrid');
+        const container = document.getElementById('gridContainer');
+        const canvas = document.getElementById('lineCanvas');
+        const ctx = canvas.getContext('2d');
+        const wordDisplay = document.getElementById('wordDisplay');
+        const messageDisplay = document.getElementById('message');
+
+        // 1. 初始化生成 4x4 盘面
+        function initBoard() {
+            gridElement.innerHTML = '';
+            for (let r = 0; r < 4; r++) {
+                for (let c = 0; c < 4; c++) {
+                    const tile = document.createElement('div');
+                    tile.classList.add('tile');
+                    tile.innerText = boardLetters[r][c];
+                    tile.dataset.row = r;
+                    tile.dataset.col = c;
+                    gridElement.appendChild(tile);
+                }
+            }
+            resizeCanvas();
+        }
+
+        // 调整 Canvas 分辨率适配网格
+        function resizeCanvas() {
+            canvas.width = gridElement.clientWidth;
+            canvas.height = gridElement.clientHeight;
+        }
+
+        // 2. 核心算法：检测新格子是否与上一个格子“绝对相邻”
+        function isAdjacent(tile1, tile2) {
+            const dr = Math.abs(tile1.r - tile2.r);
+            const dc = Math.abs(tile1.c - tile2.c);
+            // 只要行距和列距都不超过1，且不全是0（不是同一个格子），就是相邻
+            return dr <= 1 && dc <= 1 && !(dr === 0 && dc === 0);
+        }
+
+        // 3. 处理格子选中的逻辑
+        function handleTileSelection(element) {
+            if (!element.classList.contains('tile')) return;
+            
+            const r = parseInt(element.dataset.row);
+            const c = parseInt(element.dataset.col);
+            const currentTile = { r, c, element };
+
+            // 如果选中的是队伍中的最后一个，允许往回倒退一格（撤销上一步）
+            if (selectedTiles.length > 1 && 
+                selectedTiles[selectedTiles.length - 2].r === r && 
+                selectedTiles[selectedTiles.length - 2].c === c) {
+                
+                const popped = selectedTiles.pop();
+                popped.element.classList.remove('selected');
+                updateWord();
+                drawLines();
+                return;
+            }
+
+            // 检查该格子是否已经用过了（不走回头路）
+            const alreadySelected = selectedTiles.some(t => t.r === r && t.c === c);
+            if (alreadySelected) return;
+
+            // 如果已经有选中的格子，判断新格子是否和最新的一格相邻
+            if (selectedTiles.length > 0) {
+                const lastTile = selectedTiles[selectedTiles.length - 1];
+                if (!isAdjacent(lastTile, currentTile)) {
+                    return; // 不相邻，不给连！
+                }
+            }
+
+            // 满足条件，加入连词队列
+            element.classList.add('selected');
+            selectedTiles.push(currentTile);
+            updateWord();
+            drawLines();
+        }
+
+        function updateWord() {
+            currentWord = selectedTiles.map(t => t.element.innerText).join('');
+            wordDisplay.innerText = currentWord;
+        }
+
+        // 4. 绘制丝滑的连接线
+        function drawLines() {
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            if (selectedTiles.length < 2) return;
+
+            ctx.beginPath();
+            ctx.strokeStyle = getComputedStyle(document.documentElement).getPropertyValue('--line-color');
+            ctx.lineWidth = 8;
+            ctx.lineCap = "round";
+            ctx.lineJoin = "round";
+
+            selectedTiles.forEach((tile, index) => {
+                // 计算格子中心点的 Canvas 相对坐标
+                const el = tile.element;
+                const x = el.offsetLeft + el.clientWidth / 2;
+                const y = el.offsetTop + el.clientHeight / 2;
+
+                if (index === 0) {
+                    ctx.moveTo(x, y);
+                } else {
+                    ctx.lineTo(x, y);
+                }
+            });
+            ctx.stroke();
+        }
+
+        // 5. 结算单词
+        function finishWord() {
+            if (currentWord.length >= 6) {
+                messageDisplay.innerText = `🎉 触发大招！连出超长词: ${currentWord}`;
+                messageDisplay.style.color = "#fff";
+            } else if (currentWord.length > 0) {
+                messageDisplay.innerText = `成功连出单词: ${currentWord}`;
+                messageDisplay.style.color = "#eee";
+            }
+            
+            // 重置状态
+            selectedTiles.forEach(t => t.element.classList.remove('selected'));
+            selectedTiles = [];
+            currentWord = "";
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+        }
+
+        // 6. 绑定事件（同时支持 PC 鼠标和手机触屏）
+        function getEventTargetTile(e) {
+            const clientX = e.touches ? e.touches[0].clientX : e.clientX;
+            const clientY = e.touches ? e.touches[0].clientY : e.clientY;
+            return document.elementFromPoint(clientX, clientY);
+        }
+
+        container.addEventListener('mousedown', (e) => {
+            isDrawing = true;
+            handleTileSelection(e.target);
+        });
+
+        window.addEventListener('mousemove', (e) => {
+            if (!isDrawing) return;
+            const target = getEventTargetTile(e);
+            if (target) handleTileSelection(target);
+        });
+
+        window.addEventListener('mouseup', () => {
+            if (isDrawing) {
+                isDrawing = false;
+                finishWord();
+            }
+        });
+
+        // 手机端事件
+        container.addEventListener('touchstart', (e) => {
+            isDrawing = true;
+            const target = getEventTargetTile(e);
+            if (target) handleTileSelection(target);
+        });
+
+        container.addEventListener('touchmove', (e) => {
+            if (!isDrawing) return;
+            const target = getEventTargetTile(e);
+            if (target) handleTileSelection(target);
+        });
+
+        container.addEventListener('touchend', () => {
+            if (isDrawing) {
+                isDrawing = false;
+                finishWord();
+            }
+        });
+
+        // 启动游戏
+        initBoard();
+        window.addEventListener('resize', resizeCanvas);
+    </script>
+</body>
+</html>
