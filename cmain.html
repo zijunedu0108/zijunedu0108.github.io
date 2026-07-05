@@ -5,12 +5,12 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=yes">
     <title>情侣储蓄 · 主页</title>
     <style>
-        /* 可爱风重置 & 全局 */
         * {
             margin: 0;
             padding: 0;
             box-sizing: border-box;
             font-family: 'Segoe UI', 'Quicksand', system-ui, -apple-system, 'Helvetica Neue', sans-serif;
+            -webkit-tap-highlight-color: transparent;
         }
 
         body {
@@ -23,7 +23,6 @@
             align-items: center;
         }
 
-        /* 主容器 — 仿手机卡片 */
         .app-container {
             max-width: 440px;
             width: 100%;
@@ -34,10 +33,8 @@
             padding: 20px 18px 30px;
             box-shadow: 0 20px 40px rgba(200, 80, 120, 0.15), 0 8px 20px rgba(255, 150, 180, 0.2);
             border: 2px solid rgba(255, 255, 255, 0.6);
-            position: relative;
         }
 
-        /* ----- 卡片 (profile card) ----- */
         .profile-card {
             background: linear-gradient(145deg, #ffffff, #fff5f9);
             border-radius: 40px;
@@ -55,13 +52,14 @@
         .avatar-frame {
             width: 80px;
             height: 80px;
-            background: #ffdae6;
-            border-radius: 60px;
+            border-radius: 50%;
+            border: 4px solid #ffb0cb;
+            box-shadow: 0 6px 0 #e89bb5, 0 8px 16px rgba(200, 80, 120, 0.15);
+            overflow: hidden;
             display: flex;
             align-items: center;
             justify-content: center;
-            border: 4px solid #ffb0cb;
-            box-shadow: 0 6px 0 #e89bb5;
+            background: #fff5f9;
             flex-shrink: 0;
         }
 
@@ -69,12 +67,12 @@
             width: 70px;
             height: 70px;
             object-fit: contain;
-            filter: drop-shadow(0 4px 6px rgba(150, 50, 80, 0.2));
+            display: block;
         }
 
         .profile-info {
             flex: 1;
-            min-width: 140px;
+            min-width: 120px;
         }
 
         .profile-name {
@@ -120,7 +118,6 @@
             color: #ae6a84;
         }
 
-        /* ----- 筛选栏 (filter bar) ----- */
         .filter-bar {
             background: #fff2f7;
             border-radius: 60px;
@@ -134,7 +131,8 @@
             box-shadow: 0 4px 0 #e8aec2;
         }
 
-        .filter-bar select, .filter-bar input {
+        .filter-bar select,
+        .filter-bar input {
             background: white;
             border: 1.5px solid #ffb7cf;
             border-radius: 40px;
@@ -144,12 +142,14 @@
             color: #5e3649;
             outline: none;
             flex: 1 0 auto;
-            min-width: 90px;
+            min-width: 80px;
             box-shadow: 0 2px 4px rgba(255, 120, 160, 0.1);
             transition: 0.1s ease;
+            touch-action: manipulation;
         }
 
-        .filter-bar select:focus, .filter-bar input:focus {
+        .filter-bar select:focus,
+        .filter-bar input:focus {
             border-color: #f58eb0;
             box-shadow: 0 0 0 3px #ffd0e0;
         }
@@ -167,6 +167,7 @@
             transition: 0.08s linear;
             box-shadow: 0 2px 6px rgba(200, 80, 120, 0.2);
             flex: 0 0 auto;
+            touch-action: manipulation;
         }
 
         .filter-bar .filter-btn:active {
@@ -174,7 +175,6 @@
             border-bottom-width: 2px;
         }
 
-        /* ----- 历史记录列表 ----- */
         .history-title {
             font-size: 1.3rem;
             font-weight: 700;
@@ -193,7 +193,6 @@
             margin-bottom: 10px;
         }
 
-        /* 每个记录卡片 */
         .record-item {
             background: white;
             border-radius: 28px;
@@ -277,7 +276,13 @@
             border: 2px dashed #ffb7cf;
         }
 
-        /* ----- 底部导航栏 ----- */
+        .loading-message {
+            text-align: center;
+            padding: 30px 20px;
+            color: #aa748b;
+            font-weight: 600;
+        }
+
         .bottom-nav {
             position: fixed;
             bottom: 0;
@@ -312,6 +317,7 @@
             display: inline-block;
             text-align: center;
             min-width: 70px;
+            touch-action: manipulation;
         }
 
         .nav-item:active {
@@ -325,18 +331,12 @@
             border-color: #f58eb0;
             box-shadow: 0 4px 0 #b86f8a;
         }
-
-        /* 辅助 */
-        .flex-center { display: flex; align-items: center; gap: 4px; }
-        .mt-1 { margin-top: 6px; }
-        .w-full { width: 100%; }
     </style>
 </head>
 <body>
 
-<div class="app-container" id="mainApp">
-    <!-- 卡片区域 -->
-    <div class="profile-card" id="profileCard">
+<div class="app-container">
+    <div class="profile-card">
         <div class="avatar-frame" id="avatarFrame">
             <img id="profileAvatar" src="/gento.png" alt="头像" onerror="this.src='data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 width=%2270%22 height=%2270%22 viewBox=%220 0 70 70%22%3E%3Ccircle cx=%2235%22 cy=%2235%22 r=%2232%22 fill=%22%23f7b8d0%22/%3E%3Ctext x=%2218%22 y=%2248%22 font-size=%2232%22 fill=%22%23333%22 font-family=%22Arial%22%3E🐻%3C/text%3E%3C/svg%3E'">
         </div>
@@ -349,9 +349,8 @@
         </div>
     </div>
 
-    <!-- 筛选栏 -->
     <div class="filter-bar">
-        <input type="date" id="filterDate" placeholder="日期" title="筛选日期">
+        <input type="date" id="filterDate" placeholder="日期">
         <select id="filterMethod">
             <option value="">全部方式</option>
             <option value="现金">现金</option>
@@ -369,206 +368,174 @@
             <option value="MANTO">MANTO</option>
             <option value="GENTO">GENTO</option>
         </select>
-        <button class="filter-btn" id="applyFilterBtn">✨ 筛选</button>
+        <button class="filter-btn" id="applyFilterBtn" type="button">✨ 筛选</button>
     </div>
 
-    <!-- 历史记录标题 -->
     <div class="history-title">
         <span>📋 共同记录</span>
         <span style="font-size: 0.9rem; font-weight: 500; color: #b16f89;" id="recordCount">(0)</span>
     </div>
 
-    <!-- 历史列表容器 -->
     <div class="history-list" id="historyList">
-        <!-- 动态渲染 -->
-        <div class="empty-message">💭 还没有记录，添加一笔吧</div>
+        <div class="loading-message">⏳ 加载中...</div>
     </div>
 </div>
 
-<!-- 底部导航栏 -->
 <div class="bottom-nav">
     <a href="cmain.html" class="nav-item active" id="navHome">🏠 HOME</a>
     <a href="crecord.html" class="nav-item" id="navRecord">📝 RECORD</a>
     <a href="cprofile.html" class="nav-item" id="navProfile">👤 PROFILE</a>
 </div>
 
-<script>
-    (function() {
-        // ---------- 读取本地存储 ----------
-        const ROLE_KEY = 'couple_role';
-        const NAME_KEY = 'couple_name';
-        const ICON_KEY = 'couple_icon';
-        const STORAGE_KEY = 'couple_records';  // 存储所有记录
+<script type="importmap">
+{
+    "imports": {
+        "firebase/app": "https://www.gstatic.com/firebasejs/12.15.0/firebase-app.js",
+        "firebase/firestore": "https://www.gstatic.com/firebasejs/12.15.0/firebase-firestore.js"
+    }
+}
+</script>
 
-        const role = localStorage.getItem(ROLE_KEY) || 'boy';
-        const displayName = localStorage.getItem(NAME_KEY) || (role === 'boy' ? 'MANTO' : 'GENTO');
-        let iconPath = localStorage.getItem(ICON_KEY) || (role === 'boy' ? '/gento.png' : '/manto.png');
+<script type="module">
+    import { initializeApp } from 'firebase/app';
+    import { getFirestore, collection, query, orderBy, onSnapshot, getDocs, where } from 'firebase/firestore';
 
-        // 角色中文
-        const roleChinese = role === 'boy' ? '男朋友' : '女朋友';
+    const firebaseConfig = {
+        apiKey: "AIzaSyD_aW8osSZupLNTmaFXrPjAOcroX_2D7YQ",
+        authDomain: "dailylife-5ad94.firebaseapp.com",
+        projectId: "dailylife-5ad94",
+        storageBucket: "dailylife-5ad94.firebasestorage.app",
+        messagingSenderId: "783888781810",
+        appId: "1:783888781810:web:d9dc08ab862b9935f29b6b",
+        measurementId: "G-3T4P3CY0JH"
+    };
 
-        // 头像、名字、角色
-        document.getElementById('profileAvatar').src = iconPath;
-        document.getElementById('profileName').textContent = displayName;
-        document.getElementById('profileRole').textContent = roleChinese;
+    const app = initializeApp(firebaseConfig);
+    const db = getFirestore(app);
 
-        // ---------- 模拟/存储记录 ----------
-        // 若无记录则生成几条可爱的示例 (情侣共同)
-        function getDefaultRecords() {
-            return [
-                { id: '1', type: '进账', note: '💖 一起存钱', amount: 200, method: '现金', executor: 'MANTO', date: '2026-07-01' },
-                { id: '2', type: '开销', note: '🍜 晚餐约会', amount: 45, method: 'Touch N Go eWallet', executor: 'GENTO', date: '2026-07-02' },
-                { id: '3', type: '进账', note: '🎁 奖励金', amount: 100, method: 'BankCard', executor: 'GENTO', date: '2026-07-03' },
-                { id: '4', type: '开销', note: '🎬 电影票', amount: 35, method: '储蓄罐', executor: 'MANTO', date: '2026-07-04' },
-            ];
+    const ROLE_KEY = 'couple_role';
+    const NAME_KEY = 'couple_name';
+    const ICON_KEY = 'couple_icon';
+
+    const role = localStorage.getItem(ROLE_KEY) || 'boy';
+    const displayName = localStorage.getItem(NAME_KEY) || (role === 'boy' ? 'MANTO' : 'GENTO');
+    const iconPath = localStorage.getItem(ICON_KEY) || (role === 'boy' ? '/gento.png' : '/manto.png');
+
+    document.getElementById('profileAvatar').src = iconPath;
+    document.getElementById('profileName').textContent = displayName;
+    document.getElementById('profileRole').textContent = role === 'boy' ? '男朋友' : '女朋友';
+
+    let allRecords = [];
+    let unsubscribe = null;
+
+    function renderHistory(filterOptions = {}) {
+        const { date, method, type, executor } = filterOptions;
+
+        let filtered = allRecords.filter(r => {
+            if (date && r.date !== date) return false;
+            if (method && r.method !== method) return false;
+            if (type && r.type !== type) return false;
+            if (executor && r.executor !== executor) return false;
+            return true;
+        });
+
+        filtered.sort((a, b) => (a.date < b.date ? 1 : -1));
+
+        const container = document.getElementById('historyList');
+        const countSpan = document.getElementById('recordCount');
+
+        if (filtered.length === 0) {
+            container.innerHTML = `<div class="empty-message">🌸 没有匹配的记录 · 换个筛选吧</div>`;
+            countSpan.textContent = '(0)';
+            return;
         }
 
-        let records = [];
-        const stored = localStorage.getItem(STORAGE_KEY);
-        if (stored) {
-            try { records = JSON.parse(stored); } catch(e) { records = getDefaultRecords(); }
-        } else {
-            records = getDefaultRecords();
-            localStorage.setItem(STORAGE_KEY, JSON.stringify(records));
-        }
-
-        // 确保每条记录有 id (如果没有则补)
-        records = records.map((r, idx) => ({ ...r, id: r.id || String(idx + 1) }));
-
-        // 保存至localStorage
-        function saveRecords() {
-            localStorage.setItem(STORAGE_KEY, JSON.stringify(records));
-        }
-
-        // ---------- 计算总储蓄 ----------
-        function calcTotal() {
-            let total = 0;
-            records.forEach(r => {
-                const amt = parseFloat(r.amount) || 0;
-                if (r.type === '进账') total += amt;
-                else if (r.type === '开销') total -= amt;
-            });
-            return total;
-        }
-
-        function updateSavings() {
-            const total = calcTotal();
-            document.getElementById('savingsDisplay').innerHTML = `<small>RM</small> ${total.toFixed(2)}`;
-        }
-        updateSavings();
-
-        // ---------- 渲染历史记录 (带筛选) ----------
-        function renderHistory(filterOptions = {}) {
-            const { date, method, type, executor } = filterOptions;
-
-            let filtered = records.filter(r => {
-                // 日期筛选 (如果date有值)
-                if (date && r.date !== date) return false;
-                if (method && r.method !== method) return false;
-                if (type && r.type !== type) return false;
-                if (executor && r.executor !== executor) return false;
-                return true;
-            });
-
-            // 按日期排序 (最新的在前)
-            filtered.sort((a, b) => (a.date < b.date ? 1 : -1));
-
-            const container = document.getElementById('historyList');
-            const countSpan = document.getElementById('recordCount');
-
-            if (filtered.length === 0) {
-                container.innerHTML = `<div class="empty-message">🌸 没有匹配的记录 · 换个筛选吧</div>`;
-                countSpan.textContent = '(0)';
-                return;
-            }
-
-            countSpan.textContent = `(${filtered.length})`;
-
-            let html = '';
-            filtered.forEach(r => {
-                const isNegative = r.type === '开销';
-                const amountClass = isNegative ? 'record-amount negative' : 'record-amount';
-                const sign = isNegative ? '-' : '+';
-                const emoji = isNegative ? '💸' : '💰';
-                html += `
-                    <div class="record-item">
-                        <div class="record-left">
-                            <div class="record-category">
-                                <span>${emoji} ${r.type}</span>
-                                <span class="badge">${r.method || '其他'}</span>
-                            </div>
-                            <div class="record-note">${r.note || '无备注'}</div>
-                            <div class="record-meta">
-                                <span>📅 ${r.date || '未知日期'}</span>
-                                <span>👤 ${r.executor || '未知'}</span>
-                            </div>
+        countSpan.textContent = `(${filtered.length})`;
+        let html = '';
+        filtered.forEach(r => {
+            const isNegative = r.type === '开销';
+            const amountClass = isNegative ? 'record-amount negative' : 'record-amount';
+            const sign = isNegative ? '-' : '+';
+            const emoji = isNegative ? '💸' : '💰';
+            html += `
+                <div class="record-item">
+                    <div class="record-left">
+                        <div class="record-category">
+                            <span>${emoji} ${r.type}</span>
+                            <span class="badge">${r.method || '其他'}</span>
                         </div>
-                        <div class="${amountClass}">${sign} RM ${parseFloat(r.amount).toFixed(2)}</div>
+                        <div class="record-note">${r.note || '无备注'}</div>
+                        <div class="record-meta">
+                            <span>📅 ${r.date || '未知日期'}</span>
+                            <span>👤 ${r.executor || '未知'}</span>
+                        </div>
                     </div>
-                `;
+                    <div class="${amountClass}">${sign} RM ${parseFloat(r.amount).toFixed(2)}</div>
+                </div>
+            `;
+        });
+        container.innerHTML = html;
+    }
+
+    function updateSavings() {
+        let total = 0;
+        allRecords.forEach(r => {
+            const amt = parseFloat(r.amount) || 0;
+            if (r.type === '进账') total += amt;
+            else if (r.type === '开销') total -= amt;
+        });
+        document.getElementById('savingsDisplay').innerHTML = `<small>RM</small> ${total.toFixed(2)}`;
+    }
+
+    // 监听 Firestore 实时更新
+    function listenToRecords() {
+        const recordsRef = collection(db, 'records');
+        const q = query(recordsRef, orderBy('date', 'desc'));
+
+        unsubscribe = onSnapshot(q, (snapshot) => {
+            allRecords = [];
+            snapshot.forEach((doc) => {
+                allRecords.push({ id: doc.id, ...doc.data() });
             });
-
-            container.innerHTML = html;
-        }
-
-        // 初次渲染 (无筛选)
-        renderHistory();
-
-        // ---------- 筛选按钮事件 ----------
-        document.getElementById('applyFilterBtn').addEventListener('click', function() {
+            updateSavings();
+            // 应用当前筛选
             const date = document.getElementById('filterDate').value;
             const method = document.getElementById('filterMethod').value;
             const type = document.getElementById('filterType').value;
             const executor = document.getElementById('filterExecutor').value;
-
             renderHistory({ date, method, type, executor });
+        }, (error) => {
+            console.error('监听失败:', error);
+            document.getElementById('historyList').innerHTML = 
+                `<div class="empty-message">⚠️ 加载失败: ${error.message}</div>`;
         });
+    }
 
-        // 清除筛选的简易方式: 点击时若有空值自动全部 (但保留默认)
-        // 额外：重置筛选 (双击filter按钮 重置为全部)
-        document.getElementById('applyFilterBtn').addEventListener('dblclick', function() {
-            document.getElementById('filterDate').value = '';
-            document.getElementById('filterMethod').value = '';
-            document.getElementById('filterType').value = '';
-            document.getElementById('filterExecutor').value = '';
-            renderHistory();
-        });
+    listenToRecords();
 
-        // 存储更新函数暴露给其他页面? (不需要)
-        console.log('💕 cmain 加载完成, 当前角色:', role, displayName);
+    document.getElementById('applyFilterBtn').addEventListener('click', function() {
+        const date = document.getElementById('filterDate').value;
+        const method = document.getElementById('filterMethod').value;
+        const type = document.getElementById('filterType').value;
+        const executor = document.getElementById('filterExecutor').value;
+        renderHistory({ date, method, type, executor });
+    });
 
-        // 监听存储变化 (其他页面修改时刷新)
-        window.addEventListener('storage', function(e) {
-            if (e.key === STORAGE_KEY) {
-                const newData = localStorage.getItem(STORAGE_KEY);
-                if (newData) {
-                    try { records = JSON.parse(newData); } catch(e) {}
-                    updateSavings();
-                    // 重新应用当前筛选 (保留筛选栏的值)
-                    const date = document.getElementById('filterDate').value;
-                    const method = document.getElementById('filterMethod').value;
-                    const type = document.getElementById('filterType').value;
-                    const executor = document.getElementById('filterExecutor').value;
-                    renderHistory({ date, method, type, executor });
-                }
-            }
-            // 如果角色变更 (很少发生)
-            if (e.key === ROLE_KEY || e.key === NAME_KEY || e.key === ICON_KEY) {
-                // 简单刷新头像名字
-                const newRole = localStorage.getItem(ROLE_KEY) || 'boy';
-                const newName = localStorage.getItem(NAME_KEY) || (newRole === 'boy' ? 'MANTO' : 'GENTO');
-                const newIcon = localStorage.getItem(ICON_KEY) || (newRole === 'boy' ? '/gento.png' : '/manto.png');
-                document.getElementById('profileAvatar').src = newIcon;
-                document.getElementById('profileName').textContent = newName;
-                document.getElementById('profileRole').textContent = newRole === 'boy' ? '男朋友' : '女朋友';
-            }
-        });
+    document.getElementById('applyFilterBtn').addEventListener('dblclick', function() {
+        document.getElementById('filterDate').value = '';
+        document.getElementById('filterMethod').value = '';
+        document.getElementById('filterType').value = '';
+        document.getElementById('filterExecutor').value = '';
+        renderHistory({});
+    });
 
-        // 导航高亮 (cmain 自身 active)
-        document.getElementById('navHome').classList.add('active');
-        document.getElementById('navRecord').classList.remove('active');
-        document.getElementById('navProfile').classList.remove('active');
-    })();
+    // 导航高亮
+    document.getElementById('navHome').classList.add('active');
+    document.getElementById('navRecord').classList.remove('active');
+    document.getElementById('navProfile').classList.remove('active');
+
+    console.log('🔥 cmain 已连接 Firestore');
 </script>
+
 </body>
 </html>
