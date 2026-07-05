@@ -1,0 +1,365 @@
+<!DOCTYPE html>
+<html lang="zh">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=yes">
+    <title>情侣储蓄 · 个人资料</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Segoe UI', 'Quicksand', system-ui, -apple-system, 'Helvetica Neue', sans-serif;
+            -webkit-tap-highlight-color: transparent;
+        }
+
+        body {
+            min-height: 100vh;
+            background: #ffecf2;
+            background-image: radial-gradient(circle at 20% 30%, #ffe2ed 0%, #ffd6e4 100%);
+            padding: 16px 16px 100px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+
+        .app-container {
+            max-width: 440px;
+            width: 100%;
+            background: rgba(255, 245, 248, 0.7);
+            backdrop-filter: blur(4px);
+            -webkit-backdrop-filter: blur(4px);
+            border-radius: 48px 48px 32px 32px;
+            padding: 30px 22px 40px;
+            box-shadow: 0 20px 40px rgba(200, 80, 120, 0.15), 0 8px 20px rgba(255, 150, 180, 0.2);
+            border: 2px solid rgba(255, 255, 255, 0.6);
+            text-align: center;
+        }
+
+        .profile-avatar-large {
+            width: 130px;
+            height: 130px;
+            margin: 0 auto 16px;
+            border-radius: 50%;
+            border: 6px solid #ffb0cb;
+            box-shadow: 0 10px 0 #e89bb5, 0 16px 30px rgba(200, 80, 120, 0.2);
+            overflow: hidden;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: #fff5f9;
+        }
+
+        .profile-avatar-large img {
+            width: 110px;
+            height: 110px;
+            object-fit: contain;
+            display: block;
+        }
+
+        .profile-display-name {
+            font-size: 2.8rem;
+            font-weight: 800;
+            color: #822f4f;
+            letter-spacing: 3px;
+            text-shadow: 4px 4px 0 #ffc1d4;
+            margin-bottom: 4px;
+        }
+
+        .profile-display-role {
+            font-size: 1.3rem;
+            font-weight: 600;
+            color: #b35d7e;
+            background: #ffeef4;
+            padding: 4px 32px;
+            border-radius: 60px;
+            display: inline-block;
+            border: 2px solid #ff9bbb;
+            margin-bottom: 32px;
+        }
+
+        .action-group {
+            display: flex;
+            flex-direction: column;
+            gap: 18px;
+            margin-top: 12px;
+            max-width: 320px;
+            margin-left: auto;
+            margin-right: auto;
+        }
+
+        .action-btn {
+            border: none;
+            border-radius: 80px;
+            padding: 18px 20px;
+            font-weight: 800;
+            font-size: 1.2rem;
+            background: white;
+            border: 3px solid #ffb7cf;
+            box-shadow: 0 8px 0 #d68ca8, 0 8px 18px rgba(200, 80, 120, 0.15);
+            transition: 0.08s linear;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 12px;
+            color: #4e283b;
+            letter-spacing: 1px;
+            touch-action: manipulation;
+        }
+
+        .action-btn:active {
+            transform: translateY(6px);
+            box-shadow: 0 2px 0 #d68ca8, 0 8px 18px rgba(200, 80, 120, 0.15);
+        }
+
+        .action-btn.refresh-btn {
+            background: #ffe2ed;
+            color: #822f4f;
+        }
+
+        .action-btn.logout-btn {
+            background: #ffb7cf;
+            border-color: #f58eb0;
+            color: #582f40;
+            box-shadow: 0 8px 0 #b86f8a, 0 8px 18px rgba(200, 80, 120, 0.2);
+        }
+
+        .action-btn.logout-btn:active {
+            box-shadow: 0 2px 0 #b86f8a, 0 8px 18px rgba(200, 80, 120, 0.15);
+        }
+
+        .action-btn .emoji-big {
+            font-size: 1.6rem;
+        }
+
+        .bottom-nav {
+            position: fixed;
+            bottom: 0;
+            left: 0;
+            width: 100%;
+            background: #ffecf2;
+            backdrop-filter: blur(16px);
+            -webkit-backdrop-filter: blur(16px);
+            border-top: 3px solid #ffc1d4;
+            display: flex;
+            justify-content: space-around;
+            padding: 12px 12px 18px;
+            box-shadow: 0 -6px 20px rgba(255, 120, 160, 0.2);
+            border-radius: 40px 40px 0 0;
+            max-width: 440px;
+            margin: 0 auto;
+            left: 50%;
+            transform: translateX(-50%);
+        }
+
+        .nav-item {
+            text-decoration: none;
+            font-weight: 700;
+            color: #9d5b78;
+            background: #ffe2ed;
+            padding: 8px 24px;
+            border-radius: 60px;
+            border: 2px solid #ffb7cf;
+            font-size: 1rem;
+            transition: all 0.1s;
+            box-shadow: 0 4px 0 #d68ca8;
+            display: inline-block;
+            text-align: center;
+            min-width: 70px;
+            touch-action: manipulation;
+        }
+
+        .nav-item:active {
+            transform: translateY(4px);
+            box-shadow: 0 0px 0 #d68ca8;
+        }
+
+        .nav-item.active {
+            background: #ffb7cf;
+            color: #582f40;
+            border-color: #f58eb0;
+            box-shadow: 0 4px 0 #b86f8a;
+        }
+
+        .toast-message {
+            background: #822f4f;
+            color: white;
+            padding: 12px 22px;
+            border-radius: 80px;
+            font-weight: 600;
+            font-size: 0.95rem;
+            text-align: center;
+            margin-top: 20px;
+            display: none;
+            border: 2px solid #ffb7cf;
+            max-width: 300px;
+            margin-left: auto;
+            margin-right: auto;
+        }
+
+        .toast-message.show {
+            display: block;
+        }
+
+        .heart-divider {
+            font-size: 1.5rem;
+            margin: 12px 0 6px;
+            color: #d68ca8;
+        }
+
+        .sync-status {
+            font-size: 0.8rem;
+            color: #8fad8f;
+            margin-top: 8px;
+            background: #e8f5e9;
+            padding: 4px 16px;
+            border-radius: 40px;
+            display: inline-block;
+        }
+    </style>
+</head>
+<body>
+
+<div class="app-container">
+    <div class="profile-avatar-large" id="profileAvatarContainer">
+        <img id="profileAvatarImg" src="/gento.png" alt="头像" onerror="this.src='data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 width=%22110%22 height=%22110%22 viewBox=%220 0 110 110%22%3E%3Ccircle cx=%2255%22 cy=%2255%22 r=%2250%22 fill=%22%23f7b8d0%22/%3E%3Ctext x=%2232%22 y=%2272%22 font-size=%2248%22 fill=%22%23333%22 font-family=%22Arial%22%3E🐻%3C/text%3E%3C/svg%3E'">
+    </div>
+
+    <div class="profile-display-name" id="profileDisplayName">MANTO</div>
+    <div class="profile-display-role" id="profileDisplayRole">男朋友</div>
+
+    <div class="heart-divider">💕 ✦ 💕 ✦ 💕</div>
+
+    <div class="action-group">
+        <button class="action-btn refresh-btn" id="refreshBtn">
+            <span class="emoji-big">🔄</span> 刷新网页
+        </button>
+        <button class="action-btn logout-btn" id="logoutBtn">
+            <span class="emoji-big">🚪</span> 退出登录
+        </button>
+    </div>
+
+    <div class="toast-message" id="toastMsg">✨ 已刷新</div>
+    <div class="sync-status" id="syncStatus">☁️ 已连接 Firestore</div>
+</div>
+
+<div class="bottom-nav">
+    <a href="cmain.html" class="nav-item" id="navHome">🏠 HOME</a>
+    <a href="crecord.html" class="nav-item" id="navRecord">📝 RECORD</a>
+    <a href="cprofile.html" class="nav-item active" id="navProfile">👤 PROFILE</a>
+</div>
+
+<script type="importmap">
+{
+    "imports": {
+        "firebase/app": "https://www.gstatic.com/firebasejs/12.15.0/firebase-app.js",
+        "firebase/firestore": "https://www.gstatic.com/firebasejs/12.15.0/firebase-firestore.js"
+    }
+}
+</script>
+
+<script type="module">
+    import { initializeApp } from 'firebase/app';
+    import { getFirestore, collection, query, onSnapshot } from 'firebase/firestore';
+
+    const firebaseConfig = {
+        apiKey: "AIzaSyD_aW8osSZupLNTmaFXrPjAOcroX_2D7YQ",
+        authDomain: "dailylife-5ad94.firebaseapp.com",
+        projectId: "dailylife-5ad94",
+        storageBucket: "dailylife-5ad94.firebasestorage.app",
+        messagingSenderId: "783888781810",
+        appId: "1:783888781810:web:d9dc08ab862b9935f29b6b",
+        measurementId: "G-3T4P3CY0JH"
+    };
+
+    const app = initializeApp(firebaseConfig);
+    const db = getFirestore(app);
+
+    const ROLE_KEY = 'couple_role';
+    const NAME_KEY = 'couple_name';
+    const ICON_KEY = 'couple_icon';
+
+    function getUserInfo() {
+        const role = localStorage.getItem(ROLE_KEY) || 'boy';
+        const name = localStorage.getItem(NAME_KEY) || (role === 'boy' ? 'MANTO' : 'GENTO');
+        const icon = localStorage.getItem(ICON_KEY) || (role === 'boy' ? '/gento.png' : '/manto.png');
+        const roleChinese = role === 'boy' ? '男朋友' : '女朋友';
+        return { role, name, icon, roleChinese };
+    }
+
+    function updateProfileUI() {
+        const info = getUserInfo();
+        document.getElementById('profileAvatarImg').src = info.icon;
+        document.getElementById('profileDisplayName').textContent = info.name;
+        document.getElementById('profileDisplayRole').textContent = info.roleChinese;
+    }
+
+    updateProfileUI();
+
+    const toast = document.getElementById('toastMsg');
+    let toastTimer = null;
+
+    function showToast(message) {
+        toast.textContent = message || '✨ 操作完成';
+        toast.classList.add('show');
+        if (toastTimer) clearTimeout(toastTimer);
+        toastTimer = setTimeout(() => {
+            toast.classList.remove('show');
+        }, 2000);
+    }
+
+    document.getElementById('refreshBtn').addEventListener('click', function() {
+        updateProfileUI();
+        showToast('🔄 已刷新资料');
+        window.dispatchEvent(new StorageEvent('storage', {
+            key: ROLE_KEY,
+            newValue: localStorage.getItem(ROLE_KEY),
+            storageArea: localStorage
+        }));
+    });
+
+    document.getElementById('logoutBtn').addEventListener('click', function() {
+        const keysToRemove = [ROLE_KEY, NAME_KEY, ICON_KEY];
+        keysToRemove.forEach(key => {
+            localStorage.removeItem(key);
+        });
+
+        showToast('👋 已退出，即将跳转...');
+        setTimeout(() => {
+            window.location.href = 'cindex.html';
+        }, 800);
+    });
+
+    document.getElementById('navProfile').classList.add('active');
+    document.getElementById('navHome').classList.remove('active');
+    document.getElementById('navRecord').classList.remove('active');
+
+    window.addEventListener('storage', function(e) {
+        if (e.key === ROLE_KEY || e.key === NAME_KEY || e.key === ICON_KEY) {
+            updateProfileUI();
+        }
+    });
+
+    window.addEventListener('focus', function() {
+        updateProfileUI();
+    });
+
+    // 验证 Firestore 连接
+    try {
+        const testRef = collection(db, 'records');
+        const testQuery = query(testRef);
+        onSnapshot(testQuery, () => {
+            document.getElementById('syncStatus').textContent = '☁️ 已连接 Firestore ✅';
+        }, () => {
+            document.getElementById('syncStatus').textContent = '⚠️ Firestore 连接失败';
+        });
+    } catch (e) {
+        document.getElementById('syncStatus').textContent = '⚠️ Firestore 初始化失败';
+    }
+
+    console.log('🔥 cprofile 已连接 Firestore');
+</script>
+
+</body>
+</html>
