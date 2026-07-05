@@ -1,0 +1,229 @@
+<!DOCTYPE html>
+<html lang="zh">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=yes">
+    <title>情侣储蓄 · 选择身份</title>
+    <style>
+        /* 可爱风全局设计 */
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Segoe UI', 'Quicksand', system-ui, -apple-system, 'Helvetica Neue', sans-serif;
+        }
+
+        body {
+            min-height: 100vh;
+            background: linear-gradient(145deg, #ffe9f4 0%, #ffd9e8 100%);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 20px;
+        }
+
+        .card {
+            background: rgba(255, 245, 248, 0.8);
+            backdrop-filter: blur(6px);
+            -webkit-backdrop-filter: blur(6px);
+            border-radius: 64px 64px 48px 48px;
+            box-shadow: 0 20px 40px rgba(255, 120, 160, 0.25), 0 8px 20px rgba(255, 200, 220, 0.4);
+            padding: 40px 28px 48px;
+            max-width: 420px;
+            width: 100%;
+            text-align: center;
+            border: 2px solid rgba(255, 255, 255, 0.6);
+            transition: all 0.3s ease;
+        }
+
+        h1 {
+            font-size: 2.4rem;
+            font-weight: 700;
+            color: #a64d79;
+            letter-spacing: 2px;
+            text-shadow: 4px 4px 0 #ffc1d4;
+            margin-bottom: 12px;
+        }
+
+        .sub {
+            font-size: 1.1rem;
+            color: #b35d7e;
+            background: #ffeef4;
+            display: inline-block;
+            padding: 6px 24px;
+            border-radius: 60px;
+            font-weight: 600;
+            letter-spacing: 1px;
+            margin-bottom: 36px;
+            border: 1px solid #ffb6cd;
+        }
+
+        .choice-grid {
+            display: flex;
+            flex-direction: row;
+            justify-content: center;
+            gap: 28px;
+            margin: 30px 0 20px;
+            flex-wrap: wrap;
+        }
+
+        .choice-btn {
+            background: white;
+            border: none;
+            border-radius: 80px;
+            padding: 18px 22px 22px;
+            width: 140px;
+            box-shadow: 0 12px 0 #fbb6ce, 0 8px 18px rgba(255, 80, 120, 0.2);
+            transition: all 0.08s linear;
+            cursor: pointer;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            border: 3px solid #ffe2ed;
+        }
+
+        .choice-btn:active {
+            transform: translateY(6px);
+            box-shadow: 0 6px 0 #f58eb0, 0 8px 14px rgba(255, 80, 120, 0.25);
+        }
+
+        .choice-btn img {
+            width: 80px;
+            height: 80px;
+            object-fit: contain;
+            filter: drop-shadow(0 6px 8px rgba(200, 80, 120, 0.2));
+            margin-bottom: 8px;
+        }
+
+        .choice-label {
+            font-size: 1.7rem;
+            font-weight: 700;
+            color: #853e5c;
+            background: #ffeef4;
+            padding: 4px 18px;
+            border-radius: 60px;
+            letter-spacing: 2px;
+            border: 2px solid #ffb0cc;
+        }
+
+        .hint {
+            margin-top: 32px;
+            color: #9f5b78;
+            font-weight: 500;
+            background: #ffdce9;
+            padding: 10px 10px;
+            border-radius: 50px;
+            font-size: 0.95rem;
+            border: 1px dashed #ff8db2;
+        }
+
+        .hint span {
+            display: inline-block;
+            background: #ffb7cf;
+            color: #582f40;
+            border-radius: 20px;
+            padding: 0 12px;
+            font-weight: 700;
+        }
+
+        /* 小点缀 */
+        .heart-emoji {
+            font-size: 1.8rem;
+            display: inline-block;
+            margin: 0 4px;
+        }
+    </style>
+</head>
+<body>
+
+<div class="card" id="indexCard">
+    <h1>💞 情侣储蓄</h1>
+    <div class="sub">🐻 初次见面 · 选择身份</div>
+
+    <div class="choice-grid">
+        <!-- 男朋友 -->
+        <button class="choice-btn" id="boyBtn" data-role="boy">
+            <img src="/gento.png" alt="男朋友" loading="lazy" onerror="this.src='data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 width=%2280%22 height=%2280%22 viewBox=%220 0 80 80%22%3E%3Ccircle cx=%2240%22 cy=%2240%22 r=%2236%22 fill=%22%23aad6f0%22/%3E%3Ctext x=%2220%22 y=%2252%22 font-size=%2230%22 fill=%22%23333%22 font-family=%22Arial%22%3E👦%3C/text%3E%3C/svg%3E'">
+            <span class="choice-label">男友</span>
+        </button>
+
+        <!-- 女朋友 -->
+        <button class="choice-btn" id="girlBtn" data-role="girl">
+            <img src="/manto.png" alt="女朋友" loading="lazy" onerror="this.src='data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 width=%2280%22 height=%2280%22 viewBox=%220 0 80 80%22%3E%3Ccircle cx=%2240%22 cy=%2240%22 r=%2236%22 fill=%22%23f7b8d0%22/%3E%3Ctext x=%2220%22 y=%2252%22 font-size=%2230%22 fill=%22%23333%22 font-family=%22Arial%22%3E👧%3C/text%3E%3C/svg%3E'">
+            <span class="choice-label">女友</span>
+        </button>
+    </div>
+
+    <div class="hint">
+        <span class="heart-emoji">💖</span> 选择后自动保存，下次直接进入 <span class="heart-emoji">✨</span>
+    </div>
+    <div style="margin-top: 20px; font-size: 0.9rem; color: #b16f89;">
+        <span>📱 可爱储蓄 · 只属于你们</span>
+    </div>
+</div>
+
+<script>
+    (function() {
+        // 检查 localStorage 是否已有角色记录
+        const ROLE_KEY = 'couple_role';
+        const NAME_KEY = 'couple_name';
+        const ICON_KEY = 'couple_icon';
+
+        // 如果已经存储了角色，直接跳转到 cmain.html
+        const savedRole = localStorage.getItem(ROLE_KEY);
+        if (savedRole === 'boy' || savedRole === 'girl') {
+            // 跳转到主页面 (cmain.html)
+            window.location.href = 'cmain.html';
+            return; // 阻止后续事件
+        }
+
+        // 否则，监听选择按钮
+        const boyBtn = document.getElementById('boyBtn');
+        const girlBtn = document.getElementById('girlBtn');
+
+        // 保存角色并跳转
+        function setRoleAndNavigate(role) {
+            if (role === 'boy') {
+                localStorage.setItem(ROLE_KEY, 'boy');
+                localStorage.setItem(NAME_KEY, 'MANTO');
+                localStorage.setItem(ICON_KEY, '/gento.png');
+            } else if (role === 'girl') {
+                localStorage.setItem(ROLE_KEY, 'girl');
+                localStorage.setItem(NAME_KEY, 'GENTO');
+                localStorage.setItem(ICON_KEY, '/manto.png');
+            } else {
+                return;
+            }
+            // 跳转到 cmain.html
+            window.location.href = 'cmain.html';
+        }
+
+        boyBtn.addEventListener('click', function(e) {
+            e.preventDefault();
+            setRoleAndNavigate('boy');
+        });
+
+        girlBtn.addEventListener('click', function(e) {
+            e.preventDefault();
+            setRoleAndNavigate('girl');
+        });
+
+        // 额外： 如果图片加载失败，显示备用emoji（已用onerror处理）
+        // 增加触摸友好反馈
+        const allBtns = document.querySelectorAll('.choice-btn');
+        allBtns.forEach(btn => {
+            btn.addEventListener('touchstart', function() {
+                this.style.transform = 'scale(0.96)';
+            }, {passive: true});
+            btn.addEventListener('touchend', function() {
+                this.style.transform = 'scale(1)';
+            }, {passive: true});
+        });
+
+        console.log('✨ 情侣储蓄 · 身份选择页 (cindex)');
+    })();
+</script>
+
+<!-- 备用说明：如果因某些原因无法加载图片，显示文本。但已在img上添加onerror -->
+</body>
+</html>
