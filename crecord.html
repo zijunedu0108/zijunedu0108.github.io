@@ -4,15 +4,14 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=yes">
     <title>情侣储蓄 · 记录</title>
-    <!-- 使用 Chart.js 绘制饼图 (CDN) -->
     <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
     <style>
-        /* 可爱风全局 */
         * {
             margin: 0;
             padding: 0;
             box-sizing: border-box;
             font-family: 'Segoe UI', 'Quicksand', system-ui, -apple-system, 'Helvetica Neue', sans-serif;
+            -webkit-tap-highlight-color: transparent;
         }
 
         body {
@@ -35,10 +34,8 @@
             padding: 20px 18px 30px;
             box-shadow: 0 20px 40px rgba(200, 80, 120, 0.15), 0 8px 20px rgba(255, 150, 180, 0.2);
             border: 2px solid rgba(255, 255, 255, 0.6);
-            position: relative;
         }
 
-        /* 饼图容器 */
         .chart-wrapper {
             background: #fff5f9;
             border-radius: 60px;
@@ -75,7 +72,6 @@
             display: block;
         }
 
-        /* 添加按钮 */
         .add-btn {
             background: #ff9fbb;
             border: none;
@@ -92,6 +88,7 @@
             text-align: center;
             margin-bottom: 24px;
             letter-spacing: 2px;
+            touch-action: manipulation;
         }
 
         .add-btn:active {
@@ -99,7 +96,6 @@
             border-bottom-width: 3px;
         }
 
-        /* 表单卡片 (默认隐藏) */
         .form-card {
             background: #fff5f9;
             border-radius: 48px;
@@ -142,6 +138,7 @@
             box-shadow: 0 4px 0 #e8aec2;
             transition: 0.1s;
             appearance: none;
+            touch-action: manipulation;
         }
 
         .form-group select:focus,
@@ -171,6 +168,7 @@
             transition: 0.08s linear;
             box-shadow: 0 8px 16px rgba(150, 60, 90, 0.2);
             letter-spacing: 2px;
+            touch-action: manipulation;
         }
 
         .submit-btn:active {
@@ -190,9 +188,9 @@
             margin-bottom: 6px;
             padding: 6px 0;
             text-decoration: underline dotted;
+            touch-action: manipulation;
         }
 
-        /* 底部导航 */
         .bottom-nav {
             position: fixed;
             bottom: 0;
@@ -227,6 +225,7 @@
             display: inline-block;
             text-align: center;
             min-width: 70px;
+            touch-action: manipulation;
         }
 
         .nav-item:active {
@@ -241,7 +240,6 @@
             box-shadow: 0 4px 0 #b86f8a;
         }
 
-        /* toast 小提示 */
         .toast-message {
             background: #822f4f;
             color: white;
@@ -258,12 +256,18 @@
         .toast-message.show {
             display: block;
         }
+
+        .loading-text {
+            text-align: center;
+            color: #aa748b;
+            padding: 10px;
+            font-weight: 600;
+        }
     </style>
 </head>
 <body>
 
 <div class="app-container">
-    <!-- 饼图区域 -->
     <div class="chart-wrapper">
         <div class="chart-title">
             <span>📊</span> 进账 vs 开销 <span>💞</span>
@@ -271,10 +275,8 @@
         <canvas id="pieChart" width="300" height="200"></canvas>
     </div>
 
-    <!-- 添加记录按钮 -->
     <button class="add-btn" id="toggleFormBtn">➕ 添加记录</button>
 
-    <!-- 表单卡片 -->
     <div class="form-card" id="recordFormCard">
         <button class="close-form-btn" id="closeFormBtn">✖ 收起</button>
 
@@ -310,217 +312,198 @@
         <div class="toast-message" id="toastMsg">✅ 记录已添加</div>
     </div>
 
-    <!-- 简单提示 -->
     <div style="text-align: center; color: #a55375; font-weight: 500; margin-top: 8px; font-size: 0.9rem; background: #ffeef4; padding: 6px 12px; border-radius: 60px;">
         💖 记录会同步到主页
     </div>
 </div>
 
-<!-- 底部导航栏 -->
 <div class="bottom-nav">
     <a href="cmain.html" class="nav-item" id="navHome">🏠 HOME</a>
     <a href="crecord.html" class="nav-item active" id="navRecord">📝 RECORD</a>
     <a href="cprofile.html" class="nav-item" id="navProfile">👤 PROFILE</a>
 </div>
 
-<script>
-    (function() {
-        // ---------- 读取存储 ----------
-        const STORAGE_KEY = 'couple_records';
-        const ROLE_KEY = 'couple_role';
-        const NAME_KEY = 'couple_name';
+<script type="importmap">
+{
+    "imports": {
+        "firebase/app": "https://www.gstatic.com/firebasejs/12.15.0/firebase-app.js",
+        "firebase/firestore": "https://www.gstatic.com/firebasejs/12.15.0/firebase-firestore.js"
+    }
+}
+</script>
 
-        // 获取当前执行人 (默认MANTO)
-        let currentExecutor = localStorage.getItem(NAME_KEY) || 'MANTO';
+<script type="module">
+    import { initializeApp } from 'firebase/app';
+    import { getFirestore, collection, addDoc, query, onSnapshot } from 'firebase/firestore';
 
-        // 获取记录数组
-        function getRecords() {
-            const stored = localStorage.getItem(STORAGE_KEY);
-            if (stored) {
-                try { return JSON.parse(stored); } catch(e) { return []; }
-            }
-            return [];
+    const firebaseConfig = {
+        apiKey: "AIzaSyD_aW8osSZupLNTmaFXrPjAOcroX_2D7YQ",
+        authDomain: "dailylife-5ad94.firebaseapp.com",
+        projectId: "dailylife-5ad94",
+        storageBucket: "dailylife-5ad94.firebasestorage.app",
+        messagingSenderId: "783888781810",
+        appId: "1:783888781810:web:d9dc08ab862b9935f29b6b",
+        measurementId: "G-3T4P3CY0JH"
+    };
+
+    const app = initializeApp(firebaseConfig);
+    const db = getFirestore(app);
+
+    const NAME_KEY = 'couple_name';
+    const currentExecutor = localStorage.getItem(NAME_KEY) || 'MANTO';
+
+    let chartInstance = null;
+
+    function updatePieChart(records) {
+        let income = 0, expense = 0;
+        records.forEach(r => {
+            const amt = parseFloat(r.amount) || 0;
+            if (r.type === '进账') income += amt;
+            else if (r.type === '开销') expense += amt;
+        });
+
+        const ctx = document.getElementById('pieChart').getContext('2d');
+        if (chartInstance) {
+            chartInstance.destroy();
         }
 
-        function saveRecords(records) {
-            localStorage.setItem(STORAGE_KEY, JSON.stringify(records));
-        }
-
-        // ---------- 饼图 ----------
-        let chartInstance = null;
-
-        function updatePieChart() {
-            const records = getRecords();
-            let income = 0, expense = 0;
-            records.forEach(r => {
-                const amt = parseFloat(r.amount) || 0;
-                if (r.type === '进账') income += amt;
-                else if (r.type === '开销') expense += amt;
-            });
-
-            const ctx = document.getElementById('pieChart').getContext('2d');
-            if (chartInstance) {
-                chartInstance.destroy();
-            }
-
-            chartInstance = new Chart(ctx, {
-                type: 'pie',
-                data: {
-                    labels: ['进账', '开销'],
-                    datasets: [{
-                        data: [income, expense],
-                        backgroundColor: ['#ff98b9', '#b96f8d'],
-                        borderColor: ['#ffe2ed', '#ffe2ed'],
-                        borderWidth: 4,
-                        hoverOffset: 8
-                    }]
-                },
-                options: {
-                    responsive: true,
-                    maintainAspectRatio: true,
-                    plugins: {
-                        legend: {
-                            position: 'bottom',
-                            labels: {
-                                font: { size: 14, weight: 'bold' },
-                                color: '#5e3649',
-                                padding: 16,
-                                usePointStyle: true,
-                                pointStyle: 'circle'
-                            }
-                        },
-                        tooltip: {
-                            callbacks: {
-                                label: function(context) {
-                                    let label = context.label || '';
-                                    let value = context.parsed || 0;
-                                    return label + ': RM ' + value.toFixed(2);
-                                }
-                            }
+        chartInstance = new Chart(ctx, {
+            type: 'pie',
+            data: {
+                labels: ['进账', '开销'],
+                datasets: [{
+                    data: [income, expense],
+                    backgroundColor: ['#ff98b9', '#b96f8d'],
+                    borderColor: ['#ffe2ed', '#ffe2ed'],
+                    borderWidth: 4,
+                    hoverOffset: 8
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: true,
+                plugins: {
+                    legend: {
+                        position: 'bottom',
+                        labels: {
+                            font: { size: 14, weight: 'bold' },
+                            color: '#5e3649',
+                            padding: 16,
+                            usePointStyle: true,
+                            pointStyle: 'circle'
                         }
                     },
-                    cutout: '40%'
-                }
-            });
-        }
-
-        // 初次渲染饼图
-        updatePieChart();
-
-        // ---------- 表单控制 ----------
-        const formCard = document.getElementById('recordFormCard');
-        const toggleBtn = document.getElementById('toggleFormBtn');
-        const closeBtn = document.getElementById('closeFormBtn');
-
-        function openForm() {
-            formCard.classList.add('open');
-            toggleBtn.textContent = '✖ 收起表单';
-        }
-
-        function closeForm() {
-            formCard.classList.remove('open');
-            toggleBtn.textContent = '➕ 添加记录';
-        }
-
-        toggleBtn.addEventListener('click', function() {
-            if (formCard.classList.contains('open')) {
-                closeForm();
-            } else {
-                openForm();
+                    tooltip: {
+                        callbacks: {
+                            label: function(context) {
+                                let label = context.label || '';
+                                let value = context.parsed || 0;
+                                return label + ': RM ' + value.toFixed(2);
+                            }
+                        }
+                    }
+                },
+                cutout: '40%'
             }
         });
+    }
 
-        closeBtn.addEventListener('click', closeForm);
+    // 监听 Firestore 实时更新饼图
+    const recordsRef = collection(db, 'records');
+    const q = query(recordsRef);
 
-        // ---------- 提交记录 ----------
-        const submitBtn = document.getElementById('submitRecordBtn');
-        const toast = document.getElementById('toastMsg');
+    onSnapshot(q, (snapshot) => {
+        const records = [];
+        snapshot.forEach((doc) => {
+            records.push({ id: doc.id, ...doc.data() });
+        });
+        updatePieChart(records);
+    }, (error) => {
+        console.error('监听饼图失败:', error);
+    });
 
-        function showToast(msg) {
-            toast.textContent = msg || '✅ 记录已添加';
-            toast.classList.add('show');
-            setTimeout(() => {
-                toast.classList.remove('show');
-            }, 2200);
+    const formCard = document.getElementById('recordFormCard');
+    const toggleBtn = document.getElementById('toggleFormBtn');
+    const closeBtn = document.getElementById('closeFormBtn');
+
+    function openForm() {
+        formCard.classList.add('open');
+        toggleBtn.textContent = '✖ 收起表单';
+    }
+
+    function closeForm() {
+        formCard.classList.remove('open');
+        toggleBtn.textContent = '➕ 添加记录';
+    }
+
+    toggleBtn.addEventListener('click', function() {
+        if (formCard.classList.contains('open')) {
+            closeForm();
+        } else {
+            openForm();
+        }
+    });
+
+    closeBtn.addEventListener('click', closeForm);
+
+    const submitBtn = document.getElementById('submitRecordBtn');
+    const toast = document.getElementById('toastMsg');
+    let toastTimer = null;
+
+    function showToast(msg) {
+        toast.textContent = msg || '✅ 记录已添加';
+        toast.classList.add('show');
+        if (toastTimer) clearTimeout(toastTimer);
+        toastTimer = setTimeout(() => {
+            toast.classList.remove('show');
+        }, 2200);
+    }
+
+    submitBtn.addEventListener('click', async function() {
+        const type = document.getElementById('recordType').value;
+        const note = document.getElementById('recordNote').value.trim() || '无备注';
+        const amount = parseFloat(document.getElementById('recordAmount').value);
+        const method = document.getElementById('recordMethod').value;
+
+        if (isNaN(amount) || amount <= 0) {
+            showToast('⚠️ 请输入有效金额 (大于0)');
+            return;
         }
 
-        submitBtn.addEventListener('click', function() {
-            // 获取表单值
-            const type = document.getElementById('recordType').value;
-            const note = document.getElementById('recordNote').value.trim() || '无备注';
-            const amount = parseFloat(document.getElementById('recordAmount').value);
-            const method = document.getElementById('recordMethod').value;
-            const executor = currentExecutor; // 使用当前登录人
+        if (!note) {
+            showToast('📝 备注不能为空');
+            return;
+        }
 
-            // 校验
-            if (isNaN(amount) || amount <= 0) {
-                showToast('⚠️ 请输入有效金额 (大于0)');
-                return;
-            }
+        const today = new Date().toISOString().slice(0, 10);
+        const newRecord = {
+            type: type,
+            note: note,
+            amount: amount,
+            method: method,
+            executor: currentExecutor,
+            date: today,
+            createdAt: new Date().toISOString()
+        };
 
-            if (!note) {
-                showToast('📝 备注不能为空');
-                return;
-            }
-
-            // 构建记录
-            const today = new Date().toISOString().slice(0, 10);
-            const newRecord = {
-                id: Date.now() + '_' + Math.random().toString(36).substring(2, 6),
-                type: type,
-                note: note,
-                amount: amount,
-                method: method,
-                executor: executor,
-                date: today
-            };
-
-            // 保存
-            const records = getRecords();
-            records.push(newRecord);
-            saveRecords(records);
-
-            // 更新饼图
-            updatePieChart();
-
-            // 提示 & 清空部分字段 (保留type, method等)
+        try {
+            await addDoc(collection(db, 'records'), newRecord);
             showToast('💕 记录已添加！');
             document.getElementById('recordNote').value = '';
-            document.getElementById('recordAmount').value = '';
-            // 可选择收起表单
+            document.getElementById('recordAmount').value = '50';
             closeForm();
+        } catch (error) {
+            console.error('添加失败:', error);
+            showToast('❌ 添加失败: ' + error.message);
+        }
+    });
 
-            // 触发 storage 事件，让 cmain 更新 (同页面不触发，但cmain会监听storage)
-            // 但是同页面 我们主动触发自定义事件 让其他页面更新 (若打开多个tab 仍会storage)
-            // 手动触发storage事件 (同页面不会自动触发)
-            window.dispatchEvent(new StorageEvent('storage', {
-                key: STORAGE_KEY,
-                newValue: JSON.stringify(getRecords()),
-                storageArea: localStorage
-            }));
+    document.getElementById('navRecord').classList.add('active');
+    document.getElementById('navHome').classList.remove('active');
+    document.getElementById('navProfile').classList.remove('active');
 
-            // 同时 为了确保cmain也更新 (如果已经打开) 但cmain会监听storage
-        });
-
-        // ---------- 导航高亮 ----------
-        document.getElementById('navRecord').classList.add('active');
-        document.getElementById('navHome').classList.remove('active');
-        document.getElementById('navProfile').classList.remove('active');
-
-        // ---------- 监听外部存储变化更新饼图 ----------
-        window.addEventListener('storage', function(e) {
-            if (e.key === STORAGE_KEY) {
-                updatePieChart();
-            }
-        });
-
-        // 窗口获得焦点时重新拉取数据 (更新饼图)
-        window.addEventListener('focus', function() {
-            updatePieChart();
-        });
-
-        console.log('📝 crecord 页面加载完成, 当前执行人:', currentExecutor);
-    })();
+    console.log('🔥 crecord 已连接 Firestore, 当前执行人:', currentExecutor);
 </script>
+
 </body>
 </html>
