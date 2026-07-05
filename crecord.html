@@ -1,0 +1,526 @@
+<!DOCTYPE html>
+<html lang="zh">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=yes">
+    <title>情侣储蓄 · 记录</title>
+    <!-- 使用 Chart.js 绘制饼图 (CDN) -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+    <style>
+        /* 可爱风全局 */
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Segoe UI', 'Quicksand', system-ui, -apple-system, 'Helvetica Neue', sans-serif;
+        }
+
+        body {
+            min-height: 100vh;
+            background: #ffecf2;
+            background-image: radial-gradient(circle at 20% 30%, #ffe2ed 0%, #ffd6e4 100%);
+            padding: 16px 16px 100px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+
+        .app-container {
+            max-width: 440px;
+            width: 100%;
+            background: rgba(255, 245, 248, 0.7);
+            backdrop-filter: blur(4px);
+            -webkit-backdrop-filter: blur(4px);
+            border-radius: 48px 48px 32px 32px;
+            padding: 20px 18px 30px;
+            box-shadow: 0 20px 40px rgba(200, 80, 120, 0.15), 0 8px 20px rgba(255, 150, 180, 0.2);
+            border: 2px solid rgba(255, 255, 255, 0.6);
+            position: relative;
+        }
+
+        /* 饼图容器 */
+        .chart-wrapper {
+            background: #fff5f9;
+            border-radius: 60px;
+            padding: 20px 20px 10px;
+            box-shadow: inset 0 2px 8px rgba(255, 200, 220, 0.3), 0 8px 12px rgba(200, 80, 120, 0.08);
+            border: 2px solid #ffdae6;
+            margin-bottom: 28px;
+        }
+
+        .chart-title {
+            font-weight: 700;
+            font-size: 1.2rem;
+            color: #77445c;
+            text-align: center;
+            margin-bottom: 8px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .chart-title span {
+            background: #ffe2ed;
+            padding: 2px 18px;
+            border-radius: 40px;
+            font-size: 0.8rem;
+            color: #a55375;
+        }
+
+        #pieChart {
+            max-height: 200px;
+            max-width: 100%;
+            margin: 0 auto;
+            display: block;
+        }
+
+        /* 添加按钮 */
+        .add-btn {
+            background: #ff9fbb;
+            border: none;
+            border-radius: 80px;
+            padding: 16px 28px;
+            font-weight: 800;
+            font-size: 1.3rem;
+            color: #4e283b;
+            border-bottom: 7px solid #c96d8b;
+            box-shadow: 0 8px 16px rgba(200, 80, 120, 0.25);
+            width: 100%;
+            cursor: pointer;
+            transition: 0.08s linear;
+            text-align: center;
+            margin-bottom: 24px;
+            letter-spacing: 2px;
+        }
+
+        .add-btn:active {
+            transform: translateY(4px);
+            border-bottom-width: 3px;
+        }
+
+        /* 表单卡片 (默认隐藏) */
+        .form-card {
+            background: #fff5f9;
+            border-radius: 48px;
+            padding: 24px 20px 28px;
+            border: 2px solid #ffdae6;
+            box-shadow: 0 12px 0 #efb9cd, 0 12px 24px rgba(200, 80, 120, 0.12);
+            display: none;
+            margin-bottom: 16px;
+            transition: all 0.2s;
+        }
+
+        .form-card.open {
+            display: block;
+        }
+
+        .form-group {
+            margin-bottom: 20px;
+        }
+
+        .form-group label {
+            font-weight: 700;
+            color: #822f4f;
+            display: block;
+            margin-bottom: 6px;
+            font-size: 0.95rem;
+            padding-left: 8px;
+        }
+
+        .form-group select,
+        .form-group input {
+            width: 100%;
+            padding: 14px 18px;
+            border-radius: 60px;
+            border: 2px solid #ffb7cf;
+            background: white;
+            font-size: 1rem;
+            font-weight: 500;
+            color: #3f2432;
+            outline: none;
+            box-shadow: 0 4px 0 #e8aec2;
+            transition: 0.1s;
+            appearance: none;
+        }
+
+        .form-group select:focus,
+        .form-group input:focus {
+            border-color: #f58eb0;
+            box-shadow: 0 4px 0 #d68ca8, 0 0 0 4px #ffd0e0;
+        }
+
+        .form-group select {
+            background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='20' height='20' viewBox='0 0 24 24' fill='none' stroke='%23b35d7e' stroke-width='3' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolyline points='6 9 12 15 18 9'%3E%3C/polyline%3E%3C/svg%3E");
+            background-repeat: no-repeat;
+            background-position: right 18px center;
+            background-size: 18px;
+        }
+
+        .submit-btn {
+            background: #b96f8d;
+            border: none;
+            border-radius: 80px;
+            padding: 16px 20px;
+            font-weight: 800;
+            font-size: 1.3rem;
+            color: white;
+            border-bottom: 7px solid #7f4b63;
+            width: 100%;
+            cursor: pointer;
+            transition: 0.08s linear;
+            box-shadow: 0 8px 16px rgba(150, 60, 90, 0.2);
+            letter-spacing: 2px;
+        }
+
+        .submit-btn:active {
+            transform: translateY(4px);
+            border-bottom-width: 3px;
+        }
+
+        .close-form-btn {
+            background: transparent;
+            border: none;
+            color: #a55375;
+            font-weight: 700;
+            font-size: 1rem;
+            text-align: right;
+            width: 100%;
+            cursor: pointer;
+            margin-bottom: 6px;
+            padding: 6px 0;
+            text-decoration: underline dotted;
+        }
+
+        /* 底部导航 */
+        .bottom-nav {
+            position: fixed;
+            bottom: 0;
+            left: 0;
+            width: 100%;
+            background: #ffecf2;
+            backdrop-filter: blur(16px);
+            -webkit-backdrop-filter: blur(16px);
+            border-top: 3px solid #ffc1d4;
+            display: flex;
+            justify-content: space-around;
+            padding: 12px 12px 18px;
+            box-shadow: 0 -6px 20px rgba(255, 120, 160, 0.2);
+            border-radius: 40px 40px 0 0;
+            max-width: 440px;
+            margin: 0 auto;
+            left: 50%;
+            transform: translateX(-50%);
+        }
+
+        .nav-item {
+            text-decoration: none;
+            font-weight: 700;
+            color: #9d5b78;
+            background: #ffe2ed;
+            padding: 8px 24px;
+            border-radius: 60px;
+            border: 2px solid #ffb7cf;
+            font-size: 1rem;
+            transition: all 0.1s;
+            box-shadow: 0 4px 0 #d68ca8;
+            display: inline-block;
+            text-align: center;
+            min-width: 70px;
+        }
+
+        .nav-item:active {
+            transform: translateY(4px);
+            box-shadow: 0 0px 0 #d68ca8;
+        }
+
+        .nav-item.active {
+            background: #ffb7cf;
+            color: #582f40;
+            border-color: #f58eb0;
+            box-shadow: 0 4px 0 #b86f8a;
+        }
+
+        /* toast 小提示 */
+        .toast-message {
+            background: #822f4f;
+            color: white;
+            padding: 12px 22px;
+            border-radius: 80px;
+            font-weight: 600;
+            font-size: 0.95rem;
+            text-align: center;
+            margin-top: 12px;
+            display: none;
+            border: 2px solid #ffb7cf;
+        }
+
+        .toast-message.show {
+            display: block;
+        }
+    </style>
+</head>
+<body>
+
+<div class="app-container">
+    <!-- 饼图区域 -->
+    <div class="chart-wrapper">
+        <div class="chart-title">
+            <span>📊</span> 进账 vs 开销 <span>💞</span>
+        </div>
+        <canvas id="pieChart" width="300" height="200"></canvas>
+    </div>
+
+    <!-- 添加记录按钮 -->
+    <button class="add-btn" id="toggleFormBtn">➕ 添加记录</button>
+
+    <!-- 表单卡片 -->
+    <div class="form-card" id="recordFormCard">
+        <button class="close-form-btn" id="closeFormBtn">✖ 收起</button>
+
+        <div class="form-group">
+            <label>📌 类型</label>
+            <select id="recordType">
+                <option value="进账">💰 进账</option>
+                <option value="开销">💸 开销</option>
+            </select>
+        </div>
+
+        <div class="form-group">
+            <label>📝 备注 (Note)</label>
+            <input type="text" id="recordNote" placeholder="例如: 晚餐、奖金..." value="✨ 可爱储蓄">
+        </div>
+
+        <div class="form-group">
+            <label>💰 金额 (RM)</label>
+            <input type="number" id="recordAmount" placeholder="0.00" step="0.01" value="50">
+        </div>
+
+        <div class="form-group">
+            <label>💳 流水方式</label>
+            <select id="recordMethod">
+                <option value="现金">现金</option>
+                <option value="Touch N Go eWallet">Touch N Go eWallet</option>
+                <option value="BankCard">BankCard</option>
+                <option value="储蓄罐">储蓄罐</option>
+            </select>
+        </div>
+
+        <button class="submit-btn" id="submitRecordBtn">✨ 添加记录</button>
+        <div class="toast-message" id="toastMsg">✅ 记录已添加</div>
+    </div>
+
+    <!-- 简单提示 -->
+    <div style="text-align: center; color: #a55375; font-weight: 500; margin-top: 8px; font-size: 0.9rem; background: #ffeef4; padding: 6px 12px; border-radius: 60px;">
+        💖 记录会同步到主页
+    </div>
+</div>
+
+<!-- 底部导航栏 -->
+<div class="bottom-nav">
+    <a href="cmain.html" class="nav-item" id="navHome">🏠 HOME</a>
+    <a href="crecord.html" class="nav-item active" id="navRecord">📝 RECORD</a>
+    <a href="cprofile.html" class="nav-item" id="navProfile">👤 PROFILE</a>
+</div>
+
+<script>
+    (function() {
+        // ---------- 读取存储 ----------
+        const STORAGE_KEY = 'couple_records';
+        const ROLE_KEY = 'couple_role';
+        const NAME_KEY = 'couple_name';
+
+        // 获取当前执行人 (默认MANTO)
+        let currentExecutor = localStorage.getItem(NAME_KEY) || 'MANTO';
+
+        // 获取记录数组
+        function getRecords() {
+            const stored = localStorage.getItem(STORAGE_KEY);
+            if (stored) {
+                try { return JSON.parse(stored); } catch(e) { return []; }
+            }
+            return [];
+        }
+
+        function saveRecords(records) {
+            localStorage.setItem(STORAGE_KEY, JSON.stringify(records));
+        }
+
+        // ---------- 饼图 ----------
+        let chartInstance = null;
+
+        function updatePieChart() {
+            const records = getRecords();
+            let income = 0, expense = 0;
+            records.forEach(r => {
+                const amt = parseFloat(r.amount) || 0;
+                if (r.type === '进账') income += amt;
+                else if (r.type === '开销') expense += amt;
+            });
+
+            const ctx = document.getElementById('pieChart').getContext('2d');
+            if (chartInstance) {
+                chartInstance.destroy();
+            }
+
+            chartInstance = new Chart(ctx, {
+                type: 'pie',
+                data: {
+                    labels: ['进账', '开销'],
+                    datasets: [{
+                        data: [income, expense],
+                        backgroundColor: ['#ff98b9', '#b96f8d'],
+                        borderColor: ['#ffe2ed', '#ffe2ed'],
+                        borderWidth: 4,
+                        hoverOffset: 8
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: true,
+                    plugins: {
+                        legend: {
+                            position: 'bottom',
+                            labels: {
+                                font: { size: 14, weight: 'bold' },
+                                color: '#5e3649',
+                                padding: 16,
+                                usePointStyle: true,
+                                pointStyle: 'circle'
+                            }
+                        },
+                        tooltip: {
+                            callbacks: {
+                                label: function(context) {
+                                    let label = context.label || '';
+                                    let value = context.parsed || 0;
+                                    return label + ': RM ' + value.toFixed(2);
+                                }
+                            }
+                        }
+                    },
+                    cutout: '40%'
+                }
+            });
+        }
+
+        // 初次渲染饼图
+        updatePieChart();
+
+        // ---------- 表单控制 ----------
+        const formCard = document.getElementById('recordFormCard');
+        const toggleBtn = document.getElementById('toggleFormBtn');
+        const closeBtn = document.getElementById('closeFormBtn');
+
+        function openForm() {
+            formCard.classList.add('open');
+            toggleBtn.textContent = '✖ 收起表单';
+        }
+
+        function closeForm() {
+            formCard.classList.remove('open');
+            toggleBtn.textContent = '➕ 添加记录';
+        }
+
+        toggleBtn.addEventListener('click', function() {
+            if (formCard.classList.contains('open')) {
+                closeForm();
+            } else {
+                openForm();
+            }
+        });
+
+        closeBtn.addEventListener('click', closeForm);
+
+        // ---------- 提交记录 ----------
+        const submitBtn = document.getElementById('submitRecordBtn');
+        const toast = document.getElementById('toastMsg');
+
+        function showToast(msg) {
+            toast.textContent = msg || '✅ 记录已添加';
+            toast.classList.add('show');
+            setTimeout(() => {
+                toast.classList.remove('show');
+            }, 2200);
+        }
+
+        submitBtn.addEventListener('click', function() {
+            // 获取表单值
+            const type = document.getElementById('recordType').value;
+            const note = document.getElementById('recordNote').value.trim() || '无备注';
+            const amount = parseFloat(document.getElementById('recordAmount').value);
+            const method = document.getElementById('recordMethod').value;
+            const executor = currentExecutor; // 使用当前登录人
+
+            // 校验
+            if (isNaN(amount) || amount <= 0) {
+                showToast('⚠️ 请输入有效金额 (大于0)');
+                return;
+            }
+
+            if (!note) {
+                showToast('📝 备注不能为空');
+                return;
+            }
+
+            // 构建记录
+            const today = new Date().toISOString().slice(0, 10);
+            const newRecord = {
+                id: Date.now() + '_' + Math.random().toString(36).substring(2, 6),
+                type: type,
+                note: note,
+                amount: amount,
+                method: method,
+                executor: executor,
+                date: today
+            };
+
+            // 保存
+            const records = getRecords();
+            records.push(newRecord);
+            saveRecords(records);
+
+            // 更新饼图
+            updatePieChart();
+
+            // 提示 & 清空部分字段 (保留type, method等)
+            showToast('💕 记录已添加！');
+            document.getElementById('recordNote').value = '';
+            document.getElementById('recordAmount').value = '';
+            // 可选择收起表单
+            closeForm();
+
+            // 触发 storage 事件，让 cmain 更新 (同页面不触发，但cmain会监听storage)
+            // 但是同页面 我们主动触发自定义事件 让其他页面更新 (若打开多个tab 仍会storage)
+            // 手动触发storage事件 (同页面不会自动触发)
+            window.dispatchEvent(new StorageEvent('storage', {
+                key: STORAGE_KEY,
+                newValue: JSON.stringify(getRecords()),
+                storageArea: localStorage
+            }));
+
+            // 同时 为了确保cmain也更新 (如果已经打开) 但cmain会监听storage
+        });
+
+        // ---------- 导航高亮 ----------
+        document.getElementById('navRecord').classList.add('active');
+        document.getElementById('navHome').classList.remove('active');
+        document.getElementById('navProfile').classList.remove('active');
+
+        // ---------- 监听外部存储变化更新饼图 ----------
+        window.addEventListener('storage', function(e) {
+            if (e.key === STORAGE_KEY) {
+                updatePieChart();
+            }
+        });
+
+        // 窗口获得焦点时重新拉取数据 (更新饼图)
+        window.addEventListener('focus', function() {
+            updatePieChart();
+        });
+
+        console.log('📝 crecord 页面加载完成, 当前执行人:', currentExecutor);
+    })();
+</script>
+</body>
+</html>
