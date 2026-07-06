@@ -43,7 +43,7 @@
             padding: 14px 16px;
             box-shadow: 0 2px 12px rgba(200, 80, 120, 0.08);
             border: 1px solid #f5d0dd;
-            margin-bottom: 16px;
+            margin-bottom: 12px;
             display: flex;
             flex-direction: row;
             align-items: center;
@@ -95,26 +95,50 @@
             margin-top: 1px;
         }
 
-        .profile-savings {
-            margin-left: auto;
-            background: #fce8ef;
-            padding: 6px 14px 6px 16px;
-            border-radius: 16px;
-            border: 1.5px solid #f0b0c8;
-            font-weight: 700;
-            font-size: 1.3rem;
-            color: #6b2f47;
-            white-space: nowrap;
+        /* ===== 资产卡片（我的资产 + 共同资产） ===== */
+        .assets-row {
             display: flex;
-            align-items: center;
-            gap: 2px;
-            flex-shrink: 0;
+            gap: 10px;
+            margin-bottom: 14px;
         }
 
-        .profile-savings small {
-            font-size: 0.8rem;
+        .asset-card {
+            flex: 1;
+            background: #ffffff;
+            border-radius: 16px;
+            padding: 12px 14px;
+            border: 1px solid #f5d0dd;
+            box-shadow: 0 2px 8px rgba(200, 80, 120, 0.05);
+            text-align: center;
+            min-width: 0;
+        }
+
+        .asset-card .asset-label {
+            font-size: 0.7rem;
+            font-weight: 600;
+            color: #b88b9c;
+            letter-spacing: 0.3px;
+            margin-bottom: 2px;
+        }
+
+        .asset-card .asset-amount {
+            font-size: 1.2rem;
+            font-weight: 700;
+            color: #6b2f47;
+        }
+
+        .asset-card .asset-amount small {
+            font-size: 0.7rem;
             font-weight: 500;
             color: #ae6a84;
+        }
+
+        .asset-card.my-asset {
+            border-left: 3px solid #f0a0b8;
+        }
+
+        .asset-card.shared-asset {
+            border-left: 3px solid #c96d8b;
         }
 
         /* ===== Filter Bar ===== */
@@ -295,7 +319,7 @@
             font-weight: 500;
         }
 
-        /* ===== iOS-style Bottom Navigation (纯文字 + 小圆点) ===== */
+        /* ===== iOS-style Bottom Navigation ===== */
         .bottom-nav {
             position: fixed;
             bottom: 0;
@@ -362,7 +386,7 @@
             transform: scale(0.92);
         }
 
-        /* 小圆点指示器 (iOS 风格) */
+        /* 小圆点指示器 */
         .nav-item.active::after {
             content: '';
             position: absolute;
@@ -374,11 +398,6 @@
             background: #c96d8b;
             border-radius: 0 0 4px 4px;
         }
-
-        /* 导航图标使用 Unicode 符号，不用 emoji */
-        .icon-home::before { content: '⌂'; }
-        .icon-list::before { content: '☰'; }
-        .icon-person::before { content: '◌'; }
     </style>
 </head>
 <body>
@@ -393,8 +412,20 @@
             <div class="profile-name" id="profileName">GENTO</div>
             <div class="profile-role" id="profileRole">男朋友</div>
         </div>
-        <div class="profile-savings" id="savingsDisplay">
+        <div class="profile-savings" id="savingsDisplay" style="display:none;">
             <small>RM</small> 0.00
+        </div>
+    </div>
+
+    <!-- ===== 资产卡片：我的资产 + 共同资产 ===== -->
+    <div class="assets-row">
+        <div class="asset-card my-asset">
+            <div class="asset-label">👤 我的资产</div>
+            <div class="asset-amount" id="myAssetDisplay"><small>RM</small> 0.00</div>
+        </div>
+        <div class="asset-card shared-asset">
+            <div class="asset-label">💞 共同资产</div>
+            <div class="asset-amount" id="sharedAssetDisplay"><small>RM</small> 0.00</div>
         </div>
     </div>
 
@@ -432,7 +463,7 @@
     </div>
 </div>
 
-<!-- ===== Bottom Navigation (纯文字图标) ===== -->
+<!-- ===== Bottom Navigation ===== -->
 <div class="bottom-nav">
     <a href="cmain.html" class="nav-item active" id="navHome">
         <span class="nav-icon">⌂</span>
@@ -481,15 +512,78 @@
     const ICON_KEY = 'couple_icon';
 
     const role = localStorage.getItem(ROLE_KEY) || 'boy';
-    const displayName = localStorage.getItem(NAME_KEY) || (role === 'boy' ? 'GENTO' : 'MANTO');
+    const currentUser = localStorage.getItem(NAME_KEY) || (role === 'boy' ? 'GENTO' : 'MANTO');
+    const partner = role === 'boy' ? 'MANTO' : 'GENTO';
     const iconPath = localStorage.getItem(ICON_KEY) || (role === 'boy' ? '/gento.png' : '/manto.png');
 
     document.getElementById('profileAvatar').src = iconPath;
-    document.getElementById('profileName').textContent = displayName;
+    document.getElementById('profileName').textContent = currentUser;
     document.getElementById('profileRole').textContent = role === 'boy' ? '男朋友' : '女朋友';
 
     let allRecords = [];
 
+    // ===== 计算资产 =====
+    function calculateAssets() {
+        let myTotal = 0;
+        let sharedTotal = 0;
+
+        allRecords.forEach(r => {
+            const amt = parseFloat(r.amount) || 0;
+            const isIncome = r.type === '进账';
+            const sign = isIncome ? 1 : -1;
+
+            // 判断是个人还是共同
+            if (r.scope === '个人') {
+                if (r.executor === currentUser) {
+                    myTotal += sign * amt;
+                }
+            } else {
+                // 共同资产：双方各占50%
+                sharedTotal += sign * amt;
+            }
+        });
+
+        // 如果记录中没有 scope 字段，默认当作共同资产（兼容旧数据）
+        // 重新计算：没有 scope 的按共同处理
+        let myTotal2 = 0;
+        let sharedTotal2 = 0;
+        allRecords.forEach(r => {
+            const amt = parseFloat(r.amount) || 0;
+            const isIncome = r.type === '进账';
+            const sign = isIncome ? 1 : -1;
+
+            if (r.scope === '个人') {
+                if (r.executor === currentUser) {
+                    myTotal2 += sign * amt;
+                }
+            } else {
+                sharedTotal2 += sign * amt;
+            }
+        });
+
+        // 如果有 scope 字段的数据，用新的；否则用旧的兼容逻辑
+        const hasScope = allRecords.some(r => r.scope !== undefined);
+        if (hasScope) {
+            return { myAsset: myTotal2, sharedAsset: sharedTotal2 };
+        } else {
+            // 兼容旧数据：所有记录都算共同
+            let total = 0;
+            allRecords.forEach(r => {
+                const amt = parseFloat(r.amount) || 0;
+                if (r.type === '进账') total += amt;
+                else if (r.type === '开销') total -= amt;
+            });
+            return { myAsset: 0, sharedAsset: total };
+        }
+    }
+
+    function updateAssets() {
+        const { myAsset, sharedAsset } = calculateAssets();
+        document.getElementById('myAssetDisplay').innerHTML = `<small>RM</small> ${myAsset.toFixed(2)}`;
+        document.getElementById('sharedAssetDisplay').innerHTML = `<small>RM</small> ${sharedAsset.toFixed(2)}`;
+    }
+
+    // ===== 渲染历史记录 =====
     function renderHistory(filterOptions = {}) {
         const { date, method, type, executor } = filterOptions;
 
@@ -520,6 +614,7 @@
             const amountClass = isNegative ? 'record-amount negative' : 'record-amount';
             const sign = isNegative ? '-' : '+';
             const icon = isNegative ? '💸' : '💰';
+            const scopeTag = r.scope === '个人' ? '👤个人' : '💞共同';
 
             html += `
                 <div class="record-item">
@@ -527,6 +622,7 @@
                         <div class="record-category">
                             <span>${icon} ${r.type}</span>
                             <span class="badge">${r.method || '其他'}</span>
+                            <span class="badge" style="background:#f0e0e8;">${scopeTag}</span>
                         </div>
                         <div class="record-note">${r.note || '无备注'}</div>
                         <div class="record-meta">
@@ -542,16 +638,7 @@
         container.innerHTML = html;
     }
 
-    function updateSavings() {
-        let total = 0;
-        allRecords.forEach(r => {
-            const amt = parseFloat(r.amount) || 0;
-            if (r.type === '进账') total += amt;
-            else if (r.type === '开销') total -= amt;
-        });
-        document.getElementById('savingsDisplay').innerHTML = `<small>RM</small> ${total.toFixed(2)}`;
-    }
-
+    // ===== 监听 Firestore =====
     function listenToRecords() {
         const recordsRef = collection(db, 'records');
         const q = query(recordsRef, orderBy('date', 'desc'));
@@ -562,7 +649,7 @@
                 allRecords.push({ id: doc.id, ...doc.data() });
             });
 
-            updateSavings();
+            updateAssets();
 
             const date = document.getElementById('filterDate').value;
             const method = document.getElementById('filterMethod').value;
@@ -579,6 +666,7 @@
 
     listenToRecords();
 
+    // ===== 筛选按钮 =====
     document.getElementById('applyFilterBtn').addEventListener('click', function() {
         const date = document.getElementById('filterDate').value;
         const method = document.getElementById('filterMethod').value;
@@ -595,9 +683,10 @@
         renderHistory({});
     });
 
+    // ===== 导航高亮 =====
     document.getElementById('navHome').classList.add('active');
 
-    console.log('🔥 cmain 已连接 Firestore');
+    console.log('🔥 cmain 已连接 Firestore, 当前用户:', currentUser);
 </script>
 
 </body>
