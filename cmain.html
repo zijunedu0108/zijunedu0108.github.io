@@ -464,6 +464,15 @@
             font-size: 0.85rem;
         }
 
+        .modal-sub {
+            font-size: 0.7rem;
+            color: #b88b9c;
+            text-align: center;
+            margin: 6px 0 10px;
+            padding-bottom: 10px;
+            border-bottom: 1px solid #f5e0e8;
+        }
+
         /* ===== iOS-style Bottom Navigation ===== */
         .bottom-nav {
             position: fixed;
@@ -695,9 +704,7 @@
 
     let allRecords = [];
 
-    // ===== 资产计算 =====
-    // 我的资产 = 所有标记为"个人"且执行人是自己的记录
-    // 共同资产 = 我的资产 + 对方的个人资产
+    // ===== 资产计算（基于 executor） =====
     function calculateAssets() {
         let myTotal = 0;
         let partnerTotal = 0;
@@ -710,29 +717,17 @@
             const sign = isIncome ? 1 : -1;
             const method = r.method || '其他';
 
-            // 只有标记为"个人"的才计入个人资产
-            if (r.scope === '个人') {
-                if (r.executor === currentUser) {
-                    myTotal += sign * amt;
-                    myDetails[method] = (myDetails[method] || 0) + sign * amt;
-                } else if (r.executor === partner) {
-                    partnerTotal += sign * amt;
-                    partnerDetails[method] = (partnerDetails[method] || 0) + sign * amt;
-                }
+            if (r.executor === currentUser) {
+                myTotal += sign * amt;
+                myDetails[method] = (myDetails[method] || 0) + sign * amt;
+            } else if (r.executor === partner) {
+                partnerTotal += sign * amt;
+                partnerDetails[method] = (partnerDetails[method] || 0) + sign * amt;
             }
         });
 
-        // 兼容旧数据：没有 scope 字段的记录不计入个人资产（显示为0）
-        // 但用户可能希望旧数据也显示，所以如果有记录但没有 scope，提示用户重新标记
-        const hasScope = allRecords.some(r => r.scope !== undefined);
-        if (!hasScope && allRecords.length > 0) {
-            // 旧数据全部不算个人资产，显示提示
-            console.log('检测到旧数据，请重新标记记录范围');
-        }
-
         // 共同资产 = 我的资产 + 对方资产
         const sharedTotal = myTotal + partnerTotal;
-        // 合并明细
         const sharedDetails = { ...myDetails };
         Object.keys(partnerDetails).forEach(key => {
             sharedDetails[key] = (sharedDetails[key] || 0) + partnerDetails[key];
@@ -766,14 +761,14 @@
 
         const detailList = document.getElementById('modalDetailList');
         
-        // 如果是共同资产，显示自己和对方的明细
         if (!isMyAsset) {
             const data = window._assetData || {};
             const myAmt = data.myAsset || 0;
             const partnerAmt = data.partnerAsset || 0;
             
             let html = `
-                <div class="detail-item" style="background:#fcf2f6; border-radius:8px; padding:8px 12px; margin-bottom:8px;">
+                <div class="modal-sub">共同资产 = 我的资产 + 对方资产</div>
+                <div class="detail-item" style="background:#fcf2f6; border-radius:8px; padding:8px 12px; margin-bottom:6px;">
                     <span class="detail-label" style="font-weight:600;">👤 ${currentUser}</span>
                     <span class="detail-amount" style="font-weight:700;">RM ${myAmt.toFixed(2)}</span>
                 </div>
@@ -781,12 +776,8 @@
                     <span class="detail-label" style="font-weight:600;">👤 ${partner}</span>
                     <span class="detail-amount" style="font-weight:700;">RM ${partnerAmt.toFixed(2)}</span>
                 </div>
-                <div style="font-size:0.65rem; color:#b88b9c; text-align:center; margin-bottom:10px; border-bottom:1px solid #f5e0e8; padding-bottom:10px;">
-                    共同资产 = 我的资产 + 对方资产
-                </div>
             `;
             
-            // 合并明细
             const combined = { ...data.myDetails };
             Object.keys(data.partnerDetails || {}).forEach(key => {
                 combined[key] = (combined[key] || 0) + (data.partnerDetails[key] || 0);
@@ -809,7 +800,6 @@
             }
             detailList.innerHTML = html;
         } else {
-            // 我的资产明细
             const entries = Object.entries(details).filter(([_, val]) => val !== 0);
             if (entries.length === 0) {
                 detailList.innerHTML = `<div class="modal-empty">暂无明细记录</div>`;
@@ -843,7 +833,6 @@
         if (e.target === this) closeModal();
     });
 
-    // ===== 点击资产卡片 =====
     document.getElementById('myAssetCard').addEventListener('click', function() {
         const data = window._assetData || { myAsset: 0, myDetails: {} };
         openModal('👤 我的资产明细', data.myAsset, data.myDetails, true);
@@ -885,7 +874,7 @@
             const amountClass = isNegative ? 'record-amount negative' : 'record-amount';
             const sign = isNegative ? '-' : '+';
             const icon = isNegative ? '💸' : '💰';
-            const scopeTag = r.scope === '个人' ? '👤个人' : '💞共同';
+            const executorTag = r.executor === currentUser ? '👤 我' : `👤 ${r.executor}`;
 
             html += `
                 <div class="record-item">
@@ -893,12 +882,11 @@
                         <div class="record-category">
                             <span>${icon} ${r.type}</span>
                             <span class="badge">${r.method || '其他'}</span>
-                            <span class="badge" style="background:#f0e0e8;">${scopeTag}</span>
+                            <span class="badge" style="background:#f0e0e8;">${executorTag}</span>
                         </div>
                         <div class="record-note">${r.note || '无备注'}</div>
                         <div class="record-meta">
                             <span>📅 ${r.date || '未知日期'}</span>
-                            <span>👤 ${r.executor || '未知'}</span>
                         </div>
                     </div>
                     <div class="${amountClass}">${sign} RM ${parseFloat(r.amount).toFixed(2)}</div>
