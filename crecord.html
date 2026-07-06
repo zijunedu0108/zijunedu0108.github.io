@@ -100,30 +100,39 @@
             border: 1px solid #f0c8d8;
         }
 
-        /* ===== Chart ===== */
-        .chart-wrapper {
-            background: #ffffff;
-            border-radius: 16px;
-            padding: 14px 14px 8px;
-            box-shadow: 0 2px 12px rgba(200, 80, 120, 0.06);
-            border: 1px solid #f5d0dd;
+        /* ===== 双饼图布局 ===== */
+        .charts-row {
+            display: flex;
+            gap: 10px;
             margin-bottom: 16px;
         }
 
-        .chart-title {
-            font-weight: 600;
-            font-size: 0.9rem;
-            color: #77445c;
-            text-align: center;
-            margin-bottom: 4px;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            gap: 8px;
+        .chart-wrapper {
+            flex: 1;
+            background: #ffffff;
+            border-radius: 14px;
+            padding: 10px 8px 6px;
+            box-shadow: 0 2px 12px rgba(200, 80, 120, 0.06);
+            border: 1px solid #f5d0dd;
+            min-width: 0;
         }
 
-        #pieChart {
-            max-height: 170px;
+        .chart-wrapper .chart-title {
+            font-weight: 600;
+            font-size: 0.7rem;
+            color: #77445c;
+            text-align: center;
+            margin-bottom: 2px;
+        }
+
+        .chart-wrapper .chart-title .sub {
+            font-weight: 400;
+            color: #b88b9c;
+            font-size: 0.6rem;
+        }
+
+        .chart-wrapper canvas {
+            max-height: 120px;
             max-width: 100%;
             margin: 0 auto;
             display: block;
@@ -374,7 +383,6 @@
             border-radius: 0 0 4px 4px;
         }
 
-        /* 小提示 */
         .sync-hint {
             text-align: center;
             color: #b88b9c;
@@ -410,12 +418,16 @@
         <div class="record-badge" id="recordCount">0 笔</div>
     </div>
 
-    <!-- ===== Chart ===== -->
-    <div class="chart-wrapper">
-        <div class="chart-title">
-            <span>📊 进账 vs 开销</span>
+    <!-- ===== 双饼图 ===== -->
+    <div class="charts-row">
+        <div class="chart-wrapper">
+            <div class="chart-title">👤 个人 <span class="sub">(我的)</span></div>
+            <canvas id="personalPieChart" width="150" height="120"></canvas>
         </div>
-        <canvas id="pieChart" width="300" height="170"></canvas>
+        <div class="chart-wrapper">
+            <div class="chart-title">💞 共同 <span class="sub">(双方)</span></div>
+            <canvas id="sharedPieChart" width="150" height="120"></canvas>
+        </div>
     </div>
 
     <!-- ===== 添加按钮 ===== -->
@@ -448,8 +460,8 @@
             <div class="form-group">
                 <label>范围</label>
                 <select id="recordScope">
-                    <option value="共同">💞 共同</option>
                     <option value="个人">👤 个人</option>
+                    <option value="共同">💞 共同</option>
                 </select>
             </div>
         </div>
@@ -524,40 +536,66 @@
 
     const role = localStorage.getItem(ROLE_KEY) || 'boy';
     const currentUser = localStorage.getItem(NAME_KEY) || (role === 'boy' ? 'GENTO' : 'MANTO');
+    const partner = role === 'boy' ? 'MANTO' : 'GENTO';
     const iconPath = localStorage.getItem(ICON_KEY) || (role === 'boy' ? '/gento.png' : '/manto.png');
 
-    // 更新用户信息
     document.getElementById('userAvatar').src = iconPath;
     document.getElementById('userName').textContent = currentUser;
     document.getElementById('userRole').textContent = role === 'boy' ? '男朋友' : '女朋友';
 
-    let chartInstance = null;
     let allRecords = [];
+    let personalChartInstance = null;
+    let sharedChartInstance = null;
 
-    // ===== 饼图 =====
-    function updatePieChart(records) {
-        let income = 0, expense = 0;
+    // ===== 双饼图更新 =====
+    function updateCharts(records) {
+        // 个人数据 (scope === '个人' 且 executor === currentUser)
+        let personalIncome = 0, personalExpense = 0;
+        // 共同数据 (scope === '共同' 或者没有 scope 字段的旧数据)
+        let sharedIncome = 0, sharedExpense = 0;
+
         records.forEach(r => {
             const amt = parseFloat(r.amount) || 0;
-            if (r.type === '进账') income += amt;
-            else if (r.type === '开销') expense += amt;
+            const isIncome = r.type === '进账';
+
+            if (r.scope === '个人') {
+                if (r.executor === currentUser) {
+                    if (isIncome) personalIncome += amt;
+                    else personalExpense += amt;
+                }
+                // 对方个人不计入当前用户的个人图表
+            } else {
+                // 共同资产
+                if (isIncome) sharedIncome += amt;
+                else sharedExpense += amt;
+            }
         });
 
-        const ctx = document.getElementById('pieChart').getContext('2d');
-        if (chartInstance) {
-            chartInstance.destroy();
+        // 如果没有 scope 字段的旧数据，全部归入共同
+        const hasScope = records.some(r => r.scope !== undefined);
+        if (!hasScope && records.length > 0) {
+            // 重新计算：所有记录归入共同
+            sharedIncome = 0;
+            sharedExpense = 0;
+            records.forEach(r => {
+                const amt = parseFloat(r.amount) || 0;
+                if (r.type === '进账') sharedIncome += amt;
+                else if (r.type === '开销') sharedExpense += amt;
+            });
         }
 
-        chartInstance = new Chart(ctx, {
+        // === 个人饼图 ===
+        const personalCtx = document.getElementById('personalPieChart').getContext('2d');
+        if (personalChartInstance) personalChartInstance.destroy();
+        personalChartInstance = new Chart(personalCtx, {
             type: 'pie',
             data: {
                 labels: ['进账', '开销'],
                 datasets: [{
-                    data: [income, expense],
+                    data: [personalIncome, personalExpense],
                     backgroundColor: ['#f0a0b8', '#c96d8b'],
                     borderColor: ['#ffffff', '#ffffff'],
-                    borderWidth: 3,
-                    hoverOffset: 8
+                    borderWidth: 2
                 }]
             },
             options: {
@@ -567,24 +605,64 @@
                     legend: {
                         position: 'bottom',
                         labels: {
-                            font: { size: 12, weight: '600' },
+                            font: { size: 9, weight: '500' },
                             color: '#5e3649',
-                            padding: 12,
+                            padding: 6,
                             usePointStyle: true,
-                            pointStyle: 'circle'
+                            pointStyle: 'circle',
+                            boxWidth: 8
                         }
                     },
                     tooltip: {
                         callbacks: {
                             label: function(context) {
-                                let label = context.label || '';
-                                let value = context.parsed || 0;
-                                return label + ': RM ' + value.toFixed(2);
+                                return context.label + ': RM ' + context.parsed.toFixed(2);
                             }
                         }
                     }
                 },
-                cutout: '45%'
+                cutout: '35%'
+            }
+        });
+
+        // === 共同饼图 ===
+        const sharedCtx = document.getElementById('sharedPieChart').getContext('2d');
+        if (sharedChartInstance) sharedChartInstance.destroy();
+        sharedChartInstance = new Chart(sharedCtx, {
+            type: 'pie',
+            data: {
+                labels: ['进账', '开销'],
+                datasets: [{
+                    data: [sharedIncome, sharedExpense],
+                    backgroundColor: ['#e08db0', '#b86f8a'],
+                    borderColor: ['#ffffff', '#ffffff'],
+                    borderWidth: 2
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: true,
+                plugins: {
+                    legend: {
+                        position: 'bottom',
+                        labels: {
+                            font: { size: 9, weight: '500' },
+                            color: '#5e3649',
+                            padding: 6,
+                            usePointStyle: true,
+                            pointStyle: 'circle',
+                            boxWidth: 8
+                        }
+                    },
+                    tooltip: {
+                        callbacks: {
+                            label: function(context) {
+                                return context.label + ': RM ' + context.parsed.toFixed(2);
+                            }
+                        }
+                    }
+                },
+                cutout: '35%'
             }
         });
     }
@@ -603,7 +681,7 @@
         snapshot.forEach((doc) => {
             allRecords.push({ id: doc.id, ...doc.data() });
         });
-        updatePieChart(allRecords);
+        updateCharts(allRecords);
         updateRecordCount();
     }, (error) => {
         console.error('监听失败:', error);
