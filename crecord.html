@@ -421,11 +421,11 @@
     <!-- ===== 双饼图 ===== -->
     <div class="charts-row">
         <div class="chart-wrapper">
-            <div class="chart-title">👤 个人 <span class="sub">(我的)</span></div>
+            <div class="chart-title">👤 我的资产</div>
             <canvas id="personalPieChart" width="150" height="120"></canvas>
         </div>
         <div class="chart-wrapper">
-            <div class="chart-title">💞 共同 <span class="sub">(双方)</span></div>
+            <div class="chart-title">💞 共同资产</div>
             <canvas id="sharedPieChart" width="150" height="120"></canvas>
         </div>
     </div>
@@ -458,22 +458,14 @@
                 <input type="number" id="recordAmount" placeholder="0.00" step="0.01" value="50">
             </div>
             <div class="form-group">
-                <label>范围</label>
-                <select id="recordScope">
-                    <option value="个人">👤 个人</option>
-                    <option value="共同">💞 共同</option>
+                <label>支付方式</label>
+                <select id="recordMethod">
+                    <option value="现金">现金</option>
+                    <option value="Touch N Go eWallet">Touch N Go</option>
+                    <option value="BankCard">BankCard</option>
+                    <option value="储蓄罐">储蓄罐</option>
                 </select>
             </div>
-        </div>
-
-        <div class="form-group">
-            <label>支付方式</label>
-            <select id="recordMethod">
-                <option value="现金">现金</option>
-                <option value="Touch N Go eWallet">Touch N Go</option>
-                <option value="BankCard">BankCard</option>
-                <option value="储蓄罐">储蓄罐</option>
-            </select>
         </div>
 
         <button class="submit-btn" id="submitRecordBtn">✓ 添加记录</button>
@@ -549,42 +541,28 @@
 
     // ===== 双饼图更新 =====
     function updateCharts(records) {
-        // 个人数据 (scope === '个人' 且 executor === currentUser)
-        let personalIncome = 0, personalExpense = 0;
-        // 共同数据 (scope === '共同' 或者没有 scope 字段的旧数据)
-        let sharedIncome = 0, sharedExpense = 0;
+        // 我的个人资产：所有记录都是个人的，按 executor 区分
+        let myIncome = 0, myExpense = 0;
+        let partnerIncome = 0, partnerExpense = 0;
 
         records.forEach(r => {
             const amt = parseFloat(r.amount) || 0;
             const isIncome = r.type === '进账';
 
-            if (r.scope === '个人') {
-                if (r.executor === currentUser) {
-                    if (isIncome) personalIncome += amt;
-                    else personalExpense += amt;
-                }
-                // 对方个人不计入当前用户的个人图表
-            } else {
-                // 共同资产
-                if (isIncome) sharedIncome += amt;
-                else sharedExpense += amt;
+            if (r.executor === currentUser) {
+                if (isIncome) myIncome += amt;
+                else myExpense += amt;
+            } else if (r.executor === partner) {
+                if (isIncome) partnerIncome += amt;
+                else partnerExpense += amt;
             }
         });
 
-        // 如果没有 scope 字段的旧数据，全部归入共同
-        const hasScope = records.some(r => r.scope !== undefined);
-        if (!hasScope && records.length > 0) {
-            // 重新计算：所有记录归入共同
-            sharedIncome = 0;
-            sharedExpense = 0;
-            records.forEach(r => {
-                const amt = parseFloat(r.amount) || 0;
-                if (r.type === '进账') sharedIncome += amt;
-                else if (r.type === '开销') sharedExpense += amt;
-            });
-        }
+        // 共同资产 = 我的资产 + 对方资产
+        const sharedIncome = myIncome + partnerIncome;
+        const sharedExpense = myExpense + partnerExpense;
 
-        // === 个人饼图 ===
+        // === 个人饼图（我的资产） ===
         const personalCtx = document.getElementById('personalPieChart').getContext('2d');
         if (personalChartInstance) personalChartInstance.destroy();
         personalChartInstance = new Chart(personalCtx, {
@@ -592,7 +570,7 @@
             data: {
                 labels: ['进账', '开销'],
                 datasets: [{
-                    data: [personalIncome, personalExpense],
+                    data: [myIncome, myExpense],
                     backgroundColor: ['#f0a0b8', '#c96d8b'],
                     borderColor: ['#ffffff', '#ffffff'],
                     borderWidth: 2
@@ -731,7 +709,6 @@
         const note = document.getElementById('recordNote').value.trim() || '无备注';
         const amount = parseFloat(document.getElementById('recordAmount').value);
         const method = document.getElementById('recordMethod').value;
-        const scope = document.getElementById('recordScope').value;
 
         if (isNaN(amount) || amount <= 0) {
             showToast('⚠️ 请输入有效金额 (大于0)');
@@ -749,7 +726,6 @@
             note: note,
             amount: amount,
             method: method,
-            scope: scope,
             executor: currentUser,
             date: today,
             createdAt: new Date().toISOString()
@@ -772,7 +748,7 @@
     document.getElementById('navHome').classList.remove('active');
     document.getElementById('navProfile').classList.remove('active');
 
-    console.log('🔥 crecord 已连接 Firestore, 当前用户:', currentUser);
+    console.log('🔥 crecord 已连接 Firestore, 当前用户:', currentUser, '对方:', partner);
 </script>
 
 </body>
