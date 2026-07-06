@@ -686,6 +686,7 @@
 
     const role = localStorage.getItem(ROLE_KEY) || 'boy';
     const currentUser = localStorage.getItem(NAME_KEY) || (role === 'boy' ? 'GENTO' : 'MANTO');
+    const partner = role === 'boy' ? 'MANTO' : 'GENTO';
     const iconPath = localStorage.getItem(ICON_KEY) || (role === 'boy' ? '/gento.png' : '/manto.png');
 
     document.getElementById('profileAvatar').src = iconPath;
@@ -694,12 +695,14 @@
 
     let allRecords = [];
 
-    // ===== 资产计算方法 =====
+    // ===== 资产计算 =====
+    // 我的资产 = 所有标记为"个人"且执行人是自己的记录
+    // 共同资产 = 我的资产 + 对方的个人资产
     function calculateAssets() {
         let myTotal = 0;
-        let sharedTotal = 0;
+        let partnerTotal = 0;
         const myDetails = {};
-        const sharedDetails = {};
+        const partnerDetails = {};
 
         allRecords.forEach(r => {
             const amt = parseFloat(r.amount) || 0;
@@ -707,81 +710,123 @@
             const sign = isIncome ? 1 : -1;
             const method = r.method || '其他';
 
+            // 只有标记为"个人"的才计入个人资产
             if (r.scope === '个人') {
                 if (r.executor === currentUser) {
                     myTotal += sign * amt;
                     myDetails[method] = (myDetails[method] || 0) + sign * amt;
+                } else if (r.executor === partner) {
+                    partnerTotal += sign * amt;
+                    partnerDetails[method] = (partnerDetails[method] || 0) + sign * amt;
                 }
-            } else {
-                sharedTotal += sign * amt;
-                sharedDetails[method] = (sharedDetails[method] || 0) + sign * amt;
             }
         });
 
-        // 兼容旧数据：没有 scope 的按共同处理
+        // 兼容旧数据：没有 scope 字段的记录不计入个人资产（显示为0）
+        // 但用户可能希望旧数据也显示，所以如果有记录但没有 scope，提示用户重新标记
         const hasScope = allRecords.some(r => r.scope !== undefined);
-        if (!hasScope) {
-            let total = 0;
-            const details = {};
-            allRecords.forEach(r => {
-                const amt = parseFloat(r.amount) || 0;
-                const isIncome = r.type === '进账';
-                const sign = isIncome ? 1 : -1;
-                const method = r.method || '其他';
-                total += sign * amt;
-                details[method] = (details[method] || 0) + sign * amt;
-            });
-            return {
-                myAsset: 0,
-                sharedAsset: total,
-                myDetails: {},
-                sharedDetails: details
-            };
+        if (!hasScope && allRecords.length > 0) {
+            // 旧数据全部不算个人资产，显示提示
+            console.log('检测到旧数据，请重新标记记录范围');
         }
+
+        // 共同资产 = 我的资产 + 对方资产
+        const sharedTotal = myTotal + partnerTotal;
+        // 合并明细
+        const sharedDetails = { ...myDetails };
+        Object.keys(partnerDetails).forEach(key => {
+            sharedDetails[key] = (sharedDetails[key] || 0) + partnerDetails[key];
+        });
 
         return {
             myAsset: myTotal,
             sharedAsset: sharedTotal,
             myDetails: myDetails,
-            sharedDetails: sharedDetails
+            sharedDetails: sharedDetails,
+            partnerAsset: partnerTotal,
+            partnerDetails: partnerDetails
         };
     }
 
     function updateAssets() {
-        const { myAsset, sharedAsset, myDetails, sharedDetails } = calculateAssets();
+        const { myAsset, sharedAsset, myDetails, sharedDetails, partnerAsset, partnerDetails } = calculateAssets();
         document.getElementById('myAssetDisplay').innerHTML = `<small>RM</small> ${myAsset.toFixed(2)}`;
         document.getElementById('sharedAssetDisplay').innerHTML = `<small>RM</small> ${sharedAsset.toFixed(2)}`;
 
-        // 存储明细数据供弹窗使用
-        window._assetData = { myAsset, sharedAsset, myDetails, sharedDetails };
+        window._assetData = { myAsset, sharedAsset, myDetails, sharedDetails, partnerAsset, partnerDetails };
     }
 
     // ===== 弹窗控制 =====
     const modal = document.getElementById('assetModal');
     const modalClose = document.getElementById('modalClose');
 
-    function openModal(title, total, details) {
+    function openModal(title, total, details, isMyAsset = true) {
         document.getElementById('modalTitle').textContent = title;
         document.getElementById('modalTotal').innerHTML = `<small>RM</small> ${total.toFixed(2)}`;
 
         const detailList = document.getElementById('modalDetailList');
-        const entries = Object.entries(details).filter(([_, val]) => val !== 0);
-
-        if (entries.length === 0) {
-            detailList.innerHTML = `<div class="modal-empty">暂无明细记录</div>`;
-        } else {
-            let html = '';
-            entries.forEach(([method, amount]) => {
-                const cls = amount >= 0 ? 'positive' : 'negative';
-                const sign = amount >= 0 ? '+' : '';
-                html += `
-                    <div class="detail-item">
-                        <span class="detail-label">${method}</span>
-                        <span class="detail-amount ${cls}">${sign} RM ${amount.toFixed(2)}</span>
-                    </div>
-                `;
+        
+        // 如果是共同资产，显示自己和对方的明细
+        if (!isMyAsset) {
+            const data = window._assetData || {};
+            const myAmt = data.myAsset || 0;
+            const partnerAmt = data.partnerAsset || 0;
+            
+            let html = `
+                <div class="detail-item" style="background:#fcf2f6; border-radius:8px; padding:8px 12px; margin-bottom:8px;">
+                    <span class="detail-label" style="font-weight:600;">👤 ${currentUser}</span>
+                    <span class="detail-amount" style="font-weight:700;">RM ${myAmt.toFixed(2)}</span>
+                </div>
+                <div class="detail-item" style="background:#fcf2f6; border-radius:8px; padding:8px 12px; margin-bottom:12px;">
+                    <span class="detail-label" style="font-weight:600;">👤 ${partner}</span>
+                    <span class="detail-amount" style="font-weight:700;">RM ${partnerAmt.toFixed(2)}</span>
+                </div>
+                <div style="font-size:0.65rem; color:#b88b9c; text-align:center; margin-bottom:10px; border-bottom:1px solid #f5e0e8; padding-bottom:10px;">
+                    共同资产 = 我的资产 + 对方资产
+                </div>
+            `;
+            
+            // 合并明细
+            const combined = { ...data.myDetails };
+            Object.keys(data.partnerDetails || {}).forEach(key => {
+                combined[key] = (combined[key] || 0) + (data.partnerDetails[key] || 0);
             });
+            
+            const entries = Object.entries(combined).filter(([_, val]) => val !== 0);
+            if (entries.length === 0) {
+                html += `<div class="modal-empty">暂无明细记录</div>`;
+            } else {
+                entries.forEach(([method, amount]) => {
+                    const cls = amount >= 0 ? 'positive' : 'negative';
+                    const sign = amount >= 0 ? '+' : '';
+                    html += `
+                        <div class="detail-item">
+                            <span class="detail-label">${method}</span>
+                            <span class="detail-amount ${cls}">${sign} RM ${amount.toFixed(2)}</span>
+                        </div>
+                    `;
+                });
+            }
             detailList.innerHTML = html;
+        } else {
+            // 我的资产明细
+            const entries = Object.entries(details).filter(([_, val]) => val !== 0);
+            if (entries.length === 0) {
+                detailList.innerHTML = `<div class="modal-empty">暂无明细记录</div>`;
+            } else {
+                let html = '';
+                entries.forEach(([method, amount]) => {
+                    const cls = amount >= 0 ? 'positive' : 'negative';
+                    const sign = amount >= 0 ? '+' : '';
+                    html += `
+                        <div class="detail-item">
+                            <span class="detail-label">${method}</span>
+                            <span class="detail-amount ${cls}">${sign} RM ${amount.toFixed(2)}</span>
+                        </div>
+                    `;
+                });
+                detailList.innerHTML = html;
+            }
         }
 
         modal.classList.add('open');
@@ -801,12 +846,12 @@
     // ===== 点击资产卡片 =====
     document.getElementById('myAssetCard').addEventListener('click', function() {
         const data = window._assetData || { myAsset: 0, myDetails: {} };
-        openModal('👤 我的资产明细', data.myAsset, data.myDetails);
+        openModal('👤 我的资产明细', data.myAsset, data.myDetails, true);
     });
 
     document.getElementById('sharedAssetCard').addEventListener('click', function() {
-        const data = window._assetData || { sharedAsset: 0, sharedDetails: {} };
-        openModal('💞 共同资产明细', data.sharedAsset, data.sharedDetails);
+        const data = window._assetData || { sharedAsset: 0, sharedDetails: {}, myAsset: 0, partnerAsset: 0 };
+        openModal('💞 共同资产明细', data.sharedAsset, data.sharedDetails, false);
     });
 
     // ===== 渲染历史记录 =====
@@ -912,7 +957,7 @@
     // ===== 导航高亮 =====
     document.getElementById('navHome').classList.add('active');
 
-    console.log('🔥 cmain 已连接 Firestore, 当前用户:', currentUser);
+    console.log('🔥 cmain 已连接 Firestore, 当前用户:', currentUser, '对方:', partner);
 </script>
 
 </body>
