@@ -9,52 +9,53 @@
             margin: 0;
             padding: 0;
             box-sizing: border-box;
-            font-family: 'Segoe UI', 'Quicksand', system-ui, -apple-system, 'Helvetica Neue', sans-serif;
+            font-family: -apple-system, 'Segoe UI', Roboto, 'Helvetica Neue', sans-serif;
             -webkit-tap-highlight-color: transparent;
         }
 
         body {
             min-height: 100vh;
-            background: #ffecf2;
-            background-image: radial-gradient(circle at 20% 30%, #ffe2ed 0%, #ffd6e4 100%);
-            padding: 16px 16px 100px;
+            background: #f8edf0;
+            background-image: radial-gradient(circle at 20% 30%, #fce8ef 0%, #f5dce6 100%);
+            padding: 12px 12px 80px;
             display: flex;
             flex-direction: column;
             align-items: center;
         }
 
         .app-container {
-            max-width: 440px;
+            max-width: 420px;
             width: 100%;
-            background: rgba(255, 245, 248, 0.7);
-            backdrop-filter: blur(4px);
-            -webkit-backdrop-filter: blur(4px);
-            border-radius: 48px 48px 32px 32px;
-            padding: 20px 18px 30px;
-            box-shadow: 0 20px 40px rgba(200, 80, 120, 0.15), 0 8px 20px rgba(255, 150, 180, 0.2);
-            border: 2px solid rgba(255, 255, 255, 0.6);
+            background: rgba(255, 248, 250, 0.85);
+            backdrop-filter: blur(6px);
+            -webkit-backdrop-filter: blur(6px);
+            border-radius: 28px;
+            padding: 16px 16px 24px;
+            box-shadow: 0 8px 40px rgba(200, 80, 120, 0.12);
+            border: 1px solid rgba(255, 255, 255, 0.5);
         }
 
+        /* Profile Card */
         .profile-card {
-            background: linear-gradient(145deg, #ffffff, #fff5f9);
-            border-radius: 40px;
-            padding: 20px 18px 18px;
-            box-shadow: 0 12px 20px rgba(255, 120, 160, 0.15), inset 0 2px 4px rgba(255, 255, 255, 0.8);
-            border: 2px solid #ffdae6;
-            margin-bottom: 24px;
+            background: linear-gradient(145deg, #ffffff, #fdf5f8);
+            border-radius: 20px;
+            padding: 16px 16px 14px;
+            box-shadow: 0 4px 16px rgba(255, 120, 160, 0.10);
+            border: 1px solid #fadce8;
+            margin-bottom: 18px;
             display: flex;
             flex-direction: row;
             align-items: center;
-            gap: 16px;
+            gap: 14px;
             flex-wrap: wrap;
         }
 
         .avatar-frame {
-            width: 80px;
-            height: 80px;
+            width: 64px;
+            height: 64px;
             border-radius: 50%;
-            border: 4px solid #ffb0cb;
-            box-shadow: 0 6px 0 #e89bb5, 0 8px 16px rgba(200, 80, 120, 0.15);
+            border: 3px solid #f5b8cc;
+            box-shadow: 0 2px 8px rgba(200, 80, 120, 0.12);
             overflow: hidden;
             display: flex;
             align-items: center;
@@ -64,284 +65,302 @@
         }
 
         .avatar-frame img {
-            width: 70px;
-            height: 70px;
+            width: 56px;
+            height: 56px;
             object-fit: contain;
             display: block;
         }
 
         .profile-info {
             flex: 1;
-            min-width: 120px;
+            min-width: 100px;
         }
 
         .profile-name {
-            font-size: 2rem;
-            font-weight: 800;
-            color: #822f4f;
-            letter-spacing: 2px;
-            line-height: 1.1;
-            text-shadow: 2px 2px 0 #ffc1d4;
+            font-size: 1.6rem;
+            font-weight: 700;
+            color: #7a3a54;
+            letter-spacing: 1px;
+            line-height: 1.2;
         }
 
         .profile-role {
-            font-size: 1.1rem;
-            font-weight: 600;
+            font-size: 0.9rem;
+            font-weight: 500;
             color: #b35d7e;
-            background: #ffeef4;
-            padding: 2px 18px;
-            border-radius: 40px;
+            background: #fceef4;
+            padding: 2px 16px;
+            border-radius: 12px;
             display: inline-block;
-            border: 1.5px solid #ff9bbb;
-            margin-top: 4px;
+            border: 1px solid #f5b8cc;
+            margin-top: 2px;
         }
 
         .profile-savings {
             margin-left: auto;
-            background: #fee7f0;
-            padding: 10px 18px 10px 20px;
-            border-radius: 60px;
-            border: 2px solid #ffb7cf;
-            box-shadow: inset 0 2px 6px rgba(255, 200, 220, 0.5);
+            background: #fce8ef;
+            padding: 8px 14px 8px 18px;
+            border-radius: 20px;
+            border: 1.5px solid #f5b8cc;
             font-weight: 700;
-            font-size: 1.6rem;
+            font-size: 1.4rem;
             color: #6b2f47;
             white-space: nowrap;
             display: flex;
             align-items: center;
-            gap: 4px;
+            gap: 2px;
         }
 
         .profile-savings small {
-            font-size: 1rem;
+            font-size: 0.85rem;
             font-weight: 500;
             color: #ae6a84;
         }
 
+        /* Filter Bar */
         .filter-bar {
-            background: #fff2f7;
-            border-radius: 60px;
-            padding: 8px 12px;
-            margin-bottom: 22px;
+            background: #fcf2f6;
+            border-radius: 16px;
+            padding: 8px 10px;
+            margin-bottom: 16px;
             display: flex;
             flex-wrap: wrap;
             align-items: center;
-            gap: 10px 8px;
-            border: 2px solid #ffc1d4;
-            box-shadow: 0 4px 0 #e8aec2;
+            gap: 8px;
+            border: 1px solid #f5c8d8;
         }
 
         .filter-bar select,
         .filter-bar input {
             background: white;
-            border: 1.5px solid #ffb7cf;
-            border-radius: 40px;
-            padding: 8px 14px;
-            font-size: 0.9rem;
-            font-weight: 600;
+            border: 1.5px solid #f5b8cc;
+            border-radius: 12px;
+            padding: 6px 12px;
+            font-size: 0.85rem;
+            font-weight: 500;
             color: #5e3649;
             outline: none;
             flex: 1 0 auto;
-            min-width: 80px;
-            box-shadow: 0 2px 4px rgba(255, 120, 160, 0.1);
+            min-width: 70px;
+            box-shadow: 0 1px 4px rgba(255, 120, 160, 0.06);
             transition: 0.1s ease;
             touch-action: manipulation;
+            appearance: auto;
         }
 
         .filter-bar select:focus,
         .filter-bar input:focus {
-            border-color: #f58eb0;
-            box-shadow: 0 0 0 3px #ffd0e0;
+            border-color: #e89bb5;
+            box-shadow: 0 0 0 3px rgba(232, 155, 181, 0.2);
         }
 
         .filter-bar .filter-btn {
-            background: #ff9fbb;
+            background: #f5a8c0;
             border: none;
-            border-radius: 60px;
-            padding: 8px 22px;
-            font-weight: 700;
+            border-radius: 12px;
+            padding: 6px 18px;
+            font-weight: 600;
             color: #4e283b;
-            font-size: 0.95rem;
-            border-bottom: 5px solid #c96d8b;
+            font-size: 0.85rem;
             cursor: pointer;
             transition: 0.08s linear;
-            box-shadow: 0 2px 6px rgba(200, 80, 120, 0.2);
+            box-shadow: 0 2px 8px rgba(200, 80, 120, 0.12);
             flex: 0 0 auto;
             touch-action: manipulation;
+            border: 1px solid #f598b5;
         }
 
         .filter-bar .filter-btn:active {
-            transform: translateY(3px);
-            border-bottom-width: 2px;
+            transform: scale(0.96);
         }
 
+        /* History */
         .history-title {
-            font-size: 1.3rem;
+            font-size: 1.1rem;
             font-weight: 700;
             color: #77445c;
-            padding-left: 8px;
-            margin-bottom: 14px;
+            padding-left: 4px;
+            margin-bottom: 12px;
             display: flex;
             align-items: center;
-            gap: 8px;
+            gap: 6px;
         }
 
         .history-list {
             display: flex;
             flex-direction: column;
-            gap: 14px;
-            margin-bottom: 10px;
+            gap: 10px;
+            margin-bottom: 6px;
         }
 
         .record-item {
             background: white;
-            border-radius: 28px;
-            padding: 14px 18px;
-            box-shadow: 0 6px 0 #efb9cd, 0 8px 16px rgba(200, 80, 120, 0.12);
-            border: 2px solid #ffdae6;
+            border-radius: 16px;
+            padding: 12px 14px;
+            box-shadow: 0 2px 8px rgba(200, 80, 120, 0.06);
+            border: 1px solid #f5dce6;
             display: flex;
             flex-direction: row;
             justify-content: space-between;
             align-items: center;
-            transition: 0.1s ease;
         }
 
         .record-left {
             display: flex;
             flex-direction: column;
-            gap: 4px;
+            gap: 3px;
             flex: 1;
+            min-width: 0;
         }
 
         .record-category {
-            font-weight: 700;
-            font-size: 1.1rem;
+            font-weight: 600;
+            font-size: 0.95rem;
             color: #3f2432;
             display: flex;
             align-items: center;
-            gap: 10px;
+            gap: 8px;
             flex-wrap: wrap;
         }
 
         .record-category .badge {
-            background: #fee1eb;
-            border-radius: 40px;
-            padding: 0 14px;
-            font-size: 0.75rem;
-            font-weight: 600;
+            background: #fce8ef;
+            border-radius: 10px;
+            padding: 0 10px;
+            font-size: 0.7rem;
+            font-weight: 500;
             color: #8f4b68;
-            border: 1px solid #ffb7cf;
+            border: 1px solid #f5b8cc;
         }
 
         .record-note {
-            font-size: 0.95rem;
+            font-size: 0.85rem;
             color: #694c5b;
-            font-weight: 500;
+            font-weight: 400;
         }
 
         .record-meta {
             display: flex;
             flex-wrap: wrap;
-            gap: 12px 16px;
-            font-size: 0.8rem;
+            gap: 10px 14px;
+            font-size: 0.7rem;
             color: #956d7e;
-            font-weight: 500;
-            margin-top: 4px;
+            font-weight: 400;
+            margin-top: 2px;
         }
 
         .record-amount {
-            font-weight: 800;
-            font-size: 1.6rem;
+            font-weight: 700;
+            font-size: 1.2rem;
             color: #992f57;
-            background: #ffeeef;
-            padding: 6px 18px;
-            border-radius: 60px;
-            border: 2px solid #ffb7cf;
+            background: #fce8ef;
+            padding: 4px 14px;
+            border-radius: 12px;
+            border: 1px solid #f5b8cc;
             white-space: nowrap;
             margin-left: 6px;
+            flex-shrink: 0;
         }
 
         .record-amount.negative {
             color: #c44f6a;
-            background: #ffe3e9;
+            background: #fce8ef;
         }
 
         .empty-message {
             text-align: center;
-            padding: 40px 20px;
-            background: #fff2f7;
-            border-radius: 60px;
+            padding: 32px 16px;
+            background: #fcf2f6;
+            border-radius: 16px;
             color: #aa748b;
-            font-weight: 600;
-            border: 2px dashed #ffb7cf;
+            font-weight: 500;
+            border: 1px dashed #f5b8cc;
         }
 
         .loading-message {
             text-align: center;
-            padding: 30px 20px;
+            padding: 24px 16px;
             color: #aa748b;
-            font-weight: 600;
+            font-weight: 500;
         }
 
+        /* iOS-style Bottom Navigation */
         .bottom-nav {
             position: fixed;
             bottom: 0;
             left: 0;
-            width: 100%;
-            background: #ffecf2;
-            backdrop-filter: blur(16px);
-            -webkit-backdrop-filter: blur(16px);
-            border-top: 3px solid #ffc1d4;
+            right: 0;
+            background: rgba(255, 248, 250, 0.92);
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+            border-top: 0.5px solid rgba(200, 80, 120, 0.15);
             display: flex;
             justify-content: space-around;
-            padding: 12px 12px 18px;
-            box-shadow: 0 -6px 20px rgba(255, 120, 160, 0.2);
-            border-radius: 40px 40px 0 0;
-            max-width: 440px;
+            padding: 8px 0 10px;
+            padding-bottom: env(safe-area-inset-bottom, 10px);
+            box-shadow: 0 -2px 20px rgba(200, 80, 120, 0.06);
+            max-width: 420px;
             margin: 0 auto;
             left: 50%;
             transform: translateX(-50%);
+            width: 100%;
+            border-radius: 24px 24px 0 0;
         }
 
         .nav-item {
             text-decoration: none;
-            font-weight: 700;
-            color: #9d5b78;
-            background: #ffe2ed;
-            padding: 8px 24px;
-            border-radius: 60px;
-            border: 2px solid #ffb7cf;
-            font-size: 1rem;
-            transition: all 0.1s;
-            box-shadow: 0 4px 0 #d68ca8;
-            display: inline-block;
-            text-align: center;
-            min-width: 70px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 2px;
+            padding: 4px 16px;
+            border-radius: 16px;
+            transition: all 0.15s ease;
             touch-action: manipulation;
+            min-width: 56px;
+            border: none;
+            background: transparent;
+            cursor: pointer;
+        }
+
+        .nav-item .nav-icon {
+            font-size: 1.6rem;
+            line-height: 1.4;
+            color: #b88b9c;
+            transition: color 0.15s ease;
+        }
+
+        .nav-item .nav-label {
+            font-size: 0.6rem;
+            font-weight: 600;
+            color: #b88b9c;
+            letter-spacing: 0.3px;
+            transition: color 0.15s ease;
+        }
+
+        .nav-item.active .nav-icon {
+            color: #c96d8b;
+        }
+
+        .nav-item.active .nav-label {
+            color: #c96d8b;
         }
 
         .nav-item:active {
-            transform: translateY(4px);
-            box-shadow: 0 0px 0 #d68ca8;
-        }
-
-        .nav-item.active {
-            background: #ffb7cf;
-            color: #582f40;
-            border-color: #f58eb0;
-            box-shadow: 0 4px 0 #b86f8a;
+            transform: scale(0.92);
         }
     </style>
 </head>
 <body>
 
 <div class="app-container">
+    <!-- Profile Card -->
     <div class="profile-card">
-        <div class="avatar-frame" id="avatarFrame">
+        <div class="avatar-frame">
             <img id="profileAvatar" src="/gento.png" alt="头像" onerror="this.src='data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 width=%2270%22 height=%2270%22 viewBox=%220 0 70 70%22%3E%3Ccircle cx=%2235%22 cy=%2235%22 r=%2232%22 fill=%22%23f7b8d0%22/%3E%3Ctext x=%2218%22 y=%2248%22 font-size=%2232%22 fill=%22%23333%22 font-family=%22Arial%22%3E🐻%3C/text%3E%3C/svg%3E'">
         </div>
         <div class="profile-info">
-            <div class="profile-name" id="profileName">MANTO</div>
+            <div class="profile-name" id="profileName">GENTO</div>
             <div class="profile-role" id="profileRole">男朋友</div>
         </div>
         <div class="profile-savings" id="savingsDisplay">
@@ -349,12 +368,13 @@
         </div>
     </div>
 
+    <!-- Filter Bar -->
     <div class="filter-bar">
-        <input type="date" id="filterDate" placeholder="日期">
+        <input type="date" id="filterDate">
         <select id="filterMethod">
             <option value="">全部方式</option>
             <option value="现金">现金</option>
-            <option value="Touch N Go eWallet">Touch N Go eWallet</option>
+            <option value="Touch N Go eWallet">Touch N Go</option>
             <option value="BankCard">BankCard</option>
             <option value="储蓄罐">储蓄罐</option>
         </select>
@@ -365,15 +385,16 @@
         </select>
         <select id="filterExecutor">
             <option value="">执行人</option>
-            <option value="MANTO">MANTO</option>
             <option value="GENTO">GENTO</option>
+            <option value="MANTO">MANTO</option>
         </select>
-        <button class="filter-btn" id="applyFilterBtn" type="button">✨ 筛选</button>
+        <button class="filter-btn" id="applyFilterBtn" type="button">筛选</button>
     </div>
 
+    <!-- History -->
     <div class="history-title">
         <span>📋 共同记录</span>
-        <span style="font-size: 0.9rem; font-weight: 500; color: #b16f89;" id="recordCount">(0)</span>
+        <span style="font-size: 0.8rem; font-weight: 500; color: #b16f89;" id="recordCount">(0)</span>
     </div>
 
     <div class="history-list" id="historyList">
@@ -381,10 +402,20 @@
     </div>
 </div>
 
+<!-- Bottom Navigation -->
 <div class="bottom-nav">
-    <a href="cmain.html" class="nav-item active" id="navHome">🏠 HOME</a>
-    <a href="crecord.html" class="nav-item" id="navRecord">📝 RECORD</a>
-    <a href="cprofile.html" class="nav-item" id="navProfile">👤 PROFILE</a>
+    <a href="cmain.html" class="nav-item active" id="navHome">
+        <span class="nav-icon">🏠</span>
+        <span class="nav-label">主页</span>
+    </a>
+    <a href="crecord.html" class="nav-item" id="navRecord">
+        <span class="nav-icon">📝</span>
+        <span class="nav-label">记录</span>
+    </a>
+    <a href="cprofile.html" class="nav-item" id="navProfile">
+        <span class="nav-icon">👤</span>
+        <span class="nav-label">我的</span>
+    </a>
 </div>
 
 <script type="importmap">
@@ -398,7 +429,7 @@
 
 <script type="module">
     import { initializeApp } from 'firebase/app';
-    import { getFirestore, collection, query, orderBy, onSnapshot, getDocs, where } from 'firebase/firestore';
+    import { getFirestore, collection, query, orderBy, onSnapshot } from 'firebase/firestore';
 
     const firebaseConfig = {
         apiKey: "AIzaSyD_aW8osSZupLNTmaFXrPjAOcroX_2D7YQ",
@@ -418,15 +449,18 @@
     const ICON_KEY = 'couple_icon';
 
     const role = localStorage.getItem(ROLE_KEY) || 'boy';
-    const displayName = localStorage.getItem(NAME_KEY) || (role === 'boy' ? 'MANTO' : 'GENTO');
+    const displayName = localStorage.getItem(NAME_KEY) || (role === 'boy' ? 'GENTO' : 'MANTO');
     const iconPath = localStorage.getItem(ICON_KEY) || (role === 'boy' ? '/gento.png' : '/manto.png');
 
     document.getElementById('profileAvatar').src = iconPath;
     document.getElementById('profileName').textContent = displayName;
     document.getElementById('profileRole').textContent = role === 'boy' ? '男朋友' : '女朋友';
 
+    // 设置日期默认值
+    const today = new Date().toISOString().split('T')[0];
+    document.getElementById('filterDate').value = '';
+
     let allRecords = [];
-    let unsubscribe = null;
 
     function renderHistory(filterOptions = {}) {
         const { date, method, type, executor } = filterOptions;
@@ -445,7 +479,7 @@
         const countSpan = document.getElementById('recordCount');
 
         if (filtered.length === 0) {
-            container.innerHTML = `<div class="empty-message">🌸 没有匹配的记录 · 换个筛选吧</div>`;
+            container.innerHTML = `<div class="empty-message">🌸 还没有记录，添加一笔吧</div>`;
             countSpan.textContent = '(0)';
             return;
         }
@@ -456,12 +490,12 @@
             const isNegative = r.type === '开销';
             const amountClass = isNegative ? 'record-amount negative' : 'record-amount';
             const sign = isNegative ? '-' : '+';
-            const emoji = isNegative ? '💸' : '💰';
+            const icon = isNegative ? '💸' : '💰';
             html += `
                 <div class="record-item">
                     <div class="record-left">
                         <div class="record-category">
-                            <span>${emoji} ${r.type}</span>
+                            <span>${icon} ${r.type}</span>
                             <span class="badge">${r.method || '其他'}</span>
                         </div>
                         <div class="record-note">${r.note || '无备注'}</div>
@@ -487,25 +521,22 @@
         document.getElementById('savingsDisplay').innerHTML = `<small>RM</small> ${total.toFixed(2)}`;
     }
 
-    // 监听 Firestore 实时更新
     function listenToRecords() {
         const recordsRef = collection(db, 'records');
         const q = query(recordsRef, orderBy('date', 'desc'));
 
-        unsubscribe = onSnapshot(q, (snapshot) => {
+        onSnapshot(q, (snapshot) => {
             allRecords = [];
             snapshot.forEach((doc) => {
                 allRecords.push({ id: doc.id, ...doc.data() });
             });
             updateSavings();
-            // 应用当前筛选
             const date = document.getElementById('filterDate').value;
             const method = document.getElementById('filterMethod').value;
             const type = document.getElementById('filterType').value;
             const executor = document.getElementById('filterExecutor').value;
             renderHistory({ date, method, type, executor });
         }, (error) => {
-            console.error('监听失败:', error);
             document.getElementById('historyList').innerHTML = 
                 `<div class="empty-message">⚠️ 加载失败: ${error.message}</div>`;
         });
@@ -531,10 +562,6 @@
 
     // 导航高亮
     document.getElementById('navHome').classList.add('active');
-    document.getElementById('navRecord').classList.remove('active');
-    document.getElementById('navProfile').classList.remove('active');
-
-    console.log('🔥 cmain 已连接 Firestore');
 </script>
 
 </body>
