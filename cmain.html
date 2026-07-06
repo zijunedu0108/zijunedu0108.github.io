@@ -95,7 +95,7 @@
             margin-top: 1px;
         }
 
-        /* ===== 资产卡片（我的资产 + 共同资产） ===== */
+        /* ===== 资产卡片（可点击） ===== */
         .assets-row {
             display: flex;
             gap: 10px;
@@ -111,6 +111,15 @@
             box-shadow: 0 2px 8px rgba(200, 80, 120, 0.05);
             text-align: center;
             min-width: 0;
+            cursor: pointer;
+            transition: all 0.15s ease;
+            touch-action: manipulation;
+            position: relative;
+        }
+
+        .asset-card:active {
+            transform: scale(0.96);
+            background: #fcf2f6;
         }
 
         .asset-card .asset-label {
@@ -131,6 +140,13 @@
             font-size: 0.7rem;
             font-weight: 500;
             color: #ae6a84;
+        }
+
+        .asset-card .tap-hint {
+            font-size: 0.55rem;
+            color: #c99aae;
+            margin-top: 2px;
+            opacity: 0.7;
         }
 
         .asset-card.my-asset {
@@ -319,6 +335,135 @@
             font-weight: 500;
         }
 
+        /* ===== Modal 弹窗 ===== */
+        .modal-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0, 0, 0, 0.35);
+            backdrop-filter: blur(6px);
+            -webkit-backdrop-filter: blur(6px);
+            display: none;
+            align-items: center;
+            justify-content: center;
+            z-index: 999;
+            padding: 20px;
+            animation: fadeIn 0.2s ease;
+        }
+
+        .modal-overlay.open {
+            display: flex;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: scale(0.96); }
+            to { opacity: 1; transform: scale(1); }
+        }
+
+        .modal-content {
+            background: #ffffff;
+            border-radius: 24px;
+            padding: 24px 20px 20px;
+            max-width: 340px;
+            width: 100%;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.15);
+            border: 1px solid #f5d0dd;
+            max-height: 80vh;
+            overflow-y: auto;
+        }
+
+        .modal-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 16px;
+        }
+
+        .modal-title {
+            font-size: 1.1rem;
+            font-weight: 700;
+            color: #7a3a54;
+        }
+
+        .modal-close {
+            background: none;
+            border: none;
+            font-size: 1.5rem;
+            color: #b88b9c;
+            cursor: pointer;
+            padding: 0 4px;
+            touch-action: manipulation;
+        }
+
+        .modal-close:active {
+            transform: scale(0.9);
+        }
+
+        .modal-total {
+            text-align: center;
+            padding: 8px 0 14px;
+            border-bottom: 1px solid #f5e0e8;
+            margin-bottom: 14px;
+        }
+
+        .modal-total .label {
+            font-size: 0.75rem;
+            color: #b88b9c;
+            font-weight: 500;
+        }
+
+        .modal-total .amount {
+            font-size: 1.6rem;
+            font-weight: 700;
+            color: #6b2f47;
+        }
+
+        .modal-total .amount small {
+            font-size: 0.8rem;
+            font-weight: 500;
+            color: #ae6a84;
+        }
+
+        .detail-item {
+            display: flex;
+            justify-content: space-between;
+            padding: 10px 4px;
+            border-bottom: 1px solid #f5f0f2;
+        }
+
+        .detail-item:last-child {
+            border-bottom: none;
+        }
+
+        .detail-item .detail-label {
+            font-size: 0.85rem;
+            color: #5e3649;
+            font-weight: 500;
+        }
+
+        .detail-item .detail-amount {
+            font-size: 0.85rem;
+            font-weight: 600;
+            color: #6b2f47;
+        }
+
+        .detail-item .detail-amount.positive {
+            color: #6b8f6b;
+        }
+
+        .detail-item .detail-amount.negative {
+            color: #c44f6a;
+        }
+
+        .modal-empty {
+            text-align: center;
+            padding: 20px 0;
+            color: #b88b9c;
+            font-size: 0.85rem;
+        }
+
         /* ===== iOS-style Bottom Navigation ===== */
         .bottom-nav {
             position: fixed;
@@ -386,7 +531,6 @@
             transform: scale(0.92);
         }
 
-        /* 小圆点指示器 */
         .nav-item.active::after {
             content: '';
             position: absolute;
@@ -397,6 +541,19 @@
             height: 3px;
             background: #c96d8b;
             border-radius: 0 0 4px 4px;
+        }
+
+        /* 滚动条美化 */
+        .modal-content::-webkit-scrollbar {
+            width: 3px;
+        }
+        .modal-content::-webkit-scrollbar-track {
+            background: #f5f0f2;
+            border-radius: 10px;
+        }
+        .modal-content::-webkit-scrollbar-thumb {
+            background: #f0b0c8;
+            border-radius: 10px;
         }
     </style>
 </head>
@@ -412,20 +569,19 @@
             <div class="profile-name" id="profileName">GENTO</div>
             <div class="profile-role" id="profileRole">男朋友</div>
         </div>
-        <div class="profile-savings" id="savingsDisplay" style="display:none;">
-            <small>RM</small> 0.00
-        </div>
     </div>
 
-    <!-- ===== 资产卡片：我的资产 + 共同资产 ===== -->
+    <!-- ===== 资产卡片（可点击） ===== -->
     <div class="assets-row">
-        <div class="asset-card my-asset">
+        <div class="asset-card my-asset" id="myAssetCard">
             <div class="asset-label">👤 我的资产</div>
             <div class="asset-amount" id="myAssetDisplay"><small>RM</small> 0.00</div>
+            <div class="tap-hint">点击查看明细</div>
         </div>
-        <div class="asset-card shared-asset">
+        <div class="asset-card shared-asset" id="sharedAssetCard">
             <div class="asset-label">💞 共同资产</div>
             <div class="asset-amount" id="sharedAssetDisplay"><small>RM</small> 0.00</div>
+            <div class="tap-hint">点击查看明细</div>
         </div>
     </div>
 
@@ -460,6 +616,23 @@
 
     <div class="history-list" id="historyList">
         <div class="loading-message">⏳ 加载中...</div>
+    </div>
+</div>
+
+<!-- ===== Modal 弹窗 ===== -->
+<div class="modal-overlay" id="assetModal">
+    <div class="modal-content">
+        <div class="modal-header">
+            <span class="modal-title" id="modalTitle">资产明细</span>
+            <button class="modal-close" id="modalClose">✕</button>
+        </div>
+        <div class="modal-total">
+            <div class="label">总计</div>
+            <div class="amount" id="modalTotal"><small>RM</small> 0.00</div>
+        </div>
+        <div id="modalDetailList">
+            <!-- 动态渲染 -->
+        </div>
     </div>
 </div>
 
@@ -513,7 +686,6 @@
 
     const role = localStorage.getItem(ROLE_KEY) || 'boy';
     const currentUser = localStorage.getItem(NAME_KEY) || (role === 'boy' ? 'GENTO' : 'MANTO');
-    const partner = role === 'boy' ? 'MANTO' : 'GENTO';
     const iconPath = localStorage.getItem(ICON_KEY) || (role === 'boy' ? '/gento.png' : '/manto.png');
 
     document.getElementById('profileAvatar').src = iconPath;
@@ -522,66 +694,120 @@
 
     let allRecords = [];
 
-    // ===== 计算资产 =====
+    // ===== 资产计算方法 =====
     function calculateAssets() {
         let myTotal = 0;
         let sharedTotal = 0;
+        const myDetails = {};
+        const sharedDetails = {};
 
         allRecords.forEach(r => {
             const amt = parseFloat(r.amount) || 0;
             const isIncome = r.type === '进账';
             const sign = isIncome ? 1 : -1;
+            const method = r.method || '其他';
 
-            // 判断是个人还是共同
             if (r.scope === '个人') {
                 if (r.executor === currentUser) {
                     myTotal += sign * amt;
+                    myDetails[method] = (myDetails[method] || 0) + sign * amt;
                 }
             } else {
-                // 共同资产：双方各占50%
                 sharedTotal += sign * amt;
+                sharedDetails[method] = (sharedDetails[method] || 0) + sign * amt;
             }
         });
 
-        // 如果记录中没有 scope 字段，默认当作共同资产（兼容旧数据）
-        // 重新计算：没有 scope 的按共同处理
-        let myTotal2 = 0;
-        let sharedTotal2 = 0;
-        allRecords.forEach(r => {
-            const amt = parseFloat(r.amount) || 0;
-            const isIncome = r.type === '进账';
-            const sign = isIncome ? 1 : -1;
-
-            if (r.scope === '个人') {
-                if (r.executor === currentUser) {
-                    myTotal2 += sign * amt;
-                }
-            } else {
-                sharedTotal2 += sign * amt;
-            }
-        });
-
-        // 如果有 scope 字段的数据，用新的；否则用旧的兼容逻辑
+        // 兼容旧数据：没有 scope 的按共同处理
         const hasScope = allRecords.some(r => r.scope !== undefined);
-        if (hasScope) {
-            return { myAsset: myTotal2, sharedAsset: sharedTotal2 };
-        } else {
-            // 兼容旧数据：所有记录都算共同
+        if (!hasScope) {
             let total = 0;
+            const details = {};
             allRecords.forEach(r => {
                 const amt = parseFloat(r.amount) || 0;
-                if (r.type === '进账') total += amt;
-                else if (r.type === '开销') total -= amt;
+                const isIncome = r.type === '进账';
+                const sign = isIncome ? 1 : -1;
+                const method = r.method || '其他';
+                total += sign * amt;
+                details[method] = (details[method] || 0) + sign * amt;
             });
-            return { myAsset: 0, sharedAsset: total };
+            return {
+                myAsset: 0,
+                sharedAsset: total,
+                myDetails: {},
+                sharedDetails: details
+            };
         }
+
+        return {
+            myAsset: myTotal,
+            sharedAsset: sharedTotal,
+            myDetails: myDetails,
+            sharedDetails: sharedDetails
+        };
     }
 
     function updateAssets() {
-        const { myAsset, sharedAsset } = calculateAssets();
+        const { myAsset, sharedAsset, myDetails, sharedDetails } = calculateAssets();
         document.getElementById('myAssetDisplay').innerHTML = `<small>RM</small> ${myAsset.toFixed(2)}`;
         document.getElementById('sharedAssetDisplay').innerHTML = `<small>RM</small> ${sharedAsset.toFixed(2)}`;
+
+        // 存储明细数据供弹窗使用
+        window._assetData = { myAsset, sharedAsset, myDetails, sharedDetails };
     }
+
+    // ===== 弹窗控制 =====
+    const modal = document.getElementById('assetModal');
+    const modalClose = document.getElementById('modalClose');
+
+    function openModal(title, total, details) {
+        document.getElementById('modalTitle').textContent = title;
+        document.getElementById('modalTotal').innerHTML = `<small>RM</small> ${total.toFixed(2)}`;
+
+        const detailList = document.getElementById('modalDetailList');
+        const entries = Object.entries(details).filter(([_, val]) => val !== 0);
+
+        if (entries.length === 0) {
+            detailList.innerHTML = `<div class="modal-empty">暂无明细记录</div>`;
+        } else {
+            let html = '';
+            entries.forEach(([method, amount]) => {
+                const cls = amount >= 0 ? 'positive' : 'negative';
+                const sign = amount >= 0 ? '+' : '';
+                html += `
+                    <div class="detail-item">
+                        <span class="detail-label">${method}</span>
+                        <span class="detail-amount ${cls}">${sign} RM ${amount.toFixed(2)}</span>
+                    </div>
+                `;
+            });
+            detailList.innerHTML = html;
+        }
+
+        modal.classList.add('open');
+        document.body.style.overflow = 'hidden';
+    }
+
+    function closeModal() {
+        modal.classList.remove('open');
+        document.body.style.overflow = '';
+    }
+
+    modalClose.addEventListener('click', closeModal);
+    modal.addEventListener('click', function(e) {
+        if (e.target === this) closeModal();
+    });
+
+    // ===== 点击资产卡片 =====
+    document.getElementById('myAssetCard').addEventListener('click', function() {
+        const data = window._assetData || { myAsset: 0, myDetails: {} };
+        openModal('👤 我的资产明细', data.myAsset, data.myDetails);
+    });
+
+    document.getElementById('sharedAssetCard').addEventListener('click', function() {
+        const data = window._assetData || { sharedAsset: 0, sharedDetails: {} };
+        openModal('💞 共同资产明细', data.sharedAsset, data.sharedDetails);
+    });
 
     // ===== 渲染历史记录 =====
     function renderHistory(filterOptions = {}) {
