@@ -9,7 +9,7 @@
             margin: 0;
             padding: 0;
             box-sizing: border-box;
-            font-family: 'Segoe UI', 'Quicksand', system-ui, -apple-system, 'Helvetica Neue', sans-serif;
+            font-family: -apple-system, 'Segoe UI', Roboto, 'Helvetica Neue', sans-serif;
             -webkit-tap-highlight-color: transparent;
         }
 
@@ -23,37 +23,35 @@
         }
 
         .card {
-            background: rgba(255, 245, 248, 0.85);
-            backdrop-filter: blur(6px);
-            -webkit-backdrop-filter: blur(6px);
-            border-radius: 64px 64px 48px 48px;
-            box-shadow: 0 20px 40px rgba(255, 120, 160, 0.25), 0 8px 20px rgba(255, 200, 220, 0.4);
+            background: rgba(255, 248, 250, 0.92);
+            backdrop-filter: blur(8px);
+            -webkit-backdrop-filter: blur(8px);
+            border-radius: 32px;
+            box-shadow: 0 20px 60px rgba(255, 120, 160, 0.25);
             padding: 40px 28px 48px;
-            max-width: 420px;
+            max-width: 400px;
             width: 100%;
             text-align: center;
-            border: 2px solid rgba(255, 255, 255, 0.6);
+            border: 1px solid rgba(255, 255, 255, 0.5);
         }
 
         h1 {
-            font-size: 2.4rem;
+            font-size: 2.2rem;
             font-weight: 700;
             color: #a64d79;
-            letter-spacing: 2px;
-            text-shadow: 4px 4px 0 #ffc1d4;
-            margin-bottom: 12px;
+            letter-spacing: 1px;
+            margin-bottom: 8px;
         }
 
         .sub {
-            font-size: 1.1rem;
+            font-size: 1rem;
             color: #b35d7e;
             background: #ffeef4;
             display: inline-block;
             padding: 6px 24px;
-            border-radius: 60px;
-            font-weight: 600;
-            letter-spacing: 1px;
-            margin-bottom: 36px;
+            border-radius: 20px;
+            font-weight: 500;
+            margin-bottom: 32px;
             border: 1px solid #ffb6cd;
         }
 
@@ -61,76 +59,72 @@
             display: flex;
             flex-direction: row;
             justify-content: center;
-            gap: 28px;
-            margin: 30px 0 20px;
+            gap: 24px;
+            margin: 24px 0 20px;
             flex-wrap: wrap;
         }
 
         .choice-btn {
             background: white;
             border: none;
-            border-radius: 80px;
-            padding: 18px 22px 22px;
-            width: 140px;
-            box-shadow: 0 12px 0 #fbb6ce, 0 8px 18px rgba(255, 80, 120, 0.2);
-            transition: all 0.08s linear;
+            border-radius: 24px;
+            padding: 20px 20px 24px;
+            width: 130px;
+            box-shadow: 0 4px 16px rgba(255, 80, 120, 0.15);
+            transition: all 0.15s ease;
             cursor: pointer;
             display: flex;
             flex-direction: column;
             align-items: center;
-            border: 3px solid #ffe2ed;
-            -webkit-touch-callout: none;
-            user-select: none;
+            border: 2px solid #ffe2ed;
             touch-action: manipulation;
         }
 
         .choice-btn:active {
-            transform: translateY(6px);
-            box-shadow: 0 6px 0 #f58eb0, 0 8px 14px rgba(255, 80, 120, 0.25);
+            transform: scale(0.96);
+            box-shadow: 0 2px 8px rgba(255, 80, 120, 0.2);
         }
 
-        /* 圆形头像 + 描边 */
         .choice-btn .avatar-circle {
-            width: 90px;
-            height: 90px;
+            width: 80px;
+            height: 80px;
             border-radius: 50%;
-            border: 4px solid #ffb0cc;
-            box-shadow: 0 6px 0 #e89bb5, 0 8px 16px rgba(200, 80, 120, 0.2);
+            border: 3px solid #ffb0cc;
+            box-shadow: 0 4px 12px rgba(200, 80, 120, 0.15);
             overflow: hidden;
             display: flex;
             align-items: center;
             justify-content: center;
             background: #fff5f9;
-            margin-bottom: 10px;
+            margin-bottom: 12px;
             flex-shrink: 0;
         }
 
         .choice-btn .avatar-circle img {
-            width: 80px;
-            height: 80px;
+            width: 68px;
+            height: 68px;
             object-fit: contain;
             display: block;
         }
 
         .choice-label {
-            font-size: 1.7rem;
+            font-size: 1.4rem;
             font-weight: 700;
             color: #853e5c;
             background: #ffeef4;
-            padding: 4px 18px;
-            border-radius: 60px;
-            letter-spacing: 2px;
-            border: 2px solid #ffb0cc;
+            padding: 4px 20px;
+            border-radius: 16px;
+            border: 1.5px solid #ffb0cc;
         }
 
         .hint {
-            margin-top: 32px;
+            margin-top: 28px;
             color: #9f5b78;
             font-weight: 500;
             background: #ffdce9;
-            padding: 10px 10px;
-            border-radius: 50px;
-            font-size: 0.95rem;
+            padding: 10px 16px;
+            border-radius: 16px;
+            font-size: 0.9rem;
             border: 1px dashed #ff8db2;
         }
 
@@ -138,52 +132,52 @@
             display: inline-block;
             background: #ffb7cf;
             color: #582f40;
-            border-radius: 20px;
-            padding: 0 12px;
-            font-weight: 700;
+            border-radius: 12px;
+            padding: 0 10px;
+            font-weight: 600;
         }
 
         .heart-emoji {
-            font-size: 1.8rem;
+            font-size: 1.4rem;
             display: inline-block;
             margin: 0 4px;
         }
 
         .footer-text {
-            margin-top: 20px;
-            font-size: 0.9rem;
+            margin-top: 16px;
+            font-size: 0.85rem;
             color: #b16f89;
         }
     </style>
 </head>
 <body>
 
-<div class="card" id="indexCard">
+<div class="card">
     <h1>💞 情侣储蓄</h1>
-    <div class="sub">🐻 初次见面 · 选择身份</div>
+    <div class="sub">初次见面 · 选择身份</div>
 
     <div class="choice-grid">
-        <!-- 男朋友 -->
+        <!-- 男朋友 = GENTO -->
         <button class="choice-btn" id="boyBtn" data-role="boy" type="button">
             <div class="avatar-circle">
-                <img src="/gento.png" alt="男朋友" loading="lazy" onerror="this.src='data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 width=%2280%22 height=%2280%22 viewBox=%220 0 80 80%22%3E%3Ccircle cx=%2240%22 cy=%2240%22 r=%2236%22 fill=%22%23aad6f0%22/%3E%3Ctext x=%2220%22 y=%2252%22 font-size=%2230%22 fill=%22%23333%22 font-family=%22Arial%22%3E👦%3C/text%3E%3C/svg%3E'">
+                <img src="/gento.png" alt="男朋友" loading="lazy" onerror="this.src='data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 width=%2280%22 height=%2280%22 viewBox=%220 0 80 80%22%3E%3Ccircle cx=%2240%22 cy=%2240%22 r=%2236%22 fill=%22%23aad6f0%22/%3E%3Ctext x=%2218%22 y=%2252%22 font-size=%2236%22 fill=%22%23333%22 font-family=%22Arial%22%3E👦%3C/text%3E%3C/svg%3E'">
             </div>
-            <span class="choice-label">男友</span>
+            <span class="choice-label">GENTO</span>
         </button>
 
-        <!-- 女朋友 -->
+        <!-- 女朋友 = MANTO -->
         <button class="choice-btn" id="girlBtn" data-role="girl" type="button">
             <div class="avatar-circle">
-                <img src="/manto.png" alt="女朋友" loading="lazy" onerror="this.src='data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 width=%2280%22 height=%2280%22 viewBox=%220 0 80 80%22%3E%3Ccircle cx=%2240%22 cy=%2240%22 r=%2236%22 fill=%22%23f7b8d0%22/%3E%3Ctext x=%2220%22 y=%2252%22 font-size=%2230%22 fill=%22%23333%22 font-family=%22Arial%22%3E👧%3C/text%3E%3C/svg%3E'">
+                <img src="/manto.png" alt="女朋友" loading="lazy" onerror="this.src='data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 width=%2280%22 height=%2280%22 viewBox=%220 0 80 80%22%3E%3Ccircle cx=%2240%22 cy=%2240%22 r=%2236%22 fill=%22%23f7b8d0%22/%3E%3Ctext x=%2218%22 y=%2252%22 font-size=%2236%22 fill=%22%23333%22 font-family=%22Arial%22%3E👧%3C/text%3E%3C/svg%3E'">
             </div>
-            <span class="choice-label">女友</span>
+            <span class="choice-label">MANTO</span>
         </button>
     </div>
 
     <div class="hint">
         <span class="heart-emoji">💖</span> 选择后自动保存，下次直接进入 <span class="heart-emoji">✨</span>
     </div>
-    <div class="footer-text">📱 可爱储蓄 · 只属于你们</div>
+    <div class="footer-text">可爱储蓄 · 只属于你们</div>
 </div>
 
 <script>
@@ -192,7 +186,6 @@
         const NAME_KEY = 'couple_name';
         const ICON_KEY = 'couple_icon';
 
-        // 检查是否已有角色，有则直接跳转
         const savedRole = localStorage.getItem(ROLE_KEY);
         if (savedRole === 'boy' || savedRole === 'girl') {
             window.location.href = 'cmain.html';
@@ -205,19 +198,16 @@
         function setRoleAndNavigate(role) {
             if (role === 'boy') {
                 localStorage.setItem(ROLE_KEY, 'boy');
-                localStorage.setItem(NAME_KEY, 'MANTO');
+                localStorage.setItem(NAME_KEY, 'GENTO');
                 localStorage.setItem(ICON_KEY, '/gento.png');
             } else if (role === 'girl') {
                 localStorage.setItem(ROLE_KEY, 'girl');
-                localStorage.setItem(NAME_KEY, 'GENTO');
+                localStorage.setItem(NAME_KEY, 'MANTO');
                 localStorage.setItem(ICON_KEY, '/manto.png');
-            } else {
-                return;
             }
             window.location.href = 'cmain.html';
         }
 
-        // 使用 click 事件（移动端更可靠）
         boyBtn.addEventListener('click', function(e) {
             e.preventDefault();
             setRoleAndNavigate('boy');
@@ -228,18 +218,15 @@
             setRoleAndNavigate('girl');
         });
 
-        // 触摸反馈
         const allBtns = document.querySelectorAll('.choice-btn');
         allBtns.forEach(btn => {
             btn.addEventListener('touchstart', function() {
-                this.style.transform = 'scale(0.95)';
+                this.style.transform = 'scale(0.96)';
             }, { passive: true });
             btn.addEventListener('touchend', function() {
                 this.style.transform = 'scale(1)';
             }, { passive: true });
         });
-
-        console.log('✨ 情侣储蓄 · 身份选择页 (cindex)');
     })();
 </script>
 
