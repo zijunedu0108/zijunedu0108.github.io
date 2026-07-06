@@ -138,35 +138,56 @@
             display: block;
         }
 
-        /* ===== 添加按钮 ===== */
-        .add-btn {
-            background: #f0a0b8;
+        /* ===== 按钮行 ===== */
+        .btn-row {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 14px;
+        }
+
+        .btn-row .add-btn,
+        .btn-row .manage-btn {
+            flex: 1;
             border: none;
             border-radius: 14px;
-            padding: 14px 20px;
+            padding: 14px 16px;
             font-weight: 700;
-            font-size: 1rem;
-            color: #4e283b;
-            box-shadow: 0 4px 16px rgba(200, 80, 120, 0.12);
-            width: 100%;
+            font-size: 0.95rem;
             cursor: pointer;
             transition: 0.08s linear;
             text-align: center;
-            margin-bottom: 14px;
             touch-action: manipulation;
-            border: 1px solid #e890b0;
             display: flex;
             align-items: center;
             justify-content: center;
-            gap: 8px;
+            gap: 6px;
         }
 
-        .add-btn:active {
+        .btn-row .add-btn:active,
+        .btn-row .manage-btn:active {
             transform: scale(0.97);
         }
 
-        .add-btn .icon {
-            font-size: 1.2rem;
+        .btn-row .add-btn {
+            background: #f0a0b8;
+            color: #4e283b;
+            border: 1px solid #e890b0;
+            box-shadow: 0 4px 16px rgba(200, 80, 120, 0.12);
+        }
+
+        .btn-row .manage-btn {
+            background: #f5e0e8;
+            color: #7a3a54;
+            border: 1px solid #e8c8d8;
+            box-shadow: 0 4px 12px rgba(200, 80, 120, 0.06);
+        }
+
+        .btn-row .manage-btn:hover {
+            background: #f0d0dd;
+        }
+
+        .btn-row .icon {
+            font-size: 1.1rem;
         }
 
         /* ===== 表单 ===== */
@@ -304,6 +325,254 @@
             to { opacity: 1; transform: scale(1); }
         }
 
+        /* ===== 删除管理面板 ===== */
+        .manage-panel {
+            background: #ffffff;
+            border-radius: 16px;
+            padding: 18px 16px 20px;
+            border: 1px solid #f5d0dd;
+            box-shadow: 0 4px 20px rgba(200, 80, 120, 0.08);
+            display: none;
+            margin-bottom: 12px;
+            max-height: 400px;
+            overflow-y: auto;
+        }
+
+        .manage-panel.open {
+            display: block;
+            animation: slideDown 0.2s ease;
+        }
+
+        .manage-panel .panel-title {
+            font-weight: 700;
+            font-size: 1rem;
+            color: #7a3a54;
+            margin-bottom: 12px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .manage-panel .panel-close {
+            background: none;
+            border: none;
+            color: #b88b9c;
+            font-size: 1.2rem;
+            cursor: pointer;
+            padding: 0 4px;
+        }
+
+        .manage-panel .filter-row {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 6px;
+            margin-bottom: 12px;
+        }
+
+        .manage-panel .filter-row select,
+        .manage-panel .filter-row input {
+            flex: 1;
+            min-width: 60px;
+            padding: 6px 10px;
+            border-radius: 8px;
+            border: 1.5px solid #f0b0c8;
+            background: #fcf8fa;
+            font-size: 0.75rem;
+            font-weight: 500;
+            color: #3f2432;
+            outline: none;
+            appearance: auto;
+            height: 32px;
+        }
+
+        .manage-panel .filter-row select:focus,
+        .manage-panel .filter-row input:focus {
+            border-color: #e08db0;
+            box-shadow: 0 0 0 3px rgba(224, 141, 176, 0.15);
+        }
+
+        .manage-panel .filter-row .filter-btn-sm {
+            background: #f0a0b8;
+            border: none;
+            border-radius: 8px;
+            padding: 4px 14px;
+            font-weight: 600;
+            color: #4e283b;
+            font-size: 0.75rem;
+            cursor: pointer;
+            height: 32px;
+        }
+
+        .manage-panel .record-list {
+            max-height: 220px;
+            overflow-y: auto;
+        }
+
+        .manage-panel .record-item-sm {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 8px 10px;
+            border-bottom: 1px solid #f5e8ee;
+            font-size: 0.8rem;
+        }
+
+        .manage-panel .record-item-sm:last-child {
+            border-bottom: none;
+        }
+
+        .manage-panel .record-item-sm .info {
+            flex: 1;
+            min-width: 0;
+            display: flex;
+            flex-direction: column;
+            gap: 2px;
+        }
+
+        .manage-panel .record-item-sm .info .main {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            flex-wrap: wrap;
+        }
+
+        .manage-panel .record-item-sm .info .main .type-badge {
+            font-size: 0.6rem;
+            padding: 1px 8px;
+            border-radius: 6px;
+            font-weight: 600;
+        }
+
+        .manage-panel .record-item-sm .info .main .type-badge.income {
+            background: #f0e8f0;
+            color: #6b8f6b;
+        }
+
+        .manage-panel .record-item-sm .info .main .type-badge.expense {
+            background: #fce8ef;
+            color: #c44f6a;
+        }
+
+        .manage-panel .record-item-sm .info .sub {
+            font-size: 0.6rem;
+            color: #b88b9c;
+        }
+
+        .manage-panel .record-item-sm .delete-btn-sm {
+            background: #fce8ef;
+            border: none;
+            border-radius: 8px;
+            padding: 4px 12px;
+            color: #c44f6a;
+            font-weight: 600;
+            font-size: 0.7rem;
+            cursor: pointer;
+            touch-action: manipulation;
+            flex-shrink: 0;
+            margin-left: 8px;
+        }
+
+        .manage-panel .record-item-sm .delete-btn-sm:active {
+            transform: scale(0.95);
+        }
+
+        .manage-panel .empty-message-sm {
+            text-align: center;
+            padding: 20px 0;
+            color: #b88b9c;
+            font-size: 0.85rem;
+        }
+
+        /* ===== 确认删除弹窗 ===== */
+        .confirm-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0, 0, 0, 0.4);
+            backdrop-filter: blur(4px);
+            -webkit-backdrop-filter: blur(4px);
+            display: none;
+            align-items: center;
+            justify-content: center;
+            z-index: 1000;
+            padding: 20px;
+        }
+
+        .confirm-overlay.open {
+            display: flex;
+        }
+
+        .confirm-box {
+            background: #ffffff;
+            border-radius: 20px;
+            padding: 24px 20px 20px;
+            max-width: 320px;
+            width: 100%;
+            text-align: center;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.2);
+            border: 1px solid #f5d0dd;
+        }
+
+        .confirm-box .confirm-icon {
+            font-size: 2.5rem;
+            margin-bottom: 8px;
+        }
+
+        .confirm-box .confirm-title {
+            font-size: 1.1rem;
+            font-weight: 700;
+            color: #7a3a54;
+            margin-bottom: 4px;
+        }
+
+        .confirm-box .confirm-desc {
+            font-size: 0.85rem;
+            color: #b88b9c;
+            margin-bottom: 16px;
+            line-height: 1.4;
+        }
+
+        .confirm-box .confirm-desc strong {
+            color: #7a3a54;
+        }
+
+        .confirm-box .confirm-actions {
+            display: flex;
+            gap: 10px;
+        }
+
+        .confirm-box .confirm-actions button {
+            flex: 1;
+            border: none;
+            border-radius: 12px;
+            padding: 12px 16px;
+            font-weight: 700;
+            font-size: 0.9rem;
+            cursor: pointer;
+            touch-action: manipulation;
+            transition: 0.08s linear;
+        }
+
+        .confirm-box .confirm-actions button:active {
+            transform: scale(0.96);
+        }
+
+        .confirm-box .confirm-actions .btn-cancel {
+            background: #f5e8ee;
+            color: #7a3a54;
+        }
+
+        .confirm-box .confirm-actions .btn-confirm {
+            background: #c96d8b;
+            color: white;
+        }
+
+        .confirm-box .confirm-actions .btn-confirm.danger {
+            background: #c44f6a;
+        }
+
         /* ===== 底部导航 ===== */
         .bottom-nav {
             position: fixed;
@@ -399,6 +668,24 @@
         .hint-wrapper {
             text-align: center;
         }
+
+        /* 滚动条 */
+        .manage-panel .record-list::-webkit-scrollbar,
+        .manage-panel::-webkit-scrollbar {
+            width: 3px;
+        }
+
+        .manage-panel .record-list::-webkit-scrollbar-track,
+        .manage-panel::-webkit-scrollbar-track {
+            background: #f5f0f2;
+            border-radius: 10px;
+        }
+
+        .manage-panel .record-list::-webkit-scrollbar-thumb,
+        .manage-panel::-webkit-scrollbar-thumb {
+            background: #f0b0c8;
+            border-radius: 10px;
+        }
     </style>
 </head>
 <body>
@@ -430,12 +717,17 @@
         </div>
     </div>
 
-    <!-- ===== 添加按钮 ===== -->
-    <button class="add-btn" id="toggleFormBtn">
-        <span class="icon">+</span> 添加记录
-    </button>
+    <!-- ===== 按钮行 ===== -->
+    <div class="btn-row">
+        <button class="add-btn" id="toggleFormBtn">
+            <span class="icon">+</span> 添加
+        </button>
+        <button class="manage-btn" id="toggleManageBtn">
+            <span class="icon">🗑</span> 管理
+        </button>
+    </div>
 
-    <!-- ===== 表单 ===== -->
+    <!-- ===== 添加表单 ===== -->
     <div class="form-card" id="recordFormCard">
         <button class="close-form-btn" id="closeFormBtn">✕ 收起</button>
 
@@ -472,9 +764,57 @@
         <div class="toast-message" id="toastMsg">✅ 记录已添加</div>
     </div>
 
+    <!-- ===== 管理面板 ===== -->
+    <div class="manage-panel" id="managePanel">
+        <div class="panel-title">
+            <span>🗑 删除记录</span>
+            <button class="panel-close" id="closeManageBtn">✕</button>
+        </div>
+
+        <div class="filter-row">
+            <input type="date" id="manageFilterDate">
+            <select id="manageFilterType">
+                <option value="">全部类型</option>
+                <option value="进账">进账</option>
+                <option value="开销">开销</option>
+            </select>
+            <select id="manageFilterMethod">
+                <option value="">全部方式</option>
+                <option value="现金">现金</option>
+                <option value="Touch N Go eWallet">Touch N Go</option>
+                <option value="BankCard">BankCard</option>
+                <option value="储蓄罐">储蓄罐</option>
+            </select>
+            <select id="manageFilterExecutor">
+                <option value="">全部执行人</option>
+                <option value="GENTO">GENTO</option>
+                <option value="MANTO">MANTO</option>
+            </select>
+            <button class="filter-btn-sm" id="manageFilterBtn">筛选</button>
+            <button class="filter-btn-sm" id="manageResetBtn" style="background:#f5e0e8;">重置</button>
+        </div>
+
+        <div class="record-list" id="manageRecordList">
+            <div class="empty-message-sm">📭 加载中...</div>
+        </div>
+    </div>
+
     <!-- ===== 同步提示 ===== -->
     <div class="hint-wrapper">
         <span class="sync-hint">☁️ 实时同步 · 记录会出现在主页</span>
+    </div>
+</div>
+
+<!-- ===== 确认删除弹窗 ===== -->
+<div class="confirm-overlay" id="confirmOverlay">
+    <div class="confirm-box">
+        <div class="confirm-icon">⚠️</div>
+        <div class="confirm-title">确认删除</div>
+        <div class="confirm-desc" id="confirmDesc">确定要删除这条记录吗？<br><strong id="confirmDetail">-</strong></div>
+        <div class="confirm-actions">
+            <button class="btn-cancel" id="confirmCancel">取消</button>
+            <button class="btn-confirm danger" id="confirmDelete">删除</button>
+        </div>
     </div>
 </div>
 
@@ -507,7 +847,7 @@
 <!-- ===== Main Script ===== -->
 <script type="module">
     import { initializeApp } from 'firebase/app';
-    import { getFirestore, collection, addDoc, query, onSnapshot } from 'firebase/firestore';
+    import { getFirestore, collection, addDoc, query, onSnapshot, deleteDoc, doc } from 'firebase/firestore';
 
     const firebaseConfig = {
         apiKey: "AIzaSyD_aW8osSZupLNTmaFXrPjAOcroX_2D7YQ",
@@ -538,10 +878,10 @@
     let allRecords = [];
     let personalChartInstance = null;
     let sharedChartInstance = null;
+    let pendingDeleteId = null;
 
     // ===== 双饼图更新 =====
     function updateCharts(records) {
-        // 我的个人资产：所有记录都是个人的，按 executor 区分
         let myIncome = 0, myExpense = 0;
         let partnerIncome = 0, partnerExpense = 0;
 
@@ -558,11 +898,9 @@
             }
         });
 
-        // 共同资产 = 我的资产 + 对方资产
         const sharedIncome = myIncome + partnerIncome;
         const sharedExpense = myExpense + partnerExpense;
 
-        // === 个人饼图（我的资产） ===
         const personalCtx = document.getElementById('personalPieChart').getContext('2d');
         if (personalChartInstance) personalChartInstance.destroy();
         personalChartInstance = new Chart(personalCtx, {
@@ -603,7 +941,6 @@
             }
         });
 
-        // === 共同饼图 ===
         const sharedCtx = document.getElementById('sharedPieChart').getContext('2d');
         if (sharedChartInstance) sharedChartInstance.destroy();
         sharedChartInstance = new Chart(sharedCtx, {
@@ -645,9 +982,107 @@
         });
     }
 
-    // ===== 更新记录数量 =====
     function updateRecordCount() {
         document.getElementById('recordCount').textContent = allRecords.length + ' 笔';
+    }
+
+    // ===== 管理面板 - 渲染记录列表 =====
+    function renderManageList(filterOptions = {}) {
+        const { date, type, method, executor } = filterOptions;
+
+        let filtered = allRecords.filter(r => {
+            if (date && r.date !== date) return false;
+            if (type && r.type !== type) return false;
+            if (method && r.method !== method) return false;
+            if (executor && r.executor !== executor) return false;
+            return true;
+        });
+
+        filtered.sort((a, b) => (a.date < b.date ? 1 : -1));
+
+        const container = document.getElementById('manageRecordList');
+
+        if (filtered.length === 0) {
+            container.innerHTML = `<div class="empty-message-sm">📭 没有找到匹配的记录</div>`;
+            return;
+        }
+
+        let html = '';
+        filtered.forEach(r => {
+            const isIncome = r.type === '进账';
+            const typeClass = isIncome ? 'income' : 'expense';
+            const sign = isIncome ? '+' : '-';
+            const emoji = isIncome ? '💰' : '💸';
+
+            html += `
+                <div class="record-item-sm">
+                    <div class="info">
+                        <div class="main">
+                            <span class="type-badge ${typeClass}">${emoji} ${r.type}</span>
+                            <span style="font-weight:600;">${sign} RM ${parseFloat(r.amount).toFixed(2)}</span>
+                            <span style="color:#b88b9c;font-size:0.65rem;">${r.method || '其他'}</span>
+                        </div>
+                        <div class="sub">
+                            ${r.note || '无备注'} · ${r.date || '未知日期'} · ${r.executor || '未知'}
+                        </div>
+                    </div>
+                    <button class="delete-btn-sm" data-id="${r.id}" data-info="${r.note || '无备注'} (${r.date})">删除</button>
+                </div>
+            `;
+        });
+
+        container.innerHTML = html;
+
+        // 绑定删除按钮事件
+        container.querySelectorAll('.delete-btn-sm').forEach(btn => {
+            btn.addEventListener('click', function() {
+                const id = this.dataset.id;
+                const info = this.dataset.info;
+                showConfirm(id, info);
+            });
+        });
+    }
+
+    // ===== 确认删除 =====
+    function showConfirm(id, info) {
+        pendingDeleteId = id;
+        document.getElementById('confirmDetail').textContent = info;
+        document.getElementById('confirmOverlay').classList.add('open');
+    }
+
+    function hideConfirm() {
+        document.getElementById('confirmOverlay').classList.remove('open');
+        pendingDeleteId = null;
+    }
+
+    // ===== 执行删除 =====
+    async function executeDelete() {
+        if (!pendingDeleteId) return;
+
+        try {
+            await deleteDoc(doc(db, 'records', pendingDeleteId));
+            showToast('🗑 记录已删除');
+            hideConfirm();
+            // 刷新管理列表
+            applyManageFilter();
+        } catch (error) {
+            console.error('删除失败:', error);
+            showToast('❌ 删除失败: ' + error.message);
+            hideConfirm();
+        }
+    }
+
+    // ===== Toast =====
+    const toast = document.getElementById('toastMsg');
+    let toastTimer = null;
+
+    function showToast(msg) {
+        toast.textContent = msg;
+        toast.classList.add('show');
+        if (toastTimer) clearTimeout(toastTimer);
+        toastTimer = setTimeout(() => {
+            toast.classList.remove('show');
+        }, 2200);
     }
 
     // ===== 监听 Firestore =====
@@ -661,23 +1096,56 @@
         });
         updateCharts(allRecords);
         updateRecordCount();
+        // 如果管理面板打开，刷新列表
+        if (document.getElementById('managePanel').classList.contains('open')) {
+            applyManageFilter();
+        }
     }, (error) => {
         console.error('监听失败:', error);
     });
+
+    // ===== 管理面板筛选 =====
+    function applyManageFilter() {
+        const date = document.getElementById('manageFilterDate').value;
+        const type = document.getElementById('manageFilterType').value;
+        const method = document.getElementById('manageFilterMethod').value;
+        const executor = document.getElementById('manageFilterExecutor').value;
+        renderManageList({ date, type, method, executor });
+    }
 
     // ===== 表单控制 =====
     const formCard = document.getElementById('recordFormCard');
     const toggleBtn = document.getElementById('toggleFormBtn');
     const closeBtn = document.getElementById('closeFormBtn');
+    const managePanel = document.getElementById('managePanel');
+    const toggleManageBtn = document.getElementById('toggleManageBtn');
+    const closeManageBtn = document.getElementById('closeManageBtn');
 
     function openForm() {
         formCard.classList.add('open');
-        toggleBtn.innerHTML = '<span class="icon">✕</span> 收起表单';
+        toggleBtn.innerHTML = '<span class="icon">✕</span> 收起';
+        // 关闭管理面板
+        managePanel.classList.remove('open');
+        toggleManageBtn.innerHTML = '<span class="icon">🗑</span> 管理';
     }
 
     function closeForm() {
         formCard.classList.remove('open');
-        toggleBtn.innerHTML = '<span class="icon">+</span> 添加记录';
+        toggleBtn.innerHTML = '<span class="icon">+</span> 添加';
+    }
+
+    function openManage() {
+        managePanel.classList.add('open');
+        toggleManageBtn.innerHTML = '<span class="icon">✕</span> 关闭';
+        applyManageFilter();
+        // 关闭表单
+        formCard.classList.remove('open');
+        toggleBtn.innerHTML = '<span class="icon">+</span> 添加';
+    }
+
+    function closeManage() {
+        managePanel.classList.remove('open');
+        toggleManageBtn.innerHTML = '<span class="icon">🗑</span> 管理';
     }
 
     toggleBtn.addEventListener('click', function() {
@@ -690,19 +1158,42 @@
 
     closeBtn.addEventListener('click', closeForm);
 
+    toggleManageBtn.addEventListener('click', function() {
+        if (managePanel.classList.contains('open')) {
+            closeManage();
+        } else {
+            openManage();
+        }
+    });
+
+    closeManageBtn.addEventListener('click', closeManage);
+
+    // ===== 管理面板筛选事件 =====
+    document.getElementById('manageFilterBtn').addEventListener('click', applyManageFilter);
+    document.getElementById('manageResetBtn').addEventListener('click', function() {
+        document.getElementById('manageFilterDate').value = '';
+        document.getElementById('manageFilterType').value = '';
+        document.getElementById('manageFilterMethod').value = '';
+        document.getElementById('manageFilterExecutor').value = '';
+        applyManageFilter();
+    });
+
+    // Enter 键触发筛选
+    document.querySelectorAll('#manageFilterDate, #manageFilterType, #manageFilterMethod, #manageFilterExecutor').forEach(el => {
+        el.addEventListener('keydown', function(e) {
+            if (e.key === 'Enter') applyManageFilter();
+        });
+    });
+
+    // ===== 确认删除事件 =====
+    document.getElementById('confirmCancel').addEventListener('click', hideConfirm);
+    document.getElementById('confirmDelete').addEventListener('click', executeDelete);
+    document.getElementById('confirmOverlay').addEventListener('click', function(e) {
+        if (e.target === this) hideConfirm();
+    });
+
     // ===== 提交记录 =====
     const submitBtn = document.getElementById('submitRecordBtn');
-    const toast = document.getElementById('toastMsg');
-    let toastTimer = null;
-
-    function showToast(msg) {
-        toast.textContent = msg || '✅ 记录已添加';
-        toast.classList.add('show');
-        if (toastTimer) clearTimeout(toastTimer);
-        toastTimer = setTimeout(() => {
-            toast.classList.remove('show');
-        }, 2200);
-    }
 
     submitBtn.addEventListener('click', async function() {
         const type = document.getElementById('recordType').value;
