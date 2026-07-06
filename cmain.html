@@ -5,6 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=yes">
     <title>情侣储蓄 · 主页</title>
     <style>
+        /* ===== 全局重置 ===== */
         * {
             margin: 0;
             padding: 0;
@@ -15,7 +16,7 @@
 
         body {
             min-height: 100vh;
-            background: #f8edf0;
+            background: #f5e8ee;
             background-image: radial-gradient(circle at 20% 30%, #fce8ef 0%, #f5dce6 100%);
             padding: 12px 12px 80px;
             display: flex;
@@ -26,36 +27,34 @@
         .app-container {
             max-width: 420px;
             width: 100%;
-            background: rgba(255, 248, 250, 0.85);
+            background: rgba(255, 248, 250, 0.88);
             backdrop-filter: blur(6px);
             -webkit-backdrop-filter: blur(6px);
             border-radius: 28px;
             padding: 16px 16px 24px;
-            box-shadow: 0 8px 40px rgba(200, 80, 120, 0.12);
+            box-shadow: 0 8px 40px rgba(200, 80, 120, 0.10);
             border: 1px solid rgba(255, 255, 255, 0.5);
         }
 
-        /* Profile Card */
+        /* ===== Profile Card ===== */
         .profile-card {
-            background: linear-gradient(145deg, #ffffff, #fdf5f8);
+            background: #ffffff;
             border-radius: 20px;
-            padding: 16px 16px 14px;
-            box-shadow: 0 4px 16px rgba(255, 120, 160, 0.10);
-            border: 1px solid #fadce8;
-            margin-bottom: 18px;
+            padding: 14px 16px;
+            box-shadow: 0 2px 12px rgba(200, 80, 120, 0.08);
+            border: 1px solid #f5d0dd;
+            margin-bottom: 16px;
             display: flex;
             flex-direction: row;
             align-items: center;
-            gap: 14px;
-            flex-wrap: wrap;
+            gap: 12px;
         }
 
         .avatar-frame {
-            width: 64px;
-            height: 64px;
+            width: 60px;
+            height: 60px;
             border-radius: 50%;
-            border: 3px solid #f5b8cc;
-            box-shadow: 0 2px 8px rgba(200, 80, 120, 0.12);
+            border: 3px solid #f0b0c8;
             overflow: hidden;
             display: flex;
             align-items: center;
@@ -65,140 +64,153 @@
         }
 
         .avatar-frame img {
-            width: 56px;
-            height: 56px;
+            width: 52px;
+            height: 52px;
             object-fit: contain;
             display: block;
         }
 
         .profile-info {
             flex: 1;
-            min-width: 100px;
+            min-width: 80px;
         }
 
         .profile-name {
-            font-size: 1.6rem;
+            font-size: 1.5rem;
             font-weight: 700;
             color: #7a3a54;
-            letter-spacing: 1px;
+            letter-spacing: 0.5px;
             line-height: 1.2;
         }
 
         .profile-role {
-            font-size: 0.9rem;
+            font-size: 0.85rem;
             font-weight: 500;
             color: #b35d7e;
             background: #fceef4;
-            padding: 2px 16px;
-            border-radius: 12px;
+            padding: 2px 14px;
+            border-radius: 10px;
             display: inline-block;
-            border: 1px solid #f5b8cc;
-            margin-top: 2px;
+            border: 1px solid #f0b0c8;
+            margin-top: 1px;
         }
 
         .profile-savings {
             margin-left: auto;
             background: #fce8ef;
-            padding: 8px 14px 8px 18px;
-            border-radius: 20px;
-            border: 1.5px solid #f5b8cc;
+            padding: 6px 14px 6px 16px;
+            border-radius: 16px;
+            border: 1.5px solid #f0b0c8;
             font-weight: 700;
-            font-size: 1.4rem;
+            font-size: 1.3rem;
             color: #6b2f47;
             white-space: nowrap;
             display: flex;
             align-items: center;
             gap: 2px;
+            flex-shrink: 0;
         }
 
         .profile-savings small {
-            font-size: 0.85rem;
+            font-size: 0.8rem;
             font-weight: 500;
             color: #ae6a84;
         }
 
-        /* Filter Bar */
+        /* ===== Filter Bar ===== */
         .filter-bar {
             background: #fcf2f6;
-            border-radius: 16px;
+            border-radius: 14px;
             padding: 8px 10px;
             margin-bottom: 16px;
             display: flex;
             flex-wrap: wrap;
             align-items: center;
-            gap: 8px;
-            border: 1px solid #f5c8d8;
+            gap: 6px;
+            border: 1px solid #f0c8d8;
         }
 
         .filter-bar select,
         .filter-bar input {
             background: white;
-            border: 1.5px solid #f5b8cc;
-            border-radius: 12px;
-            padding: 6px 12px;
-            font-size: 0.85rem;
+            border: 1.5px solid #f0b0c8;
+            border-radius: 10px;
+            padding: 5px 10px;
+            font-size: 0.8rem;
             font-weight: 500;
             color: #5e3649;
             outline: none;
             flex: 1 0 auto;
-            min-width: 70px;
-            box-shadow: 0 1px 4px rgba(255, 120, 160, 0.06);
+            min-width: 60px;
             transition: 0.1s ease;
             touch-action: manipulation;
             appearance: auto;
+            height: 34px;
         }
 
         .filter-bar select:focus,
         .filter-bar input:focus {
-            border-color: #e89bb5;
-            box-shadow: 0 0 0 3px rgba(232, 155, 181, 0.2);
+            border-color: #e08db0;
+            box-shadow: 0 0 0 3px rgba(224, 141, 176, 0.15);
+        }
+
+        .filter-bar input[type="date"] {
+            min-width: 100px;
         }
 
         .filter-bar .filter-btn {
-            background: #f5a8c0;
+            background: #f0a0b8;
             border: none;
-            border-radius: 12px;
-            padding: 6px 18px;
+            border-radius: 10px;
+            padding: 5px 16px;
             font-weight: 600;
             color: #4e283b;
-            font-size: 0.85rem;
+            font-size: 0.8rem;
             cursor: pointer;
             transition: 0.08s linear;
-            box-shadow: 0 2px 8px rgba(200, 80, 120, 0.12);
-            flex: 0 0 auto;
+            border: 1px solid #e890b0;
+            height: 34px;
             touch-action: manipulation;
-            border: 1px solid #f598b5;
+            flex: 0 0 auto;
         }
 
         .filter-bar .filter-btn:active {
             transform: scale(0.96);
         }
 
-        /* History */
+        /* ===== History ===== */
+        .history-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 10px;
+            padding: 0 4px;
+        }
+
         .history-title {
-            font-size: 1.1rem;
+            font-size: 1.05rem;
             font-weight: 700;
             color: #77445c;
-            padding-left: 4px;
-            margin-bottom: 12px;
-            display: flex;
-            align-items: center;
-            gap: 6px;
+        }
+
+        .history-count {
+            font-size: 0.8rem;
+            font-weight: 500;
+            color: #b16f89;
         }
 
         .history-list {
             display: flex;
             flex-direction: column;
             gap: 10px;
-            margin-bottom: 6px;
         }
 
         .record-item {
-            background: white;
-            border-radius: 16px;
+            background: #ffffff;
+            border-radius: 14px;
             padding: 12px 14px;
-            box-shadow: 0 2px 8px rgba(200, 80, 120, 0.06);
-            border: 1px solid #f5dce6;
+            box-shadow: 0 2px 6px rgba(200, 80, 120, 0.05);
+            border: 1px solid #f5d0dd;
             display: flex;
             flex-direction: row;
             justify-content: space-between;
@@ -208,14 +220,14 @@
         .record-left {
             display: flex;
             flex-direction: column;
-            gap: 3px;
+            gap: 2px;
             flex: 1;
             min-width: 0;
         }
 
         .record-category {
             font-weight: 600;
-            font-size: 0.95rem;
+            font-size: 0.9rem;
             color: #3f2432;
             display: flex;
             align-items: center;
@@ -225,16 +237,16 @@
 
         .record-category .badge {
             background: #fce8ef;
-            border-radius: 10px;
+            border-radius: 8px;
             padding: 0 10px;
-            font-size: 0.7rem;
+            font-size: 0.65rem;
             font-weight: 500;
             color: #8f4b68;
-            border: 1px solid #f5b8cc;
+            border: 1px solid #f0b0c8;
         }
 
         .record-note {
-            font-size: 0.85rem;
+            font-size: 0.82rem;
             color: #694c5b;
             font-weight: 400;
         }
@@ -243,20 +255,20 @@
             display: flex;
             flex-wrap: wrap;
             gap: 10px 14px;
-            font-size: 0.7rem;
+            font-size: 0.68rem;
             color: #956d7e;
             font-weight: 400;
-            margin-top: 2px;
+            margin-top: 1px;
         }
 
         .record-amount {
             font-weight: 700;
-            font-size: 1.2rem;
+            font-size: 1.15rem;
             color: #992f57;
             background: #fce8ef;
-            padding: 4px 14px;
-            border-radius: 12px;
-            border: 1px solid #f5b8cc;
+            padding: 4px 12px;
+            border-radius: 10px;
+            border: 1px solid #f0b0c8;
             white-space: nowrap;
             margin-left: 6px;
             flex-shrink: 0;
@@ -264,17 +276,16 @@
 
         .record-amount.negative {
             color: #c44f6a;
-            background: #fce8ef;
         }
 
         .empty-message {
             text-align: center;
-            padding: 32px 16px;
+            padding: 28px 16px;
             background: #fcf2f6;
-            border-radius: 16px;
+            border-radius: 14px;
             color: #aa748b;
             font-weight: 500;
-            border: 1px dashed #f5b8cc;
+            border: 1px dashed #f0b0c8;
         }
 
         .loading-message {
@@ -284,7 +295,7 @@
             font-weight: 500;
         }
 
-        /* iOS-style Bottom Navigation */
+        /* ===== iOS-style Bottom Navigation (纯文字 + 小圆点) ===== */
         .bottom-nav {
             position: fixed;
             bottom: 0;
@@ -293,18 +304,17 @@
             background: rgba(255, 248, 250, 0.92);
             backdrop-filter: blur(20px);
             -webkit-backdrop-filter: blur(20px);
-            border-top: 0.5px solid rgba(200, 80, 120, 0.15);
+            border-top: 0.5px solid rgba(200, 80, 120, 0.12);
             display: flex;
             justify-content: space-around;
-            padding: 8px 0 10px;
-            padding-bottom: env(safe-area-inset-bottom, 10px);
-            box-shadow: 0 -2px 20px rgba(200, 80, 120, 0.06);
+            padding: 8px 0 12px;
+            padding-bottom: env(safe-area-inset-bottom, 12px);
             max-width: 420px;
             margin: 0 auto;
             left: 50%;
             transform: translateX(-50%);
             width: 100%;
-            border-radius: 24px 24px 0 0;
+            border-radius: 20px 20px 0 0;
         }
 
         .nav-item {
@@ -313,25 +323,27 @@
             flex-direction: column;
             align-items: center;
             gap: 2px;
-            padding: 4px 16px;
-            border-radius: 16px;
+            padding: 4px 20px;
+            border-radius: 12px;
             transition: all 0.15s ease;
             touch-action: manipulation;
-            min-width: 56px;
+            min-width: 50px;
             border: none;
             background: transparent;
             cursor: pointer;
+            position: relative;
         }
 
         .nav-item .nav-icon {
-            font-size: 1.6rem;
-            line-height: 1.4;
+            font-size: 1.3rem;
+            font-weight: 400;
             color: #b88b9c;
             transition: color 0.15s ease;
+            line-height: 1.4;
         }
 
         .nav-item .nav-label {
-            font-size: 0.6rem;
+            font-size: 0.55rem;
             font-weight: 600;
             color: #b88b9c;
             letter-spacing: 0.3px;
@@ -349,12 +361,30 @@
         .nav-item:active {
             transform: scale(0.92);
         }
+
+        /* 小圆点指示器 (iOS 风格) */
+        .nav-item.active::after {
+            content: '';
+            position: absolute;
+            top: -1px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 16px;
+            height: 3px;
+            background: #c96d8b;
+            border-radius: 0 0 4px 4px;
+        }
+
+        /* 导航图标使用 Unicode 符号，不用 emoji */
+        .icon-home::before { content: '⌂'; }
+        .icon-list::before { content: '☰'; }
+        .icon-person::before { content: '◌'; }
     </style>
 </head>
 <body>
 
 <div class="app-container">
-    <!-- Profile Card -->
+    <!-- ===== Profile Card ===== -->
     <div class="profile-card">
         <div class="avatar-frame">
             <img id="profileAvatar" src="/gento.png" alt="头像" onerror="this.src='data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 width=%2270%22 height=%2270%22 viewBox=%220 0 70 70%22%3E%3Ccircle cx=%2235%22 cy=%2235%22 r=%2232%22 fill=%22%23f7b8d0%22/%3E%3Ctext x=%2218%22 y=%2248%22 font-size=%2232%22 fill=%22%23333%22 font-family=%22Arial%22%3E🐻%3C/text%3E%3C/svg%3E'">
@@ -368,7 +398,7 @@
         </div>
     </div>
 
-    <!-- Filter Bar -->
+    <!-- ===== Filter Bar ===== -->
     <div class="filter-bar">
         <input type="date" id="filterDate">
         <select id="filterMethod">
@@ -391,10 +421,10 @@
         <button class="filter-btn" id="applyFilterBtn" type="button">筛选</button>
     </div>
 
-    <!-- History -->
-    <div class="history-title">
-        <span>📋 共同记录</span>
-        <span style="font-size: 0.8rem; font-weight: 500; color: #b16f89;" id="recordCount">(0)</span>
+    <!-- ===== History ===== -->
+    <div class="history-header">
+        <span class="history-title">📋 共同记录</span>
+        <span class="history-count" id="recordCount">(0)</span>
     </div>
 
     <div class="history-list" id="historyList">
@@ -402,22 +432,23 @@
     </div>
 </div>
 
-<!-- Bottom Navigation -->
+<!-- ===== Bottom Navigation (纯文字图标) ===== -->
 <div class="bottom-nav">
     <a href="cmain.html" class="nav-item active" id="navHome">
-        <span class="nav-icon">🏠</span>
+        <span class="nav-icon">⌂</span>
         <span class="nav-label">主页</span>
     </a>
     <a href="crecord.html" class="nav-item" id="navRecord">
-        <span class="nav-icon">📝</span>
+        <span class="nav-icon">☰</span>
         <span class="nav-label">记录</span>
     </a>
     <a href="cprofile.html" class="nav-item" id="navProfile">
-        <span class="nav-icon">👤</span>
+        <span class="nav-icon">◌</span>
         <span class="nav-label">我的</span>
     </a>
 </div>
 
+<!-- ===== Firebase Import Map ===== -->
 <script type="importmap">
 {
     "imports": {
@@ -427,6 +458,7 @@
 }
 </script>
 
+<!-- ===== Main Script ===== -->
 <script type="module">
     import { initializeApp } from 'firebase/app';
     import { getFirestore, collection, query, orderBy, onSnapshot } from 'firebase/firestore';
@@ -456,10 +488,6 @@
     document.getElementById('profileName').textContent = displayName;
     document.getElementById('profileRole').textContent = role === 'boy' ? '男朋友' : '女朋友';
 
-    // 设置日期默认值
-    const today = new Date().toISOString().split('T')[0];
-    document.getElementById('filterDate').value = '';
-
     let allRecords = [];
 
     function renderHistory(filterOptions = {}) {
@@ -485,12 +513,14 @@
         }
 
         countSpan.textContent = `(${filtered.length})`;
+
         let html = '';
         filtered.forEach(r => {
             const isNegative = r.type === '开销';
             const amountClass = isNegative ? 'record-amount negative' : 'record-amount';
             const sign = isNegative ? '-' : '+';
             const icon = isNegative ? '💸' : '💰';
+
             html += `
                 <div class="record-item">
                     <div class="record-left">
@@ -508,6 +538,7 @@
                 </div>
             `;
         });
+
         container.innerHTML = html;
     }
 
@@ -530,14 +561,18 @@
             snapshot.forEach((doc) => {
                 allRecords.push({ id: doc.id, ...doc.data() });
             });
+
             updateSavings();
+
             const date = document.getElementById('filterDate').value;
             const method = document.getElementById('filterMethod').value;
             const type = document.getElementById('filterType').value;
             const executor = document.getElementById('filterExecutor').value;
             renderHistory({ date, method, type, executor });
+
         }, (error) => {
-            document.getElementById('historyList').innerHTML = 
+            console.error('监听失败:', error);
+            document.getElementById('historyList').innerHTML =
                 `<div class="empty-message">⚠️ 加载失败: ${error.message}</div>`;
         });
     }
@@ -560,8 +595,9 @@
         renderHistory({});
     });
 
-    // 导航高亮
     document.getElementById('navHome').classList.add('active');
+
+    console.log('🔥 cmain 已连接 Firestore');
 </script>
 
 </body>
