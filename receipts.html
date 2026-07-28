@@ -4,6 +4,8 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>收据生成器 (Receipt Generator)</title>
+    <!-- 引入 html2canvas 库（用于网页截图导出 PNG） -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
     <style>
         * { box-sizing: border-box; margin: 0; padding: 0; font-family: system-ui, -apple-system, sans-serif; }
         body { background: #f5f5f7; padding: 20px; color: #333; }
@@ -22,10 +24,12 @@
         button { cursor: pointer; padding: 8px 16px; border: none; border-radius: 4px; font-weight: 600; }
         .btn-add { background: #e3f2fd; color: #0d47a1; margin-bottom: 15px; }
         .btn-remove { background: #ffebee; color: #c62828; padding: 0 10px; }
-        .btn-print { background: #2e7d32; color: #fff; width: 100%; padding: 12px; font-size: 16px; margin-top: 15px; }
+        .btn-group { display: flex; gap: 10px; margin-top: 15px; }
+        .btn-print { background: #2e7d32; color: #fff; flex: 1; padding: 12px; font-size: 15px; }
+        .btn-png { background: #1976d2; color: #fff; flex: 1; padding: 12px; font-size: 15px; }
 
         /* 收据预览区域 */
-        .preview-section { flex: 1; display: flex; justify-content: center; }
+        .preview-section { flex: 1; display: flex; justify-content: center; align-items: flex-start; }
         .receipt { 
             width: 320px; /* 模拟小票或标准单据宽度 */
             background: #fff; 
@@ -61,7 +65,7 @@
         /* 打印样式优化：打印时隐藏输入框，只留收据 */
         @media print {
             body { background: #fff; padding: 0; }
-            .form-section, .btn-print { display: none; }
+            .form-section { display: none; }
             .container { display: block; }
             .receipt { box-shadow: none; border: none; width: 100%; max-width: 100%; padding: 0; }
         }
@@ -97,7 +101,10 @@
             <input type="number" id="taxRate" value="0" min="0" placeholder="例如：6" oninput="updateReceipt()">
         </div>
 
-        <button class="btn-print" onclick="window.print()">打印收据 (Print Receipt)</button>
+        <div class="btn-group">
+            <button class="btn-png" onclick="downloadPNG()">保存为 PNG 图片</button>
+            <button class="btn-print" onclick="window.print()">打印收据</button>
+        </div>
     </div>
 
     <!-- 右侧：收据预览 -->
@@ -214,7 +221,6 @@
 
     // 实时更新右侧收据
     function updateReceipt() {
-        // 获取店铺信息并保存到浏览器 LocalStorage
         const name = document.getElementById('shopName').value || '店铺名称';
         const address = document.getElementById('shopAddress').value || '店铺地址';
         const ssm = document.getElementById('shopSsm').value || '-';
@@ -224,12 +230,10 @@
         localStorage.setItem('shopAddress', document.getElementById('shopAddress').value);
         localStorage.setItem('shopSsm', document.getElementById('shopSsm').value);
 
-        // 渲染文本
         document.getElementById('viewName').innerText = name;
         document.getElementById('viewAddress').innerText = address;
         document.getElementById('viewSsm').innerText = 'SSM: ' + ssm;
 
-        // 计算商品小计
         let subtotal = 0;
         const viewItems = document.getElementById('viewItems');
         viewItems.innerHTML = '';
@@ -248,7 +252,6 @@
             viewItems.appendChild(tr);
         });
 
-        // 计算税与总价
         const taxAmount = subtotal * (taxRate / 100);
         const total = subtotal + taxAmount;
 
@@ -256,6 +259,20 @@
         document.getElementById('viewTaxPercent').innerText = taxRate;
         document.getElementById('viewTax').innerText = 'RM ' + taxAmount.toFixed(2);
         document.getElementById('viewTotal').innerText = 'RM ' + total.toFixed(2);
+    }
+
+    // 导出收据区域为 PNG 图片
+    function downloadPNG() {
+        const receiptElement = document.getElementById('receipt');
+        
+        // 使用 html2canvas 截取收据区域，scale: 2 提升打印清析度（防止像素模糊）
+        html2canvas(receiptElement, { scale: 2, backgroundColor: "#ffffff" }).then(canvas => {
+            const link = document.createElement('a');
+            const timeStamp = new Date().getTime();
+            link.download = `receipt_${timeStamp}.png`;
+            link.href = canvas.toDataURL('image/png');
+            link.click();
+        });
     }
 </script>
 
