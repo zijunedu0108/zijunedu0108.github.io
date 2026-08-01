@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>收据生成器 (Receipt Generator)</title>
-    <!-- 引入 html2canvas 库（用于网页截图导出 PNG） -->
+    <!-- 引入 html2canvas 库 -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
     <style>
         * { box-sizing: border-box; margin: 0; padding: 0; font-family: system-ui, -apple-system, sans-serif; }
@@ -24,14 +24,24 @@
         button { cursor: pointer; padding: 8px 16px; border: none; border-radius: 4px; font-weight: 600; }
         .btn-add { background: #e3f2fd; color: #0d47a1; margin-bottom: 15px; }
         .btn-remove { background: #ffebee; color: #c62828; padding: 0 10px; }
+        
+        /* 蓝牙面板栏控制 */
+        .ble-panel { background: #eef2f5; padding: 12px; border-radius: 6px; margin-top: 15px; border: 1px solid #dcdfe6; }
+        .ble-panel h4 { margin-bottom: 8px; font-size: 14px; color: #444; }
+        .ble-btn-group { display: flex; gap: 8px; flex-wrap: wrap; }
+        .btn-ble-conn { background: #007bff; color: #fff; flex: 1; }
+        .btn-ble-feed { background: #6c757d; color: #fff; }
+        .btn-ble-retract { background: #6c757d; color: #fff; }
+        .btn-ble-print { background: #28a745; color: #fff; flex: 2; font-size: 15px; }
+
         .btn-group { display: flex; gap: 10px; margin-top: 15px; }
-        .btn-print { background: #2e7d32; color: #fff; flex: 1; padding: 12px; font-size: 15px; }
-        .btn-png { background: #1976d2; color: #fff; flex: 1; padding: 12px; font-size: 15px; }
+        .btn-print { background: #6c757d; color: #fff; flex: 1; padding: 10px; font-size: 13px; }
+        .btn-png { background: #1976d2; color: #fff; flex: 1; padding: 10px; font-size: 13px; }
 
         /* 收据预览区域 */
         .preview-section { flex: 1; display: flex; justify-content: center; align-items: flex-start; }
         .receipt { 
-            width: 320px; /* 模拟小票或标准单据宽度 */
+            width: 320px; 
             background: #fff; 
             padding: 24px; 
             border-radius: 4px; 
@@ -42,7 +52,7 @@
             min-height: 500px;
         }
         
-        /* 收据内部排版 */
+        /* 收据排版 */
         .receipt-header { text-align: center; margin-bottom: 15px; border-bottom: 1px dashed #ccc; padding-bottom: 10px; }
         .receipt-header h2 { font-size: 18px; margin-bottom: 4px; }
         .receipt-header p { font-size: 12px; color: #666; word-break: break-all; }
@@ -62,7 +72,8 @@
         .receipt-footer { margin-top: 40px; text-align: center; font-size: 12px; }
         .signature-space { border-bottom: 1px solid #000; width: 180px; margin: 30px auto 5px auto; }
 
-        /* 打印样式优化：打印时隐藏输入框，只留收据 */
+        #statusText { font-size: 12px; color: #555; margin-top: 6px; }
+
         @media print {
             body { background: #fff; padding: 0; }
             .form-section { display: none; }
@@ -87,23 +98,37 @@
         </div>
         <div class="form-group">
             <label>SSM Number</label>
-            <input type="text" id="shopSsm" placeholder="例如：202401012345 (1234567-A)" oninput="updateReceipt()">
+            <input type="text" id="shopSsm" placeholder="例如：202401012345" oninput="updateReceipt()">
         </div>
 
-        <hr style="margin: 20px 0; border: none; border-top: 1px solid #eee;">
+        <hr style="margin: 15px 0; border: none; border-top: 1px solid #eee;">
 
         <h3>商品明细</h3>
         <div id="itemsContainer"></div>
         <button class="btn-add" onclick="addItem()">+ 添加商品</button>
 
         <div class="form-group">
-            <label>税率 Tax Rate (%) - 可选</label>
-            <input type="number" id="taxRate" value="0" min="0" placeholder="例如：6" oninput="updateReceipt()">
+            <label>税率 Tax Rate (%)</label>
+            <input type="number" id="taxRate" value="0" min="0" oninput="updateReceipt()">
+        </div>
+
+        <!-- 新增：蓝牙打印机控制面板 -->
+        <div class="ble-panel">
+            <h4>📶 蓝牙打印控制面板 (MXW01 / FunPrint)</h4>
+            <div class="ble-btn-group">
+                <button class="btn-ble-conn" onclick="connectBluetooth()">1. 连接蓝牙</button>
+                <button class="btn-ble-feed" onclick="sendFeedCommand(50)">Feed (走纸)</button>
+                <button class="btn-ble-retract" onclick="sendRetractCommand(30)">Retract (退纸)</button>
+            </div>
+            <div style="margin-top: 8px;">
+                <button class="btn-ble-print" style="width:100%" onclick="printViaBluetooth()">2. 🖨️ 蓝牙打纸 (BLE Print)</button>
+            </div>
+            <div id="statusText">状态: 未连接</div>
         </div>
 
         <div class="btn-group">
-            <button class="btn-png" onclick="downloadPNG()">保存为 PNG 图片</button>
-            <button class="btn-print" onclick="window.print()">打印收据</button>
+            <button class="btn-png" onclick="downloadPNG()">保存 PNG 图片</button>
+            <button class="btn-print" onclick="window.print()">普通打印</button>
         </div>
     </div>
 
@@ -111,19 +136,16 @@
     <div class="preview-section">
         <div class="receipt" id="receipt">
             <div>
-                <!-- 从上到下 1: 店铺名字、地址、SSM -->
                 <div class="receipt-header">
                     <h2 id="viewName">店铺名称</h2>
                     <p id="viewAddress">店铺地址</p>
                     <p id="viewSsm">SSM: -</p>
                 </div>
 
-                <!-- 从上到下 2: 生成时间 -->
                 <div class="receipt-time">
                     时间: <span id="viewTime"></span>
                 </div>
 
-                <!-- 从上到下 3: 商品（名字、数量、小计） -->
                 <table class="receipt-table">
                     <thead>
                         <tr>
@@ -133,12 +155,9 @@
                             <th class="text-right">小计</th>
                         </tr>
                     </thead>
-                    <tbody id="viewItems">
-                        <!-- 商品列表通过 JS 渲染 -->
-                    </tbody>
+                    <tbody id="viewItems"></tbody>
                 </table>
 
-                <!-- 从上到下 4: 税、总金额 -->
                 <div class="receipt-summary">
                     <div class="summary-row">
                         <span>小计 (Subtotal):</span>
@@ -155,7 +174,6 @@
                 </div>
             </div>
 
-            <!-- 从上到下 5: 签名 Panel -->
             <div class="receipt-footer">
                 <div class="signature-space"></div>
                 <p>执行人签名 (Authorized Signature)</p>
@@ -165,19 +183,16 @@
 </div>
 
 <script>
-    // 初始化数据
-    let items = [
-        { name: '示例商品 A', price: 10.00, qty: 1 }
-    ];
+    // ------------------------------------
+    // 1. 原有收据表单业务逻辑
+    // ------------------------------------
+    let items = [{ name: '示例商品 A', price: 10.00, qty: 1 }];
 
-    // 页面加载完成后运行
     window.onload = function() {
-        // 读取 LocalStorage (记忆第一次填写的店铺信息)
         if(localStorage.getItem('shopName')) document.getElementById('shopName').value = localStorage.getItem('shopName');
         if(localStorage.getItem('shopAddress')) document.getElementById('shopAddress').value = localStorage.getItem('shopAddress');
         if(localStorage.getItem('shopSsm')) document.getElementById('shopSsm').value = localStorage.getItem('shopSsm');
 
-        // 设置生成时间
         const now = new Date();
         document.getElementById('viewTime').innerText = now.toLocaleString('zh-CN', { hour12: false });
 
@@ -185,7 +200,6 @@
         updateReceipt();
     };
 
-    // 动态渲染商品输入框
     function renderItemInputs() {
         const container = document.getElementById('itemsContainer');
         container.innerHTML = '';
@@ -219,7 +233,6 @@
         updateReceipt();
     }
 
-    // 实时更新右侧收据
     function updateReceipt() {
         const name = document.getElementById('shopName').value || '店铺名称';
         const address = document.getElementById('shopAddress').value || '店铺地址';
@@ -261,18 +274,149 @@
         document.getElementById('viewTotal').innerText = 'RM ' + total.toFixed(2);
     }
 
-    // 导出收据区域为 PNG 图片
     function downloadPNG() {
         const receiptElement = document.getElementById('receipt');
-        
-        // 使用 html2canvas 截取收据区域，scale: 2 提升打印清析度（防止像素模糊）
         html2canvas(receiptElement, { scale: 2, backgroundColor: "#ffffff" }).then(canvas => {
             const link = document.createElement('a');
-            const timeStamp = new Date().getTime();
-            link.download = `receipt_${timeStamp}.png`;
+            link.download = `receipt_${new Date().getTime()}.png`;
             link.href = canvas.toDataURL('image/png');
             link.click();
         });
+    }
+
+    // ------------------------------------
+    // 2. Web Bluetooth 原生驱动 (MXW01 专属协议)
+    // ------------------------------------
+    let bleDevice = null;
+    let writeChar = null;
+
+    function setStatus(msg) {
+        document.getElementById('statusText').innerText = "状态: " + msg;
+    }
+
+    // A. 连接蓝牙设备
+    async function connectBluetooth() {
+        try {
+            setStatus("正在搜寻蓝牙设备...");
+            
+            bleDevice = await navigator.bluetooth.requestDevice({
+                acceptAllDevices: true,
+                optionalServices: [
+                    '0000ae30-0000-1000-8000-00805f9b34fb',
+                    '0000ae00-0000-1000-8000-00805f9b34fb'
+                ]
+            });
+
+            setStatus(`正在连接 ${bleDevice.name}...`);
+            const server = await bleDevice.gatt.connect();
+
+            // 获取写入 Characteristic
+            let service;
+            try {
+                service = await server.getPrimaryService('0000ae30-0000-1000-8000-00805f9b34fb');
+            } catch(e) {
+                service = await server.getPrimaryService('0000ae00-0000-1000-8000-00805f9b34fb');
+            }
+
+            writeChar = await service.getCharacteristic('0000ae01-0000-1000-8000-00805f9b34fb');
+            setStatus(`已成功连接: ${bleDevice.name}！`);
+            alert("蓝牙设备连接成功！");
+        } catch (err) {
+            console.error(err);
+            setStatus("连接失败 - " + err.message);
+        }
+    }
+
+    // B. 打包 MX 数据格式 (0x22 0x21 + CMD + Length + Data + CRC)
+    function makeMxPacket(cmd, payload) {
+        const len = payload.length;
+        const packet = new Uint8Array(5 + len + 1);
+        packet[0] = 0x22;
+        packet[1] = 0x21;
+        packet[2] = cmd;
+        packet[3] = len & 0xFF;
+        packet[4] = (len >> 8) & 0xFF;
+        packet.set(payload, 5);
+
+        // 校验和
+        let sum = 0;
+        for (let i = 2; i < packet.length - 1; i++) sum += packet[i];
+        packet[packet.length - 1] = sum & 0xFF;
+        return packet;
+    }
+
+    // C. 走纸 (Feed) 指令 (0xA1)
+    async function sendFeedCommand(pixels = 50) {
+        if(!writeChar) return alert("请先点击『1. 连接蓝牙』！");
+        const pkt = makeMxPacket(0xA1, new Uint8Array([pixels & 0xFF, (pixels >> 8) & 0xFF]));
+        await writeChar.writeValueWithoutResponse(pkt);
+        setStatus("走纸完成");
+    }
+
+    // D. 退纸 (Retract) 指令
+    async function sendRetractCommand(pixels = 30) {
+        if(!writeChar) return alert("请先点击『1. 连接蓝牙』！");
+        // 部分固件 0xA0 或负数位为退纸
+        const pkt = makeMxPacket(0xA0, new Uint8Array([pixels & 0xFF, (pixels >> 8) & 0xFF]));
+        await writeChar.writeValueWithoutResponse(pkt);
+        setStatus("退纸完成");
+    }
+
+    // E. 核心功能：截图收据 -> 转点阵 -> 蓝牙吐纸打印
+    async function printViaBluetooth() {
+        if(!writeChar) return alert("请先连接蓝牙打印机！");
+
+        setStatus("正在将收据渲染为图像...");
+        const receiptElement = document.getElementById('receipt');
+
+        // 使用 html2canvas 渲染收据 DOM 节点
+        const canvas = await html2canvas(receiptElement, { backgroundColor: "#ffffff" });
+        
+        // 调整为打印机标准宽度 384px
+        const targetWidth = 384;
+        const targetHeight = Math.round(canvas.height * (targetWidth / canvas.width));
+
+        const printCanvas = document.createElement('canvas');
+        printCanvas.width = targetWidth;
+        printCanvas.height = targetHeight;
+        const ctx = printCanvas.getContext('2d');
+        
+        ctx.drawImage(canvas, 0, 0, targetWidth, targetHeight);
+        const imgData = ctx.getImageData(0, 0, targetWidth, targetHeight);
+
+        setStatus("正在生成黑白点阵数据...");
+        const packets = [];
+        const bytesPerLine = 48; // 384 / 8
+
+        for (let y = 0; y < targetHeight; y++) {
+            const lineData = new Uint8Array(bytesPerLine);
+            for (let x = 0; x < targetWidth; x++) {
+                const idx = (y * targetWidth + x) * 4;
+                const r = imgData.data[idx];
+                const g = imgData.data[idx + 1];
+                const b = imgData.data[idx + 2];
+                // 计算灰度：深色点亮 (0)
+                if ((r + g + b) / 3 < 128) {
+                    const byteIdx = Math.floor(x / 8);
+                    const bitIdx = 7 - (x % 8);
+                    lineData[byteIdx] |= (1 << bitIdx);
+                }
+            }
+            // 0xA2 是绘制图像数据指令
+            packets.push(makeMxPacket(0xA2, lineData));
+        }
+
+        // 结尾发送走纸 50px
+        packets.push(makeMxPacket(0xA1, new Uint8Array([0x32, 0x00])));
+
+        setStatus(`正在发送数据包到打印机 (共 ${packets.length} 行)...`);
+        
+        for (let i = 0; i < packets.length; i++) {
+            await writeChar.writeValueWithoutResponse(packets[i]);
+            await new Promise(r => setTimeout(r, 8)); // 保持 8ms 发送延迟
+        }
+
+        setStatus("🎉 打印成功完成！");
     }
 </script>
 
