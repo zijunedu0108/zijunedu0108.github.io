@@ -8,13 +8,13 @@
     body { font-family: sans-serif; padding: 20px; max-width: 600px; margin: 0 auto; }
     .card { border: 1px solid #ccc; padding: 15px; border-radius: 8px; margin-bottom: 15px; }
     button { padding: 10px 16px; font-size: 14px; margin-right: 10px; cursor: pointer; }
-    #log { background: #1e1e1e; color: #00ff00; font-family: monospace; padding: 10px; height: 200px; overflow-y: auto; border-radius: 4px; }
+    #log { background: #1e1e1e; color: #00ff00; font-family: monospace; padding: 10px; height: 250px; overflow-y: auto; border-radius: 4px; }
     canvas { border: 1px dashed #aaa; margin-top: 10px; display: block; }
   </style>
 </head>
 <body>
 
-  <h2>MXW01 热敏打印机 Web BLE 调试工具</h2>
+  <h2>MXW01 热敏打印机 Web BLE 调试工具 (V5G 修复版)</h2>
 
   <div class="card">
     <button id="btnConnect">1. 连接 MXW01 打印机</button>
@@ -116,14 +116,14 @@
       }
     });
 
-    // 监听打印机回复报文，监测是否还存在 0x03 报错
+    // 监听打印机回复报包，监测状态
     function handleNotify(event) {
       const value = new Uint8Array(event.target.value.buffer);
       const hexStr = Array.from(value).map(b => '0x' + b.toString(16).padStart(2, '0')).join(' ');
       
       if (value[2] === 0xA1) {
         if (value[3] === 0x00) {
-          log(`📩 收到 Reply (成功): ${hexStr}`, 'reply');
+          log(`📩 收到 Reply (成功 0x00): ${hexStr}`, 'reply');
         } else if (value[3] === 0x03) {
           log(`⚠️ 收到 Reply (错误 0x03 - 参数/校验异常): ${hexStr}`, 'err');
         } else {
@@ -144,24 +144,24 @@
         btnTestPrint.disabled = true;
         log('▶️ 开始下发 MXW01 完整打印序列...');
 
-        // Step 1: 打印前准备指令 (查状态 & 设黑度)
-        await sendCmd(new Uint8Array([0x22, 0x21, 0xA0, 0x00, 0x00, 0x00, 0xA0])); // 查询状态
+        // Step 1: 查询打印机状态
+        await sendCmd(new Uint8Array([0x22, 0x21, 0xA0, 0x00, 0x00, 0x00, 0xA0]));
         await delay(50);
 
-        // Step 2: 构建并发送 0xA1 位图点阵包 (48 字节对齐 + 正确 CRC)
+        // Step 2: 构建并发送 0xA1 位图点阵包 (V5G 规范：48 字节 RAW + 长度声明 + CRC8)
         const imgData = ctx.getImageData(0, 0, canvas.width, canvas.height);
-        const packets = buildMXW01BitmapPackets(imgData, 0x60);
+        const packets = buildMXW01BitmapPackets(imgData);
 
         log(`下发位图像素包 (共 ${packets.length} 行)...`);
         for (let i = 0; i < packets.length; i++) {
           await sendCmd(packets[i]);
-          // 控制下发速度，防止 GATT Buffer 溢出
-          await delay(8); 
+          // 增加发送延迟，防止高频冲爆蓝牙芯片 Buffer
+          await delay(20); 
         }
 
-        // Step 3: 发送走纸收尾指令 (Feed 50px)
+        // Step 3: 发送走纸收尾指令 (Feed 60px)
         log('发送收尾走纸指令...');
-        await sendCmd(buildFeedPacket(50));
+        await sendCmd(buildFeedPacket(60));
 
         log('🎉 打印序列下发完毕！请观察机器转动。');
 
@@ -173,9 +173,9 @@
     });
 
     // ----------------------------------------------------
-    // 3. 核心打包算法：构建标准的 0xA1 48字节位图数据包
+    // 3. 核心修复算法：针对 MXW01 (V5G 协议) 的 0xA1 点阵打包逻辑
     // ----------------------------------------------------
-    function buildMXW01BitmapPackets(imageData, darkness = 0x60) {
+    function buildMXW01BitmapPackets(imageData) {
       const width = imageData.width;   // 必须为 384px
       const height = imageData.height;
       const bytesPerLine = 48;         // 384 / 8 = 48 字节
@@ -185,13 +185,12 @@
       for (let row = 0; row < height; row++) {
         const lineBytes = new Uint8Array(bytesPerLine);
 
-        // 像素点二值化提取
+        // 像素二值化提取
         for (let col = 0; col < width; col++) {
           const idx = (row * width + col) * 4;
           const r = pixels[idx];
           const g = pixels[idx + 1];
           const b = pixels[idx + 2];
-          // 灰度化计算
           const isBlack = (r * 0.299 + g * 0.587 + b * 0.114) < 128;
 
           if (isBlack) {
@@ -201,27 +200,36 @@
           }
         }
 
-        // 数据包总长: Header(2) + Cmd(1) + Status(1) + RowNo(2) + Darkness(1) + Reserved(1) + Payload(48) + Checksum(1) = 57 Bytes
-        const packet = new Uint8Array(57);
+        // 数据包结构 (55 字节): 
+        // Header(2) + Cmd(1) + Mode/Compression(1) + PayloadLen(2) + Payload(48) + CRC8(1)
+        const packet = new Uint8Array(2 + 1 + 1 + 2 + bytesPerLine + 1);
+        
         packet[0] = 0x22; // Header
         packet[1] = 0x21; // Header
-        packet[2] = 0xA1; // Cmd: Bitmap Data
-        packet[3] = 0x00; // Flag
-        packet[4] = row & 0xFF;        // 行号 LSB
-        packet[5] = (row >> 8) & 0xFF; // 行号 MSB
-        packet[6] = darkness;          // 黑度控制
-        packet[7] = 0x00;              // 保留位
+        packet[2] = 0xA1; // Cmd: BitImage
+        packet[3] = 0x00; // Mode: 0x00 = RAW/未压缩
+        
+        // 显式传入 48 字节载荷长度 (小端序 LSB First)
+        packet[4] = bytesPerLine & 0xFF;        // 0x30 (48)
+        packet[5] = (bytesPerLine >> 8) & 0xFF; // 0x00
 
-        // 写入 48 字节像素点数据
-        packet.set(lineBytes, 8);
+        // 填充 48 字节位图点阵
+        packet.set(lineBytes, 6);
 
-        // 计算 0xA1 数据包的 Sum Checksum，避免返回 0x03 错误
-        let checksum = 0;
-        for (let i = 2; i < 56; i++) {
-          checksum = (checksum + packet[i]) & 0xFF;
+        // 计算标准 CRC8 (Polynomial 0x07) - 范围：从 Cmd(下标 2) 到数据末尾
+        let crc = 0x00;
+        for (let i = 2; i < packet.length - 1; i++) {
+          crc ^= packet[i];
+          for (let j = 0; j < 8; j++) {
+            if (crc & 0x80) {
+              crc = ((crc << 1) ^ 0x07) & 0xFF;
+            } else {
+              crc = (crc << 1) & 0xFF;
+            }
+          }
         }
-        packet[56] = checksum;
-
+        
+        packet[packet.length - 1] = crc;
         packets.push(packet);
       }
 
@@ -233,20 +241,28 @@
       const packet = new Uint8Array(7);
       packet[0] = 0x22;
       packet[1] = 0x21;
-      packet[2] = 0xA1; // 走纸指令/A3 控制
+      packet[2] = 0xA1;
       packet[3] = 0x30; // Feed 标志
       packet[4] = distancePx & 0xFF;
       packet[5] = (distancePx >> 8) & 0xFF;
       
-      let checksum = 0;
+      // CRC8 校验计算
+      let crc = 0x00;
       for (let i = 2; i < 6; i++) {
-        checksum = (checksum + packet[i]) & 0xFF;
+        crc ^= packet[i];
+        for (let j = 0; j < 8; j++) {
+          if (crc & 0x80) {
+            crc = ((crc << 1) ^ 0x07) & 0xFF;
+          } else {
+            crc = (crc << 1) & 0xFF;
+          }
+        }
       }
-      packet[6] = checksum;
+      packet[6] = crc;
       return packet;
     }
 
-    // 低层发送封装
+    // GATT 写入封装
     async function sendCmd(uint8Array) {
       if (!writeCharacteristic) return;
       await writeCharacteristic.writeValue(uint8Array);
