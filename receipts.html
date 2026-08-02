@@ -1,192 +1,260 @@
 <!DOCTYPE html>
 <html lang="zh-CN">
 <head>
-    <meta charset="UTF-8">
-    <title>MXW01 真实驱动序列控制台</title>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
-    <style>
-        body { font-family: monospace; background: #121212; color: #00ff66; padding: 20px; }
-        button { padding: 12px 20px; background: #00ff66; border: none; font-weight: bold; cursor: pointer; margin-right: 10px; margin-bottom: 10px; }
-        #logConsole { background: #000; border: 1px solid #333; padding: 10px; height: 320px; overflow-y: auto; color: #00ff66; }
-        #receipt { width: 384px; background: #fff; color: #000; padding: 20px; font-family: sans-serif; position: absolute; left: -9999px; }
-    </style>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>MXW01 Web Bluetooth 打印测试</title>
+  <style>
+    body { font-family: sans-serif; padding: 20px; max-width: 600px; margin: 0 auto; }
+    .card { border: 1px solid #ccc; padding: 15px; border-radius: 8px; margin-bottom: 15px; }
+    button { padding: 10px 16px; font-size: 14px; margin-right: 10px; cursor: pointer; }
+    #log { background: #1e1e1e; color: #00ff00; font-family: monospace; padding: 10px; height: 200px; overflow-y: auto; border-radius: 4px; }
+    canvas { border: 1px dashed #aaa; margin-top: 10px; display: block; }
+  </style>
 </head>
 <body>
 
-<h2>🖨️ MXW01 (TiMini 物理序列版)</h2>
+  <h2>MXW01 热敏打印机 Web BLE 调试工具</h2>
 
-<div>
-    <button onclick="connectAndInit()">1. 连接蓝牙并开启 Notify</button>
-    <button onclick="testRetract()">2. 单独测试 退纸 (Retract)</button>
-    <button onclick="testFeed()">3. 单独测试 走纸 (Feed)</button>
-    <button onclick="executeFullJob()">4. 🚀 执行完整打印作业 (Full Sequence)</button>
-</div>
+  <div class="card">
+    <button id="btnConnect">1. 连接 MXW01 打印机</button>
+    <button id="btnTestPrint" disabled>2. 发送测试打印</button>
+    <p>状态: <span id="status" style="font-weight: bold; color: orange;">未连接</span></p>
+  </div>
 
-<div id="logConsole">等待连接...</div>
+  <div class="card">
+    <h3>打印画布预览 (宽度 384px)</h3>
+    <canvas id="printCanvas" width="384" height="120"></canvas>
+  </div>
 
-<!-- 隐藏的收据画板 -->
-<div id="receipt">
-    <h2 style="text-align:center;">MXW01 物理测试</h2>
-    <hr>
-    <p>协议：TiMini Hardware Sequence</p>
-    <p>时间：<span id="time"></span></p>
-    <hr>
-    <h3 style="text-align:center; margin-top:20px;">✅ 齿轮咬合成功</h3>
-</div>
+  <div class="card">
+    <h3>蓝牙日志</h3>
+    <div id="log"></div>
+  </div>
 
-<script>
-    let bleDevice = null;
-    let dataChar = null;   // ae01 写入
-    let notifyChar = null; // ae02/ae03 监听
-    let lastReply = null;
+  <script>
+    // ----------------------------------------------------
+    // UUID 常量定义 (针对 MXW / Fun Print / TiMini 系列)
+    // ----------------------------------------------------
+    const PRINTER_SERVICE_UUID = '0000af30-0000-1000-8000-00805f9b34fb';
+    const WRITE_CHAR_UUID     = '0000ae01-0000-1000-8000-00805f9b34fb';
+    const NOTIFY_CHAR_UUID    = '0000ae02-0000-1000-8000-00805f9b34fb';
 
-    function log(msg) {
-        const c = document.getElementById('logConsole');
-        c.innerHTML += `<div>> ${msg}</div>`;
-        c.scrollTop = c.scrollHeight;
+    let bluetoothDevice = null;
+    let writeCharacteristic = null;
+    let notifyCharacteristic = null;
+
+    const btnConnect = document.getElementById('btnConnect');
+    const btnTestPrint = document.getElementById('btnTestPrint');
+    const statusText = document.getElementById('status');
+    const logDiv = document.getElementById('log');
+    const canvas = document.getElementById('printCanvas');
+    const ctx = canvas.getContext('2d');
+
+    // 初始化画板测试内容
+    drawSamplePattern();
+
+    function log(msg, type = 'info') {
+      const color = type === 'err' ? '#ff5555' : type === 'reply' ? '#55ffff' : '#00ff00';
+      const time = new Date().toLocaleTimeString();
+      logDiv.innerHTML += `<div style="color: ${color}">[${time}] ${msg}</div>`;
+      logDiv.scrollTop = logDiv.scrollHeight;
     }
 
-    // 基础包拼装 (MXW01 校验协议)
-    function makeMxPacket(cmd, payload) {
-        const len = payload.length;
-        const packet = new Uint8Array(5 + len + 1);
-        packet[0] = 0x22;
-        packet[1] = 0x21;
-        packet[2] = cmd;
-        packet[3] = len & 0xFF;
-        packet[4] = (len >> 8) & 0xFF;
-        packet.set(payload, 5);
-
-        let sum = 0;
-        for (let i = 2; i < packet.length - 1; i++) sum += packet[i];
-        packet[packet.length - 1] = sum & 0xFF;
-        return packet;
+    function drawSamplePattern() {
+      ctx.fillStyle = '#ffffff';
+      ctx.fillRect(0, 0, canvas.width, canvas.height);
+      
+      ctx.fillStyle = '#000000';
+      ctx.font = 'bold 24px monospace';
+      ctx.fillText('MXW01 TEST PRINT', 20, 40);
+      
+      ctx.font = '16px sans-serif';
+      ctx.fillText('Web Bluetooth OK! - ' + new Date().toLocaleDateString(), 20, 70);
+      
+      // 绘制一条对齐基准线
+      ctx.fillRect(20, 90, 344, 4);
     }
 
-    // 1. 连接设备
-    async function connectAndInit() {
+    // ----------------------------------------------------
+    // 1. BLE 设备连接与 Notify 监听
+    // ----------------------------------------------------
+    btnConnect.addEventListener('click', async () => {
+      try {
+        log('正在扫描 BLE 设备...');
+        bluetoothDevice = await navigator.bluetooth.requestDevice({
+          acceptAllDevices: true,
+          optionalServices: [PRINTER_SERVICE_UUID, '0000ae30-0000-1000-8000-00805f9b34fb']
+        });
+
+        log(`建立 GATT 连接中: ${bluetoothDevice.name || 'MXW01'}...`);
+        const server = await bluetoothDevice.gatt.connect();
+
+        // 获取服务
+        let service;
         try {
-            log("扫描 MXW01 设备...");
-            bleDevice = await navigator.bluetooth.requestDevice({
-                acceptAllDevices: true,
-                optionalServices: ['0000ae30-0000-1000-8000-00805f9b34fb']
-            });
-
-            log("连接 GATT...");
-            const server = await bleDevice.gatt.connect();
-            const service = await server.getPrimaryService('0000ae30-0000-1000-8000-00805f9b34fb');
-
-            dataChar = await service.getCharacteristic('0000ae01-0000-1000-8000-00805f9b34fb');
-
-            try {
-                notifyChar = await service.getCharacteristic('0000ae02-0000-1000-8000-00805f9b34fb');
-            } catch(e) {
-                notifyChar = await service.getCharacteristic('0000ae03-0000-1000-8000-00805f9b34fb');
-            }
-
-            await notifyChar.startNotifications();
-            notifyChar.addEventListener('characteristicvaluechanged', (e) => {
-                const val = new Uint8Array(e.target.value.buffer);
-                log(`📩 收到 Reply: ${Array.from(val).map(b => '0x' + b.toString(16).padStart(2, '0')).join(' ')}`);
-                lastReply = val;
-            });
-
-            log("✅ 设备与 Notify 绑定完成！");
-            alert("绑定成功！");
-        } catch (err) {
-            log("❌ 连接失败: " + err.message);
-        }
-    }
-
-    // 2. 发送 Retract (退纸指令 0xA0) - 激活电机的关键！
-    async function sendRetract(pixels = 20) {
-        log(`发送 Retract 指令 (${pixels}px)...`);
-        const pkt = makeMxPacket(0xA0, new Uint8Array([pixels & 0xFF, (pixels >> 8) & 0xFF]));
-        await dataChar.writeValueWithoutResponse(pkt);
-        await new Promise(r => setTimeout(r, 200));
-    }
-
-    // 3. 发送 Feed (走纸指令 0xA1)
-    async function sendFeed(pixels = 50) {
-        log(`发送 Feed 指令 (${pixels}px)...`);
-        const pkt = makeMxPacket(0xA1, new Uint8Array([pixels & 0xFF, (pixels >> 8) & 0xFF]));
-        await dataChar.writeValueWithoutResponse(pkt);
-        await new Promise(r => setTimeout(r, 200));
-    }
-
-    // 4. 设置黑度/浓度 (Darkness 0xA3)
-    async function setDarkness(level = 3) {
-        log(`设置加热黑度 (Darkness Level ${level})...`);
-        const pkt = makeMxPacket(0xA3, new Uint8Array([level & 0xFF]));
-        await dataChar.writeValueWithoutResponse(pkt);
-        await new Promise(r => setTimeout(r, 100));
-    }
-
-    async function testRetract() {
-        if(!dataChar) return alert("请先连接！");
-        await sendRetract(20);
-    }
-
-    async function testFeed() {
-        if(!dataChar) return alert("请先连接！");
-        await sendFeed(50);
-    }
-
-    // 5. 按照 Python 驱动的真实 Sequence 执行整套任务
-    async function executeFullJob() {
-        if(!dataChar) return alert("请先连接！");
-        document.getElementById('time').innerText = new Date().toLocaleString();
-
-        log("▶️ 开始执行完整物理打印序列 (TiMini Sequence)...");
-
-        // 步骤 1: 状态查询 & 握手
-        log("1/5: 查询状态 (0xA0 Query)");
-        await dataChar.writeValueWithoutResponse(makeMxPacket(0xA0, new Uint8Array([0x00])));
-        await new Promise(r => setTimeout(r, 200));
-
-        // 步骤 2: 设置浓度 (Darkness Level = 3)
-        log("2/5: 下发加热黑度配置...");
-        await setDarkness(3);
-
-        // 步骤 3: 两次 Retract 退纸校准 (关键！电机齿轮咬合)
-        log("3/5: 执行电机 Retract 校准 (齿轮咬合)...");
-        await sendRetract(20);
-        await sendRetract(20);
-
-        // 步骤 4: 发送点阵位图数据 (0xA2)
-        log("4/5: 渲染并下发位图像素...");
-        const canvas = await html2canvas(document.getElementById('receipt'), { backgroundColor: "#ffffff" });
-        const targetWidth = 384;
-        const targetHeight = Math.round(canvas.height * (targetWidth / canvas.width));
-
-        const printCanvas = document.createElement('canvas');
-        printCanvas.width = targetWidth; printCanvas.height = targetHeight;
-        const ctx = printCanvas.getContext('2d');
-        ctx.drawImage(canvas, 0, 0, targetWidth, targetHeight);
-        
-        const imgData = ctx.getImageData(0, 0, targetWidth, targetHeight);
-        const bytesPerLine = 48;
-
-        for (let y = 0; y < targetHeight; y++) {
-            const lineData = new Uint8Array(bytesPerLine);
-            for (let x = 0; x < targetWidth; x++) {
-                const idx = (y * targetWidth + x) * 4;
-                if ((imgData.data[idx] + imgData.data[idx+1] + imgData.data[idx+2]) / 3 < 128) {
-                    lineData[Math.floor(x / 8)] |= (1 << (7 - (x % 8)));
-                }
-            }
-            await dataChar.writeValueWithoutResponse(makeMxPacket(0xA2, lineData));
-            await new Promise(r => setTimeout(r, 8)); // 控制传输节奏
+          service = await server.getPrimaryService(PRINTER_SERVICE_UUID);
+        } catch (e) {
+          service = await server.getPrimaryService('0000ae30-0000-1000-8000-00805f9b34fb');
         }
 
-        // 步骤 5: 走纸与退纸收尾
-        log("5/5: 发送收尾走纸 (Feed)...");
-        await sendFeed(80);
-        await sendRetract(20);
+        // 获取 Write & Notify 特征值
+        writeCharacteristic = await service.getCharacteristic(WRITE_CHAR_UUID);
+        notifyCharacteristic = await service.getCharacteristic(NOTIFY_CHAR_UUID);
 
-        log("🎉 物理打印序列下发完毕！请观察机器是否转动！");
+        // 开启 Notify 响应监听
+        await notifyCharacteristic.startNotifications();
+        notifyCharacteristic.addEventListener('characteristicvaluechanged', handleNotify);
+
+        statusText.innerText = '✅ 已连接 (' + (bluetoothDevice.name || 'MXW01') + ')';
+        statusText.style.color = 'green';
+        btnTestPrint.disabled = false;
+        log('✅ 打印机绑定完成，可以开始打印！');
+
+      } catch (err) {
+        log('连接失败: ' + err.message, 'err');
+      }
+    });
+
+    // 监听打印机回复报文，监测是否还存在 0x03 报错
+    function handleNotify(event) {
+      const value = new Uint8Array(event.target.value.buffer);
+      const hexStr = Array.from(value).map(b => '0x' + b.toString(16).padStart(2, '0')).join(' ');
+      
+      if (value[2] === 0xA1) {
+        if (value[3] === 0x00) {
+          log(`📩 收到 Reply (成功): ${hexStr}`, 'reply');
+        } else if (value[3] === 0x03) {
+          log(`⚠️ 收到 Reply (错误 0x03 - 参数/校验异常): ${hexStr}`, 'err');
+        } else {
+          log(`📩 收到 Reply: ${hexStr}`, 'reply');
+        }
+      } else {
+        log(`📩 收到系统回复: ${hexStr}`, 'reply');
+      }
     }
-</script>
 
+    // ----------------------------------------------------
+    // 2. 打印序列控制
+    // ----------------------------------------------------
+    btnTestPrint.addEventListener('click', async () => {
+      if (!writeCharacteristic) return;
+
+      try {
+        btnTestPrint.disabled = true;
+        log('▶️ 开始下发 MXW01 完整打印序列...');
+
+        // Step 1: 打印前准备指令 (查状态 & 设黑度)
+        await sendCmd(new Uint8Array([0x22, 0x21, 0xA0, 0x00, 0x00, 0x00, 0xA0])); // 查询状态
+        await delay(50);
+
+        // Step 2: 构建并发送 0xA1 位图点阵包 (48 字节对齐 + 正确 CRC)
+        const imgData = ctx.getImageData(0, 0, canvas.width, canvas.height);
+        const packets = buildMXW01BitmapPackets(imgData, 0x60);
+
+        log(`下发位图像素包 (共 ${packets.length} 行)...`);
+        for (let i = 0; i < packets.length; i++) {
+          await sendCmd(packets[i]);
+          // 控制下发速度，防止 GATT Buffer 溢出
+          await delay(8); 
+        }
+
+        // Step 3: 发送走纸收尾指令 (Feed 50px)
+        log('发送收尾走纸指令...');
+        await sendCmd(buildFeedPacket(50));
+
+        log('🎉 打印序列下发完毕！请观察机器转动。');
+
+      } catch (err) {
+        log('打印过程出错: ' + err.message, 'err');
+      } finally {
+        btnTestPrint.disabled = false;
+      }
+    });
+
+    // ----------------------------------------------------
+    // 3. 核心打包算法：构建标准的 0xA1 48字节位图数据包
+    // ----------------------------------------------------
+    function buildMXW01BitmapPackets(imageData, darkness = 0x60) {
+      const width = imageData.width;   // 必须为 384px
+      const height = imageData.height;
+      const bytesPerLine = 48;         // 384 / 8 = 48 字节
+      const pixels = imageData.data;
+      const packets = [];
+
+      for (let row = 0; row < height; row++) {
+        const lineBytes = new Uint8Array(bytesPerLine);
+
+        // 像素点二值化提取
+        for (let col = 0; col < width; col++) {
+          const idx = (row * width + col) * 4;
+          const r = pixels[idx];
+          const g = pixels[idx + 1];
+          const b = pixels[idx + 2];
+          // 灰度化计算
+          const isBlack = (r * 0.299 + g * 0.587 + b * 0.114) < 128;
+
+          if (isBlack) {
+            const byteIdx = Math.floor(col / 8);
+            const bitIdx = 7 - (col % 8); // MSB 高位在前
+            lineBytes[byteIdx] |= (1 << bitIdx);
+          }
+        }
+
+        // 数据包总长: Header(2) + Cmd(1) + Status(1) + RowNo(2) + Darkness(1) + Reserved(1) + Payload(48) + Checksum(1) = 57 Bytes
+        const packet = new Uint8Array(57);
+        packet[0] = 0x22; // Header
+        packet[1] = 0x21; // Header
+        packet[2] = 0xA1; // Cmd: Bitmap Data
+        packet[3] = 0x00; // Flag
+        packet[4] = row & 0xFF;        // 行号 LSB
+        packet[5] = (row >> 8) & 0xFF; // 行号 MSB
+        packet[6] = darkness;          // 黑度控制
+        packet[7] = 0x00;              // 保留位
+
+        // 写入 48 字节像素点数据
+        packet.set(lineBytes, 8);
+
+        // 计算 0xA1 数据包的 Sum Checksum，避免返回 0x03 错误
+        let checksum = 0;
+        for (let i = 2; i < 56; i++) {
+          checksum = (checksum + packet[i]) & 0xFF;
+        }
+        packet[56] = checksum;
+
+        packets.push(packet);
+      }
+
+      return packets;
+    }
+
+    // 构造走纸 Feed 指令包
+    function buildFeedPacket(distancePx) {
+      const packet = new Uint8Array(7);
+      packet[0] = 0x22;
+      packet[1] = 0x21;
+      packet[2] = 0xA1; // 走纸指令/A3 控制
+      packet[3] = 0x30; // Feed 标志
+      packet[4] = distancePx & 0xFF;
+      packet[5] = (distancePx >> 8) & 0xFF;
+      
+      let checksum = 0;
+      for (let i = 2; i < 6; i++) {
+        checksum = (checksum + packet[i]) & 0xFF;
+      }
+      packet[6] = checksum;
+      return packet;
+    }
+
+    // 低层发送封装
+    async function sendCmd(uint8Array) {
+      if (!writeCharacteristic) return;
+      await writeCharacteristic.writeValue(uint8Array);
+    }
+
+    function delay(ms) {
+      return new Promise(resolve => setTimeout(resolve, ms));
+    }
+  </script>
 </body>
 </html>
