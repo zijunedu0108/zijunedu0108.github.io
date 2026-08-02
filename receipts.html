@@ -3,18 +3,18 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>MXW01 Web Bluetooth 打印测试 (V5G 修正版)</title>
+  <title>MXW01 Web Bluetooth 打印测试 (56字节标准包修正版)</title>
   <style>
     body { font-family: sans-serif; padding: 20px; max-width: 600px; margin: 0 auto; }
     .card { border: 1px solid #ccc; padding: 15px; border-radius: 8px; margin-bottom: 15px; }
     button { padding: 10px 16px; font-size: 14px; margin-right: 10px; cursor: pointer; }
-    #log { background: #1e1e1e; color: #00ff00; font-family: monospace; padding: 10px; height: 260px; overflow-y: auto; border-radius: 4px; }
+    #log { background: #1e1e1e; color: #00ff00; font-family: monospace; padding: 10px; height: 280px; overflow-y: auto; border-radius: 4px; }
     canvas { border: 1px dashed #aaa; margin-top: 10px; display: block; }
   </style>
 </head>
 <body>
 
-  <h2>MXW01 热敏打印机 Web BLE 调试工具 (V5G 标头修复)</h2>
+  <h2>MXW01 热敏打印机 Web BLE 调试工具 (56字节标准包)</h2>
 
   <div class="card">
     <button id="btnConnect">1. 连接 MXW01 打印机</button>
@@ -140,19 +140,18 @@
         await delay(100);
 
         // Step 2: 发送开启任务指令 (Start Print Job - 0xA3)
-        // Header(2) + Cmd(1) + Darkness(1) + Reserved(2) + CRC(1)
         log('下发开始打印任务指令 (0xA3)...');
         await sendCmd(new Uint8Array([0x22, 0x21, 0xA3, 0x5F, 0x00, 0x00, 0xFC]));
         await delay(100);
 
-        // Step 3: 构建并发送 0xA1 位图点阵数据
+        // Step 3: 构建并发送 56 字节标准 0xA1 位图点阵数据
         const imgData = ctx.getImageData(0, 0, canvas.width, canvas.height);
         const packets = buildMXW01BitmapPackets(imgData);
 
         log(`下发位图像素包 (共 ${packets.length} 行)...`);
         for (let i = 0; i < packets.length; i++) {
           await sendCmd(packets[i]);
-          await delay(25); // 调整为 25ms 延迟，确保打印机 FIFO 不溢出
+          await delay(25); // 25ms 延迟，给固件留出 FIFO 处理时间
         }
 
         // Step 4: 发送走纸与结束任务指令
@@ -173,7 +172,7 @@
     });
 
     // ----------------------------------------------------
-    // 3. 位图打包算法（适配带浓度与长度标志的 MXW01 结构）
+    // 3. 56字节标准包位图打包算法 (双字节 CRC16)
     // ----------------------------------------------------
     function buildMXW01BitmapPackets(imageData) {
       const width = imageData.width;   // 384px
@@ -199,39 +198,42 @@
           }
         }
 
-        // 包含完整 7 字节 Header 的 0xA1 包结构:
+        // 标准 56 字节包结构:
         // [0..1] Header (0x22, 0x21)
         // [2] Cmd (0xA1)
-        // [3] SubCmd/Mode (0x01: Raw Dot Matrix Line)
-        // [4..5] Data Length (0x30, 0x00 -> 48 bytes)
-        // [6..53] 48 字节位图
-        // [54] CRC8
-        const packet = new Uint8Array(2 + 1 + 1 + 2 + bytesPerLine + 1);
+        // [3] Mode (0x00: 点阵透传模式)
+        // [4..5] Data Length (0x30, 0x00 -> 48 字节)
+        // [6..53] 48 字节位图点阵
+        // [54..55] CRC16 Checksum
+        const packet = new Uint8Array(56);
         
         packet[0] = 0x22;
         packet[1] = 0x21;
         packet[2] = 0xA1;
-        packet[3] = 0x01; // 设置 SubCmd/Mode 标志为 0x01 (行数据)
+        packet[3] = 0x00; // 模式标志：0x00 (原始 Raw 点阵模式)
         
-        packet[4] = bytesPerLine & 0xFF;        // 0x30
-        packet[5] = (bytesPerLine >> 8) & 0xFF; // 0x00
+        packet[4] = 0x30; // 长度 LSB: 48 字节
+        packet[5] = 0x00; // 长度 MSB
 
+        // 填充 48 字节像素点阵
         packet.set(lineBytes, 6);
 
-        // CRC8 计算
-        let crc = 0x00;
-        for (let i = 2; i < packet.length - 1; i++) {
-          crc ^= packet[i];
+        // 计算 CRC16-CCITT (0x1021) 放置于包尾 [54..55]
+        let crc = 0x0000;
+        for (let i = 2; i < 54; i++) {
+          crc ^= (packet[i] << 8);
           for (let j = 0; j < 8; j++) {
-            if (crc & 0x80) {
-              crc = ((crc << 1) ^ 0x07) & 0xFF;
+            if (crc & 0x8000) {
+              crc = ((crc << 1) ^ 0x1021) & 0xFFFF;
             } else {
-              crc = (crc << 1) & 0xFF;
+              crc = (crc << 1) & 0xFFFF;
             }
           }
         }
-        
-        packet[packet.length - 1] = crc;
+
+        packet[54] = crc & 0xFF;        // CRC LSB
+        packet[55] = (crc >> 8) & 0xFF; // CRC MSB
+
         packets.push(packet);
       }
 
@@ -239,26 +241,15 @@
     }
 
     function buildFeedPacket(distancePx) {
-      const packet = new Uint8Array(7);
+      const packet = new Uint8Array(8);
       packet[0] = 0x22;
       packet[1] = 0x21;
       packet[2] = 0xA1;
-      packet[3] = 0x30; // Feed
+      packet[3] = 0x30; // Feed 指令 SubCmd
       packet[4] = distancePx & 0xFF;
       packet[5] = (distancePx >> 8) & 0xFF;
-      
-      let crc = 0x00;
-      for (let i = 2; i < 6; i++) {
-        crc ^= packet[i];
-        for (let j = 0; j < 8; j++) {
-          if (crc & 0x80) {
-            crc = ((crc << 1) ^ 0x07) & 0xFF;
-          } else {
-            crc = (crc << 1) & 0xFF;
-          }
-        }
-      }
-      packet[6] = crc;
+      packet[6] = 0x00;
+      packet[7] = 0x1D; // 固定 Checksum
       return packet;
     }
 
