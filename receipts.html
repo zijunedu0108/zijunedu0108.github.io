@@ -3,19 +3,17 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>收据生成器 (Receipt Generator)</title>
-    <!-- 引入 html2canvas 库 -->
+    <title>收据生成器 (MXW01 专属固定通道版)</title>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
     <style>
         * { box-sizing: border-box; margin: 0; padding: 0; font-family: system-ui, -apple-system, sans-serif; }
         body { background: #f5f5f7; padding: 20px; color: #333; }
         .container { max-width: 1100px; margin: 0 auto; display: flex; gap: 20px; }
         
-        /* 表单区域 */
         .form-section { flex: 1; background: #fff; padding: 20px; border-radius: 8px; box-shadow: 0 2px 8px rgba(0,0,0,0.05); }
         .form-group { margin-bottom: 12px; }
         label { display: block; font-weight: 600; font-size: 13px; margin-bottom: 4px; }
-        input, select { width: 100%; padding: 8px 12px; border: 1px solid #ccc; border-radius: 4px; font-size: 14px; }
+        input { width: 100%; padding: 8px 12px; border: 1px solid #ccc; border-radius: 4px; font-size: 14px; }
         .item-row { display: flex; gap: 8px; margin-bottom: 8px; }
         .item-row input:nth-child(1) { flex: 2; }
         .item-row input:nth-child(2) { flex: 1; }
@@ -25,7 +23,6 @@
         .btn-add { background: #e3f2fd; color: #0d47a1; margin-bottom: 15px; }
         .btn-remove { background: #ffebee; color: #c62828; padding: 0 10px; }
         
-        /* 蓝牙控制面板 */
         .ble-panel { background: #f8f9fa; padding: 15px; border-radius: 6px; margin-top: 15px; border: 1px solid #e9ecef; }
         .ble-panel h4 { margin-bottom: 10px; font-size: 14px; color: #212529; }
         .ble-btn-group { display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 10px; }
@@ -34,31 +31,22 @@
         .btn-ble-retract { background: #6c757d; color: #fff; }
         .btn-ble-print { background: #198754; color: #fff; width: 100%; padding: 12px; font-size: 15px; margin-top: 8px; }
 
-        /* 调试控制台 */
         #logConsole { 
             background: #1e1e1e; color: #00ff66; font-family: monospace; font-size: 11px; 
-            padding: 8px; height: 100px; overflow-y: auto; border-radius: 4px; margin-top: 8px; 
+            padding: 8px; height: 110px; overflow-y: auto; border-radius: 4px; margin-top: 8px; 
         }
 
         .btn-group { display: flex; gap: 10px; margin-top: 15px; }
         .btn-print { background: #6c757d; color: #fff; flex: 1; padding: 10px; font-size: 13px; }
         .btn-png { background: #0dcaf0; color: #000; flex: 1; padding: 10px; font-size: 13px; }
 
-        /* 收据预览区域 */
         .preview-section { flex: 1; display: flex; justify-content: center; align-items: flex-start; }
         .receipt { 
-            width: 320px; 
-            background: #fff; 
-            padding: 24px; 
-            border-radius: 4px; 
-            box-shadow: 0 4px 12px rgba(0,0,0,0.1); 
-            display: flex;
-            flex-direction: column;
-            justify-content: space-between;
-            min-height: 500px;
+            width: 320px; background: #fff; padding: 24px; border-radius: 4px; 
+            box-shadow: 0 4px 12px rgba(0,0,0,0.1); display: flex; flex-direction: column;
+            justify-content: space-between; min-height: 500px;
         }
         
-        /* 收据内部格式 */
         .receipt-header { text-align: center; margin-bottom: 15px; border-bottom: 1px dashed #ccc; padding-bottom: 10px; }
         .receipt-header h2 { font-size: 18px; margin-bottom: 4px; }
         .receipt-header p { font-size: 12px; color: #666; word-break: break-all; }
@@ -88,7 +76,6 @@
 <body>
 
 <div class="container">
-    <!-- 左侧：输入表单 -->
     <div class="form-section">
         <h3>店铺信息</h3>
         <div class="form-group">
@@ -115,38 +102,28 @@
             <input type="number" id="taxRate" value="0" min="0" oninput="updateReceipt()">
         </div>
 
-        <!-- 蓝牙打印控制面板 -->
+        <!-- 蓝牙面板 -->
         <div class="ble-panel">
-            <h4>📶 蓝牙控制台 (MXW01 / FunPrint)</h4>
-            
-            <div class="form-group">
-                <label>指令协议模式</label>
-                <select id="protocolMode">
-                    <option value="AUTO">AUTO (混合双投模式 - 推荐)</option>
-                    <option value="MX">MX 协议 (0x22 0x21 帧头)</option>
-                    <option value="ESC">ESC/POS 通用协议</option>
-                </select>
-            </div>
+            <h4>📶 蓝牙打印控制台 (MXW01 精准匹配版)</h4>
 
             <div class="ble-btn-group">
                 <button class="btn-ble-conn" onclick="connectBluetooth()">1. 连接蓝牙设备</button>
-                <button class="btn-ble-feed" onclick="sendFeedCommand()">Feed (走纸)</button>
-                <button class="btn-ble-retract" onclick="sendRetractCommand()">Retract (退纸)</button>
+                <button class="btn-ble-feed" onclick="sendFeedCommand(50)">Feed (走纸)</button>
+                <button class="btn-ble-retract" onclick="sendRetractCommand(30)">Retract (退纸)</button>
             </div>
             
-            <button class="btn-ble-print" onclick="printViaBluetooth()">2. 🖨️ 蓝牙打印收据 (BLE Print)</button>
+            <button class="btn-ble-print" onclick="printViaBluetooth()">2. 🖨️ 蓝牙打纸 (BLE Print)</button>
 
-            <!-- 状态终端 -->
-            <div id="logConsole">等待连接蓝牙...</div>
+            <div id="logConsole">等待连接...</div>
         </div>
 
         <div class="btn-group">
-            <button class="btn-png" onclick="downloadPNG()">导出 PNG 图片</button>
-            <button class="btn-print" onclick="window.print()">普通系统打印</button>
+            <button class="btn-png" onclick="downloadPNG()">保存 PNG</button>
+            <button class="btn-print" onclick="window.print()">普通打印</button>
         </div>
     </div>
 
-    <!-- 右侧：收据预览 -->
+    <!-- 右侧收据预览 -->
     <div class="preview-section">
         <div class="receipt" id="receipt">
             <div>
@@ -198,7 +175,7 @@
 
 <script>
     // ------------------------------------
-    // 1. 收据界面交互逻辑
+    // 1. 界面逻辑
     // ------------------------------------
     let items = [{ name: '示例商品 A', price: 10.00, qty: 1 }];
 
@@ -305,74 +282,45 @@
     }
 
     // ------------------------------------
-    // 2. 蓝牙驱动与多协议实现
+    // 2. 锁定特定 UUID 的 MX 通信逻辑
     // ------------------------------------
     let bleDevice = null;
-    let writeChar = null;
+    let dataChar = null; // ae01 数据发送通道
+    let ctrlChar = null; // ae03 握手与控制通道
 
-    // A. 搜寻并连接设备
     async function connectBluetooth() {
         try {
-            log("正在扫描附近 BLE 设备...");
+            log("正在请求选择 BLE 设备...");
             bleDevice = await navigator.bluetooth.requestDevice({
                 acceptAllDevices: true,
-                optionalServices: [
-                    '0000ae30-0000-1000-8000-00805f9b34fb',
-                    '0000ae00-0000-1000-8000-00805f9b34fb',
-                    '0000e000-0000-1000-8000-00805f9b34fb',
-                    '0000ff00-0000-1000-8000-00805f9b34fb'
-                ]
+                optionalServices: ['0000ae30-0000-1000-8000-00805f9b34fb']
             });
 
-            log(`正在连接: ${bleDevice.name || '未知设备'}...`);
+            log(`正在建立链接: ${bleDevice.name || 'MX 打印机'}...`);
             const server = await bleDevice.gatt.connect();
 
-            // 深度遍历匹配可写入特征 UUID
-            const services = await server.getPrimaryServices();
-            writeChar = null;
+            // 1. 获取主服务 ae30
+            const service = await server.getPrimaryService('0000ae30-0000-1000-8000-00805f9b34fb');
 
-            for (let service of services) {
-                const characteristics = await service.getCharacteristics();
-                for (let c of characteristics) {
-                    if (c.properties.write || c.properties.writeWithoutResponse) {
-                        writeChar = c;
-                        break;
-                    }
-                }
-                if (writeChar) break;
-            }
+            // 2. 锁定正确的 ae01(数据) 与 ae03(控制)
+            dataChar = await service.getCharacteristic('0000ae01-0000-1000-8000-00805f9b34fb');
+            ctrlChar = await service.getCharacteristic('0000ae03-0000-1000-8000-00805f9b34fb');
 
-            if (!writeChar) {
-                throw new Error("未寻找到可用的写入特征通道");
-            }
+            log("✅ 成功成功建立 ae01 数据通道与 ae03 控制通道！");
 
-            log("✅ 蓝牙握手成功！通道已建立。");
-            alert("蓝牙连接成功！");
+            // 3. 执行启动初始化握手（向 ae03 激活打印机主板）
+            log("正在发送主板唤醒握手包...");
+            const initHandshake = makeMxPacket(0xA0, new Uint8Array([0x00]));
+            await ctrlChar.writeValueWithoutResponse(initHandshake);
+            
+            log("🎉 打印机握手就绪！可以测试 Feed 或打印。");
+            alert("蓝牙设备绑定并握手成功！");
         } catch (err) {
-            log("❌ 连接失败: " + err.message);
+            log("❌ 连接过程出错: " + err.message);
         }
     }
 
-    // B. 发送原始字节流工具
-    async function sendRawBytes(bytes) {
-        if (!writeChar) {
-            alert("请先点击『1. 连接蓝牙设备』！");
-            return false;
-        }
-        try {
-            if (writeChar.properties.writeWithoutResponse) {
-                await writeChar.writeValueWithoutResponse(bytes);
-            } else {
-                await writeChar.writeValue(bytes);
-            }
-            return true;
-        } catch (err) {
-            log("发送异常: " + err.message);
-            return false;
-        }
-    }
-
-    // C. 组装 MX 格式数据包 (0x22 0x21)
+    // MX 协议数据包拼装 (0x22 0x21 + CMD + Length + Data + CRC)
     function makeMxPacket(cmd, payload) {
         const len = payload.length;
         const packet = new Uint8Array(5 + len + 1);
@@ -389,53 +337,40 @@
         return packet;
     }
 
-    // D. 走纸 (Feed)
-    async function sendFeedCommand() {
-        const mode = document.getElementById('protocolMode').value;
-        log(`执行 Feed 走纸 (模式: ${mode})...`);
-
-        if (mode === 'MX' || mode === 'AUTO') {
-            const mxPkt = makeMxPacket(0xA1, new Uint8Array([0x32, 0x00]));
-            await sendRawBytes(mxPkt);
+    // 走纸命令 (0xA1 指令发往 ae01)
+    async function sendFeedCommand(pixels = 50) {
+        if (!dataChar) return alert("请先点击『1. 连接蓝牙设备』！");
+        try {
+            log(`向 ae01 通道发送 Feed 走纸 ${pixels}px...`);
+            const pkt = makeMxPacket(0xA1, new Uint8Array([pixels & 0xFF, (pixels >> 8) & 0xFF]));
+            await dataChar.writeValueWithoutResponse(pkt);
+            log("Feed 数据已成功下发");
+        } catch(err) {
+            log("Feed 失败: " + err.message);
         }
-        
-        if (mode === 'ESC' || mode === 'AUTO') {
-            await new Promise(r => setTimeout(r, 50));
-            // ESC/POS 初始化 + 走纸 5 行 (0x1B 0x40 0x1B 0x64 0x05)
-            const escFeed = new Uint8Array([0x1B, 0x40, 0x1B, 0x64, 0x05, 0x0A]);
-            await sendRawBytes(escFeed);
-        }
-        log("走纸指令已发出");
     }
 
-    // E. 退纸 (Retract)
-    async function sendRetractCommand() {
-        const mode = document.getElementById('protocolMode').value;
-        log(`执行 Retract 退纸 (模式: ${mode})...`);
-
-        if (mode === 'MX' || mode === 'AUTO') {
-            const mxPkt = makeMxPacket(0xA0, new Uint8Array([0x32, 0x00]));
-            await sendRawBytes(mxPkt);
+    // 退纸命令 (0xA0 指令发往 ae01)
+    async function sendRetractCommand(pixels = 30) {
+        if (!dataChar) return alert("请先点击『1. 连接蓝牙设备』！");
+        try {
+            log(`向 ae01 通道发送 Retract 退纸 ${pixels}px...`);
+            const pkt = makeMxPacket(0xA0, new Uint8Array([pixels & 0xFF, (pixels >> 8) & 0xFF]));
+            await dataChar.writeValueWithoutResponse(pkt);
+            log("Retract 数据已成功下发");
+        } catch(err) {
+            log("Retract 失败: " + err.message);
         }
-
-        if (mode === 'ESC' || mode === 'AUTO') {
-            await new Promise(r => setTimeout(r, 50));
-            // ESC 倒退走纸命令
-            const escRetract = new Uint8Array([0x1B, 0x4A, 0xCE]);
-            await sendRawBytes(escRetract);
-        }
-        log("退纸指令已发出");
     }
 
-    // F. 蓝牙图片渲染打印
+    // 收据画板渲染并推送打纸
     async function printViaBluetooth() {
-        if (!writeChar) return alert("请先连接蓝牙打印机！");
+        if (!dataChar) return alert("请先连接蓝牙打印机！");
 
-        log("渲染收据图片中...");
+        log("正在把收据渲染为位图...");
         const receiptElement = document.getElementById('receipt');
         const canvas = await html2canvas(receiptElement, { backgroundColor: "#ffffff" });
         
-        // 转换至打印机标准的 384 点阵宽度
         const targetWidth = 384;
         const targetHeight = Math.round(canvas.height * (targetWidth / canvas.width));
 
@@ -446,57 +381,29 @@
         ctx.drawImage(canvas, 0, 0, targetWidth, targetHeight);
         
         const imgData = ctx.getImageData(0, 0, targetWidth, targetHeight);
-        log(`提取位图阵列: ${targetWidth}x${targetHeight}`);
+        log(`位图格式化完成: 宽 ${targetWidth}px, 高 ${targetHeight}px`);
 
-        const mode = document.getElementById('protocolMode').value;
         const bytesPerLine = 48; // 384 / 8
 
-        log("开始推送点阵打印数据...");
-
-        // ESC/POS 模式下的位图打印
-        if (mode === 'ESC') {
-            // 初始化打印机
-            await sendRawBytes(new Uint8Array([0x1B, 0x40]));
-            
-            for (let y = 0; y < targetHeight; y++) {
-                const lineData = new Uint8Array(bytesPerLine);
-                for (let x = 0; x < targetWidth; x++) {
-                    const idx = (y * targetWidth + x) * 4;
-                    if ((imgData.data[idx] + imgData.data[idx+1] + imgData.data[idx+2]) / 3 < 128) {
-                        lineData[Math.floor(x / 8)] |= (1 << (7 - (x % 8)));
-                    }
+        log("开始向 ae01 通道发送图像数据...");
+        for (let y = 0; y < targetHeight; y++) {
+            const lineData = new Uint8Array(bytesPerLine);
+            for (let x = 0; x < targetWidth; x++) {
+                const idx = (y * targetWidth + x) * 4;
+                if ((imgData.data[idx] + imgData.data[idx+1] + imgData.data[idx+2]) / 3 < 128) {
+                    lineData[Math.floor(x / 8)] |= (1 << (7 - (x % 8)));
                 }
-                // GS v 0 打印位图指令
-                const header = new Uint8Array([0x1D, 0x76, 0x30, 0x00, 0x30, 0x00, 0x01, 0x00]);
-                const linePacket = new Uint8Array(header.length + lineData.length);
-                linePacket.set(header);
-                linePacket.set(lineData, header.length);
-
-                await sendRawBytes(linePacket);
-                await new Promise(r => setTimeout(r, 6));
             }
-            // 结束走纸
-            await sendRawBytes(new Uint8Array([0x1B, 0x64, 0x04]));
-        } 
-        // MX 协议模式 (AUTO 模式下默认也以此模式打图)
-        else {
-            for (let y = 0; y < targetHeight; y++) {
-                const lineData = new Uint8Array(bytesPerLine);
-                for (let x = 0; x < targetWidth; x++) {
-                    const idx = (y * targetWidth + x) * 4;
-                    if ((imgData.data[idx] + imgData.data[idx+1] + imgData.data[idx+2]) / 3 < 128) {
-                        lineData[Math.floor(x / 8)] |= (1 << (7 - (x % 8)));
-                    }
-                }
-                const pkt = makeMxPacket(0xA2, lineData);
-                await sendRawBytes(pkt);
-                await new Promise(r => setTimeout(r, 8));
-            }
-            // 结束走纸
-            await sendRawBytes(makeMxPacket(0xA1, new Uint8Array([0x32, 0x00])));
+            // 0xA2 指令：按行画点
+            const pkt = makeMxPacket(0xA2, lineData);
+            await dataChar.writeValueWithoutResponse(pkt);
+            await new Promise(r => setTimeout(r, 8)); // 间隔 8毫秒 防止数据包挤爆蓝牙芯片
         }
 
-        log("🎉 打印数据传输全量完成！");
+        // 打印结束，走纸 50px 出纸
+        log("图像发送完毕，发送收尾走纸命令...");
+        await dataChar.writeValueWithoutResponse(makeMxPacket(0xA1, new Uint8Array([0x32, 0x00])));
+        log("🎉 网页蓝牙打印完全结束！");
     }
 </script>
 
