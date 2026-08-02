@@ -1,162 +1,505 @@
 <!DOCTYPE html>
 <html lang="zh-CN">
 <head>
-  <meta charset="UTF-8">
-  <title>MXW01 打印机 Web 蓝牙直连测试</title>
-  <style>
-    body { font-family: system-ui, sans-serif; padding: 20px; max-width: 600px; margin: 0 auto; }
-    button { padding: 10px 16px; font-size: 14px; margin-right: 8px; margin-bottom: 8px; cursor: pointer; }
-    #log { background: #1e1e1e; color: #00ff00; padding: 12px; font-family: monospace; height: 280px; overflow-y: auto; border-radius: 4px; white-space: pre-wrap; }
-  </style>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>MXW01 蓝牙打印机 - 真实连接</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        body {
+            font-family: -apple-system, system-ui, 'Segoe UI', Roboto, sans-serif;
+            background: #f0f4f8;
+            padding: 16px;
+            max-width: 480px;
+            margin: 0 auto;
+            min-height: 100vh;
+        }
+        .app {
+            background: white;
+            border-radius: 20px;
+            padding: 24px;
+            box-shadow: 0 8px 30px rgba(0,0,0,0.08);
+        }
+        h1 {
+            font-size: 24px;
+            color: #1a2332;
+            margin-bottom: 6px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        .subtitle {
+            color: #6b7f96;
+            font-size: 14px;
+            margin-bottom: 20px;
+        }
+        .status-bar {
+            background: #f8fafc;
+            border-radius: 12px;
+            padding: 14px 16px;
+            margin-bottom: 20px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            border: 1px solid #e8edf4;
+        }
+        .status-dot {
+            width: 10px;
+            height: 10px;
+            border-radius: 50%;
+            display: inline-block;
+            margin-right: 8px;
+        }
+        .status-dot.off {
+            background: #94a3b8;
+        }
+        .status-dot.on {
+            background: #22c55e;
+            box-shadow: 0 0 8px rgba(34,197,94,0.3);
+        }
+        .btn {
+            padding: 12px 20px;
+            border: none;
+            border-radius: 12px;
+            font-size: 15px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.15s;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            width: 100%;
+            justify-content: center;
+        }
+        .btn:active {
+            transform: scale(0.97);
+        }
+        .btn-primary {
+            background: #2563eb;
+            color: white;
+        }
+        .btn-primary:hover {
+            background: #1d4ed8;
+        }
+        .btn-primary:disabled {
+            background: #93b4f0;
+            cursor: not-allowed;
+        }
+        .btn-success {
+            background: #16a34a;
+            color: white;
+        }
+        .btn-success:hover {
+            background: #15803d;
+        }
+        .btn-danger {
+            background: #dc2626;
+            color: white;
+        }
+        .btn-outline {
+            background: transparent;
+            color: #2563eb;
+            border: 2px solid #2563eb;
+        }
+        .btn-outline:hover {
+            background: #eff6ff;
+        }
+        .btn-group {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+            margin: 16px 0;
+        }
+        .btn-group .btn {
+            width: 100%;
+        }
+        .log-container {
+            background: #0a0e14;
+            color: #a8d4ff;
+            padding: 14px;
+            border-radius: 12px;
+            font-family: 'JetBrains Mono', 'Fira Code', monospace;
+            font-size: 12px;
+            height: 200px;
+            overflow-y: auto;
+            white-space: pre-wrap;
+            word-break: break-all;
+            line-height: 1.6;
+            margin-top: 16px;
+            border: 1px solid #1e293b;
+        }
+        .log-container .time {
+            color: #64748b;
+        }
+        .log-container .info {
+            color: #60a5fa;
+        }
+        .log-container .success {
+            color: #4ade80;
+        }
+        .log-container .error {
+            color: #f87171;
+        }
+        .log-container .recv {
+            color: #fbbf24;
+        }
+        .device-info {
+            background: #f1f5f9;
+            border-radius: 8px;
+            padding: 10px 14px;
+            font-size: 13px;
+            color: #334155;
+            margin: 12px 0;
+        }
+        .hint {
+            background: #fef9c3;
+            border-left: 4px solid #eab308;
+            padding: 12px 14px;
+            border-radius: 8px;
+            font-size: 13px;
+            color: #854d0e;
+            margin: 12px 0;
+        }
+    </style>
 </head>
 <body>
+    <div class="app">
+        <h1>
+            <span>🖨️</span> 蓝牙打印机
+        </h1>
+        <div class="subtitle">MXW01 / 58mm 热敏 · Web Bluetooth</div>
 
-  <h2>MXW01 蓝牙打印机测试</h2>
-  
-  <div>
-    <button id="btnConnect">1. 连接蓝牙打印机</button>
-    <button id="btnPrintDemo" disabled>2. 打印测试图案并走纸</button>
-    <button id="btnFeed" disabled>3. 单独走纸 50 点</button>
-  </div>
+        <div class="status-bar">
+            <span>
+                <span class="status-dot off" id="statusDot"></span>
+                <span id="statusText">未连接</span>
+            </span>
+            <span id="deviceName" style="color:#94a3b8;font-size:13px;">等待配对</span>
+        </div>
 
-  <h4>通信日志：</h4>
-  <div id="log">请使用 Chrome / Edge 浏览器，点击连接按钮...<br></div>
+        <div class="btn-group">
+            <button class="btn btn-primary" id="btnConnect">
+                <span>🔗</span> 连接蓝牙打印机
+            </button>
+            <button class="btn btn-success" id="btnPrintTest" disabled>
+                <span>📄</span> 打印测试页 + 走纸
+            </button>
+            <button class="btn btn-outline" id="btnFeed" disabled>
+                <span>⬇️</span> 单独走纸 30mm
+            </button>
+            <button class="btn btn-danger" id="btnDisconnect" disabled>
+                <span>⛔</span> 断开连接
+            </button>
+        </div>
 
-  <script>
-    const SERVICE_UUID = 0xAE30;
-    const WRITE_CHAR_UUID = 0xAE01;
-    const NOTIFY_CHAR_UUID = 0xAE02;
+        <div id="deviceInfo" class="device-info" style="display:none;">
+            <strong>已连接设备</strong><br>
+            <span id="infoName">-</span> · <span id="infoId">-</span>
+        </div>
 
-    let device, writeCharacteristic, notifyCharacteristic;
+        <div class="hint" id="hintBox">
+            💡 请使用 <strong>Chrome 120+</strong> 或 <strong>Edge 120+</strong><br>
+            确保蓝牙已开启，打印机处于配对模式
+        </div>
 
-    function log(msg, type = 'INFO') {
-      const logDiv = document.getElementById('log');
-      const time = new Date().toLocaleTimeString();
-      logDiv.innerHTML += `[${time}] [${type}] ${msg}\n`;
-      logDiv.scrollTop = logDiv.scrollHeight;
-    }
+        <div class="log-container" id="log">
+            <span class="time">[系统]</span> <span class="info">就绪，点击「连接蓝牙打印机」</span>
+        </div>
+    </div>
 
-    // CRC8 计算
-    function calcCRC8(data) {
-      let crc = 0x00;
-      for (let i = 0; i < data.length; i++) {
-        crc ^= data[i];
-        for (let j = 0; j < 8; j++) {
-          if (crc & 0x80) {
-            crc = ((crc << 1) ^ 0x07) & 0xFF;
-          } else {
-            crc = (crc << 1) & 0xFF;
-          }
+    <script>
+        // ============================================================
+        //  MXW01 打印机协议 (真实)
+        //  服务: 0xAE30 或 0000AE30-0000-1000-8000-00805F9B34FB
+        //  写特征: 0xAE01
+        //  通知特征: 0xAE02
+        // ============================================================
+
+        const SERVICE_UUID = 0xAE30;
+        const SERVICE_UUID_STR = '0000ae30-0000-1000-8000-00805f9b34fb';
+        const WRITE_CHAR_UUID = 0xAE01;
+        const NOTIFY_CHAR_UUID = 0xAE02;
+
+        let device = null;
+        let server = null;
+        let writeCharacteristic = null;
+        let notifyCharacteristic = null;
+        let isConnected = false;
+
+        // DOM
+        const logEl = document.getElementById('log');
+        const statusDot = document.getElementById('statusDot');
+        const statusText = document.getElementById('statusText');
+        const deviceName = document.getElementById('deviceName');
+        const btnConnect = document.getElementById('btnConnect');
+        const btnPrintTest = document.getElementById('btnPrintTest');
+        const btnFeed = document.getElementById('btnFeed');
+        const btnDisconnect = document.getElementById('btnDisconnect');
+        const deviceInfo = document.getElementById('deviceInfo');
+        const infoName = document.getElementById('infoName');
+        const infoId = document.getElementById('infoId');
+        const hintBox = document.getElementById('hintBox');
+
+        // ---- 日志 ----
+        function log(msg, type = 'info') {
+            const time = new Date().toLocaleTimeString();
+            const colorMap = {
+                info: 'info',
+                success: 'success',
+                error: 'error',
+                recv: 'recv',
+                send: 'info'
+            };
+            const cls = colorMap[type] || 'info';
+            logEl.innerHTML += `<span class="time">[${time}]</span> <span class="${cls}">${msg}</span>\n`;
+            logEl.scrollTop = logEl.scrollHeight;
         }
-      }
-      return crc;
-    }
 
-    // 构造 V5C 数据包
-    function makeV5CPacket(opcode, payload = new Uint8Array(0)) {
-      const prefix = [0x22, 0x21];
-      const payloadLen = payload.length;
-      const packet = new Uint8Array(2 + 1 + 1 + 2 + payloadLen + 1);
-      
-      packet[0] = prefix[0];
-      packet[1] = prefix[1];
-      packet[2] = opcode;
-      packet[3] = 0x00;
-      
-      packet[4] = payloadLen & 0xFF;
-      packet[5] = (payloadLen >> 8) & 0xFF;
-      
-      packet.set(payload, 6);
-      
-      const bytesToCrc = packet.subarray(2, 6 + payloadLen);
-      packet[6 + payloadLen] = calcCRC8(bytesToCrc);
-      
-      return packet;
-    }
+        // ---- 工具 ----
+        function sleep(ms) { return new Promise(r => setTimeout(r, ms)); }
 
-    // 延时辅助函数
-    const sleep = ms => new Promise(resolve => setTimeout(resolve, ms));
+        // CRC8 (与打印机协议匹配)
+        function calcCRC8(data) {
+            let crc = 0x00;
+            for (let i = 0; i < data.length; i++) {
+                crc ^= data[i];
+                for (let j = 0; j < 8; j++) {
+                    if (crc & 0x80) {
+                        crc = ((crc << 1) ^ 0x07) & 0xFF;
+                    } else {
+                        crc = (crc << 1) & 0xFF;
+                    }
+                }
+            }
+            return crc;
+        }
 
-    // 1. 连接蓝牙
-    document.getElementById('btnConnect').addEventListener('click', async () => {
-      try {
-        log('正在搜索蓝牙设备...');
-        device = await navigator.bluetooth.requestDevice({
-          acceptAllDevices: true,
-          optionalServices: [SERVICE_UUID, '0000ae30-0000-1000-8000-00805f9b34fb']
+        // 构造 V5C 数据包
+        function makeV5CPacket(opcode, payload = new Uint8Array(0)) {
+            const prefix = [0x22, 0x21];
+            const payloadLen = payload.length;
+            const packet = new Uint8Array(2 + 1 + 1 + 2 + payloadLen + 1);
+            packet[0] = prefix[0];
+            packet[1] = prefix[1];
+            packet[2] = opcode;
+            packet[3] = 0x00;
+            packet[4] = payloadLen & 0xFF;
+            packet[5] = (payloadLen >> 8) & 0xFF;
+            packet.set(payload, 6);
+            const bytesToCrc = packet.subarray(2, 6 + payloadLen);
+            packet[6 + payloadLen] = calcCRC8(bytesToCrc);
+            return packet;
+        }
+
+        // ---- 更新 UI 状态 ----
+        function setConnected(connected, devName = '') {
+            isConnected = connected;
+            if (connected) {
+                statusDot.className = 'status-dot on';
+                statusText.textContent = '已连接';
+                deviceName.textContent = devName || 'MXW01';
+                btnConnect.disabled = true;
+                btnPrintTest.disabled = false;
+                btnFeed.disabled = false;
+                btnDisconnect.disabled = false;
+                deviceInfo.style.display = 'block';
+                infoName.textContent = devName || 'MXW01';
+                infoId.textContent = device ? device.id : '-';
+                hintBox.style.display = 'none';
+                log('✅ 蓝牙连接成功，打印机就绪', 'success');
+            } else {
+                statusDot.className = 'status-dot off';
+                statusText.textContent = '未连接';
+                deviceName.textContent = '等待配对';
+                btnConnect.disabled = false;
+                btnPrintTest.disabled = true;
+                btnFeed.disabled = true;
+                btnDisconnect.disabled = true;
+                deviceInfo.style.display = 'none';
+                hintBox.style.display = 'block';
+            }
+        }
+
+        // ---- 1. 连接 ----
+        async function connectPrinter() {
+            if (!navigator.bluetooth) {
+                log('❌ 此浏览器不支持 Web Bluetooth', 'error');
+                log('💡 请使用 Chrome 120+ 或 Edge 120+', 'error');
+                return;
+            }
+
+            try {
+                log('🔍 搜索蓝牙设备... (确保打印机处于配对模式)', 'info');
+                device = await navigator.bluetooth.requestDevice({
+                    acceptAllDevices: true,
+                    optionalServices: [SERVICE_UUID, SERVICE_UUID_STR]
+                });
+
+                log(`📡 已选择: ${device.name || '未命名设备'} (${device.id})`, 'info');
+
+                server = await device.gatt.connect();
+                log('🔗 GATT 连接成功', 'success');
+
+                let service;
+                try {
+                    service = await server.getPrimaryService(SERVICE_UUID);
+                } catch {
+                    service = await server.getPrimaryService(SERVICE_UUID_STR);
+                }
+                log('📦 主服务已获取', 'success');
+
+                writeCharacteristic = await service.getCharacteristic(WRITE_CHAR_UUID);
+                log('✍️ 写入特征已获取', 'success');
+
+                // 尝试开启通知
+                try {
+                    notifyCharacteristic = await service.getCharacteristic(NOTIFY_CHAR_UUID);
+                    await notifyCharacteristic.startNotifications();
+                    notifyCharacteristic.addEventListener('characteristicvaluechanged', (e) => {
+                        const val = new Uint8Array(e.target.value.buffer);
+                        const hex = Array.from(val).map(b => '0x' + b.toString(16).padStart(2, '0')).join(' ');
+                        log(`📨 收到: ${hex}`, 'recv');
+                    });
+                    log('📢 通知已开启', 'success');
+                } catch (e) {
+                    log('ℹ️ 通知特征不可用 (不影响打印)', 'info');
+                }
+
+                setConnected(true, device.name || 'MXW01');
+
+                // 发送一个简单的握手指令 (可选)
+                try {
+                    const handshake = makeV5CPacket(0x00, new Uint8Array([0x01]));
+                    await writeCharacteristic.writeValue(handshake);
+                    log('🤝 握手包已发送', 'send');
+                } catch (e) {
+                    log('⚠️ 握手失败 (不影响打印)', 'info');
+                }
+
+            } catch (err) {
+                log(`❌ 连接失败: ${err.message}`, 'error');
+                if (err.message.includes('cancelled')) {
+                    log('💡 用户取消了配对', 'info');
+                } else if (err.message.includes('not found')) {
+                    log('💡 未找到打印机，请确认蓝牙已开启且打印机处于配对模式', 'info');
+                }
+                setConnected(false);
+            }
+        }
+
+        // ---- 2. 打印测试页 ----
+        async function printTestPage() {
+            if (!isConnected || !writeCharacteristic) {
+                log('❌ 打印机未连接', 'error');
+                return;
+            }
+
+            try {
+                log('🖨️ 开始打印测试页...', 'info');
+
+                // 打印 24 行条纹图案 (黑白交替)
+                for (let i = 0; i < 24; i++) {
+                    const lineData = new Uint8Array(48);
+                    // 交替填充，形成条纹
+                    if (i % 2 === 0) {
+                        lineData.fill(0xFF);
+                    } else {
+                        lineData.fill(0xAA);
+                    }
+                    const payload = new Uint8Array(2 + 48);
+                    payload[0] = i & 0xFF;
+                    payload[1] = (i >> 8) & 0xFF;
+                    payload.set(lineData, 2);
+
+                    const packet = makeV5CPacket(0xA1, payload);
+                    await writeCharacteristic.writeValue(packet);
+                    await sleep(8);
+                }
+                log('✅ 图案数据发送完成', 'success');
+
+                // 走纸 60 点 (约 30mm)
+                const feedPayload = new Uint8Array([0x3C, 0x00]);
+                const feedPacket = makeV5CPacket(0xA3, feedPayload);
+                await writeCharacteristic.writeValue(feedPacket);
+                log('⬇️ 走纸指令已发送', 'send');
+
+                // 额外再走一点，确保完全吐出
+                await sleep(200);
+                const feedPayload2 = new Uint8Array([0x28, 0x00]);
+                const feedPacket2 = makeV5CPacket(0xA3, feedPayload2);
+                await writeCharacteristic.writeValue(feedPacket2);
+
+                log('✅ 测试页打印完成！', 'success');
+
+            } catch (err) {
+                log(`❌ 打印失败: ${err.message}`, 'error');
+                if (err.message.includes('disconnected')) {
+                    setConnected(false);
+                    log('💡 蓝牙连接已断开，请重新连接', 'error');
+                }
+            }
+        }
+
+        // ---- 3. 单独走纸 ----
+        async function feedPaper() {
+            if (!isConnected || !writeCharacteristic) {
+                log('❌ 打印机未连接', 'error');
+                return;
+            }
+            try {
+                const feedPayload = new Uint8Array([0x50, 0x00]); // 80 点
+                const feedPacket = makeV5CPacket(0xA3, feedPayload);
+                await writeCharacteristic.writeValue(feedPacket);
+                log('⬇️ 走纸 80 点 (~40mm)', 'send');
+            } catch (err) {
+                log(`❌ 走纸失败: ${err.message}`, 'error');
+            }
+        }
+
+        // ---- 4. 断开连接 ----
+        async function disconnectPrinter() {
+            try {
+                if (device && device.gatt) {
+                    await device.gatt.disconnect();
+                }
+                setConnected(false);
+                log('🔌 已主动断开连接', 'info');
+            } catch (err) {
+                log(`⚠️ 断开时出错: ${err.message}`, 'error');
+                setConnected(false);
+            }
+        }
+
+        // ---- 绑定事件 ----
+        btnConnect.addEventListener('click', connectPrinter);
+        btnPrintTest.addEventListener('click', printTestPage);
+        btnFeed.addEventListener('click', feedPaper);
+        btnDisconnect.addEventListener('click', disconnectPrinter);
+
+        // 监听断开事件
+        document.addEventListener('visibilitychange', () => {
+            if (document.hidden && isConnected) {
+                // 页面隐藏时可能断开，但不主动处理，等待用户操作
+            }
         });
 
-        log(`已选择设备: ${device.name || 'MXW01'}`);
-        const server = await device.gatt.connect();
-        log('GATT 服务已连接');
+        // 初始状态
+        setConnected(false);
 
-        let service;
-        try {
-          service = await server.getPrimaryService(SERVICE_UUID);
-        } catch {
-          service = await server.getPrimaryService('0000ae30-0000-1000-8000-00805f9b34fb');
+        // 检查浏览器兼容性
+        if (!navigator.bluetooth) {
+            log('❌ 当前浏览器不支持 Web Bluetooth API', 'error');
+            log('💡 请使用 Chrome 120+ 或 Edge 120+', 'error');
+            btnConnect.disabled = true;
+        } else {
+            log('✅ Web Bluetooth API 可用', 'success');
         }
 
-        writeCharacteristic = await service.getCharacteristic(WRITE_CHAR_UUID);
-        
-        try {
-          notifyCharacteristic = await service.getCharacteristic(NOTIFY_CHAR_UUID);
-          await notifyCharacteristic.startNotifications();
-          notifyCharacteristic.addEventListener('characteristicvaluechanged', (e) => {
-            const val = new Uint8Array(e.target.value.buffer);
-            const hexStr = Array.from(val).map(b => '0x' + b.toString(16).padStart(2, '0')).join(' ');
-            log(`<< 收到返回: ${hexStr}`, 'RECV');
-          });
-        } catch (e) {}
-
-        document.getElementById('btnPrintDemo').disabled = false;
-        document.getElementById('btnFeed').disabled = false;
-        log('蓝牙准备就绪！', 'SUCCESS');
-
-      } catch (err) {
-        log(`连接失败: ${err.message}`, 'ERROR');
-      }
-    });
-
-    // 2. 发送打印位图 + 自动走纸指令
-    document.getElementById('btnPrintDemo').addEventListener('click', async () => {
-      try {
-        log('--- 开始发送打印任务 ---');
-        
-        // A. 准备 20 行测试位图 (交叉黑白线)
-        for (let lineIndex = 0; lineIndex < 20; lineIndex++) {
-          const lineData = new Uint8Array(48);
-          lineData.fill(lineIndex % 2 === 0 ? 0xFF : 0x00); // 实线与空白交替
-          
-          const payload = new Uint8Array(2 + 48);
-          payload[0] = lineIndex & 0xFF;
-          payload[1] = (lineIndex >> 8) & 0xFF;
-          payload.set(lineData, 2);
-
-          const packet = makeV5CPacket(0xA1, payload);
-          await writeCharacteristic.writeValue(packet);
-          await sleep(10); // 短暂延时防 Ble 缓冲区溢出
-        }
-        log('>> 20 行位图数据已下发');
-
-        // B. 发送走纸指令 (0xA3) 吐纸 60 个点阵高度
-        const feedPayload = new Uint8Array([0x3C, 0x00]); // 60 dot
-        const feedPacket = makeV5CPacket(0xA3, feedPayload);
-        await writeCharacteristic.writeValue(feedPacket);
-        log('>> 发送走纸指令 (0xA3)');
-
-      } catch (err) {
-        log(`打印出错: ${err.message}`, 'ERROR');
-      }
-    });
-
-    // 3. 单独走纸
-    document.getElementById('btnFeed').addEventListener('click', async () => {
-      const feedPayload = new Uint8Array([0x50, 0x00]); // 80 dot
-      const feedPacket = makeV5CPacket(0xA3, feedPayload);
-      await writeCharacteristic.writeValue(feedPacket);
-      log('>> 手动发送走纸指令 (0xA3)');
-    });
-  </script>
+        log('💡 点击「连接蓝牙打印机」开始配对', 'info');
+    </script>
 </body>
 </html>
