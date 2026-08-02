@@ -6,27 +6,26 @@
   <style>
     body { font-family: system-ui, sans-serif; padding: 20px; max-width: 600px; margin: 0 auto; }
     button { padding: 10px 16px; font-size: 14px; margin-right: 8px; margin-bottom: 8px; cursor: pointer; }
-    #log { background: #1e1e1e; color: #00ff00; padding: 12px; font-family: monospace; height: 260px; overflow-y: auto; border-radius: 4px; white-space: pre-wrap; }
+    #log { background: #1e1e1e; color: #00ff00; padding: 12px; font-family: monospace; height: 280px; overflow-y: auto; border-radius: 4px; white-space: pre-wrap; }
   </style>
 </head>
 <body>
 
-  <h2>MXW01 蓝牙打印机前端测试</h2>
+  <h2>MXW01 蓝牙打印机测试</h2>
   
   <div>
     <button id="btnConnect">1. 连接蓝牙打印机</button>
-    <button id="btnQuery" disabled>2. 发送查询状态 (0xA0)</button>
-    <button id="btnPrint" disabled>3. 发送测试位图行 (0xA1)</button>
+    <button id="btnPrintDemo" disabled>2. 打印测试图案并走纸</button>
+    <button id="btnFeed" disabled>3. 单独走纸 50 点</button>
   </div>
 
   <h4>通信日志：</h4>
   <div id="log">请使用 Chrome / Edge 浏览器，点击连接按钮...<br></div>
 
   <script>
-    // UUID 常量（根据你的打印机实际服务与特征值修改，常见服务 UUID）
-    const SERVICE_UUID = 0xAE30; // 常见喵喵机/猫猫机 Service
-    const WRITE_CHAR_UUID = 0xAE01; // 写特征值
-    const NOTIFY_CHAR_UUID = 0xAE02; // 通知特征值
+    const SERVICE_UUID = 0xAE30;
+    const WRITE_CHAR_UUID = 0xAE01;
+    const NOTIFY_CHAR_UUID = 0xAE02;
 
     let device, writeCharacteristic, notifyCharacteristic;
 
@@ -37,7 +36,7 @@
       logDiv.scrollTop = logDiv.scrollHeight;
     }
 
-    // 1. 计算 CRC8
+    // CRC8 计算
     function calcCRC8(data) {
       let crc = 0x00;
       for (let i = 0; i < data.length; i++) {
@@ -53,34 +52,32 @@
       return crc;
     }
 
-    // 2. 构造符合 V5C 协议的数据包
+    // 构造 V5C 数据包
     function makeV5CPacket(opcode, payload = new Uint8Array(0)) {
       const prefix = [0x22, 0x21];
       const payloadLen = payload.length;
-      
-      // Header(2) + Opcode(1) + Reserved(1) + Len(2, Little Endian) + Payload(N) + CRC(1)
       const packet = new Uint8Array(2 + 1 + 1 + 2 + payloadLen + 1);
       
       packet[0] = prefix[0];
       packet[1] = prefix[1];
       packet[2] = opcode;
-      packet[3] = 0x00; // Reserved
+      packet[3] = 0x00;
       
-      // Payload 长度 (小端序 Little-Endian)
       packet[4] = payloadLen & 0xFF;
       packet[5] = (payloadLen >> 8) & 0xFF;
       
-      // 填充 Payload
       packet.set(payload, 6);
       
-      // 计算 CRC8 (从 Opcode 到 Payload 结束)
       const bytesToCrc = packet.subarray(2, 6 + payloadLen);
       packet[6 + payloadLen] = calcCRC8(bytesToCrc);
       
       return packet;
     }
 
-    // 3. 连接蓝牙
+    // 延时辅助函数
+    const sleep = ms => new Promise(resolve => setTimeout(resolve, ms));
+
+    // 1. 连接蓝牙
     document.getElementById('btnConnect').addEventListener('click', async () => {
       try {
         log('正在搜索蓝牙设备...');
@@ -89,11 +86,10 @@
           optionalServices: [SERVICE_UUID, '0000ae30-0000-1000-8000-00805f9b34fb']
         });
 
-        log(`已选择设备: ${device.name || '未知设备'}`);
+        log(`已选择设备: ${device.name || 'MXW01'}`);
         const server = await device.gatt.connect();
         log('GATT 服务已连接');
 
-        // 获取服务（尝试兼容 16位 与 128位 UUID）
         let service;
         try {
           service = await server.getPrimaryService(SERVICE_UUID);
@@ -102,9 +98,7 @@
         }
 
         writeCharacteristic = await service.getCharacteristic(WRITE_CHAR_UUID);
-        log('获取写特征值成功');
-
-        // 尝试开启 Notification 监听打印机回复
+        
         try {
           notifyCharacteristic = await service.getCharacteristic(NOTIFY_CHAR_UUID);
           await notifyCharacteristic.startNotifications();
@@ -113,45 +107,55 @@
             const hexStr = Array.from(val).map(b => '0x' + b.toString(16).padStart(2, '0')).join(' ');
             log(`<< 收到返回: ${hexStr}`, 'RECV');
           });
-          log('开启 Notification 监听成功');
-        } catch (e) {
-          log('未成功监听 Notification (部分设备可能只在写特征值响应)', 'WARN');
-        }
+        } catch (e) {}
 
-        document.getElementById('btnQuery').disabled = false;
-        document.getElementById('btnPrint').disabled = false;
+        document.getElementById('btnPrintDemo').disabled = false;
+        document.getElementById('btnFeed').disabled = false;
+        log('蓝牙准备就绪！', 'SUCCESS');
 
       } catch (err) {
         log(`连接失败: ${err.message}`, 'ERROR');
       }
     });
 
-    // 4. 发送查询状态 (0xA0)
-    document.getElementById('btnQuery').addEventListener('click', async () => {
-      const packet = makeV5CPacket(0xA0, new Uint8Array([0x00]));
-      log(`>> 发送状态查询 (0xA0): ${Array.from(packet).map(b => b.toString(16).padStart(2, '0')).join(' ')}`);
-      await writeCharacteristic.writeValue(packet);
+    // 2. 发送打印位图 + 自动走纸指令
+    document.getElementById('btnPrintDemo').addEventListener('click', async () => {
+      try {
+        log('--- 开始发送打印任务 ---');
+        
+        // A. 准备 20 行测试位图 (交叉黑白线)
+        for (let lineIndex = 0; lineIndex < 20; lineIndex++) {
+          const lineData = new Uint8Array(48);
+          lineData.fill(lineIndex % 2 === 0 ? 0xFF : 0x00); // 实线与空白交替
+          
+          const payload = new Uint8Array(2 + 48);
+          payload[0] = lineIndex & 0xFF;
+          payload[1] = (lineIndex >> 8) & 0xFF;
+          payload.set(lineData, 2);
+
+          const packet = makeV5CPacket(0xA1, payload);
+          await writeCharacteristic.writeValue(packet);
+          await sleep(10); // 短暂延时防 Ble 缓冲区溢出
+        }
+        log('>> 20 行位图数据已下发');
+
+        // B. 发送走纸指令 (0xA3) 吐纸 60 个点阵高度
+        const feedPayload = new Uint8Array([0x3C, 0x00]); // 60 dot
+        const feedPacket = makeV5CPacket(0xA3, feedPayload);
+        await writeCharacteristic.writeValue(feedPacket);
+        log('>> 发送走纸指令 (0xA3)');
+
+      } catch (err) {
+        log(`打印出错: ${err.message}`, 'ERROR');
+      }
     });
 
-    // 5. 发送 1 行测试像素数据 (0xA1)
-    document.getElementById('btnPrint').addEventListener('click', async () => {
-      // 构造 Payload: [2字节行号] + [48字节黑白相间点阵数据]
-      const lineIndex = 0;
-      const lineData = new Uint8Array(48).fill(0xAA); // 0xAA = 10101010 虚线黑点
-      
-      const payload = new Uint8Array(2 + 48);
-      payload[0] = lineIndex & 0xFF;        // 行号低字节
-      payload[1] = (lineIndex >> 8) & 0xFF; // 行号高字节
-      payload.set(lineData, 2);
-
-      const packet = makeV5CPacket(0xA1, payload);
-      log(`>> 发送位图行 (0xA1, 长度 ${packet.length} B): ${Array.from(packet).map(b => b.toString(16).padStart(2, '0')).join(' ')}`);
-      
-      try {
-        await writeCharacteristic.writeValue(packet);
-      } catch (err) {
-        log(`发送失败: ${err.message}`, 'ERROR');
-      }
+    // 3. 单独走纸
+    document.getElementById('btnFeed').addEventListener('click', async () => {
+      const feedPayload = new Uint8Array([0x50, 0x00]); // 80 dot
+      const feedPacket = makeV5CPacket(0xA3, feedPayload);
+      await writeCharacteristic.writeValue(feedPacket);
+      log('>> 手动发送走纸指令 (0xA3)');
     });
   </script>
 </body>
