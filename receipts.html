@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>收据生成器 (MXW01 专属固定通道版)</title>
+    <title>收据生成器 (TiMini-Print 专属协议版)</title>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
     <style>
         * { box-sizing: border-box; margin: 0; padding: 0; font-family: system-ui, -apple-system, sans-serif; }
@@ -23,17 +23,17 @@
         .btn-add { background: #e3f2fd; color: #0d47a1; margin-bottom: 15px; }
         .btn-remove { background: #ffebee; color: #c62828; padding: 0 10px; }
         
-        .ble-panel { background: #f8f9fa; padding: 15px; border-radius: 6px; margin-top: 15px; border: 1px solid #e9ecef; }
+        .ble-panel { background: #f8f9fa; padding: 15px; border-radius: 6px; margin-top: 15px; border: 1px solid #e9ecef; border-left: 4px solid #6f42c1; }
         .ble-panel h4 { margin-bottom: 10px; font-size: 14px; color: #212529; }
         .ble-btn-group { display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 10px; }
-        .btn-ble-conn { background: #0d6efd; color: #fff; flex: 1; }
+        .btn-ble-conn { background: #6f42c1; color: #fff; flex: 1; }
         .btn-ble-feed { background: #6c757d; color: #fff; }
         .btn-ble-retract { background: #6c757d; color: #fff; }
         .btn-ble-print { background: #198754; color: #fff; width: 100%; padding: 12px; font-size: 15px; margin-top: 8px; }
 
         #logConsole { 
             background: #1e1e1e; color: #00ff66; font-family: monospace; font-size: 11px; 
-            padding: 8px; height: 110px; overflow-y: auto; border-radius: 4px; margin-top: 8px; 
+            padding: 10px; height: 120px; overflow-y: auto; border-radius: 4px; margin-top: 8px; 
         }
 
         .btn-group { display: flex; gap: 10px; margin-top: 15px; }
@@ -61,16 +61,8 @@
         .receipt-summary { border-top: 1px dashed #ccc; padding-top: 10px; font-size: 13px; }
         .summary-row { display: flex; justify-content: space-between; margin-bottom: 4px; }
         .summary-row.total { font-weight: bold; font-size: 15px; border-top: 1px solid #000; padding-top: 6px; margin-top: 6px; }
-
         .receipt-footer { margin-top: 40px; text-align: center; font-size: 12px; }
         .signature-space { border-bottom: 1px solid #000; width: 180px; margin: 30px auto 5px auto; }
-
-        @media print {
-            body { background: #fff; padding: 0; }
-            .form-section { display: none; }
-            .container { display: block; }
-            .receipt { box-shadow: none; border: none; width: 100%; max-width: 100%; padding: 0; }
-        }
     </style>
 </head>
 <body>
@@ -90,13 +82,10 @@
             <label>SSM Number</label>
             <input type="text" id="shopSsm" placeholder="例如：202401012345" oninput="updateReceipt()">
         </div>
-
         <hr style="margin: 12px 0; border: none; border-top: 1px solid #eee;">
-
         <h3>商品明细</h3>
         <div id="itemsContainer"></div>
         <button class="btn-add" onclick="addItem()">+ 添加商品</button>
-
         <div class="form-group">
             <label>税率 Tax Rate (%)</label>
             <input type="number" id="taxRate" value="0" min="0" oninput="updateReceipt()">
@@ -104,16 +93,13 @@
 
         <!-- 蓝牙面板 -->
         <div class="ble-panel">
-            <h4>📶 蓝牙打印控制台 (MXW01 精准匹配版)</h4>
-
+            <h4>📶 FunPrint/TiMini 专属控制台</h4>
             <div class="ble-btn-group">
-                <button class="btn-ble-conn" onclick="connectBluetooth()">1. 连接蓝牙设备</button>
-                <button class="btn-ble-feed" onclick="sendFeedCommand(50)">Feed (走纸)</button>
-                <button class="btn-ble-retract" onclick="sendRetractCommand(30)">Retract (退纸)</button>
+                <button class="btn-ble-conn" onclick="connectBluetooth()">1. 连接蓝牙打印机</button>
+                <button class="btn-ble-feed" onclick="sendFeedCommand(50)">走纸 (Feed)</button>
+                <button class="btn-ble-retract" onclick="sendTestPage()">自检页</button>
             </div>
-            
             <button class="btn-ble-print" onclick="printViaBluetooth()">2. 🖨️ 蓝牙打纸 (BLE Print)</button>
-
             <div id="logConsole">等待连接...</div>
         </div>
 
@@ -132,11 +118,7 @@
                     <p id="viewAddress">店铺地址</p>
                     <p id="viewSsm">SSM: -</p>
                 </div>
-
-                <div class="receipt-time">
-                    时间: <span id="viewTime"></span>
-                </div>
-
+                <div class="receipt-time">时间: <span id="viewTime"></span></div>
                 <table class="receipt-table">
                     <thead>
                         <tr>
@@ -148,7 +130,6 @@
                     </thead>
                     <tbody id="viewItems"></tbody>
                 </table>
-
                 <div class="receipt-summary">
                     <div class="summary-row">
                         <span>小计 (Subtotal):</span>
@@ -164,7 +145,6 @@
                     </div>
                 </div>
             </div>
-
             <div class="receipt-footer">
                 <div class="signature-space"></div>
                 <p>执行人签名 (Authorized Signature)</p>
@@ -175,18 +155,14 @@
 
 <script>
     // ------------------------------------
-    // 1. 界面逻辑
+    // 1. 界面逻辑 (完全保留)
     // ------------------------------------
     let items = [{ name: '示例商品 A', price: 10.00, qty: 1 }];
-
     window.onload = function() {
         if(localStorage.getItem('shopName')) document.getElementById('shopName').value = localStorage.getItem('shopName');
         if(localStorage.getItem('shopAddress')) document.getElementById('shopAddress').value = localStorage.getItem('shopAddress');
         if(localStorage.getItem('shopSsm')) document.getElementById('shopSsm').value = localStorage.getItem('shopSsm');
-
-        const now = new Date();
-        document.getElementById('viewTime').innerText = now.toLocaleString('zh-CN', { hour12: false });
-
+        document.getElementById('viewTime').innerText = new Date().toLocaleString('zh-CN', { hour12: false });
         renderItemInputs();
         updateReceipt();
     };
@@ -213,58 +189,25 @@
         });
     }
 
-    function addItem() {
-        items.push({ name: '', price: 0, qty: 1 });
-        renderItemInputs();
-        updateReceipt();
-    }
-
-    function removeItem(index) {
-        items.splice(index, 1);
-        renderItemInputs();
-        updateReceipt();
-    }
-
-    function updateItem(index, key, value) {
-        items[index][key] = key === 'name' ? value : parseFloat(value) || 0;
-        updateReceipt();
-    }
+    function addItem() { items.push({ name: '', price: 0, qty: 1 }); renderItemInputs(); updateReceipt(); }
+    function removeItem(index) { items.splice(index, 1); renderItemInputs(); updateReceipt(); }
+    function updateItem(index, key, value) { items[index][key] = key === 'name' ? value : parseFloat(value) || 0; updateReceipt(); }
 
     function updateReceipt() {
         const name = document.getElementById('shopName').value || '店铺名称';
         const address = document.getElementById('shopAddress').value || '店铺地址';
         const ssm = document.getElementById('shopSsm').value || '-';
         const taxRate = parseFloat(document.getElementById('taxRate').value) || 0;
-
-        localStorage.setItem('shopName', document.getElementById('shopName').value);
-        localStorage.setItem('shopAddress', document.getElementById('shopAddress').value);
-        localStorage.setItem('shopSsm', document.getElementById('shopSsm').value);
-
-        document.getElementById('viewName').innerText = name;
-        document.getElementById('viewAddress').innerText = address;
-        document.getElementById('viewSsm').innerText = 'SSM: ' + ssm;
-
-        let subtotal = 0;
-        const viewItems = document.getElementById('viewItems');
-        viewItems.innerHTML = '';
-
+        localStorage.setItem('shopName', name); localStorage.setItem('shopAddress', address); localStorage.setItem('shopSsm', ssm);
+        document.getElementById('viewName').innerText = name; document.getElementById('viewAddress').innerText = address; document.getElementById('viewSsm').innerText = 'SSM: ' + ssm;
+        let subtotal = 0; const viewItems = document.getElementById('viewItems'); viewItems.innerHTML = '';
         items.forEach(item => {
-            const itemSubtotal = item.price * item.qty;
-            subtotal += itemSubtotal;
-
+            const itemSubtotal = item.price * item.qty; subtotal += itemSubtotal;
             const tr = document.createElement('tr');
-            tr.innerHTML = `
-                <td>${item.name || '未命名商品'}</td>
-                <td class="text-center">${item.qty}</td>
-                <td class="text-right">${item.price.toFixed(2)}</td>
-                <td class="text-right">${itemSubtotal.toFixed(2)}</td>
-            `;
+            tr.innerHTML = `<td>${item.name || '未命名'}</td><td class="text-center">${item.qty}</td><td class="text-right">${item.price.toFixed(2)}</td><td class="text-right">${itemSubtotal.toFixed(2)}</td>`;
             viewItems.appendChild(tr);
         });
-
-        const taxAmount = subtotal * (taxRate / 100);
-        const total = subtotal + taxAmount;
-
+        const taxAmount = subtotal * (taxRate / 100); const total = subtotal + taxAmount;
         document.getElementById('viewSubtotal').innerText = 'RM ' + subtotal.toFixed(2);
         document.getElementById('viewTaxPercent').innerText = taxRate;
         document.getElementById('viewTax').innerText = 'RM ' + taxAmount.toFixed(2);
@@ -272,138 +215,149 @@
     }
 
     function downloadPNG() {
-        const receiptElement = document.getElementById('receipt');
-        html2canvas(receiptElement, { scale: 2, backgroundColor: "#ffffff" }).then(canvas => {
+        html2canvas(document.getElementById('receipt'), { scale: 2, backgroundColor: "#ffffff" }).then(canvas => {
             const link = document.createElement('a');
-            link.download = `receipt_${new Date().getTime()}.png`;
-            link.href = canvas.toDataURL('image/png');
-            link.click();
+            link.download = `receipt_${new Date().getTime()}.png`; link.href = canvas.toDataURL('image/png'); link.click();
         });
     }
 
     // ------------------------------------
-    // 2. 锁定特定 UUID 的 MX 通信逻辑
+    // 2. TiMini-Print 专属协议实现 (重点)
     // ------------------------------------
     let bleDevice = null;
-    let dataChar = null; // ae01 数据发送通道
-    let ctrlChar = null; // ae03 握手与控制通道
+    let dataChar = null; 
+
+    // CRC-8 算法 (对应 TiMini-Print 源码逻辑)
+    function crc8(data) {
+        let crc = 0x00;
+        for (let i = 0; i < data.length; i++) {
+            crc ^= data[i];
+            for (let j = 0; j < 8; j++) {
+                if ((crc & 0x80) !== 0) {
+                    crc = (crc << 1) ^ 0x07;
+                } else {
+                    crc <<= 1;
+                }
+            }
+        }
+        return crc & 0xFF;
+    }
+
+    // TiMini 组包逻辑: 0x51 0x78 + CMD + 0x00 + Len_L + Len_H + Data + CRC8 + 0xFF
+    function makeTiMiniPacket(cmd, payload) {
+        const len = payload.length;
+        const packet = new Uint8Array(8 + len);
+        packet[0] = 0x51;
+        packet[1] = 0x78;
+        packet[2] = cmd;
+        packet[3] = 0x00;
+        packet[4] = len & 0xFF;
+        packet[5] = (len >> 8) & 0xFF;
+        
+        packet.set(payload, 6);
+        
+        // 计算负载部分的 CRC8
+        packet[6 + len] = crc8(payload);
+        packet[7 + len] = 0xFF; // Footer
+
+        return packet;
+    }
 
     async function connectBluetooth() {
         try {
-            log("正在请求选择 BLE 设备...");
+            log("扫描 TiMini/FunPrint 设备...");
             bleDevice = await navigator.bluetooth.requestDevice({
                 acceptAllDevices: true,
                 optionalServices: ['0000ae30-0000-1000-8000-00805f9b34fb']
             });
 
-            log(`正在建立链接: ${bleDevice.name || 'MX 打印机'}...`);
+            log(`连接: ${bleDevice.name}...`);
             const server = await bleDevice.gatt.connect();
-
-            // 1. 获取主服务 ae30
             const service = await server.getPrimaryService('0000ae30-0000-1000-8000-00805f9b34fb');
 
-            // 2. 锁定正确的 ae01(数据) 与 ae03(控制)
+            // 根据 TiMini，数据依然发往 ae01
             dataChar = await service.getCharacteristic('0000ae01-0000-1000-8000-00805f9b34fb');
-            ctrlChar = await service.getCharacteristic('0000ae03-0000-1000-8000-00805f9b34fb');
+            log("✅ TiMini 协议绑定完成 (ae01 通道)");
 
-            log("✅ 成功成功建立 ae01 数据通道与 ae03 控制通道！");
-
-            // 3. 执行启动初始化握手（向 ae03 激活打印机主板）
-            log("正在发送主板唤醒握手包...");
-            const initHandshake = makeMxPacket(0xA0, new Uint8Array([0x00]));
-            await ctrlChar.writeValueWithoutResponse(initHandshake);
-            
-            log("🎉 打印机握手就绪！可以测试 Feed 或打印。");
-            alert("蓝牙设备绑定并握手成功！");
         } catch (err) {
-            log("❌ 连接过程出错: " + err.message);
+            log("❌ 连接出错: " + err.message);
         }
     }
 
-    // MX 协议数据包拼装 (0x22 0x21 + CMD + Length + Data + CRC)
-    function makeMxPacket(cmd, payload) {
-        const len = payload.length;
-        const packet = new Uint8Array(5 + len + 1);
-        packet[0] = 0x22;
-        packet[1] = 0x21;
-        packet[2] = cmd;
-        packet[3] = len & 0xFF;
-        packet[4] = (len >> 8) & 0xFF;
-        packet.set(payload, 5);
-
-        let sum = 0;
-        for (let i = 2; i < packet.length - 1; i++) sum += packet[i];
-        packet[packet.length - 1] = sum & 0xFF;
-        return packet;
-    }
-
-    // 走纸命令 (0xA1 指令发往 ae01)
+    // 发送走纸命令 (CMD: 0xA1)
     async function sendFeedCommand(pixels = 50) {
-        if (!dataChar) return alert("请先点击『1. 连接蓝牙设备』！");
+        if (!dataChar) return alert("请先连接蓝牙！");
         try {
-            log(`向 ae01 通道发送 Feed 走纸 ${pixels}px...`);
-            const pkt = makeMxPacket(0xA1, new Uint8Array([pixels & 0xFF, (pixels >> 8) & 0xFF]));
+            log(`发送走纸 ${pixels}px...`);
+            const payload = new Uint8Array([pixels & 0xFF, (pixels >> 8) & 0xFF]);
+            const pkt = makeTiMiniPacket(0xA1, payload);
             await dataChar.writeValueWithoutResponse(pkt);
-            log("Feed 数据已成功下发");
-        } catch(err) {
-            log("Feed 失败: " + err.message);
+            log("✅ 走纸指令已发送 (0x51 0x78)");
+        } catch (err) {
+            log("错误: " + err.message);
         }
     }
 
-    // 退纸命令 (0xA0 指令发往 ae01)
-    async function sendRetractCommand(pixels = 30) {
-        if (!dataChar) return alert("请先点击『1. 连接蓝牙设备』！");
+    // 发送自检页 (CMD: 0xA4)
+    async function sendTestPage() {
+        if (!dataChar) return alert("请先连接蓝牙！");
         try {
-            log(`向 ae01 通道发送 Retract 退纸 ${pixels}px...`);
-            const pkt = makeMxPacket(0xA0, new Uint8Array([pixels & 0xFF, (pixels >> 8) & 0xFF]));
+            log(`发送打印自检页指令...`);
+            const payload = new Uint8Array([0x00]);
+            const pkt = makeTiMiniPacket(0xA4, payload);
             await dataChar.writeValueWithoutResponse(pkt);
-            log("Retract 数据已成功下发");
-        } catch(err) {
-            log("Retract 失败: " + err.message);
+            log("✅ 自检页指令已发送");
+        } catch (err) {
+            log("错误: " + err.message);
         }
     }
 
-    // 收据画板渲染并推送打纸
+    // 打字机核心渲染
     async function printViaBluetooth() {
         if (!dataChar) return alert("请先连接蓝牙打印机！");
 
-        log("正在把收据渲染为位图...");
-        const receiptElement = document.getElementById('receipt');
-        const canvas = await html2canvas(receiptElement, { backgroundColor: "#ffffff" });
+        log("位图渲染中...");
+        const canvas = await html2canvas(document.getElementById('receipt'), { backgroundColor: "#ffffff" });
         
+        // 打印机宽度为 384 像素 (DPI 203)
         const targetWidth = 384;
         const targetHeight = Math.round(canvas.height * (targetWidth / canvas.width));
 
         const printCanvas = document.createElement('canvas');
-        printCanvas.width = targetWidth;
-        printCanvas.height = targetHeight;
+        printCanvas.width = targetWidth; printCanvas.height = targetHeight;
         const ctx = printCanvas.getContext('2d');
         ctx.drawImage(canvas, 0, 0, targetWidth, targetHeight);
         
         const imgData = ctx.getImageData(0, 0, targetWidth, targetHeight);
-        log(`位图格式化完成: 宽 ${targetWidth}px, 高 ${targetHeight}px`);
+        const bytesPerLine = targetWidth / 8; // 48 Bytes
 
-        const bytesPerLine = 48; // 384 / 8
-
-        log("开始向 ae01 通道发送图像数据...");
+        log(`传输位图数据 (${targetHeight} 行)...`);
+        
+        // 逐行发送图像
         for (let y = 0; y < targetHeight; y++) {
             const lineData = new Uint8Array(bytesPerLine);
             for (let x = 0; x < targetWidth; x++) {
                 const idx = (y * targetWidth + x) * 4;
+                // 判断灰度，提取黑点
                 if ((imgData.data[idx] + imgData.data[idx+1] + imgData.data[idx+2]) / 3 < 128) {
                     lineData[Math.floor(x / 8)] |= (1 << (7 - (x % 8)));
                 }
             }
-            // 0xA2 指令：按行画点
-            const pkt = makeMxPacket(0xA2, lineData);
+            
+            // CMD: 0xA2 是打印图像指令
+            const pkt = makeTiMiniPacket(0xA2, lineData);
             await dataChar.writeValueWithoutResponse(pkt);
-            await new Promise(r => setTimeout(r, 8)); // 间隔 8毫秒 防止数据包挤爆蓝牙芯片
+            
+            // 延时防止蓝牙缓冲区溢出 (TiMini 必须的延时)
+            await new Promise(r => setTimeout(r, 15)); 
         }
 
-        // 打印结束，走纸 50px 出纸
-        log("图像发送完毕，发送收尾走纸命令...");
-        await dataChar.writeValueWithoutResponse(makeMxPacket(0xA1, new Uint8Array([0x32, 0x00])));
-        log("🎉 网页蓝牙打印完全结束！");
+        // 打完后走纸 50 像素出纸
+        log("传输完毕，自动走纸...");
+        const feedPayload = new Uint8Array([0x32, 0x00]);
+        await dataChar.writeValueWithoutResponse(makeTiMiniPacket(0xA1, feedPayload));
+        
+        log("🎉 打印结束！");
     }
 </script>
 
