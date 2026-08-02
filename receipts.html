@@ -2,42 +2,43 @@
 <html lang="zh-CN">
 <head>
     <meta charset="UTF-8">
-    <title>MXW01 驱动交互响应版</title>
+    <title>MXW01 真实驱动序列控制台</title>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
     <style>
         body { font-family: monospace; background: #121212; color: #00ff66; padding: 20px; }
         button { padding: 12px 20px; background: #00ff66; border: none; font-weight: bold; cursor: pointer; margin-right: 10px; margin-bottom: 10px; }
-        #logConsole { background: #000; border: 1px solid #333; padding: 10px; height: 300px; overflow-y: auto; color: #00ff66; }
+        #logConsole { background: #000; border: 1px solid #333; padding: 10px; height: 320px; overflow-y: auto; color: #00ff66; }
         #receipt { width: 384px; background: #fff; color: #000; padding: 20px; font-family: sans-serif; position: absolute; left: -9999px; }
     </style>
 </head>
 <body>
 
-<h2>🖨️ MXW01 Response-Wait 协议驱动</h2>
+<h2>🖨️ MXW01 (TiMini 物理序列版)</h2>
 
 <div>
-    <button onclick="connectAndInit()">1. 连接并绑定 Notification</button>
-    <button onclick="sendQueryTest()">2. 发送 Query 测试 (握手)</button>
-    <button onclick="printReceipt()">3. 完整打纸 (Wait for Completion)</button>
+    <button onclick="connectAndInit()">1. 连接蓝牙并开启 Notify</button>
+    <button onclick="testRetract()">2. 单独测试 退纸 (Retract)</button>
+    <button onclick="testFeed()">3. 单独测试 走纸 (Feed)</button>
+    <button onclick="executeFullJob()">4. 🚀 执行完整打印作业 (Full Sequence)</button>
 </div>
 
 <div id="logConsole">等待连接...</div>
 
 <!-- 隐藏的收据画板 -->
 <div id="receipt">
-    <h2 style="text-align:center;">MXW01 测试小票</h2>
+    <h2 style="text-align:center;">MXW01 物理测试</h2>
     <hr>
-    <p>驱动协议：QUERY/WAIT 同步模式</p>
-    <p>打印时间：<span id="time"></span></p>
+    <p>协议：TiMini Hardware Sequence</p>
+    <p>时间：<span id="time"></span></p>
     <hr>
-    <h3 style="text-align:center; margin-top:20px;">✅ 打印成功！</h3>
+    <h3 style="text-align:center; margin-top:20px;">✅ 齿轮咬合成功</h3>
 </div>
 
 <script>
     let bleDevice = null;
     let dataChar = null;   // ae01 写入
-    let notifyChar = null; // ae02 或 ae03 监听
-    let lastReply = null;  // 记录打印机最新的回复
+    let notifyChar = null; // ae02/ae03 监听
+    let lastReply = null;
 
     function log(msg) {
         const c = document.getElementById('logConsole');
@@ -45,120 +46,7 @@
         c.scrollTop = c.scrollHeight;
     }
 
-    // 1. 连接并建立 Notification 监听（关键：解决静默丢包）
-    async function connectAndInit() {
-        try {
-            log("正在请求 MXW01 设备...");
-            bleDevice = await navigator.bluetooth.requestDevice({
-                acceptAllDevices: true,
-                optionalServices: ['0000ae30-0000-1000-8000-00805f9b34fb']
-            });
-
-            log("建立 GATT 连接...");
-            const server = await bleDevice.gatt.connect();
-            const service = await server.getPrimaryService('0000ae30-0000-1000-8000-00805f9b34fb');
-
-            // 获取数据写入通道 ae01
-            dataChar = await service.getCharacteristic('0000ae01-0000-1000-8000-00805f9b34fb');
-
-            // 寻找并绑定 Notification 通道 (ae02 或 ae03)
-            try {
-                notifyChar = await service.getCharacteristic('0000ae02-0000-1000-8000-00805f9b34fb');
-            } catch(e) {
-                notifyChar = await service.getCharacteristic('0000ae03-0000-1000-8000-00805f9b34fb');
-            }
-
-            // 开启监听（非常关键：Python 驱动里的 session.can_wait_for_reply 依赖这个）
-            await notifyChar.startNotifications();
-            notifyChar.addEventListener('characteristicvaluechanged', handlePrinterReply);
-
-            log("✅ 成功绑定 Notify 监听！打印机发回的消息将被拦截和处理。");
-            alert("设备与回复通道连接成功！");
-        } catch (err) {
-            log("❌ 连接失败: " + err.message);
-        }
-    }
-
-    // 处理打印机返回的数据
-    function handlePrinterReply(event) {
-        const value = new Uint8Array(event.target.value.buffer);
-        const hexStr = Array.from(value).map(b => '0x' + b.toString(16).padStart(2, '0')).join(' ');
-        log(`📩 收到打印机回复 [Reply]: ${hexStr}`);
-        lastReply = value;
-    }
-
-    // 2. 模拟 Python 驱动里的 ProtocolStepOperation.QUERY
-    async function queryDeviceStatus() {
-        log("发送 Status Query 指令，等待打印机 Reply...");
-        lastReply = null;
-
-        // 发送 MX 标准状态 Query 包 (0xA0)
-        const queryPkt = makeMxPacket(0xA0, new Uint8Array([0x00]));
-        await dataChar.writeValueWithoutResponse(queryPkt);
-
-        // 模拟 async wait_for_reply (最多等待 1 秒)
-        for (let i = 0; i < 10; i++) {
-            await new Promise(r => setTimeout(r, 100));
-            if (lastReply !== null) {
-                log("✅ QUERY 匹配成功！打印机状态正常，可以接受任务。");
-                return true;
-            }
-        }
-        log("⚠️ 未收到 Reply，但继续强行尝试...");
-        return false;
-    }
-
-    async function sendQueryTest() {
-        if (!dataChar) return alert("请先连接！");
-        await queryDeviceStatus();
-    }
-
-    // 3. 完整打印流程 (含 QUERY -> PRINT -> WAIT COMPLETION)
-    async function printReceipt() {
-        if (!dataChar) return alert("请先连接！");
-        document.getElementById('time').innerText = new Date().toLocaleString();
-
-        // Step 1: QUERY 阶段 (握手确认)
-        await queryDeviceStatus();
-
-        // Step 2: 渲染位图
-        log("渲染收据位图...");
-        const canvas = await html2canvas(document.getElementById('receipt'), { backgroundColor: "#ffffff" });
-        const targetWidth = 384;
-        const targetHeight = Math.round(canvas.height * (targetWidth / canvas.width));
-
-        const printCanvas = document.createElement('canvas');
-        printCanvas.width = targetWidth; printCanvas.height = targetHeight;
-        const ctx = printCanvas.getContext('2d');
-        ctx.drawImage(canvas, 0, 0, targetWidth, targetHeight);
-        
-        const imgData = ctx.getImageData(0, 0, targetWidth, targetHeight);
-        const bytesPerLine = 48;
-
-        log(`开始推送像素数据 (共 ${targetHeight} 行)...`);
-        for (let y = 0; y < targetHeight; y++) {
-            const lineData = new Uint8Array(bytesPerLine);
-            for (let x = 0; x < targetWidth; x++) {
-                const idx = (y * targetWidth + x) * 4;
-                if ((imgData.data[idx] + imgData.data[idx+1] + imgData.data[idx+2]) / 3 < 128) {
-                    lineData[Math.floor(x / 8)] |= (1 << (7 - (x % 8)));
-                }
-            }
-            // 发送打印行数据 (0xA2)
-            await dataChar.writeValueWithoutResponse(makeMxPacket(0xA2, lineData));
-            await new Promise(r => setTimeout(r, 10)); // 防止溢出
-        }
-
-        // Step 3: 发送结束包 & Wait for Completion (对应 Python 代码最后逻辑)
-        log("图像下发完毕，发送 End/Feed 包...");
-        await dataChar.writeValueWithoutResponse(makeMxPacket(0xA1, new Uint8Array([0x50, 0x00]))); // 走纸 80px
-
-        log("等待打印机物理电机运作完成 (Wait for completion)...");
-        await new Promise(r => setTimeout(r, 3000)); // 留出 3 秒给电机运转
-        log("🎉 任务完全结束！");
-    }
-
-    // 基础包拼装
+    // 基础包拼装 (MXW01 校验协议)
     function makeMxPacket(cmd, payload) {
         const len = payload.length;
         const packet = new Uint8Array(5 + len + 1);
@@ -173,6 +61,130 @@
         for (let i = 2; i < packet.length - 1; i++) sum += packet[i];
         packet[packet.length - 1] = sum & 0xFF;
         return packet;
+    }
+
+    // 1. 连接设备
+    async function connectAndInit() {
+        try {
+            log("扫描 MXW01 设备...");
+            bleDevice = await navigator.bluetooth.requestDevice({
+                acceptAllDevices: true,
+                optionalServices: ['0000ae30-0000-1000-8000-00805f9b34fb']
+            });
+
+            log("连接 GATT...");
+            const server = await bleDevice.gatt.connect();
+            const service = await server.getPrimaryService('0000ae30-0000-1000-8000-00805f9b34fb');
+
+            dataChar = await service.getCharacteristic('0000ae01-0000-1000-8000-00805f9b34fb');
+
+            try {
+                notifyChar = await service.getCharacteristic('0000ae02-0000-1000-8000-00805f9b34fb');
+            } catch(e) {
+                notifyChar = await service.getCharacteristic('0000ae03-0000-1000-8000-00805f9b34fb');
+            }
+
+            await notifyChar.startNotifications();
+            notifyChar.addEventListener('characteristicvaluechanged', (e) => {
+                const val = new Uint8Array(e.target.value.buffer);
+                log(`📩 收到 Reply: ${Array.from(val).map(b => '0x' + b.toString(16).padStart(2, '0')).join(' ')}`);
+                lastReply = val;
+            });
+
+            log("✅ 设备与 Notify 绑定完成！");
+            alert("绑定成功！");
+        } catch (err) {
+            log("❌ 连接失败: " + err.message);
+        }
+    }
+
+    // 2. 发送 Retract (退纸指令 0xA0) - 激活电机的关键！
+    async function sendRetract(pixels = 20) {
+        log(`发送 Retract 指令 (${pixels}px)...`);
+        const pkt = makeMxPacket(0xA0, new Uint8Array([pixels & 0xFF, (pixels >> 8) & 0xFF]));
+        await dataChar.writeValueWithoutResponse(pkt);
+        await new Promise(r => setTimeout(r, 200));
+    }
+
+    // 3. 发送 Feed (走纸指令 0xA1)
+    async function sendFeed(pixels = 50) {
+        log(`发送 Feed 指令 (${pixels}px)...`);
+        const pkt = makeMxPacket(0xA1, new Uint8Array([pixels & 0xFF, (pixels >> 8) & 0xFF]));
+        await dataChar.writeValueWithoutResponse(pkt);
+        await new Promise(r => setTimeout(r, 200));
+    }
+
+    // 4. 设置黑度/浓度 (Darkness 0xA3)
+    async function setDarkness(level = 3) {
+        log(`设置加热黑度 (Darkness Level ${level})...`);
+        const pkt = makeMxPacket(0xA3, new Uint8Array([level & 0xFF]));
+        await dataChar.writeValueWithoutResponse(pkt);
+        await new Promise(r => setTimeout(r, 100));
+    }
+
+    async function testRetract() {
+        if(!dataChar) return alert("请先连接！");
+        await sendRetract(20);
+    }
+
+    async function testFeed() {
+        if(!dataChar) return alert("请先连接！");
+        await sendFeed(50);
+    }
+
+    // 5. 按照 Python 驱动的真实 Sequence 执行整套任务
+    async function executeFullJob() {
+        if(!dataChar) return alert("请先连接！");
+        document.getElementById('time').innerText = new Date().toLocaleString();
+
+        log("▶️ 开始执行完整物理打印序列 (TiMini Sequence)...");
+
+        // 步骤 1: 状态查询 & 握手
+        log("1/5: 查询状态 (0xA0 Query)");
+        await dataChar.writeValueWithoutResponse(makeMxPacket(0xA0, new Uint8Array([0x00])));
+        await new Promise(r => setTimeout(r, 200));
+
+        // 步骤 2: 设置浓度 (Darkness Level = 3)
+        log("2/5: 下发加热黑度配置...");
+        await setDarkness(3);
+
+        // 步骤 3: 两次 Retract 退纸校准 (关键！电机齿轮咬合)
+        log("3/5: 执行电机 Retract 校准 (齿轮咬合)...");
+        await sendRetract(20);
+        await sendRetract(20);
+
+        // 步骤 4: 发送点阵位图数据 (0xA2)
+        log("4/5: 渲染并下发位图像素...");
+        const canvas = await html2canvas(document.getElementById('receipt'), { backgroundColor: "#ffffff" });
+        const targetWidth = 384;
+        const targetHeight = Math.round(canvas.height * (targetWidth / canvas.width));
+
+        const printCanvas = document.createElement('canvas');
+        printCanvas.width = targetWidth; printCanvas.height = targetHeight;
+        const ctx = printCanvas.getContext('2d');
+        ctx.drawImage(canvas, 0, 0, targetWidth, targetHeight);
+        
+        const imgData = ctx.getImageData(0, 0, targetWidth, targetHeight);
+        const bytesPerLine = 48;
+
+        for (let y = 0; y < targetHeight; y++) {
+            const lineData = new Uint8Array(bytesPerLine);
+            for (let x = 0; x < targetWidth; x++) {
+                const idx = (y * targetWidth + x) * 4;
+                if ((imgData.data[idx] + imgData.data[idx+1] + imgData.data[idx+2]) / 3 < 128) {
+                    lineData[Math.floor(x / 8)] |= (1 << (7 - (x % 8)));
+                }
+            }
+            await dataChar.writeValueWithoutResponse(makeMxPacket(0xA2, lineData));
+            await new Promise(r => setTimeout(r, 8)); // 控制传输节奏
+        }
+
+        // 步骤 5: 走纸与退纸收尾
+        log("5/5: 发送收尾走纸 (Feed)...");
+        await sendFeed(80);
+        await sendRetract(20);
+
+        log("🎉 物理打印序列下发完毕！请观察机器是否转动！");
     }
 </script>
 
