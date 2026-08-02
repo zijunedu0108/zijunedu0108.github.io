@@ -3,18 +3,18 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>MXW01 Web Bluetooth 打印测试</title>
+  <title>MXW01 Web Bluetooth 打印测试 (V5G 修正版)</title>
   <style>
     body { font-family: sans-serif; padding: 20px; max-width: 600px; margin: 0 auto; }
     .card { border: 1px solid #ccc; padding: 15px; border-radius: 8px; margin-bottom: 15px; }
     button { padding: 10px 16px; font-size: 14px; margin-right: 10px; cursor: pointer; }
-    #log { background: #1e1e1e; color: #00ff00; font-family: monospace; padding: 10px; height: 250px; overflow-y: auto; border-radius: 4px; }
+    #log { background: #1e1e1e; color: #00ff00; font-family: monospace; padding: 10px; height: 260px; overflow-y: auto; border-radius: 4px; }
     canvas { border: 1px dashed #aaa; margin-top: 10px; display: block; }
   </style>
 </head>
 <body>
 
-  <h2>MXW01 热敏打印机 Web BLE 调试工具 (V5G 修复版)</h2>
+  <h2>MXW01 热敏打印机 Web BLE 调试工具 (V5G 标头修复)</h2>
 
   <div class="card">
     <button id="btnConnect">1. 连接 MXW01 打印机</button>
@@ -33,9 +33,6 @@
   </div>
 
   <script>
-    // ----------------------------------------------------
-    // UUID 常量定义 (针对 MXW / Fun Print / TiMini 系列)
-    // ----------------------------------------------------
     const PRINTER_SERVICE_UUID = '0000af30-0000-1000-8000-00805f9b34fb';
     const WRITE_CHAR_UUID     = '0000ae01-0000-1000-8000-00805f9b34fb';
     const NOTIFY_CHAR_UUID    = '0000ae02-0000-1000-8000-00805f9b34fb';
@@ -51,7 +48,6 @@
     const canvas = document.getElementById('printCanvas');
     const ctx = canvas.getContext('2d');
 
-    // 初始化画板测试内容
     drawSamplePattern();
 
     function log(msg, type = 'info') {
@@ -72,7 +68,6 @@
       ctx.font = '16px sans-serif';
       ctx.fillText('Web Bluetooth OK! - ' + new Date().toLocaleDateString(), 20, 70);
       
-      // 绘制一条对齐基准线
       ctx.fillRect(20, 90, 344, 4);
     }
 
@@ -90,7 +85,6 @@
         log(`建立 GATT 连接中: ${bluetoothDevice.name || 'MXW01'}...`);
         const server = await bluetoothDevice.gatt.connect();
 
-        // 获取服务
         let service;
         try {
           service = await server.getPrimaryService(PRINTER_SERVICE_UUID);
@@ -98,11 +92,9 @@
           service = await server.getPrimaryService('0000ae30-0000-1000-8000-00805f9b34fb');
         }
 
-        // 获取 Write & Notify 特征值
         writeCharacteristic = await service.getCharacteristic(WRITE_CHAR_UUID);
         notifyCharacteristic = await service.getCharacteristic(NOTIFY_CHAR_UUID);
 
-        // 开启 Notify 响应监听
         await notifyCharacteristic.startNotifications();
         notifyCharacteristic.addEventListener('characteristicvaluechanged', handleNotify);
 
@@ -116,18 +108,17 @@
       }
     });
 
-    // 监听打印机回复报包，监测状态
     function handleNotify(event) {
       const value = new Uint8Array(event.target.value.buffer);
       const hexStr = Array.from(value).map(b => '0x' + b.toString(16).padStart(2, '0')).join(' ');
       
-      if (value[2] === 0xA1) {
+      if (value[2] === 0xA1 || value[2] === 0xA3) {
         if (value[3] === 0x00) {
-          log(`📩 收到 Reply (成功 0x00): ${hexStr}`, 'reply');
+          log(`📩 收到 ACK (成功 0x00): ${hexStr}`, 'reply');
         } else if (value[3] === 0x03) {
-          log(`⚠️ 收到 Reply (错误 0x03 - 参数/校验异常): ${hexStr}`, 'err');
+          log(`⚠️ 收到 ACK (错误 0x03 - 参数异常): ${hexStr}`, 'err');
         } else {
-          log(`📩 收到 Reply: ${hexStr}`, 'reply');
+          log(`📩 收到 ACK: ${hexStr}`, 'reply');
         }
       } else {
         log(`📩 收到系统回复: ${hexStr}`, 'reply');
@@ -135,7 +126,7 @@
     }
 
     // ----------------------------------------------------
-    // 2. 打印序列控制
+    // 2. 打印控制流程
     // ----------------------------------------------------
     btnTestPrint.addEventListener('click', async () => {
       if (!writeCharacteristic) return;
@@ -146,24 +137,33 @@
 
         // Step 1: 查询打印机状态
         await sendCmd(new Uint8Array([0x22, 0x21, 0xA0, 0x00, 0x00, 0x00, 0xA0]));
-        await delay(50);
+        await delay(100);
 
-        // Step 2: 构建并发送 0xA1 位图点阵包 (V5G 规范：48 字节 RAW + 长度声明 + CRC8)
+        // Step 2: 发送开启任务指令 (Start Print Job - 0xA3)
+        // Header(2) + Cmd(1) + Darkness(1) + Reserved(2) + CRC(1)
+        log('下发开始打印任务指令 (0xA3)...');
+        await sendCmd(new Uint8Array([0x22, 0x21, 0xA3, 0x5F, 0x00, 0x00, 0xFC]));
+        await delay(100);
+
+        // Step 3: 构建并发送 0xA1 位图点阵数据
         const imgData = ctx.getImageData(0, 0, canvas.width, canvas.height);
         const packets = buildMXW01BitmapPackets(imgData);
 
         log(`下发位图像素包 (共 ${packets.length} 行)...`);
         for (let i = 0; i < packets.length; i++) {
           await sendCmd(packets[i]);
-          // 增加发送延迟，防止高频冲爆蓝牙芯片 Buffer
-          await delay(20); 
+          await delay(25); // 调整为 25ms 延迟，确保打印机 FIFO 不溢出
         }
 
-        // Step 3: 发送走纸收尾指令 (Feed 60px)
-        log('发送收尾走纸指令...');
+        // Step 4: 发送走纸与结束任务指令
+        log('发送走纸收尾指令...');
         await sendCmd(buildFeedPacket(60));
+        await delay(100);
 
-        log('🎉 打印序列下发完毕！请观察机器转动。');
+        // 结束打印任务
+        await sendCmd(new Uint8Array([0x22, 0x21, 0xA3, 0x00, 0x00, 0x00, 0xA3]));
+
+        log('🎉 打印序列下发完毕！');
 
       } catch (err) {
         log('打印过程出错: ' + err.message, 'err');
@@ -173,10 +173,10 @@
     });
 
     // ----------------------------------------------------
-    // 3. 核心修复算法：针对 MXW01 (V5G 协议) 的 0xA1 点阵打包逻辑
+    // 3. 位图打包算法（适配带浓度与长度标志的 MXW01 结构）
     // ----------------------------------------------------
     function buildMXW01BitmapPackets(imageData) {
-      const width = imageData.width;   // 必须为 384px
+      const width = imageData.width;   // 384px
       const height = imageData.height;
       const bytesPerLine = 48;         // 384 / 8 = 48 字节
       const pixels = imageData.data;
@@ -185,7 +185,6 @@
       for (let row = 0; row < height; row++) {
         const lineBytes = new Uint8Array(bytesPerLine);
 
-        // 像素二值化提取
         for (let col = 0; col < width; col++) {
           const idx = (row * width + col) * 4;
           const r = pixels[idx];
@@ -195,28 +194,31 @@
 
           if (isBlack) {
             const byteIdx = Math.floor(col / 8);
-            const bitIdx = 7 - (col % 8); // MSB 高位在前
+            const bitIdx = 7 - (col % 8);
             lineBytes[byteIdx] |= (1 << bitIdx);
           }
         }
 
-        // 数据包结构 (55 字节): 
-        // Header(2) + Cmd(1) + Mode/Compression(1) + PayloadLen(2) + Payload(48) + CRC8(1)
+        // 包含完整 7 字节 Header 的 0xA1 包结构:
+        // [0..1] Header (0x22, 0x21)
+        // [2] Cmd (0xA1)
+        // [3] SubCmd/Mode (0x01: Raw Dot Matrix Line)
+        // [4..5] Data Length (0x30, 0x00 -> 48 bytes)
+        // [6..53] 48 字节位图
+        // [54] CRC8
         const packet = new Uint8Array(2 + 1 + 1 + 2 + bytesPerLine + 1);
         
-        packet[0] = 0x22; // Header
-        packet[1] = 0x21; // Header
-        packet[2] = 0xA1; // Cmd: BitImage
-        packet[3] = 0x00; // Mode: 0x00 = RAW/未压缩
+        packet[0] = 0x22;
+        packet[1] = 0x21;
+        packet[2] = 0xA1;
+        packet[3] = 0x01; // 设置 SubCmd/Mode 标志为 0x01 (行数据)
         
-        // 显式传入 48 字节载荷长度 (小端序 LSB First)
-        packet[4] = bytesPerLine & 0xFF;        // 0x30 (48)
+        packet[4] = bytesPerLine & 0xFF;        // 0x30
         packet[5] = (bytesPerLine >> 8) & 0xFF; // 0x00
 
-        // 填充 48 字节位图点阵
         packet.set(lineBytes, 6);
 
-        // 计算标准 CRC8 (Polynomial 0x07) - 范围：从 Cmd(下标 2) 到数据末尾
+        // CRC8 计算
         let crc = 0x00;
         for (let i = 2; i < packet.length - 1; i++) {
           crc ^= packet[i];
@@ -236,17 +238,15 @@
       return packets;
     }
 
-    // 构造走纸 Feed 指令包
     function buildFeedPacket(distancePx) {
       const packet = new Uint8Array(7);
       packet[0] = 0x22;
       packet[1] = 0x21;
       packet[2] = 0xA1;
-      packet[3] = 0x30; // Feed 标志
+      packet[3] = 0x30; // Feed
       packet[4] = distancePx & 0xFF;
       packet[5] = (distancePx >> 8) & 0xFF;
       
-      // CRC8 校验计算
       let crc = 0x00;
       for (let i = 2; i < 6; i++) {
         crc ^= packet[i];
@@ -262,7 +262,6 @@
       return packet;
     }
 
-    // GATT 写入封装
     async function sendCmd(uint8Array) {
       if (!writeCharacteristic) return;
       await writeCharacteristic.writeValue(uint8Array);
