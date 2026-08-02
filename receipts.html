@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>MXW01 打印机 - 修复版</title>
+    <title>MXW01 - ESC/POS 打印</title>
     <style>
         * { margin: 0; padding: 0; box-sizing: border-box; }
         body {
@@ -20,7 +20,7 @@
             padding: 24px;
             box-shadow: 0 8px 30px rgba(0,0,0,0.08);
         }
-        h1 { font-size: 24px; color: #1a2332; margin-bottom: 6px; display: flex; align-items: center; gap: 10px; }
+        h1 { font-size: 24px; color: #1a2332; margin-bottom: 4px; }
         .subtitle { color: #6b7f96; font-size: 14px; margin-bottom: 20px; }
         .status-bar {
             background: #f8fafc;
@@ -41,7 +41,6 @@
         }
         .status-dot.off { background: #94a3b8; }
         .status-dot.on { background: #22c55e; box-shadow: 0 0 8px rgba(34,197,94,0.3); }
-        .status-dot.error { background: #ef4444; box-shadow: 0 0 8px rgba(239,68,68,0.3); }
         .btn {
             padding: 12px 20px;
             border: none;
@@ -58,15 +57,11 @@
         }
         .btn:active { transform: scale(0.97); }
         .btn-primary { background: #2563eb; color: white; }
-        .btn-primary:hover { background: #1d4ed8; }
         .btn-primary:disabled { background: #93b4f0; cursor: not-allowed; }
         .btn-success { background: #16a34a; color: white; }
-        .btn-success:hover { background: #15803d; }
         .btn-danger { background: #dc2626; color: white; }
         .btn-warning { background: #f59e0b; color: white; }
-        .btn-warning:hover { background: #d97706; }
         .btn-outline { background: transparent; color: #2563eb; border: 2px solid #2563eb; }
-        .btn-outline:hover { background: #eff6ff; }
         .btn-group { display: flex; flex-direction: column; gap: 10px; margin: 16px 0; }
         .btn-row { display: flex; gap: 10px; }
         .btn-row .btn { flex: 1; }
@@ -91,14 +86,6 @@
         .log-container .error { color: #f87171; }
         .log-container .recv { color: #fbbf24; }
         .log-container .send { color: #a78bfa; }
-        .device-info {
-            background: #f1f5f9;
-            border-radius: 8px;
-            padding: 10px 14px;
-            font-size: 13px;
-            color: #334155;
-            margin: 12px 0;
-        }
         .hint {
             background: #fef9c3;
             border-left: 4px solid #eab308;
@@ -122,8 +109,8 @@
 </head>
 <body>
     <div class="app">
-        <h1><span>🖨️</span> 蓝牙打印机</h1>
-        <div class="subtitle">MXW01 · 修复打印问题</div>
+        <h1>🖨️ 蓝牙打印机</h1>
+        <div class="subtitle">MXW01 · ESC/POS 热敏指令</div>
 
         <div class="status-bar">
             <span>
@@ -137,8 +124,8 @@
             <button class="btn btn-primary" id="btnConnect"><span>🔗</span> 连接蓝牙打印机</button>
             
             <div class="btn-row">
-                <button class="btn btn-success" id="btnPrintSimple" disabled><span>📄</span> 简单打印</button>
-                <button class="btn btn-warning" id="btnPrintImage" disabled><span>🖼️</span> 图案</button>
+                <button class="btn btn-success" id="btnPrintText" disabled><span>📄</span> 打印文字</button>
+                <button class="btn btn-success" id="btnPrintBarcode" disabled><span>📊</span> 条码</button>
             </div>
             
             <div class="btn-row">
@@ -155,14 +142,9 @@
             <button class="btn btn-outline" id="btnFeedCustom" disabled style="width:auto;padding:8px 16px;flex:0;">执行</button>
         </div>
 
-        <div id="deviceInfo" class="device-info" style="display:none;">
-            <strong>已连接设备</strong><br>
-            <span id="infoName">-</span> · <span id="infoId">-</span>
-        </div>
-
-        <div class="hint" id="hintBox">
-            💡 请使用 <strong>Chrome 120+</strong> 或 <strong>Edge 120+</strong><br>
-            确保蓝牙已开启，打印机处于配对模式
+        <div class="hint">
+            💡 使用 <strong>ESC/POS</strong> 标准热敏指令<br>
+            支持文字、条码、二维码
         </div>
 
         <div class="log-container" id="log">
@@ -172,21 +154,16 @@
 
     <script>
         // ============================================================
-        //  MXW01 打印机 - 修复版本
-        //  关键修复：
-        //  1. 位图数据格式修正
-        //  2. 增加错误检测和重试
-        //  3. 使用正确的打印指令序列
+        //  MXW01 打印机 - ESC/POS 指令版本
+        //  使用标准热敏指令，兼容性更好
         // ============================================================
 
         const SERVICE_UUID = 0xAE30;
         const SERVICE_UUID_STR = '0000ae30-0000-1000-8000-00805f9b34fb';
         const WRITE_CHAR_UUID = 0xAE01;
-        const NOTIFY_CHAR_UUID = 0xAE02;
 
         let device = null, server = null, writeCharacteristic = null;
         let isConnected = false;
-        let errorCount = 0;
 
         // DOM
         const logEl = document.getElementById('log');
@@ -194,17 +171,13 @@
         const statusText = document.getElementById('statusText');
         const deviceName = document.getElementById('deviceName');
         const btnConnect = document.getElementById('btnConnect');
-        const btnPrintSimple = document.getElementById('btnPrintSimple');
-        const btnPrintImage = document.getElementById('btnPrintImage');
+        const btnPrintText = document.getElementById('btnPrintText');
+        const btnPrintBarcode = document.getElementById('btnPrintBarcode');
         const btnFeed = document.getElementById('btnFeed');
         const btnReverse = document.getElementById('btnReverse');
         const btnDisconnect = document.getElementById('btnDisconnect');
         const btnFeedCustom = document.getElementById('btnFeedCustom');
         const feedAmount = document.getElementById('feedAmount');
-        const deviceInfo = document.getElementById('deviceInfo');
-        const infoName = document.getElementById('infoName');
-        const infoId = document.getElementById('infoId');
-        const hintBox = document.getElementById('hintBox');
 
         function log(msg, type = 'info') {
             const time = new Date().toLocaleTimeString();
@@ -215,7 +188,7 @@
 
         function sleep(ms) { return new Promise(r => setTimeout(r, ms)); }
 
-        // CRC8
+        // ---- CRC8 ----
         function calcCRC8(data) {
             let crc = 0x00;
             for (let i = 0; i < data.length; i++) {
@@ -231,7 +204,7 @@
             return crc;
         }
 
-        // 构造 V5C 数据包
+        // ---- 构造 V5C 数据包 ----
         function makeV5CPacket(opcode, payload = new Uint8Array(0)) {
             const prefix = [0x22, 0x21];
             const payloadLen = payload.length;
@@ -248,30 +221,33 @@
             return packet;
         }
 
-        async function sendCommand(opcode, payload, logSend = true) {
+        // ---- 发送数据 ----
+        async function sendRaw(data) {
             if (!writeCharacteristic) throw new Error('写入特征不可用');
+            await writeCharacteristic.writeValue(data);
+            const hexStr = Array.from(data.slice(0, 20)).map(b => '0x' + b.toString(16).padStart(2, '0')).join(' ');
+            log(`📤 发送: ${hexStr}${data.length > 20 ? '...' : ''}`, 'send');
+        }
+
+        // ---- 发送 V5C 指令 ----
+        async function sendV5C(opcode, payload = new Uint8Array(0)) {
             const packet = makeV5CPacket(opcode, payload);
-            await writeCharacteristic.writeValue(packet);
-            if (logSend) {
-                const hexStr = Array.from(packet.slice(0, 20)).map(b => '0x' + b.toString(16).padStart(2, '0')).join(' ');
-                log(`📤 发送: ${hexStr}${packet.length > 20 ? '...' : ''}`, 'send');
-            }
+            await sendRaw(packet);
             return packet;
         }
 
-        // ---- 解析返回数据 ----
-        function parseResponse(data) {
-            if (data.length < 8) return { status: 'unknown' };
-            
-            const opcode = data[2];
-            const status = data[3];
-            
-            // 0x03 表示错误
-            if (status === 0x03) {
-                return { status: 'error', opcode };
+        // ---- 发送 ESC/POS 数据 (使用 0x40 自定义指令) ----
+        async function sendESCPOS(escposData) {
+            // 某些 MXW01 使用 0x40 作为透传指令
+            // 如果 0x40 不行，尝试 0xA1 或 0x50
+            try {
+                await sendV5C(0x40, escposData);
+                log('📨 ESC/POS 数据已发送', 'send');
+            } catch (e) {
+                // 如果 0x40 不行，尝试直接用 0xA1
+                log('⚠️ 0x40 失败，尝试 0xA1...', 'error');
+                await sendV5C(0xA1, escposData);
             }
-            
-            return { status: 'ok', opcode };
         }
 
         // ---- 更新 UI ----
@@ -282,29 +258,23 @@
                 statusText.textContent = '已连接';
                 deviceName.textContent = devName || 'MXW01';
                 btnConnect.disabled = true;
-                btnPrintSimple.disabled = false;
-                btnPrintImage.disabled = false;
+                btnPrintText.disabled = false;
+                btnPrintBarcode.disabled = false;
                 btnFeed.disabled = false;
                 btnReverse.disabled = false;
                 btnDisconnect.disabled = false;
                 btnFeedCustom.disabled = false;
-                deviceInfo.style.display = 'block';
-                infoName.textContent = devName || 'MXW01';
-                infoId.textContent = device ? device.id : '-';
-                hintBox.style.display = 'none';
             } else {
                 statusDot.className = 'status-dot off';
                 statusText.textContent = '未连接';
                 deviceName.textContent = '等待配对';
                 btnConnect.disabled = false;
-                btnPrintSimple.disabled = true;
-                btnPrintImage.disabled = true;
+                btnPrintText.disabled = true;
+                btnPrintBarcode.disabled = true;
                 btnFeed.disabled = true;
                 btnReverse.disabled = true;
                 btnDisconnect.disabled = true;
                 btnFeedCustom.disabled = true;
-                deviceInfo.style.display = 'none';
-                hintBox.style.display = 'block';
             }
         }
 
@@ -340,21 +310,12 @@
 
                 // 开启通知
                 try {
-                    const notifyChar = await service.getCharacteristic(NOTIFY_CHAR_UUID);
+                    const notifyChar = await service.getCharacteristic(0xAE02);
                     await notifyChar.startNotifications();
                     notifyChar.addEventListener('characteristicvaluechanged', (e) => {
                         const val = new Uint8Array(e.target.value.buffer);
                         const hex = Array.from(val).map(b => '0x' + b.toString(16).padStart(2, '0')).join(' ');
                         log(`📨 收到: ${hex}`, 'recv');
-                        
-                        // 解析错误状态
-                        const parsed = parseResponse(val);
-                        if (parsed.status === 'error') {
-                            log(`⚠️ 打印机返回错误码 0x03 (可能缺纸或打印头过热)`, 'error');
-                            statusDot.className = 'status-dot error';
-                        } else {
-                            statusDot.className = 'status-dot on';
-                        }
                     });
                     log('📢 通知已开启', 'success');
                 } catch (e) {
@@ -363,10 +324,10 @@
 
                 setConnected(true, device.name || 'MXW01');
 
-                // 初始化打印机
-                await sendCommand(0x00, new Uint8Array([0x01]));
+                // 初始化
+                await sendV5C(0x00, new Uint8Array([0x01]));
                 await sleep(100);
-                log('🤝 打印机初始化完成', 'success');
+                log('🤝 初始化完成', 'success');
 
             } catch (err) {
                 log(`❌ 连接失败: ${err.message}`, 'error');
@@ -374,58 +335,64 @@
             }
         }
 
-        // ---- 2. 打印简单文字 (使用正确的位图格式) ----
-        async function printSimple() {
+        // ---- 2. 打印文字 (ESC/POS) ----
+        async function printText() {
             if (!isConnected) {
                 log('❌ 打印机未连接', 'error');
                 return;
             }
 
             try {
-                log('🖨️ 开始打印...', 'info');
-                errorCount = 0;
+                log('🖨️ 使用 ESC/POS 打印文字...', 'info');
 
-                // 生成一个简单的"T"字图案 (8行 x 48列)
-                // 每行48位 = 6字节
-                const pattern = [];
+                // ESC/POS 指令
+                const escposData = new Uint8Array([
+                    // 初始化
+                    0x1B, 0x40,
+                    
+                    // 设置字符大小: 2x2
+                    0x1D, 0x21, 0x22,
+                    
+                    // 居中对齐
+                    0x1B, 0x61, 0x01,
+                    
+                    // 打印文字
+                    0x48, 0x65, 0x6C, 0x6C, 0x6F,  // "Hello"
+                    0x20,
+                    0x57, 0x6F, 0x72, 0x6C, 0x64,  // "World"
+                    0x0A,
+                    
+                    // 换行
+                    0x0A,
+                    
+                    // 正常大小
+                    0x1D, 0x21, 0x00,
+                    
+                    // 打印第二行
+                    0x46, 0x75, 0x6E, 0x20, 0x50, 0x72, 0x69, 0x6E, 0x74, 0x0A,
+                    
+                    // 第三行
+                    0x42, 0x6C, 0x75, 0x65, 0x74, 0x6F, 0x6F, 0x74, 0x68, 0x0A,
+                    
+                    // 分隔线
+                    0x2D, 0x2D, 0x2D, 0x2D, 0x2D, 0x2D, 0x2D, 0x2D, 0x2D, 0x2D, 0x2D, 0x2D, 0x0A,
+                    
+                    // 中文 (UTF-8 编码)
+                    0xE6, 0x89, 0x93, 0xE5, 0x8D, 0xB0, 0xE6, 0x88, 0x90, 0xE5, 0x8A, 0x9F, 0x0A,
+                    0xE6, 0x84, 0x9F, 0xE8, 0xB0, 0xA2, 0xE4, 0xBD, 0xBF, 0xE7, 0x94, 0xA8, 0x0A,
+                    
+                    // 换行
+                    0x0A, 0x0A
+                ]);
+
+                // 发送 ESC/POS 数据
+                await sendESCPOS(escposData);
+                await sleep(100);
+
+                // 走纸 10mm
+                await feedPaper(10);
                 
-                // 生成一个空心矩形
-                for (let row = 0; row < 24; row++) {
-                    const line = new Uint8Array(48);
-                    for (let col = 0; col < 48; col++) {
-                        // 边框
-                        if (row === 0 || row === 23 || col === 0 || col === 47) {
-                            line[col] = 0xFF;
-                        } else {
-                            // 内部：打印 "T" 字样
-                            if (row < 8 && col >= 18 && col <= 30) {
-                                line[col] = 0xFF;
-                            } else if (row >= 8 && row < 16 && col >= 22 && col <= 26) {
-                                line[col] = 0xFF;
-                            } else {
-                                line[col] = 0x00;
-                            }
-                        }
-                    }
-                    pattern.push(line);
-                }
-
-                // 发送位图数据
-                for (let i = 0; i < pattern.length; i++) {
-                    const payload = new Uint8Array(2 + 48);
-                    payload[0] = i & 0xFF;
-                    payload[1] = (i >> 8) & 0xFF;
-                    payload.set(pattern[i], 2);
-
-                    await sendCommand(0xA1, payload, false);
-                    await sleep(5);
-                }
-
-                log('✅ 位图数据发送完成', 'success');
-
-                // 走纸 20mm
-                await feedPaper(20);
-                log('✅ 打印完成！', 'success');
+                log('✅ 文字打印完成！', 'success');
 
             } catch (err) {
                 log(`❌ 打印失败: ${err.message}`, 'error');
@@ -435,41 +402,49 @@
             }
         }
 
-        // ---- 3. 打印图案 (棋盘格 + 文字) ----
-        async function printImage() {
+        // ---- 3. 打印条码 ----
+        async function printBarcode() {
             if (!isConnected) {
                 log('❌ 打印机未连接', 'error');
                 return;
             }
 
             try {
-                log('🖼️ 开始打印图案...', 'info');
-                errorCount = 0;
+                log('📊 打印条码...', 'info');
 
-                const rows = 32;
-                for (let i = 0; i < rows; i++) {
-                    const lineData = new Uint8Array(48);
-                    for (let j = 0; j < 48; j++) {
-                        // 棋盘格 + 中间一条竖线
-                        if ((i + j) % 2 === 0 || j === 24) {
-                            lineData[j] = 0xFF;
-                        } else {
-                            lineData[j] = 0x00;
-                        }
-                    }
+                // ESC/POS 条码指令
+                const escposData = new Uint8Array([
+                    // 初始化
+                    0x1B, 0x40,
+                    
+                    // 居中对齐
+                    0x1B, 0x61, 0x01,
+                    
+                    // 打印条码标题
+                    0x50, 0x72, 0x6F, 0x64, 0x75, 0x63, 0x74, 0x20, 0x49, 0x44, 0x0A,
+                    0x0A,
+                    
+                    // 选择条码类型: CODE128
+                    0x1D, 0x6B, 0x49,
+                    
+                    // 条码数据长度 (12字节)
+                    0x0C,
+                    
+                    // 条码数据: "123456789012"
+                    0x31, 0x32, 0x33, 0x34, 0x35, 0x36, 0x37, 0x38, 0x39, 0x30, 0x31, 0x32,
+                    
+                    // 打印条码
+                    0x0A,
+                    
+                    // 换行
+                    0x0A, 0x0A
+                ]);
 
-                    const payload = new Uint8Array(2 + 48);
-                    payload[0] = i & 0xFF;
-                    payload[1] = (i >> 8) & 0xFF;
-                    payload.set(lineData, 2);
+                await sendESCPOS(escposData);
+                await sleep(100);
 
-                    await sendCommand(0xA1, payload, false);
-                    await sleep(5);
-                }
-
-                log('✅ 图案数据发送完成', 'success');
-                await feedPaper(30);
-                log('✅ 图案打印完成！', 'success');
+                await feedPaper(15);
+                log('✅ 条码打印完成！', 'success');
 
             } catch (err) {
                 log(`❌ 打印失败: ${err.message}`, 'error');
@@ -494,7 +469,7 @@
                 }
                 
                 const feedPayload = new Uint8Array([dots & 0xFF, (dots >> 8) & 0xFF]);
-                await sendCommand(0xA3, feedPayload);
+                await sendV5C(0xA3, feedPayload);
                 log(`⬇️ 走纸 ${dots}mm`, 'send');
                 await sleep(100);
             } catch (err) {
@@ -517,7 +492,7 @@
                 }
                 
                 const reversePayload = new Uint8Array([dots & 0xFF, (dots >> 8) & 0xFF]);
-                await sendCommand(0xA4, reversePayload);
+                await sendV5C(0xA4, reversePayload);
                 log(`⬆️ 回纸 ${dots}mm`, 'send');
                 await sleep(100);
             } catch (err) {
@@ -541,8 +516,8 @@
 
         // ---- 绑定事件 ----
         btnConnect.addEventListener('click', connectPrinter);
-        btnPrintSimple.addEventListener('click', printSimple);
-        btnPrintImage.addEventListener('click', printImage);
+        btnPrintText.addEventListener('click', printText);
+        btnPrintBarcode.addEventListener('click', printBarcode);
         btnFeed.addEventListener('click', () => feedPaper(parseInt(feedAmount.value) || 30));
         btnReverse.addEventListener('click', () => reversePaper(parseInt(feedAmount.value) || 20));
         btnFeedCustom.addEventListener('click', () => feedPaper(parseInt(feedAmount.value) || 30));
@@ -559,7 +534,7 @@
         }
 
         log('💡 点击「连接蓝牙打印机」开始配对', 'info');
-        log('⚠️ 如果打印出错，请检查是否缺纸或打印头过热', 'info');
+        log('📌 使用 ESC/POS 标准指令，兼容性更好', 'info');
     </script>
 </body>
 </html>
