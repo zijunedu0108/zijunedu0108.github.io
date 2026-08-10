@@ -15,15 +15,17 @@
         .form-section { flex: 1; background: #fff; padding: 20px; border-radius: 8px; box-shadow: 0 2px 8px rgba(0,0,0,0.05); }
         .form-group { margin-bottom: 15px; }
         label { display: block; font-weight: 600; font-size: 14px; margin-bottom: 5px; }
-        input { width: 100%; padding: 8px 12px; border: 1px solid #ccc; border-radius: 4px; font-size: 14px; }
-        .item-row { display: flex; gap: 8px; margin-bottom: 8px; }
-        .item-row input:nth-child(1) { flex: 2; }
-        .item-row input:nth-child(2) { flex: 1; }
-        .item-row input:nth-child(3) { flex: 1; }
+        input, textarea { width: 100%; padding: 8px 12px; border: 1px solid #ccc; border-radius: 4px; font-size: 14px; }
+        
+        /* 商品行样式：支持 textarea 自适应 */
+        .item-row { display: flex; gap: 8px; margin-bottom: 8px; align-items: flex-start; }
+        .item-row textarea { flex: 2; height: 38px; resize: vertical; min-height: 38px; font-family: inherit; }
+        .item-row input:nth-of-type(1) { flex: 1; }
+        .item-row input:nth-of-type(2) { flex: 1; }
         
         button { cursor: pointer; padding: 8px 16px; border: none; border-radius: 4px; font-weight: 600; }
         .btn-add { background: #e3f2fd; color: #0d47a1; margin-bottom: 15px; }
-        .btn-remove { background: #ffebee; color: #c62828; padding: 0 10px; }
+        .btn-remove { background: #ffebee; color: #c62828; padding: 8px 10px; height: 38px; }
         .btn-group { display: flex; gap: 10px; margin-top: 15px; }
         .btn-print { background: #2e7d32; color: #fff; flex: 1; padding: 12px; font-size: 15px; }
         .btn-png { background: #1976d2; color: #fff; flex: 1; padding: 12px; font-size: 15px; }
@@ -52,7 +54,14 @@
         
         .receipt-table { width: 100%; border-collapse: collapse; font-size: 13px; margin-bottom: 15px; }
         .receipt-table th { text-align: left; border-bottom: 1px solid #eee; padding-bottom: 5px; }
-        .receipt-table td { padding: 6px 0; }
+        .receipt-table td { padding: 6px 0; vertical-align: top; }
+        
+        /* 让商品名字单元格保留换行与空格 */
+        .item-name-cell { 
+            white-space: pre-wrap; 
+            word-break: break-word; 
+        }
+
         .text-right { text-align: right; }
         .text-center { text-align: center; }
 
@@ -177,19 +186,19 @@
 </div>
 
 <script>
-    // 初始化数据
+    // 初始化数据（包含换行示例）
     let items = [
-        { name: '示例商品 A', price: 10.00, qty: 1 }
+        { name: '示例商品 A\n(含赠品及规格说明)', price: 10.00, qty: 1 }
     ];
 
     // 页面加载完成后运行
     window.onload = function() {
-        // 读取 LocalStorage (记忆第一次填写的店铺信息)
+        // 读取 LocalStorage
         if(localStorage.getItem('shopName')) document.getElementById('shopName').value = localStorage.getItem('shopName');
         if(localStorage.getItem('shopAddress')) document.getElementById('shopAddress').value = localStorage.getItem('shopAddress');
         if(localStorage.getItem('shopSsm')) document.getElementById('shopSsm').value = localStorage.getItem('shopSsm');
 
-        // 设置默认单号（如果未设定，则根据当前时间戳自动生成示例单号：INV-2023102401）
+        // 设置默认单号
         const defaultReceiptNo = 'INV-' + new Date().toISOString().slice(0,10).replace(/-/g, '') + '01';
         document.getElementById('receiptNo').value = defaultReceiptNo;
 
@@ -209,7 +218,7 @@
             const row = document.createElement('div');
             row.className = 'item-row';
             row.innerHTML = `
-                <input type="text" placeholder="商品名字" value="${item.name}" oninput="updateItem(${index}, 'name', this.value)">
+                <textarea placeholder="商品名字（按 Enter 可换行）" oninput="updateItem(${index}, 'name', this.value)">${item.name}</textarea>
                 <input type="number" placeholder="单价" value="${item.price}" step="0.01" oninput="updateItem(${index}, 'price', this.value)">
                 <input type="number" placeholder="数量" value="${item.qty}" min="1" oninput="updateItem(${index}, 'qty', this.value)">
                 ${items.length > 1 ? `<button class="btn-remove" onclick="removeItem(${index})">✕</button>` : ''}
@@ -233,6 +242,16 @@
     function updateItem(index, key, value) {
         items[index][key] = key === 'name' ? value : parseFloat(value) || 0;
         updateReceipt();
+    }
+
+    // 安全防范：防止 HTML 注入攻击
+    function escapeHtml(text) {
+        return (text || '')
+            .replace(/&/g, "&amp;")
+            .replace(/</g, "&lt;")
+            .replace(/>/g, "&gt;")
+            .replace(/"/g, "&quot;")
+            .replace(/'/g, "&#039;");
     }
 
     // 实时更新右侧收据
@@ -261,8 +280,12 @@
             subtotal += itemSubtotal;
 
             const tr = document.createElement('tr');
+            
+            // 安全过滤并格式化名称
+            const safeName = escapeHtml(item.name || '未命名商品');
+
             tr.innerHTML = `
-                <td>${item.name || '未命名商品'}</td>
+                <td class="item-name-cell">${safeName}</td>
                 <td class="text-center">${item.qty}</td>
                 <td class="text-right">${item.price.toFixed(2)}</td>
                 <td class="text-right">${itemSubtotal.toFixed(2)}</td>
@@ -283,7 +306,6 @@
     function downloadPNG() {
         const receiptElement = document.getElementById('receipt');
         
-        // 使用 html2canvas 截取收据区域，scale: 2 提升打印清晰度（防止像素模糊）
         html2canvas(receiptElement, { scale: 2, backgroundColor: "#ffffff" }).then(canvas => {
             const link = document.createElement('a');
             const timeStamp = new Date().getTime();
