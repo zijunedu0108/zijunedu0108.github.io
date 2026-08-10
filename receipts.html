@@ -47,7 +47,8 @@
         .receipt-header h2 { font-size: 18px; margin-bottom: 4px; }
         .receipt-header p { font-size: 12px; color: #666; word-break: break-all; }
         
-        .receipt-time { font-size: 11px; color: #888; text-align: right; margin-bottom: 10px; }
+        .receipt-info { font-size: 11px; color: #666; margin-bottom: 10px; line-height: 1.4; }
+        .receipt-info div { display: flex; justify-content: space-between; }
         
         .receipt-table { width: 100%; border-collapse: collapse; font-size: 13px; margin-bottom: 15px; }
         .receipt-table th { text-align: left; border-bottom: 1px solid #eee; padding-bottom: 5px; }
@@ -89,6 +90,10 @@
             <label>SSM Number</label>
             <input type="text" id="shopSsm" placeholder="例如：202401012345 (1234567-A)" oninput="updateReceipt()">
         </div>
+        <div class="form-group">
+            <label>收据号码 (Receipt No.)</label>
+            <input type="text" id="receiptNo" placeholder="例如：INV-1001" oninput="updateReceipt()">
+        </div>
 
         <hr style="margin: 20px 0; border: none; border-top: 1px solid #eee;">
 
@@ -118,9 +123,16 @@
                     <p id="viewSsm">SSM: -</p>
                 </div>
 
-                <!-- 从上到下 2: 生成时间 -->
-                <div class="receipt-time">
-                    时间: <span id="viewTime"></span>
+                <!-- 从上到下 2: 收据编号与生成时间 -->
+                <div class="receipt-info">
+                    <div>
+                        <span>收据号码:</span>
+                        <span id="viewReceiptNo" style="font-weight: 600;">-</span>
+                    </div>
+                    <div>
+                        <span>生成时间:</span>
+                        <span id="viewTime"></span>
+                    </div>
                 </div>
 
                 <!-- 从上到下 3: 商品（名字、数量、小计） -->
@@ -177,6 +189,10 @@
         if(localStorage.getItem('shopAddress')) document.getElementById('shopAddress').value = localStorage.getItem('shopAddress');
         if(localStorage.getItem('shopSsm')) document.getElementById('shopSsm').value = localStorage.getItem('shopSsm');
 
+        // 设置默认单号（如果未设定，则根据当前时间戳自动生成示例单号：INV-2023102401）
+        const defaultReceiptNo = 'INV-' + new Date().toISOString().slice(0,10).replace(/-/g, '') + '01';
+        document.getElementById('receiptNo').value = defaultReceiptNo;
+
         // 设置生成时间
         const now = new Date();
         document.getElementById('viewTime').innerText = now.toLocaleString('zh-CN', { hour12: false });
@@ -224,6 +240,7 @@
         const name = document.getElementById('shopName').value || '店铺名称';
         const address = document.getElementById('shopAddress').value || '店铺地址';
         const ssm = document.getElementById('shopSsm').value || '-';
+        const receiptNo = document.getElementById('receiptNo').value || '-';
         const taxRate = parseFloat(document.getElementById('taxRate').value) || 0;
 
         localStorage.setItem('shopName', document.getElementById('shopName').value);
@@ -233,6 +250,7 @@
         document.getElementById('viewName').innerText = name;
         document.getElementById('viewAddress').innerText = address;
         document.getElementById('viewSsm').innerText = 'SSM: ' + ssm;
+        document.getElementById('viewReceiptNo').innerText = receiptNo;
 
         let subtotal = 0;
         const viewItems = document.getElementById('viewItems');
@@ -265,7 +283,7 @@
     function downloadPNG() {
         const receiptElement = document.getElementById('receipt');
         
-        // 使用 html2canvas 截取收据区域，scale: 2 提升打印清析度（防止像素模糊）
+        // 使用 html2canvas 截取收据区域，scale: 2 提升打印清晰度（防止像素模糊）
         html2canvas(receiptElement, { scale: 2, backgroundColor: "#ffffff" }).then(canvas => {
             const link = document.createElement('a');
             const timeStamp = new Date().getTime();
