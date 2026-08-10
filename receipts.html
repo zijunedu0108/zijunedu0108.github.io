@@ -3,538 +3,278 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>MXW01 - ESC/POS 打印</title>
+    <title>收据生成器 (Receipt Generator)</title>
+    <!-- 引入 html2canvas 库（用于网页截图导出 PNG） -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
     <style>
-        * { margin: 0; padding: 0; box-sizing: border-box; }
-        body {
-            font-family: -apple-system, system-ui, sans-serif;
-            background: #f0f4f8;
-            padding: 16px;
-            max-width: 480px;
-            margin: 0 auto;
-            min-height: 100vh;
-        }
-        .app {
-            background: white;
-            border-radius: 20px;
-            padding: 24px;
-            box-shadow: 0 8px 30px rgba(0,0,0,0.08);
-        }
-        h1 { font-size: 24px; color: #1a2332; margin-bottom: 4px; }
-        .subtitle { color: #6b7f96; font-size: 14px; margin-bottom: 20px; }
-        .status-bar {
-            background: #f8fafc;
-            border-radius: 12px;
-            padding: 14px 16px;
-            margin-bottom: 20px;
+        * { box-sizing: border-box; margin: 0; padding: 0; font-family: system-ui, -apple-system, sans-serif; }
+        body { background: #f5f5f7; padding: 20px; color: #333; }
+        .container { max-width: 1100px; margin: 0 auto; display: flex; gap: 20px; }
+        
+        /* 表单区域 */
+        .form-section { flex: 1; background: #fff; padding: 20px; border-radius: 8px; box-shadow: 0 2px 8px rgba(0,0,0,0.05); }
+        .form-group { margin-bottom: 15px; }
+        label { display: block; font-weight: 600; font-size: 14px; margin-bottom: 5px; }
+        input { width: 100%; padding: 8px 12px; border: 1px solid #ccc; border-radius: 4px; font-size: 14px; }
+        .item-row { display: flex; gap: 8px; margin-bottom: 8px; }
+        .item-row input:nth-child(1) { flex: 2; }
+        .item-row input:nth-child(2) { flex: 1; }
+        .item-row input:nth-child(3) { flex: 1; }
+        
+        button { cursor: pointer; padding: 8px 16px; border: none; border-radius: 4px; font-weight: 600; }
+        .btn-add { background: #e3f2fd; color: #0d47a1; margin-bottom: 15px; }
+        .btn-remove { background: #ffebee; color: #c62828; padding: 0 10px; }
+        .btn-group { display: flex; gap: 10px; margin-top: 15px; }
+        .btn-print { background: #2e7d32; color: #fff; flex: 1; padding: 12px; font-size: 15px; }
+        .btn-png { background: #1976d2; color: #fff; flex: 1; padding: 12px; font-size: 15px; }
+
+        /* 收据预览区域 */
+        .preview-section { flex: 1; display: flex; justify-content: center; align-items: flex-start; }
+        .receipt { 
+            width: 320px; /* 模拟小票或标准单据宽度 */
+            background: #fff; 
+            padding: 24px; 
+            border-radius: 4px; 
+            box-shadow: 0 4px 12px rgba(0,0,0,0.1); 
             display: flex;
-            align-items: center;
+            flex-direction: column;
             justify-content: space-between;
-            border: 1px solid #e8edf4;
+            min-height: 500px;
         }
-        .status-dot {
-            width: 10px;
-            height: 10px;
-            border-radius: 50%;
-            display: inline-block;
-            margin-right: 8px;
+        
+        /* 收据内部排版 */
+        .receipt-header { text-align: center; margin-bottom: 15px; border-bottom: 1px dashed #ccc; padding-bottom: 10px; }
+        .receipt-header h2 { font-size: 18px; margin-bottom: 4px; }
+        .receipt-header p { font-size: 12px; color: #666; word-break: break-all; }
+        
+        .receipt-time { font-size: 11px; color: #888; text-align: right; margin-bottom: 10px; }
+        
+        .receipt-table { width: 100%; border-collapse: collapse; font-size: 13px; margin-bottom: 15px; }
+        .receipt-table th { text-align: left; border-bottom: 1px solid #eee; padding-bottom: 5px; }
+        .receipt-table td { padding: 6px 0; }
+        .text-right { text-align: right; }
+        .text-center { text-align: center; }
+
+        .receipt-summary { border-top: 1px dashed #ccc; padding-top: 10px; font-size: 13px; }
+        .summary-row { display: flex; justify-content: space-between; margin-bottom: 4px; }
+        .summary-row.total { font-weight: bold; font-size: 15px; border-top: 1px solid #000; padding-top: 6px; margin-top: 6px; }
+
+        .receipt-footer { margin-top: 40px; text-align: center; font-size: 12px; }
+        .signature-space { border-bottom: 1px solid #000; width: 180px; margin: 30px auto 5px auto; }
+
+        /* 打印样式优化：打印时隐藏输入框，只留收据 */
+        @media print {
+            body { background: #fff; padding: 0; }
+            .form-section { display: none; }
+            .container { display: block; }
+            .receipt { box-shadow: none; border: none; width: 100%; max-width: 100%; padding: 0; }
         }
-        .status-dot.off { background: #94a3b8; }
-        .status-dot.on { background: #22c55e; box-shadow: 0 0 8px rgba(34,197,94,0.3); }
-        .btn {
-            padding: 12px 20px;
-            border: none;
-            border-radius: 12px;
-            font-size: 15px;
-            font-weight: 600;
-            cursor: pointer;
-            transition: all 0.15s;
-            display: inline-flex;
-            align-items: center;
-            gap: 8px;
-            width: 100%;
-            justify-content: center;
-        }
-        .btn:active { transform: scale(0.97); }
-        .btn-primary { background: #2563eb; color: white; }
-        .btn-primary:disabled { background: #93b4f0; cursor: not-allowed; }
-        .btn-success { background: #16a34a; color: white; }
-        .btn-danger { background: #dc2626; color: white; }
-        .btn-warning { background: #f59e0b; color: white; }
-        .btn-outline { background: transparent; color: #2563eb; border: 2px solid #2563eb; }
-        .btn-group { display: flex; flex-direction: column; gap: 10px; margin: 16px 0; }
-        .btn-row { display: flex; gap: 10px; }
-        .btn-row .btn { flex: 1; }
-        .log-container {
-            background: #0a0e14;
-            color: #a8d4ff;
-            padding: 14px;
-            border-radius: 12px;
-            font-family: monospace;
-            font-size: 12px;
-            height: 200px;
-            overflow-y: auto;
-            white-space: pre-wrap;
-            word-break: break-all;
-            line-height: 1.6;
-            margin-top: 16px;
-            border: 1px solid #1e293b;
-        }
-        .log-container .time { color: #64748b; }
-        .log-container .info { color: #60a5fa; }
-        .log-container .success { color: #4ade80; }
-        .log-container .error { color: #f87171; }
-        .log-container .recv { color: #fbbf24; }
-        .log-container .send { color: #a78bfa; }
-        .hint {
-            background: #fef9c3;
-            border-left: 4px solid #eab308;
-            padding: 12px 14px;
-            border-radius: 8px;
-            font-size: 13px;
-            color: #854d0e;
-            margin: 12px 0;
-        }
-        .input-group {
-            display: flex;
-            align-items: center;
-            gap: 10px;
-            margin: 8px 0;
-        }
-        .input-group label { font-size: 14px; color: #334155; font-weight: 500; min-width: 60px; }
-        .input-group input { flex: 1; padding: 8px 12px; border: 1px solid #d1d9e6; border-radius: 8px; font-size: 14px; width: 80px; }
-        .input-group input:focus { outline: 2px solid #2563eb; border-color: transparent; }
-        .input-group .unit { font-size: 13px; color: #6b7f96; }
     </style>
 </head>
 <body>
-    <div class="app">
-        <h1>🖨️ 蓝牙打印机</h1>
-        <div class="subtitle">MXW01 · ESC/POS 热敏指令</div>
 
-        <div class="status-bar">
-            <span>
-                <span class="status-dot off" id="statusDot"></span>
-                <span id="statusText">未连接</span>
-            </span>
-            <span id="deviceName" style="color:#94a3b8;font-size:13px;">等待配对</span>
+<div class="container">
+    <!-- 左侧：输入表单 -->
+    <div class="form-section">
+        <h3>店铺信息</h3>
+        <div class="form-group">
+            <label>店铺名字 (Store Name)</label>
+            <input type="text" id="shopName" placeholder="例如：ABC Trading" oninput="updateReceipt()">
+        </div>
+        <div class="form-group">
+            <label>地址 (Address)</label>
+            <input type="text" id="shopAddress" placeholder="例如：No.1, Jalan Ampang, KL" oninput="updateReceipt()">
+        </div>
+        <div class="form-group">
+            <label>SSM Number</label>
+            <input type="text" id="shopSsm" placeholder="例如：202401012345 (1234567-A)" oninput="updateReceipt()">
+        </div>
+
+        <hr style="margin: 20px 0; border: none; border-top: 1px solid #eee;">
+
+        <h3>商品明细</h3>
+        <div id="itemsContainer"></div>
+        <button class="btn-add" onclick="addItem()">+ 添加商品</button>
+
+        <div class="form-group">
+            <label>税率 Tax Rate (%) - 可选</label>
+            <input type="number" id="taxRate" value="0" min="0" placeholder="例如：6" oninput="updateReceipt()">
         </div>
 
         <div class="btn-group">
-            <button class="btn btn-primary" id="btnConnect"><span>🔗</span> 连接蓝牙打印机</button>
-            
-            <div class="btn-row">
-                <button class="btn btn-success" id="btnPrintText" disabled><span>📄</span> 打印文字</button>
-                <button class="btn btn-success" id="btnPrintBarcode" disabled><span>📊</span> 条码</button>
-            </div>
-            
-            <div class="btn-row">
-                <button class="btn btn-outline" id="btnFeed" disabled><span>⬇️</span> 走纸</button>
-                <button class="btn btn-danger" id="btnReverse" disabled><span>⬆️</span> 回纸</button>
-                <button class="btn btn-danger" id="btnDisconnect" disabled><span>⛔</span> 断开</button>
-            </div>
-        </div>
-
-        <div class="input-group">
-            <label>走纸量</label>
-            <input type="number" id="feedAmount" value="30" min="1" max="200">
-            <span class="unit">mm</span>
-            <button class="btn btn-outline" id="btnFeedCustom" disabled style="width:auto;padding:8px 16px;flex:0;">执行</button>
-        </div>
-
-        <div class="hint">
-            💡 使用 <strong>ESC/POS</strong> 标准热敏指令<br>
-            支持文字、条码、二维码
-        </div>
-
-        <div class="log-container" id="log">
-            <span class="time">[系统]</span> <span class="info">就绪</span>
+            <button class="btn-png" onclick="downloadPNG()">保存为 PNG 图片</button>
+            <button class="btn-print" onclick="window.print()">打印收据</button>
         </div>
     </div>
 
-    <script>
-        // ============================================================
-        //  MXW01 打印机 - ESC/POS 指令版本
-        //  使用标准热敏指令，兼容性更好
-        // ============================================================
+    <!-- 右侧：收据预览 -->
+    <div class="preview-section">
+        <div class="receipt" id="receipt">
+            <div>
+                <!-- 从上到下 1: 店铺名字、地址、SSM -->
+                <div class="receipt-header">
+                    <h2 id="viewName">店铺名称</h2>
+                    <p id="viewAddress">店铺地址</p>
+                    <p id="viewSsm">SSM: -</p>
+                </div>
 
-        const SERVICE_UUID = 0xAE30;
-        const SERVICE_UUID_STR = '0000ae30-0000-1000-8000-00805f9b34fb';
-        const WRITE_CHAR_UUID = 0xAE01;
+                <!-- 从上到下 2: 生成时间 -->
+                <div class="receipt-time">
+                    时间: <span id="viewTime"></span>
+                </div>
 
-        let device = null, server = null, writeCharacteristic = null;
-        let isConnected = false;
+                <!-- 从上到下 3: 商品（名字、数量、小计） -->
+                <table class="receipt-table">
+                    <thead>
+                        <tr>
+                            <th>商品</th>
+                            <th class="text-center">数量</th>
+                            <th class="text-right">单价</th>
+                            <th class="text-right">小计</th>
+                        </tr>
+                    </thead>
+                    <tbody id="viewItems">
+                        <!-- 商品列表通过 JS 渲染 -->
+                    </tbody>
+                </table>
 
-        // DOM
-        const logEl = document.getElementById('log');
-        const statusDot = document.getElementById('statusDot');
-        const statusText = document.getElementById('statusText');
-        const deviceName = document.getElementById('deviceName');
-        const btnConnect = document.getElementById('btnConnect');
-        const btnPrintText = document.getElementById('btnPrintText');
-        const btnPrintBarcode = document.getElementById('btnPrintBarcode');
-        const btnFeed = document.getElementById('btnFeed');
-        const btnReverse = document.getElementById('btnReverse');
-        const btnDisconnect = document.getElementById('btnDisconnect');
-        const btnFeedCustom = document.getElementById('btnFeedCustom');
-        const feedAmount = document.getElementById('feedAmount');
+                <!-- 从上到下 4: 税、总金额 -->
+                <div class="receipt-summary">
+                    <div class="summary-row">
+                        <span>小计 (Subtotal):</span>
+                        <span id="viewSubtotal">RM 0.00</span>
+                    </div>
+                    <div class="summary-row">
+                        <span>税 (Tax <span id="viewTaxPercent">0</span>%):</span>
+                        <span id="viewTax">RM 0.00</span>
+                    </div>
+                    <div class="summary-row total">
+                        <span>总共金额 (Total):</span>
+                        <span id="viewTotal">RM 0.00</span>
+                    </div>
+                </div>
+            </div>
 
-        function log(msg, type = 'info') {
-            const time = new Date().toLocaleTimeString();
-            const cls = { info: 'info', success: 'success', error: 'error', recv: 'recv', send: 'send' }[type] || 'info';
-            logEl.innerHTML += `<span class="time">[${time}]</span> <span class="${cls}">${msg}</span>\n`;
-            logEl.scrollTop = logEl.scrollHeight;
-        }
+            <!-- 从上到下 5: 签名 Panel -->
+            <div class="receipt-footer">
+                <div class="signature-space"></div>
+                <p>执行人签名 (Authorized Signature)</p>
+            </div>
+        </div>
+    </div>
+</div>
 
-        function sleep(ms) { return new Promise(r => setTimeout(r, ms)); }
+<script>
+    // 初始化数据
+    let items = [
+        { name: '示例商品 A', price: 10.00, qty: 1 }
+    ];
 
-        // ---- CRC8 ----
-        function calcCRC8(data) {
-            let crc = 0x00;
-            for (let i = 0; i < data.length; i++) {
-                crc ^= data[i];
-                for (let j = 0; j < 8; j++) {
-                    if (crc & 0x80) {
-                        crc = ((crc << 1) ^ 0x07) & 0xFF;
-                    } else {
-                        crc = (crc << 1) & 0xFF;
-                    }
-                }
-            }
-            return crc;
-        }
+    // 页面加载完成后运行
+    window.onload = function() {
+        // 读取 LocalStorage (记忆第一次填写的店铺信息)
+        if(localStorage.getItem('shopName')) document.getElementById('shopName').value = localStorage.getItem('shopName');
+        if(localStorage.getItem('shopAddress')) document.getElementById('shopAddress').value = localStorage.getItem('shopAddress');
+        if(localStorage.getItem('shopSsm')) document.getElementById('shopSsm').value = localStorage.getItem('shopSsm');
 
-        // ---- 构造 V5C 数据包 ----
-        function makeV5CPacket(opcode, payload = new Uint8Array(0)) {
-            const prefix = [0x22, 0x21];
-            const payloadLen = payload.length;
-            const packet = new Uint8Array(2 + 1 + 1 + 2 + payloadLen + 1);
-            packet[0] = prefix[0];
-            packet[1] = prefix[1];
-            packet[2] = opcode;
-            packet[3] = 0x00;
-            packet[4] = payloadLen & 0xFF;
-            packet[5] = (payloadLen >> 8) & 0xFF;
-            packet.set(payload, 6);
-            const bytesToCrc = packet.subarray(2, 6 + payloadLen);
-            packet[6 + payloadLen] = calcCRC8(bytesToCrc);
-            return packet;
-        }
+        // 设置生成时间
+        const now = new Date();
+        document.getElementById('viewTime').innerText = now.toLocaleString('zh-CN', { hour12: false });
 
-        // ---- 发送数据 ----
-        async function sendRaw(data) {
-            if (!writeCharacteristic) throw new Error('写入特征不可用');
-            await writeCharacteristic.writeValue(data);
-            const hexStr = Array.from(data.slice(0, 20)).map(b => '0x' + b.toString(16).padStart(2, '0')).join(' ');
-            log(`📤 发送: ${hexStr}${data.length > 20 ? '...' : ''}`, 'send');
-        }
+        renderItemInputs();
+        updateReceipt();
+    };
 
-        // ---- 发送 V5C 指令 ----
-        async function sendV5C(opcode, payload = new Uint8Array(0)) {
-            const packet = makeV5CPacket(opcode, payload);
-            await sendRaw(packet);
-            return packet;
-        }
+    // 动态渲染商品输入框
+    function renderItemInputs() {
+        const container = document.getElementById('itemsContainer');
+        container.innerHTML = '';
+        items.forEach((item, index) => {
+            const row = document.createElement('div');
+            row.className = 'item-row';
+            row.innerHTML = `
+                <input type="text" placeholder="商品名字" value="${item.name}" oninput="updateItem(${index}, 'name', this.value)">
+                <input type="number" placeholder="单价" value="${item.price}" step="0.01" oninput="updateItem(${index}, 'price', this.value)">
+                <input type="number" placeholder="数量" value="${item.qty}" min="1" oninput="updateItem(${index}, 'qty', this.value)">
+                ${items.length > 1 ? `<button class="btn-remove" onclick="removeItem(${index})">✕</button>` : ''}
+            `;
+            container.appendChild(row);
+        });
+    }
 
-        // ---- 发送 ESC/POS 数据 (使用 0x40 自定义指令) ----
-        async function sendESCPOS(escposData) {
-            // 某些 MXW01 使用 0x40 作为透传指令
-            // 如果 0x40 不行，尝试 0xA1 或 0x50
-            try {
-                await sendV5C(0x40, escposData);
-                log('📨 ESC/POS 数据已发送', 'send');
-            } catch (e) {
-                // 如果 0x40 不行，尝试直接用 0xA1
-                log('⚠️ 0x40 失败，尝试 0xA1...', 'error');
-                await sendV5C(0xA1, escposData);
-            }
-        }
+    function addItem() {
+        items.push({ name: '', price: 0, qty: 1 });
+        renderItemInputs();
+        updateReceipt();
+    }
 
-        // ---- 更新 UI ----
-        function setConnected(connected, devName = '') {
-            isConnected = connected;
-            if (connected) {
-                statusDot.className = 'status-dot on';
-                statusText.textContent = '已连接';
-                deviceName.textContent = devName || 'MXW01';
-                btnConnect.disabled = true;
-                btnPrintText.disabled = false;
-                btnPrintBarcode.disabled = false;
-                btnFeed.disabled = false;
-                btnReverse.disabled = false;
-                btnDisconnect.disabled = false;
-                btnFeedCustom.disabled = false;
-            } else {
-                statusDot.className = 'status-dot off';
-                statusText.textContent = '未连接';
-                deviceName.textContent = '等待配对';
-                btnConnect.disabled = false;
-                btnPrintText.disabled = true;
-                btnPrintBarcode.disabled = true;
-                btnFeed.disabled = true;
-                btnReverse.disabled = true;
-                btnDisconnect.disabled = true;
-                btnFeedCustom.disabled = true;
-            }
-        }
+    function removeItem(index) {
+        items.splice(index, 1);
+        renderItemInputs();
+        updateReceipt();
+    }
 
-        // ---- 1. 连接 ----
-        async function connectPrinter() {
-            if (!navigator.bluetooth) {
-                log('❌ 此浏览器不支持 Web Bluetooth', 'error');
-                return;
-            }
+    function updateItem(index, key, value) {
+        items[index][key] = key === 'name' ? value : parseFloat(value) || 0;
+        updateReceipt();
+    }
 
-            try {
-                log('🔍 搜索蓝牙设备...', 'info');
-                device = await navigator.bluetooth.requestDevice({
-                    acceptAllDevices: true,
-                    optionalServices: [SERVICE_UUID, SERVICE_UUID_STR]
-                });
+    // 实时更新右侧收据
+    function updateReceipt() {
+        const name = document.getElementById('shopName').value || '店铺名称';
+        const address = document.getElementById('shopAddress').value || '店铺地址';
+        const ssm = document.getElementById('shopSsm').value || '-';
+        const taxRate = parseFloat(document.getElementById('taxRate').value) || 0;
 
-                log(`📡 已选择: ${device.name || '未命名设备'}`, 'info');
+        localStorage.setItem('shopName', document.getElementById('shopName').value);
+        localStorage.setItem('shopAddress', document.getElementById('shopAddress').value);
+        localStorage.setItem('shopSsm', document.getElementById('shopSsm').value);
 
-                server = await device.gatt.connect();
-                log('🔗 GATT 连接成功', 'success');
+        document.getElementById('viewName').innerText = name;
+        document.getElementById('viewAddress').innerText = address;
+        document.getElementById('viewSsm').innerText = 'SSM: ' + ssm;
 
-                let service;
-                try {
-                    service = await server.getPrimaryService(SERVICE_UUID);
-                } catch {
-                    service = await server.getPrimaryService(SERVICE_UUID_STR);
-                }
-                log('📦 主服务已获取', 'success');
+        let subtotal = 0;
+        const viewItems = document.getElementById('viewItems');
+        viewItems.innerHTML = '';
 
-                writeCharacteristic = await service.getCharacteristic(WRITE_CHAR_UUID);
-                log('✍️ 写入特征已获取', 'success');
+        items.forEach(item => {
+            const itemSubtotal = item.price * item.qty;
+            subtotal += itemSubtotal;
 
-                // 开启通知
-                try {
-                    const notifyChar = await service.getCharacteristic(0xAE02);
-                    await notifyChar.startNotifications();
-                    notifyChar.addEventListener('characteristicvaluechanged', (e) => {
-                        const val = new Uint8Array(e.target.value.buffer);
-                        const hex = Array.from(val).map(b => '0x' + b.toString(16).padStart(2, '0')).join(' ');
-                        log(`📨 收到: ${hex}`, 'recv');
-                    });
-                    log('📢 通知已开启', 'success');
-                } catch (e) {
-                    log('ℹ️ 通知特征不可用', 'info');
-                }
+            const tr = document.createElement('tr');
+            tr.innerHTML = `
+                <td>${item.name || '未命名商品'}</td>
+                <td class="text-center">${item.qty}</td>
+                <td class="text-right">${item.price.toFixed(2)}</td>
+                <td class="text-right">${itemSubtotal.toFixed(2)}</td>
+            `;
+            viewItems.appendChild(tr);
+        });
 
-                setConnected(true, device.name || 'MXW01');
+        const taxAmount = subtotal * (taxRate / 100);
+        const total = subtotal + taxAmount;
 
-                // 初始化
-                await sendV5C(0x00, new Uint8Array([0x01]));
-                await sleep(100);
-                log('🤝 初始化完成', 'success');
+        document.getElementById('viewSubtotal').innerText = 'RM ' + subtotal.toFixed(2);
+        document.getElementById('viewTaxPercent').innerText = taxRate;
+        document.getElementById('viewTax').innerText = 'RM ' + taxAmount.toFixed(2);
+        document.getElementById('viewTotal').innerText = 'RM ' + total.toFixed(2);
+    }
 
-            } catch (err) {
-                log(`❌ 连接失败: ${err.message}`, 'error');
-                setConnected(false);
-            }
-        }
+    // 导出收据区域为 PNG 图片
+    function downloadPNG() {
+        const receiptElement = document.getElementById('receipt');
+        
+        // 使用 html2canvas 截取收据区域，scale: 2 提升打印清析度（防止像素模糊）
+        html2canvas(receiptElement, { scale: 2, backgroundColor: "#ffffff" }).then(canvas => {
+            const link = document.createElement('a');
+            const timeStamp = new Date().getTime();
+            link.download = `receipt_${timeStamp}.png`;
+            link.href = canvas.toDataURL('image/png');
+            link.click();
+        });
+    }
+</script>
 
-        // ---- 2. 打印文字 (ESC/POS) ----
-        async function printText() {
-            if (!isConnected) {
-                log('❌ 打印机未连接', 'error');
-                return;
-            }
-
-            try {
-                log('🖨️ 使用 ESC/POS 打印文字...', 'info');
-
-                // ESC/POS 指令
-                const escposData = new Uint8Array([
-                    // 初始化
-                    0x1B, 0x40,
-                    
-                    // 设置字符大小: 2x2
-                    0x1D, 0x21, 0x22,
-                    
-                    // 居中对齐
-                    0x1B, 0x61, 0x01,
-                    
-                    // 打印文字
-                    0x48, 0x65, 0x6C, 0x6C, 0x6F,  // "Hello"
-                    0x20,
-                    0x57, 0x6F, 0x72, 0x6C, 0x64,  // "World"
-                    0x0A,
-                    
-                    // 换行
-                    0x0A,
-                    
-                    // 正常大小
-                    0x1D, 0x21, 0x00,
-                    
-                    // 打印第二行
-                    0x46, 0x75, 0x6E, 0x20, 0x50, 0x72, 0x69, 0x6E, 0x74, 0x0A,
-                    
-                    // 第三行
-                    0x42, 0x6C, 0x75, 0x65, 0x74, 0x6F, 0x6F, 0x74, 0x68, 0x0A,
-                    
-                    // 分隔线
-                    0x2D, 0x2D, 0x2D, 0x2D, 0x2D, 0x2D, 0x2D, 0x2D, 0x2D, 0x2D, 0x2D, 0x2D, 0x0A,
-                    
-                    // 中文 (UTF-8 编码)
-                    0xE6, 0x89, 0x93, 0xE5, 0x8D, 0xB0, 0xE6, 0x88, 0x90, 0xE5, 0x8A, 0x9F, 0x0A,
-                    0xE6, 0x84, 0x9F, 0xE8, 0xB0, 0xA2, 0xE4, 0xBD, 0xBF, 0xE7, 0x94, 0xA8, 0x0A,
-                    
-                    // 换行
-                    0x0A, 0x0A
-                ]);
-
-                // 发送 ESC/POS 数据
-                await sendESCPOS(escposData);
-                await sleep(100);
-
-                // 走纸 10mm
-                await feedPaper(10);
-                
-                log('✅ 文字打印完成！', 'success');
-
-            } catch (err) {
-                log(`❌ 打印失败: ${err.message}`, 'error');
-                if (err.message.includes('disconnected')) {
-                    setConnected(false);
-                }
-            }
-        }
-
-        // ---- 3. 打印条码 ----
-        async function printBarcode() {
-            if (!isConnected) {
-                log('❌ 打印机未连接', 'error');
-                return;
-            }
-
-            try {
-                log('📊 打印条码...', 'info');
-
-                // ESC/POS 条码指令
-                const escposData = new Uint8Array([
-                    // 初始化
-                    0x1B, 0x40,
-                    
-                    // 居中对齐
-                    0x1B, 0x61, 0x01,
-                    
-                    // 打印条码标题
-                    0x50, 0x72, 0x6F, 0x64, 0x75, 0x63, 0x74, 0x20, 0x49, 0x44, 0x0A,
-                    0x0A,
-                    
-                    // 选择条码类型: CODE128
-                    0x1D, 0x6B, 0x49,
-                    
-                    // 条码数据长度 (12字节)
-                    0x0C,
-                    
-                    // 条码数据: "123456789012"
-                    0x31, 0x32, 0x33, 0x34, 0x35, 0x36, 0x37, 0x38, 0x39, 0x30, 0x31, 0x32,
-                    
-                    // 打印条码
-                    0x0A,
-                    
-                    // 换行
-                    0x0A, 0x0A
-                ]);
-
-                await sendESCPOS(escposData);
-                await sleep(100);
-
-                await feedPaper(15);
-                log('✅ 条码打印完成！', 'success');
-
-            } catch (err) {
-                log(`❌ 打印失败: ${err.message}`, 'error');
-                if (err.message.includes('disconnected')) {
-                    setConnected(false);
-                }
-            }
-        }
-
-        // ---- 4. 走纸 ----
-        async function feedPaper(mm = 30) {
-            if (!isConnected) {
-                log('❌ 打印机未连接', 'error');
-                return;
-            }
-
-            try {
-                const dots = Math.min(Math.round(mm), 200);
-                if (dots < 1) {
-                    log('⚠️ 走纸量太小', 'error');
-                    return;
-                }
-                
-                const feedPayload = new Uint8Array([dots & 0xFF, (dots >> 8) & 0xFF]);
-                await sendV5C(0xA3, feedPayload);
-                log(`⬇️ 走纸 ${dots}mm`, 'send');
-                await sleep(100);
-            } catch (err) {
-                log(`❌ 走纸失败: ${err.message}`, 'error');
-            }
-        }
-
-        // ---- 5. 回纸 ----
-        async function reversePaper(mm = 20) {
-            if (!isConnected) {
-                log('❌ 打印机未连接', 'error');
-                return;
-            }
-
-            try {
-                const dots = Math.min(Math.round(mm), 100);
-                if (dots < 1) {
-                    log('⚠️ 回纸量太小', 'error');
-                    return;
-                }
-                
-                const reversePayload = new Uint8Array([dots & 0xFF, (dots >> 8) & 0xFF]);
-                await sendV5C(0xA4, reversePayload);
-                log(`⬆️ 回纸 ${dots}mm`, 'send');
-                await sleep(100);
-            } catch (err) {
-                log(`❌ 回纸失败: ${err.message}`, 'error');
-            }
-        }
-
-        // ---- 6. 断开 ----
-        async function disconnectPrinter() {
-            try {
-                if (device && device.gatt) {
-                    await device.gatt.disconnect();
-                }
-                setConnected(false);
-                log('🔌 已断开连接', 'info');
-            } catch (err) {
-                log(`⚠️ 断开出错: ${err.message}`, 'error');
-                setConnected(false);
-            }
-        }
-
-        // ---- 绑定事件 ----
-        btnConnect.addEventListener('click', connectPrinter);
-        btnPrintText.addEventListener('click', printText);
-        btnPrintBarcode.addEventListener('click', printBarcode);
-        btnFeed.addEventListener('click', () => feedPaper(parseInt(feedAmount.value) || 30));
-        btnReverse.addEventListener('click', () => reversePaper(parseInt(feedAmount.value) || 20));
-        btnFeedCustom.addEventListener('click', () => feedPaper(parseInt(feedAmount.value) || 30));
-        btnDisconnect.addEventListener('click', disconnectPrinter);
-
-        // ---- 初始化 ----
-        setConnected(false);
-
-        if (!navigator.bluetooth) {
-            log('❌ 当前浏览器不支持 Web Bluetooth', 'error');
-            btnConnect.disabled = true;
-        } else {
-            log('✅ Web Bluetooth 可用', 'success');
-        }
-
-        log('💡 点击「连接蓝牙打印机」开始配对', 'info');
-        log('📌 使用 ESC/POS 标准指令，兼容性更好', 'info');
-    </script>
 </body>
 </html>
