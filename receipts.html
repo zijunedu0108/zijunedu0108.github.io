@@ -103,6 +103,10 @@
             <label>收据号码 (Receipt No.)</label>
             <input type="text" id="receiptNo" placeholder="例如：INV-1001" oninput="updateReceipt()">
         </div>
+        <div class="form-group">
+            <label>收据日期 (Date & Time)</label>
+            <input type="datetime-local" id="receiptDate" oninput="updateReceipt()">
+        </div>
 
         <hr style="margin: 20px 0; border: none; border-top: 1px solid #eee;">
 
@@ -139,7 +143,7 @@
                         <span id="viewReceiptNo" style="font-weight: 600;">-</span>
                     </div>
                     <div>
-                        <span>生成时间:</span>
+                        <span>时间:</span>
                         <span id="viewTime"></span>
                     </div>
                 </div>
@@ -167,7 +171,7 @@
                     </div>
                     <div class="summary-row">
                         <span>税 (Tax <span id="viewTaxPercent">0</span>%):</span>
-                        <span id="viewTax">RM 0.00</span>
+                        <span id="viewTax" >RM 0.00</span>
                     </div>
                     <div class="summary-row total">
                         <span>总共金额 (Total):</span>
@@ -202,9 +206,16 @@
         const defaultReceiptNo = 'INV-' + new Date().toISOString().slice(0,10).replace(/-/g, '') + '01';
         document.getElementById('receiptNo').value = defaultReceiptNo;
 
-        // 设置生成时间
+        // 设置默认日期控件的值为“当前本地时间”
         const now = new Date();
-        document.getElementById('viewTime').innerText = now.toLocaleString('zh-CN', { hour12: false });
+        const year = now.getFullYear();
+        const month = String(now.getMonth() + 1).padStart(2, '0');
+        const day = String(now.getDate()).padStart(2, '0');
+        const hours = String(now.getHours()).padStart(2, '0');
+        const minutes = String(now.getMinutes()).padStart(2, '0');
+        
+        // datetime-local 要求的格式为 "YYYY-MM-DDTHH:mm"
+        document.getElementById('receiptDate').value = `${year}-${month}-${day}T${hours}:${minutes}`;
 
         renderItemInputs();
         updateReceipt();
@@ -262,6 +273,20 @@
         const receiptNo = document.getElementById('receiptNo').value || '-';
         const taxRate = parseFloat(document.getElementById('taxRate').value) || 0;
 
+        // 获取并格式化用户选择的日期
+        const dateInput = document.getElementById('receiptDate').value;
+        let formattedDate = '-';
+        if (dateInput) {
+            const dateObj = new Date(dateInput);
+            // 格式化为 "YYYY/MM/DD HH:mm:ss" 或 "YYYY-MM-DD HH:mm"
+            const year = dateObj.getFullYear();
+            const month = String(dateObj.getMonth() + 1).padStart(2, '0');
+            const day = String(dateObj.getDate()).padStart(2, '0');
+            const hours = String(dateObj.getHours()).padStart(2, '0');
+            const minutes = String(dateObj.getMinutes()).padStart(2, '0');
+            formattedDate = `${year}-${month}-${day} ${hours}:${minutes}`;
+        }
+
         localStorage.setItem('shopName', document.getElementById('shopName').value);
         localStorage.setItem('shopAddress', document.getElementById('shopAddress').value);
         localStorage.setItem('shopSsm', document.getElementById('shopSsm').value);
@@ -270,6 +295,7 @@
         document.getElementById('viewAddress').innerText = address;
         document.getElementById('viewSsm').innerText = 'SSM: ' + ssm;
         document.getElementById('viewReceiptNo').innerText = receiptNo;
+        document.getElementById('viewTime').innerText = formattedDate;
 
         let subtotal = 0;
         const viewItems = document.getElementById('viewItems');
