@@ -1,1 +1,124 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>STPM Biology SEM3 Definitions Viewer</title>
 
+  <!-- 引入 mammoth.js 用于解析 .docx 文件 -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/mammoth/1.6.0/mammoth.browser.min.js"></script>
+
+  <style>
+    :root {
+      --bg-color: #f8fafc;
+      --card-bg: #ffffff;
+      --primary-color: #2563eb;
+      --text-color: #1e293b;
+      --border-color: #e2e8f0;
+    }
+
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+      background-color: var(--bg-color);
+      color: var(--text-color);
+      margin: 0;
+      padding: 20px;
+      display: flex;
+      justify-content: center;
+    }
+
+    .container {
+      max-width: 850px;
+      width: 100%;
+      background: var(--card-bg);
+      padding: 40px;
+      border-radius: 12px;
+      box-shadow: 0 4px 20px rgba(0, 0, 0, 0.05);
+      border: 1px solid var(--border-color);
+    }
+
+    h1 {
+      font-size: 1.5rem;
+      margin-bottom: 20px;
+      color: #0f172a;
+      border-bottom: 2px solid var(--primary-color);
+      padding-bottom: 8px;
+    }
+
+    #loading {
+      color: #64748b;
+      font-style: italic;
+      margin-bottom: 15px;
+    }
+
+    /* 渲染出来的 Word 文档样式排版 */
+    #document-content {
+      line-height: 1.7;
+      word-break: break-word;
+    }
+
+    #document-content p {
+      margin-bottom: 1em;
+    }
+
+    #document-content table {
+      width: 100%;
+      border-collapse: collapse;
+      margin: 1.5em 0;
+    }
+
+    #document-content th, 
+    #document-content td {
+      border: 1px solid var(--border-color);
+      padding: 10px 12px;
+      text-align: left;
+    }
+
+    #document-content th {
+      background-color: #f1f5f9;
+    }
+  </style>
+</head>
+<body>
+
+  <div class="container">
+    <h1>📚 Biology SEM3 STPM Definitions</h1>
+    <div id="loading">正在加载并解析文档...</div>
+    <div id="document-content"></div>
+  </div>
+
+  <script>
+    // 你的文件相对路径（如果在 GitHub 仓库内同源加载）
+    // 注意：如果文件名带有空格，需要用 encodeURI 转换或直接写路径
+    const docPath = './biology/sem3/Biology SEM3 STPM Definations.docx';
+
+    // 1. 获取 Word 文件 ArrayBuffer
+    fetch(docPath)
+      .then(response => {
+        if (!response.ok) {
+          throw new Error('未找到文件，请检查文件路径是否正确。');
+        }
+        return response.arrayBuffer();
+      })
+      .then(arrayBuffer => {
+        // 2. 使用 Mammoth.js 解析 docx 并转换为 HTML
+        return mammoth.convertToHtml({ arrayBuffer: arrayBuffer });
+      })
+      .then(result => {
+        // 3. 将解析后的 HTML 放入页面中
+        document.getElementById('document-content').innerHTML = result.value;
+        document.getElementById('loading').style.display = 'none';
+
+        // 如果解析过程有警告信息，可以在控制台打印
+        if (result.messages.length > 0) {
+          console.warn("Mammoth parse warnings:", result.messages);
+        }
+      })
+      .catch(error => {
+        console.error('Error loading document:', error);
+        document.getElementById('loading').innerHTML = `<span style="color: #ef4444;">加载失败: ${error.message}</span>`;
+      });
+  </script>
+
+</body>
+</html>
