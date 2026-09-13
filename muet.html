@@ -3,53 +3,327 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-  <title>MUET Prep Companion</title>
+  <title>MUET Prep Station</title>
   <style>
-    * { box-sizing: border-box; margin: 0; padding: 0; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; }
-    body { background-color: #f5f5f7; color: #1d1d1f; padding-bottom: 70px; }
-    
-    /* 标头 */
-    header { background: rgba(255, 255, 255, 0.8); backdrop-filter: blur(10px); position: sticky; top: 0; padding: 16px; text-align: center; border-bottom: 1px solid #e5e5ea; z-index: 100; }
-    
-    /* 内容区域 */
-    .container { padding: 16px; }
-    .card { background: #ffffff; border-radius: 16px; padding: 16px; margin-bottom: 16px; box-shadow: 0 4px 12px rgba(0,0,0,0.05); }
-    .card h3 { color: #007aff; margin-bottom: 8px; font-size: 18px; }
-    
-    /* 底部固定导航栏 */
-    .bottom-nav { position: fixed; bottom: 0; width: 100%; height: 60px; background: rgba(255,255,255,0.9); backdrop-filter: blur(10px); border-top: 1px solid #e5e5ea; display: flex; justify-content: space-around; align-items: center; }
-    .nav-item { border: none; background: none; font-size: 12px; color: #8e8e93; display: flex; flex-direction: column; align-items: center; cursor: pointer; }
-    .nav-item.active { color: #007aff; font-weight: bold; }
+    :root {
+      --primary: #007aff;
+      --bg: #f2f2f7;
+      --card-bg: rgba(255, 255, 255, 0.85);
+      --text: #1c1c1e;
+      --secondary-text: #8e8e93;
+      --border: rgba(60, 60, 67, 0.12);
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; -webkit-tap-highlight-color: transparent; }
+    body { background-color: var(--bg); color: var(--text); padding-bottom: 75px; min-height: 100vh; }
+
+    /* Sticky Header */
+    header {
+      background: rgba(255, 255, 255, 0.8);
+      backdrop-filter: blur(20px);
+      -webkit-backdrop-filter: blur(20px);
+      position: sticky; top: 0; left: 0; right: 0;
+      padding: 14px 20px; text-align: center;
+      border-bottom: 1px solid var(--border);
+      z-index: 100;
+      font-size: 17px; font-weight: 600;
+    }
+
+    /* Page Views */
+    .view { display: none; padding: 16px; animation: fadeIn 0.2s ease-in-out; }
+    .view.active { display: block; }
+    @keyframes fadeIn { from { opacity: 0; transform: translateY(4px); } to { opacity: 1; transform: translateY(0); } }
+
+    /* Card Component */
+    .card {
+      background: var(--card-bg);
+      backdrop-filter: blur(10px);
+      border-radius: 16px; padding: 16px; margin-bottom: 16px;
+      box-shadow: 0 4px 16px rgba(0, 0, 0, 0.04);
+      border: 1px solid var(--border);
+    }
+    .card h3 { font-size: 16px; color: var(--primary); margin-bottom: 10px; display: flex; align-items: center; gap: 6px; }
+
+    /* Search Input */
+    .search-box, select, textarea, input[type="text"], input[type="password"] {
+      width: 100%; padding: 12px 14px; border-radius: 10px;
+      border: 1px solid var(--border); background: #ffffff;
+      font-size: 15px; margin-bottom: 12px; outline: none;
+    }
+    textarea { height: 160px; resize: vertical; line-height: 1.5; font-size: 14px; }
+
+    /* Buttons */
+    .btn {
+      width: 100%; padding: 12px; border-radius: 10px; border: none;
+      background: var(--primary); color: #fff; font-size: 15px; font-weight: 600;
+      cursor: pointer; transition: opacity 0.2s; text-align: center;
+    }
+    .btn:active { opacity: 0.8; }
+    .btn-secondary { background: #e5e5ea; color: #000; margin-top: 8px; }
+
+    /* Flashcard UI */
+    .flashcard {
+      height: 140px; border-radius: 14px; background: #ffffff;
+      display: flex; flex-direction: column; align-items: center; justify-content: center;
+      text-align: center; padding: 20px; cursor: pointer; border: 1px dashed var(--primary);
+    }
+    .flashcard .word { font-size: 22px; font-weight: bold; color: var(--primary); }
+    .flashcard .def { font-size: 14px; color: var(--secondary-text); margin-top: 8px; display: none; }
+    .flashcard.flipped .def { display: block; }
+
+    /* Timer Display */
+    .timer-display { font-size: 42px; font-weight: 700; text-align: center; margin: 15px 0; color: var(--primary); font-mono: monospace; }
+
+    /* Bottom Nav Bar */
+    .bottom-nav {
+      position: fixed; bottom: 0; left: 0; right: 0; height: 62px;
+      background: rgba(255, 255, 255, 0.85);
+      backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px);
+      border-top: 1px solid var(--border);
+      display: flex; justify-content: space-around; align-items: center;
+      z-index: 1000;
+    }
+    .nav-item {
+      border: none; background: none; color: var(--secondary-text);
+      font-size: 10px; display: flex; flex-direction: column; align-items: center; gap: 3px; cursor: pointer; flex: 1;
+    }
+    .nav-item svg { width: 22px; height: 22px; fill: currentColor; }
+    .nav-item.active { color: var(--primary); font-weight: 600; }
+
+    /* AI Output Box */
+    .ai-result { background: #f8f9fa; border-left: 4px solid var(--primary); padding: 12px; border-radius: 6px; font-size: 13px; white-space: pre-wrap; margin-top: 12px; line-height: 1.6; }
   </style>
 </head>
 <body>
 
-  <header>
-    <h2>MUET Hub</h2>
-  </header>
+  <header id="header-title">MUET Prep Station</header>
 
-  <div class="container">
-    <!-- 示例卡片：作文万能句型 -->
+  <!-- 1. 离线本地词典模块 -->
+  <div id="view-vocab" class="view active">
     <div class="card">
-      <h3>✍️ Writing Task 1: Trend Verbs</h3>
-      <p><strong>Increase sharply:</strong> Surge, Rocket, Soar</p>
-      <p><strong>Decrease steadily:</strong> Decline, Plunge, Drop</p>
+      <h3>📖 MUET Core Vocabulary (Offline)</h3>
+      <input type="text" id="vocab-search" class="search-box" placeholder="搜索 MUET 高频词汇或中文..." oninput="filterVocab()">
+      
+      <div id="card-container" class="flashcard" onclick="toggleCard(this)">
+        <div class="word" id="fc-word">Click to start</div>
+        <div class="def" id="fc-def">点击翻面查看详细释义及例句</div>
+      </div>
+      <button class="btn btn-secondary" onclick="nextCard()">下一词 (Next Word)</button>
     </div>
 
-    <!-- 示例卡片：口语计时器概念 -->
     <div class="card">
-      <h3>🗣️ Speaking Part 1 Timer</h3>
-      <p>Preparation: 2 Mins | Presentation: 2 Mins</p>
+      <h3>📚 词汇列表 (Total: <span id="vocab-count">0</span>)</h3>
+      <div id="vocab-list" style="max-height: 250px; overflow-y: auto;"></div>
     </div>
   </div>
 
-  <!-- 底部导航栏 -->
+  <!-- 2. AI 写作与实时批改模块 -->
+  <div id="view-writing" class="view">
+    <div class="card">
+      <h3>⚙️ AI Settings</h3>
+      <input type="password" id="api-key" class="search-box" placeholder="输入 API Key (如 OpenAI / Compatible)" onchange="saveApiKey()">
+      <input type="text" id="api-url" class="search-box" placeholder="API EndPoint URL" value="https://api.openai.com/v1/chat/completions">
+    </div>
+
+    <div class="card">
+      <h3>✍️ MUET Essay Assessor</h3>
+      <select id="essay-type">
+        <option value="Task 1: Guided Writing (Report/Letter)">Task 1: Guided Writing (Report/Email/Letter)</option>
+        <option value="Task 2: Extended Writing (Essay)">Task 2: Extended Writing (Discursive/Argumentative)</option>
+      </select>
+      <textarea id="essay-input" placeholder="在此粘贴或输入你的 MUET 作文..."></textarea>
+      <button class="btn" onclick="analyzeEssay()">🤖 开始 AI 实时批改与 Band 评估</button>
+      <div id="ai-output" class="ai-result" style="display:none;"></div>
+    </div>
+  </div>
+
+  <!-- 3. 口语倒计时实战模块 -->
+  <div id="view-speaking" class="view">
+    <div class="card">
+      <h3>🗣️ Part 1: Individual Presentation</h3>
+      <p style="font-size: 13px; color: var(--secondary-text);">准备时间: 2 分钟 | 演讲时间: 2 分钟</p>
+      <div class="timer-display" id="timer-p1">02:00</div>
+      <button class="btn" onclick="startTimer('p1', 120)">开始准备 (2 Mins)</button>
+      <button class="btn btn-secondary" onclick="startTimer('p1', 120)">开始演讲 (2 Mins)</button>
+    </div>
+
+    <div class="card">
+      <h3>👥 Part 2: Group Discussion</h3>
+      <p style="font-size: 13px; color: var(--secondary-text);">准备时间: 3 分钟 | 讨论时间: 8-12 分钟</p>
+      <div class="timer-display" id="timer-p2">03:00</div>
+      <button class="btn" onclick="startTimer('p2', 180)">开始准备 (3 Mins)</button>
+      <button class="btn btn-secondary" onclick="startTimer('p2', 720)">开始讨论 (12 Mins)</button>
+    </div>
+  </div>
+
+  <!-- 底部固定导航栏 -->
   <nav class="bottom-nav">
-    <button class="nav-item active">🏠 首页</button>
-    <button class="nav-item">📚 词汇</button>
-    <button class="nav-item">✍️ 写作</button>
-    <button class="nav-item">🗣️ 口语</button>
+    <button class="nav-item active" onclick="switchTab('vocab', 'MUET Core Vocab', this)">
+      <svg viewBox="0 0 24 24"><path d="M12 2l-10 4.5v11l10 4.5 10-4.5v-11l-10-4.5zm0 2.3l7.8 3.5-7.8 3.5-7.8-3.5 7.8-3.5zm-8 6l7 3.1v7.6l-7-3.1v-7.6zm16 7.6l-7 3.1v-7.6l7-3.1v7.6z"/></svg>
+      核心词汇
+    </button>
+    <button class="nav-item" onclick="switchTab('writing', 'AI Essay Checker', this)">
+      <svg viewBox="0 0 24 24"><path d="M3 17.25v3.75h3.75l11.06-11.06-3.75-3.75l-11.06 11.06zm17.71-10.21c.39-.39.39-1.02 0-1.41l-2.34-2.34c-.39-.39-1.02-.39-1.41 0l-1.83 1.83 3.75 3.75 1.83-1.83z"/></svg>
+      作文批改
+    </button>
+    <button class="nav-item" onclick="switchTab('speaking', 'Speaking Timer', this)">
+      <svg viewBox="0 0 24 24"><path d="M12 2c-4.97 0-9 4.03-9 9 0 2.12.74 4.07 1.97 5.61l-1.43 4.33 4.49-1.35c1.1.48 2.33.74 3.6.74 4.97 0 9-4.03 9-9s-4.03-9-9-9zm0 16c-1.16 0-2.27-.29-3.26-.81l-.23-.13-2.4 0.72 0.77-2.33-.16-.25c-.65-1.02-1.01-2.21-1.01-3.46 0-3.69 3.01-6.7 6.7-6.7s6.7 3.01 6.7 6.7-3.01 6.7-6.7 6.7z"/></svg>
+      口语计时
+    </button>
   </nav>
 
+  <script>
+    /* ==========================================
+       1. 离线词典本地数据库 (内置高频 MUET 词汇)
+       ========================================== */
+    const muetVocab = [
+      { word: "Substantial", type: "adj.", def: "大量的；实质的", eg: "There is a substantial increase in public awareness." },
+      { word: "Plummet", type: "v.", def: "急剧下降 (Task 1 常用)", eg: "Prices plummeted after the economic crisis." },
+      { word: "Surge", type: "v./n.", def: "剧增；飞涨 (Task 1 常用)", eg: "The demand for online learning surged dramatically." },
+      { word: "Alleviation", type: "n.", def: "缓解；减轻", eg: "Poverty alleviation is a crucial goal for the government." },
+      { word: "Detrimental", type: "adj.", def: "有害的；不利的", eg: "Smoking has a detrimental effect on human health." },
+      { word: "Imperative", type: "adj.", def: "紧迫的；极重要的", eg: "It is imperative to implement stricter environmental laws." },
+      { word: "Plausible", type: "adj.", def: "貌似合理的；可信的", eg: "His proposal provides a plausible solution to the problem." },
+      { word: "Ubiquitous", type: "adj.", def: "无处不在的", eg: "Smartphones have become ubiquitous in modern life." }
+    ];
+
+    let currentCardIdx = 0;
+
+    function renderVocabList(list = muetVocab) {
+      const container = document.getElementById('vocab-list');
+      document.getElementById('vocab-count').innerText = list.length;
+      container.innerHTML = list.map(item => `
+        <div style="padding: 8px 0; border-bottom: 1px solid var(--border);">
+          <strong>${item.word}</strong> <small style="color:var(--primary)">${item.type}</small>
+          <div style="font-size: 13px; color: var(--secondary-text);">${item.def}</div>
+        </div>
+      `).join('');
+    }
+
+    function showCard(index) {
+      if(muetVocab.length === 0) return;
+      const card = document.getElementById('card-container');
+      card.classList.remove('flipped');
+      const data = muetVocab[index];
+      document.getElementById('fc-word').innerText = `${data.word} (${data.type})`;
+      document.getElementById('fc-def').innerHTML = `${data.def}<br><br><small><em>"${data.eg}"</em></small>`;
+    }
+
+    function toggleCard(el) { el.classList.toggle('flipped'); }
+    function nextCard() {
+      currentCardIdx = (currentCardIdx + 1) % muetVocab.length;
+      showCard(currentCardIdx);
+    }
+
+    function filterVocab() {
+      const q = document.getElementById('vocab-search').value.toLowerCase();
+      const filtered = muetVocab.filter(i => i.word.toLowerCase().includes(q) || i.def.includes(q));
+      renderVocabList(filtered);
+    }
+
+    /* ==========================================
+       2. AI 实时批改与 Grammar / Band 评估
+       ========================================== */
+    function saveApiKey() {
+      localStorage.setItem('muet_api_key', document.getElementById('api-key').value);
+    }
+
+    async function analyzeEssay() {
+      const apiKey = document.getElementById('api-key').value || localStorage.getItem('muet_api_key');
+      const apiUrl = document.getElementById('api-url').value;
+      const essay = document.getElementById('essay-input').value;
+      const type = document.getElementById('essay-type').value;
+      const output = document.getElementById('ai-output');
+
+      if (!apiKey) {
+        alert("请先填写有效的 API Key！");
+        return;
+      }
+      if (!essay.trim()) {
+        alert("请先输入或粘贴作文内容！");
+        return;
+      }
+
+      output.style.display = 'block';
+      output.innerText = "⏳ AI 正在对您的文章进行 Grammar 语法校验与 MUET Band 评级...";
+
+      const prompt = `You are an expert MUET (Malaysian University English Test) examiner. 
+Evaluate the following ${type} text.
+Provide:
+1. Estimated MUET Band (Band 1.0 - Band 5.0+).
+2. Grammar & Spelling Corrections (Highlight specific mistakes).
+3. Vocabulary & Sentence Structure Suggestions.
+4. Coherence and Overall Feedback.
+
+Essay Content:
+"${essay}"`;
+
+      try {
+        const response = await fetch(apiUrl, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${apiKey}`
+          },
+          body: JSON.stringify({
+            model: "gpt-3.5-turbo",
+            messages: [{ role: "user", content: prompt }],
+            temperature: 0.3
+          })
+        });
+
+        const data = await response.json();
+        if (data.choices && data.choices[0]) {
+          output.innerText = data.choices[0].message.content;
+        } else {
+          output.innerText = "❌ 解析失败，请检查 API Key 或 网络配置。\n" + JSON.stringify(data);
+        }
+      } catch (err) {
+        output.innerText = "❌ 请求出错: " + err.message;
+      }
+    }
+
+    /* ==========================================
+       3. 口语倒计时逻辑
+       ========================================== */
+    let timerInterval = null;
+    function startTimer(type, seconds) {
+      clearInterval(timerInterval);
+      const display = document.getElementById(`timer-${type}`);
+      let remaining = seconds;
+
+      timerInterval = setInterval(() => {
+        const mins = Math.floor(remaining / 60).toString().padStart(2, '0');
+        const secs = (remaining % 60).toString().padStart(2, '0');
+        display.innerText = `${mins}:${secs}`;
+        
+        if (--remaining < 0) {
+          clearInterval(timerInterval);
+          display.innerText = "⏰ 时间到!";
+        }
+      }, 1000);
+    }
+
+    /* ==========================================
+       4. 页面 View 切换
+       ========================================== */
+    function switchTab(viewId, title, btn) {
+      document.querySelectorAll('.view').forEach(v => v.classList.remove('active'));
+      document.querySelectorAll('.nav-item').forEach(b => b.classList.remove('active'));
+      
+      document.getElementById(`view-${viewId}`).classList.add('active');
+      btn.classList.add('active');
+      document.getElementById('header-title').innerText = title;
+    }
+
+    // 初始化
+    window.onload = () => {
+      renderVocabList();
+      showCard(0);
+      if(localStorage.getItem('muet_api_key')) {
+        document.getElementById('api-key').value = localStorage.getItem('muet_api_key');
+      }
+    };
+  </script>
 </body>
 </html>
