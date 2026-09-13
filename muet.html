@@ -24,22 +24,23 @@
     * { box-sizing: border-box; margin: 0; padding: 0; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; -webkit-tap-highlight-color: transparent; }
     body { background-color: var(--bg); color: var(--text); padding-bottom: 75px; min-height: 100vh; }
 
-    /* Header 带 Logo 布局 */
+    /* Header 带 Logo 布局 (图标已放大) */
     header {
       background: rgba(255, 255, 255, 0.85);
       backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px);
       position: sticky; top: 0; left: 0; right: 0;
-      padding: 12px 20px;
-      display: flex; align-items: center; justify-content: center; gap: 8px;
+      padding: 10px 20px;
+      display: flex; align-items: center; justify-content: center; gap: 10px;
       border-bottom: 1px solid var(--border);
       z-index: 100; font-size: 17px; font-weight: 600;
     }
 
     .header-logo {
-      width: 24px;
-      height: 24px;
+      width: 32px;
+      height: 32px;
       object-fit: contain;
-      border-radius: 4px;
+      border-radius: 6px;
+      filter: drop-shadow(0 2px 4px rgba(0,0,0,0.1));
     }
 
     /* Views */
@@ -135,9 +136,9 @@
   <!-- 2. AI 写作批改模块 -->
   <div id="view-writing" class="view">
     <div class="card">
-      <h3>⚙️ AI Settings</h3>
-      <input type="password" id="api-key" class="search-box" placeholder="输入 API Key" onchange="saveApiKey()">
-      <input type="text" id="api-url" class="search-box" placeholder="API EndPoint URL" value="https://api.openai.com/v1/chat/completions">
+      <h3>⚙️ AI Settings (Groq API Enabled)</h3>
+      <input type="password" id="api-key" class="search-box" placeholder="输入 API Key" onchange="saveApiKey()" value="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">
+      <input type="text" id="api-url" class="search-box" placeholder="API EndPoint URL" value="https://api.groq.com/openai/v1/chat/completions">
     </div>
 
     <div class="card">
@@ -239,7 +240,7 @@
     }
 
     /* ==========================================
-       2. AI 写作批改逻辑
+       2. AI 写作批改逻辑 (已适配 Groq 算力)
        ========================================== */
     function saveApiKey() {
       localStorage.setItem('muet_api_key', document.getElementById('api-key').value);
@@ -256,15 +257,16 @@
       if (!essay.trim()) { alert("请输入作文内容！"); return; }
 
       output.style.display = 'block';
-      output.innerText = "⏳ AI 正在评估中...";
+      output.innerText = "⏳ Groq AI 正在极速评估中...";
 
-      const prompt = `You are a MUET examiner. Assess this ${type}.
+      const prompt = `You are an official MUET writing examiner. Assess the following ${type}.
+Provide response in English with clear sections:
 1. Estimated MUET Band (Band 1.0 - Band 5.0+).
-2. Grammar & Spelling Mistakes.
-3. Vocabulary & Sentence Structure Enhancements.
-4. Feedback.
+2. Detailed Grammar & Spelling Corrections.
+3. Vocabulary & Sentence Structure Improvements (Suggest high-level synonyms and phrases).
+4. Detailed Feedback & Tips for Higher Band.
 
-Essay:
+Essay Content:
 "${essay}"`;
 
       try {
@@ -275,7 +277,7 @@ Essay:
             'Authorization': `Bearer ${apiKey}`
           },
           body: JSON.stringify({
-            model: "gpt-3.5-turbo",
+            model: "llama-3.3-70b-versatile", // 使用 Groq 的高性能 70B 大模型
             messages: [{ role: "user", content: prompt }],
             temperature: 0.3
           })
@@ -359,6 +361,7 @@ Essay:
     }
 
     window.onload = () => {
+      // 优先保留本地已保存的 Key，如果没有则回显默认预设的 Groq Key
       if (localStorage.getItem('muet_api_key')) {
         document.getElementById('api-key').value = localStorage.getItem('muet_api_key');
       }
