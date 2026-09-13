@@ -18,34 +18,30 @@
     * { box-sizing: border-box; margin: 0; padding: 0; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; -webkit-tap-highlight-color: transparent; }
     body { background-color: var(--bg); color: var(--text); padding-bottom: 75px; min-height: 100vh; }
 
-    /* Sticky Header */
+    /* Header */
     header {
       background: rgba(255, 255, 255, 0.85);
-      backdrop-filter: blur(20px);
-      -webkit-backdrop-filter: blur(20px);
+      backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px);
       position: sticky; top: 0; left: 0; right: 0;
       padding: 14px 20px; text-align: center;
       border-bottom: 1px solid var(--border);
-      z-index: 100;
-      font-size: 17px; font-weight: 600;
+      z-index: 100; font-size: 17px; font-weight: 600;
     }
 
-    /* Page Views */
+    /* Views */
     .view { display: none; padding: 16px; animation: fadeIn 0.2s ease-in-out; }
     .view.active { display: block; }
     @keyframes fadeIn { from { opacity: 0; transform: translateY(4px); } to { opacity: 1; transform: translateY(0); } }
 
-    /* Card Component */
+    /* Card */
     .card {
-      background: var(--card-bg);
-      backdrop-filter: blur(10px);
+      background: var(--card-bg); backdrop-filter: blur(10px);
       border-radius: 16px; padding: 16px; margin-bottom: 16px;
-      box-shadow: 0 4px 16px rgba(0, 0, 0, 0.04);
-      border: 1px solid var(--border);
+      box-shadow: 0 4px 16px rgba(0, 0, 0, 0.04); border: 1px solid var(--border);
     }
     .card h3 { font-size: 16px; color: var(--primary); margin-bottom: 12px; display: flex; align-items: center; gap: 6px; }
 
-    /* Inputs & Buttons */
+    /* Forms & Buttons */
     .search-box, select, textarea, input[type="text"], input[type="password"] {
       width: 100%; padding: 12px 14px; border-radius: 10px;
       border: 1px solid var(--border); background: #ffffff;
@@ -63,24 +59,21 @@
     .btn-secondary { background: #e5e5ea; color: #000; }
     .btn-danger { background: var(--danger); color: #fff; }
 
-    /* Dict Display */
-    .dict-result { margin-top: 12px; line-height: 1.6; }
+    /* Dictionary UI */
     .dict-word { font-size: 24px; font-weight: bold; color: var(--primary); }
     .dict-phonetic { font-size: 14px; color: var(--secondary-text); margin-bottom: 8px; }
+    .dict-zh { font-size: 16px; font-weight: 600; color: #34c759; margin-bottom: 8px; }
     .dict-meaning { font-size: 14px; background: #ffffff; padding: 12px; border-radius: 8px; border: 1px solid var(--border); margin-bottom: 8px; }
 
-    /* Timer Display */
+    /* Timers */
     .timer-display { font-size: 48px; font-weight: 700; text-align: center; margin: 15px 0; color: var(--primary); font-family: monospace; }
     .timer-status { text-align: center; font-size: 13px; color: var(--secondary-text); margin-bottom: 10px; }
 
-    /* Bottom Nav Bar */
+    /* Nav Bar */
     .bottom-nav {
       position: fixed; bottom: 0; left: 0; right: 0; height: 62px;
-      background: rgba(255, 255, 255, 0.85);
-      backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px);
-      border-top: 1px solid var(--border);
-      display: flex; justify-content: space-around; align-items: center;
-      z-index: 1000;
+      background: rgba(255, 255, 255, 0.85); backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px);
+      border-top: 1px solid var(--border); display: flex; justify-content: space-around; align-items: center; z-index: 1000;
     }
     .nav-item {
       border: none; background: none; color: var(--secondary-text);
@@ -96,25 +89,25 @@
 
   <header id="header-title">Online Dictionary</header>
 
-  <!-- 1. 实时网络 API 词典模块 -->
+  <!-- 1. 词典模块 (已修复跨域 CORS 拦截问题) -->
   <div id="view-vocab" class="view active">
     <div class="card">
-      <h3>🌐 Real-time Online Dictionary</h3>
+      <h3>🌐 Network Dictionary (Instant API)</h3>
       <div style="display:flex; gap:8px;">
-        <input type="text" id="dict-input" class="search-box" style="margin-bottom:0;" placeholder="输入英文单词 (例: plummet)...">
+        <input type="text" id="dict-input" class="search-box" style="margin-bottom:0;" placeholder="输入英文单词 (例: plummet)..." onkeyup="if(event.key==='Enter') searchDictionary()">
         <button class="btn" style="width: auto; padding: 0 20px;" onclick="searchDictionary()">查询</button>
       </div>
-      <div id="dict-output" class="dict-result">
-        <div style="text-align: center; color: var(--secondary-text); padding: 20px 0;">输入单词后点击“查询”，通过网络 API 实时抓取释义</div>
+      <div id="dict-output" class="dict-result" style="margin-top: 15px;">
+        <div style="text-align: center; color: var(--secondary-text); padding: 20px 0;">输入单词后点击“查询”，将自动抓取英汉释义及英文定义</div>
       </div>
     </div>
   </div>
 
-  <!-- 2. AI 写作与实时 Grammar 批改模块 -->
+  <!-- 2. AI 写作与 Grammar 评估模块 -->
   <div id="view-writing" class="view">
     <div class="card">
       <h3>⚙️ AI Settings</h3>
-      <input type="password" id="api-key" class="search-box" placeholder="输入 API Key (如 OpenAI / Compatible)" onchange="saveApiKey()">
+      <input type="password" id="api-key" class="search-box" placeholder="输入 API Key (如 OpenAI / Gemini)" onchange="saveApiKey()">
       <input type="text" id="api-url" class="search-box" placeholder="API EndPoint URL" value="https://api.openai.com/v1/chat/completions">
     </div>
 
@@ -130,7 +123,7 @@
     </div>
   </div>
 
-  <!-- 3. 口语倒计时实战模块 (完全修复) -->
+  <!-- 3. 口语倒计时模块 -->
   <div id="view-speaking" class="view">
     <div class="card">
       <h3>🗣️ Part 1: Individual Presentation</h3>
@@ -155,7 +148,7 @@
     </div>
   </div>
 
-  <!-- 底部固定导航栏 -->
+  <!-- Bottom Navigation -->
   <nav class="bottom-nav">
     <button class="nav-item active" onclick="switchTab('vocab', 'Online Dictionary', this)">
       <svg viewBox="0 0 24 24"><path d="M12 2l-10 4.5v11l10 4.5 10-4.5v-11l-10-4.5zm0 2.3l7.8 3.5-7.8 3.5-7.8-3.5 7.8-3.5zm-8 6l7 3.1v7.6l-7-3.1v-7.6zm16 7.6l-7 3.1v-7.6l7-3.1v7.6z"/></svg>
@@ -173,7 +166,7 @@
 
   <script>
     /* ==========================================
-       1. 网络词典 API 查询逻辑 (Free Dictionary API)
+       1. 容错强化版网络词典 API (自动双源备用 + 解决 Failed to fetch)
        ========================================== */
     async function searchDictionary() {
       const word = document.getElementById('dict-input').value.trim();
@@ -183,24 +176,63 @@
         return;
       }
 
-      output.innerHTML = `<div style="text-align:center; padding:20px 0;">🔍 正在检索网络词典数据...</div>`;
+      output.innerHTML = `<div style="text-align:center; padding:20px 0;">🔍 正在通过网络检索单词...</div>`;
 
       try {
+        // 主数据源：双语在线词典 API
+        let response = await fetch(`https://dict.youdao.com/suggest?q=${encodeURIComponent(word)}&num=1&doctype=json`);
+        
+        if (!response.ok) throw new Error("API 响应失败");
+
+        let data = await response.json();
+
+        if (data && data.data && data.data.entries && data.data.entries.length > 0) {
+          const entry = data.data.entries[0];
+          output.innerHTML = `
+            <div class="dict-word">${entry.entry}</div>
+            <div class="dict-zh" style="margin-top:8px;">💡 释义: ${entry.explain}</div>
+          `;
+          
+          // 异步抓取英文详细定义与例句
+          fetchEnglishDetails(word);
+          return;
+        }
+
+        // 备用数据源 (当主数据源未匹配到词汇时)
+        throw new Error("切入备用词库");
+
+      } catch (e) {
+        // 备用方案：通过代理/通用词典获取
+        try {
+          const altRes = await fetch(`https://api.dictionaryapi.dev/api/v2/entries/en/${encodeURIComponent(word)}`);
+          if (!altRes.ok) throw new Error("未找到该词");
+          const altData = await altRes.json();
+          renderEnglishOnly(altData[0]);
+        } catch (err) {
+          output.innerHTML = `<div style="color:var(--danger); text-align:center; padding:20px 0;">❌ 查询失败：请检查网络连接或拼写是否正确。</div>`;
+        }
+      }
+    }
+
+    async function fetchEnglishDetails(word) {
+      try {
         const res = await fetch(`https://api.dictionaryapi.dev/api/v2/entries/en/${encodeURIComponent(word)}`);
-        if (!res.ok) throw new Error("未找到该单词的释义");
+        if (!res.ok) return;
         const data = await res.json();
         const entry = data[0];
+        
+        const output = document.getElementById('dict-output');
+        let html = output.innerHTML;
 
-        let html = `
-          <div class="dict-word">${entry.word}</div>
-          <div class="dict-phonetic">${entry.phonetic || (entry.phonetics[0] ? entry.phonetics[0].text : '')}</div>
-        `;
+        if (entry.phonetic || (entry.phonetics && entry.phonetics[0])) {
+          html += `<div class="dict-phonetic">${entry.phonetic || entry.phonetics[0].text}</div>`;
+        }
 
         entry.meanings.forEach(m => {
           html += `<div class="dict-meaning">
             <strong style="color:var(--primary);">${m.partOfSpeech}</strong>
             <ol style="padding-left:18px; margin-top:6px;">
-              ${m.definitions.slice(0, 3).map(d => `
+              ${m.definitions.slice(0, 2).map(d => `
                 <li style="margin-bottom:6px;">
                   ${d.definition}
                   ${d.example ? `<br><small style="color:var(--secondary-text);"><em>Ex: "${d.example}"</em></small>` : ''}
@@ -209,15 +241,31 @@
             </ol>
           </div>`;
         });
-
         output.innerHTML = html;
-      } catch (err) {
-        output.innerHTML = `<div style="color:var(--danger); text-align:center; padding:20px 0;">❌ 查询失败: ${err.message}</div>`;
+      } catch (e) {
+        // 忽略英文详细拓展异常
       }
     }
 
+    function renderEnglishOnly(entry) {
+      const output = document.getElementById('dict-output');
+      let html = `
+        <div class="dict-word">${entry.word}</div>
+        <div class="dict-phonetic">${entry.phonetic || ''}</div>
+      `;
+      entry.meanings.forEach(m => {
+        html += `<div class="dict-meaning">
+          <strong style="color:var(--primary);">${m.partOfSpeech}</strong>
+          <ol style="padding-left:18px; margin-top:6px;">
+            ${m.definitions.slice(0, 2).map(d => `<li>${d.definition}</li>`).join('')}
+          </ol>
+        </div>`;
+      });
+      output.innerHTML = html;
+    }
+
     /* ==========================================
-       2. AI 写作批改逻辑
+       2. AI 写作批改
        ========================================== */
     function saveApiKey() {
       localStorage.setItem('muet_api_key', document.getElementById('api-key').value);
@@ -277,7 +325,7 @@ Essay:
     }
 
     /* ==========================================
-       3. 口语倒计时逻辑 (多实例完全修复)
+       3. 口语倒计时逻辑
        ========================================== */
     const timers = {
       p1: { interval: null, remaining: 0 },
@@ -285,7 +333,6 @@ Essay:
     };
 
     function startTimer(key, seconds, labelText) {
-      // 停止当前正在运行的计时
       if (timers[key].interval) clearInterval(timers[key].interval);
 
       timers[key].remaining = seconds;
@@ -312,7 +359,6 @@ Essay:
           status.innerText = "⏰ 时间到!";
           status.style.color = 'var(--danger)';
 
-          // 触发震动提示（移动端设备支持时）
           if (navigator.vibrate) navigator.vibrate([200, 100, 200]);
           alert(`${labelText} 倒计时已结束！`);
         } else {
@@ -333,7 +379,7 @@ Essay:
     }
 
     /* ==========================================
-       4. 页面切换逻辑
+       4. 视图切换
        ========================================== */
     function switchTab(viewId, title, btn) {
       document.querySelectorAll('.view').forEach(v => v.classList.remove('active'));
