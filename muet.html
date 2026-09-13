@@ -132,7 +132,7 @@
     </div>
   </div>
 
-  <!-- 2. AI 写作批改模块 (已隐藏配置面板) -->
+  <!-- 2. AI 写作批改模块 -->
   <div id="view-writing" class="view">
     <div class="card">
       <h3>✍️ MUET Essay Assessor</h3>
@@ -189,12 +189,13 @@
 
   <script>
     /* ==========================================
-       配置信息硬编码在脚本内部
+       Groq 配置（备用模型机制）
        ========================================== */
     const GROQ_CONFIG = {
       apiKey: "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",
       apiUrl: "https://api.groq.com/openai/v1/chat/completions",
-      model: "llama-3.1-8b-instant"
+      // 主用模型与备选模型列表
+      models: ["llama-3.3-70b-versatile", "llama-3.1-8b-instant"]
     };
 
     /* ==========================================
@@ -242,7 +243,7 @@
     }
 
     /* ==========================================
-       2. AI 写作批改逻辑
+       2. AI 写作批改逻辑 (智能重试)
        ========================================== */
     async function analyzeEssay() {
       const essay = document.getElementById('essay-input').value;
@@ -264,29 +265,34 @@ Provide response in English with clear sections:
 Essay Content:
 "${essay}"`;
 
-      try {
-        const response = await fetch(GROQ_CONFIG.apiUrl, {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-            'Authorization': `Bearer ${GROQ_CONFIG.apiKey}`
-          },
-          body: JSON.stringify({
-            model: GROQ_CONFIG.model,
-            messages: [{ role: "user", content: prompt }],
-            temperature: 0.3
-          })
-        });
+      // 循环尝试配置列表中的模型
+      for (let modelName of GROQ_CONFIG.models) {
+        try {
+          const response = await fetch(GROQ_CONFIG.apiUrl, {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+              'Authorization': `Bearer ${GROQ_CONFIG.apiKey}`
+            },
+            body: JSON.stringify({
+              model: modelName,
+              messages: [{ role: "user", content: prompt }],
+              temperature: 0.3
+            })
+          });
 
-        const data = await response.json();
-        if (data.choices && data.choices[0]) {
-          output.innerText = data.choices[0].message.content;
-        } else {
-          output.innerText = "❌ 评估失败:\n" + JSON.stringify(data);
+          const data = await response.json();
+          
+          if (response.ok && data.choices && data.choices[0]) {
+            output.innerText = data.choices[0].message.content;
+            return; // 成功后立刻退出
+          }
+        } catch (err) {
+          console.warn(`Model ${modelName} failed, trying next...`);
         }
-      } catch (err) {
-        output.innerText = "❌ 请求错误: " + err.message;
       }
+
+      output.innerText = "❌ 评估失败，请检查网络或 API Key 状态。";
     }
 
     /* ==========================================
