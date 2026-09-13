@@ -5,7 +5,6 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
   <title>MUET Prep Station Pro</title>
   
-  <!-- Favicon 设置 -->
   <link rel="icon" href="awado.png" type="image/png">
   <link rel="apple-touch-icon" href="awado.png">
 
@@ -24,7 +23,6 @@
     * { box-sizing: border-box; margin: 0; padding: 0; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; -webkit-tap-highlight-color: transparent; }
     body { background-color: var(--bg); color: var(--text); padding-bottom: 75px; min-height: 100vh; }
 
-    /* Header 带 Logo 布局 */
     header {
       background: rgba(255, 255, 255, 0.85);
       backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px);
@@ -36,19 +34,14 @@
     }
 
     .header-logo {
-      width: 32px;
-      height: 32px;
-      object-fit: contain;
-      border-radius: 6px;
+      width: 32px; height: 32px; object-fit: contain; border-radius: 6px;
       filter: drop-shadow(0 2px 4px rgba(0,0,0,0.1));
     }
 
-    /* Views */
     .view { display: none; padding: 16px; animation: fadeIn 0.2s ease-in-out; }
     .view.active { display: block; }
     @keyframes fadeIn { from { opacity: 0; transform: translateY(4px); } to { opacity: 1; transform: translateY(0); } }
 
-    /* Card */
     .card {
       background: var(--card-bg); backdrop-filter: blur(10px);
       border-radius: 16px; padding: 16px; margin-bottom: 16px;
@@ -56,7 +49,6 @@
     }
     .card h3 { font-size: 16px; color: var(--primary); margin-bottom: 12px; display: flex; align-items: center; gap: 6px; }
 
-    /* Forms & Buttons */
     .search-box, select, textarea, input[type="text"] {
       width: 100%; padding: 12px 14px; border-radius: 10px;
       border: 1px solid var(--border); background: #ffffff;
@@ -74,7 +66,6 @@
     .btn-secondary { background: #e5e5ea; color: #000; }
     .btn-danger { background: var(--danger); color: #fff; }
 
-    /* Dictionary UI */
     .dict-word { font-size: 24px; font-weight: bold; color: var(--primary); }
     .dict-zh { font-size: 16px; font-weight: 600; color: var(--success); margin: 8px 0; }
     .embed-container {
@@ -83,11 +74,9 @@
     }
     .embed-container iframe { width: 100%; height: 100%; border: none; }
 
-    /* Timers */
     .timer-display { font-size: 48px; font-weight: 700; text-align: center; margin: 15px 0; color: var(--primary); font-family: monospace; }
     .timer-status { text-align: center; font-size: 13px; color: var(--secondary-text); margin-bottom: 10px; }
 
-    /* Nav Bar */
     .bottom-nav {
       position: fixed; bottom: 0; left: 0; right: 0; height: 62px;
       background: rgba(255, 255, 255, 0.85); backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px);
@@ -105,7 +94,6 @@
 </head>
 <body>
 
-  <!-- Header -->
   <header>
     <img src="awado.png" alt="Logo" class="header-logo" onerror="this.style.display='none'">
     <span id="header-title">Online Dictionary</span>
@@ -188,19 +176,13 @@
   </nav>
 
   <script>
-    /* ==========================================
-       Groq 配置（备用模型机制）
-       ========================================== */
+    /* 严格使用 Groq 支持的真实 Model ID */
     const GROQ_CONFIG = {
       apiKey: "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",
       apiUrl: "https://api.groq.com/openai/v1/chat/completions",
-      // 主用模型与备选模型列表
-      models: ["llama-3.3-70b-versatile", "llama-3.1-8b-instant"]
+      model: "llama-3.3-70b-versatile"
     };
 
-    /* ==========================================
-       1. 快速查词 & 有道 Web 内嵌逻辑
-       ========================================== */
     async function searchDirect() {
       const word = document.getElementById('dict-input').value.trim();
       const output = document.getElementById('dict-output');
@@ -223,9 +205,7 @@
           throw new Error("无直接结果");
         }
       } catch (err) {
-        output.innerHTML = `
-          <div style="color:var(--danger); text-align:center; padding:10px 0;">直接 API 请求被阻断，请点击右侧“📕 有道 Web”查询。</div>
-        `;
+        output.innerHTML = `<div style="color:var(--danger); text-align:center; padding:10px 0;">直接 API 请求被阻断，请点击右侧“📕 有道 Web”查询。</div>`;
       }
     }
 
@@ -236,15 +216,11 @@
       const output = document.getElementById('dict-output');
       
       if (!word) { alert("请输入需要搜索的单词！"); return; }
-
       output.innerHTML = '';
       iframe.src = `https://m.youdao.com/dict?le=eng&q=${encodeURIComponent(word)}`;
       embedBox.style.display = 'block';
     }
 
-    /* ==========================================
-       2. AI 写作批改逻辑 (智能重试)
-       ========================================== */
     async function analyzeEssay() {
       const essay = document.getElementById('essay-input').value;
       const type = document.getElementById('essay-type').value;
@@ -265,47 +241,36 @@ Provide response in English with clear sections:
 Essay Content:
 "${essay}"`;
 
-      // 循环尝试配置列表中的模型
-      for (let modelName of GROQ_CONFIG.models) {
-        try {
-          const response = await fetch(GROQ_CONFIG.apiUrl, {
-            method: 'POST',
-            headers: {
-              'Content-Type': 'application/json',
-              'Authorization': `Bearer ${GROQ_CONFIG.apiKey}`
-            },
-            body: JSON.stringify({
-              model: modelName,
-              messages: [{ role: "user", content: prompt }],
-              temperature: 0.3
-            })
-          });
+      try {
+        const response = await fetch(GROQ_CONFIG.apiUrl, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${GROQ_CONFIG.apiKey}`
+          },
+          body: JSON.stringify({
+            model: GROQ_CONFIG.model,
+            messages: [{ role: "user", content: prompt }],
+            temperature: 0.3
+          })
+        });
 
-          const data = await response.json();
-          
-          if (response.ok && data.choices && data.choices[0]) {
-            output.innerText = data.choices[0].message.content;
-            return; // 成功后立刻退出
-          }
-        } catch (err) {
-          console.warn(`Model ${modelName} failed, trying next...`);
+        const data = await response.json();
+
+        if (response.ok && data.choices && data.choices[0]) {
+          output.innerText = data.choices[0].message.content;
+        } else {
+          output.innerText = `❌ API 响应错误:\n${JSON.stringify(data, null, 2)}`;
         }
+      } catch (err) {
+        output.innerText = `❌ 网络请求异常:\n${err.message}`;
       }
-
-      output.innerText = "❌ 评估失败，请检查网络或 API Key 状态。";
     }
 
-    /* ==========================================
-       3. 口语 Timer 逻辑
-       ========================================== */
-    const timers = {
-      p1: { interval: null, remaining: 0 },
-      p2: { interval: null, remaining: 0 }
-    };
+    const timers = { p1: { interval: null, remaining: 0 }, p2: { interval: null, remaining: 0 } };
 
     function startTimer(key, seconds, labelText) {
       if (timers[key].interval) clearInterval(timers[key].interval);
-
       timers[key].remaining = seconds;
       const display = document.getElementById(`timer-${key}`);
       const status = document.getElementById(`status-${key}`);
@@ -329,7 +294,6 @@ Essay Content:
           display.innerText = "00:00";
           status.innerText = "⏰ 时间到!";
           status.style.color = 'var(--danger)';
-
           if (navigator.vibrate) navigator.vibrate([200, 100, 200]);
           alert(`${labelText} 倒计时已结束！`);
         } else {
@@ -349,13 +313,9 @@ Essay Content:
       status.style.color = 'var(--secondary-text)';
     }
 
-    /* ==========================================
-       4. 视图切换
-       ========================================== */
     function switchTab(viewId, title, btn) {
       document.querySelectorAll('.view').forEach(v => v.classList.remove('active'));
       document.querySelectorAll('.nav-item').forEach(b => b.classList.remove('active'));
-      
       document.getElementById(`view-${viewId}`).classList.add('active');
       btn.classList.add('active');
       document.getElementById('header-title').innerText = title;
