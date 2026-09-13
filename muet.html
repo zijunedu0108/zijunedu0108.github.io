@@ -47,22 +47,61 @@
       border-radius: 16px; padding: 16px; margin-bottom: 16px;
       box-shadow: 0 4px 16px rgba(0, 0, 0, 0.04); border: 1px solid var(--border);
     }
-    .card h3 { font-size: 16px; color: var(--primary); margin-bottom: 12px; display: flex; align-items: center; gap: 6px; }
+    .card h3 { font-size: 16px; color: var(--primary); margin-bottom: 12px; display: flex; align-items: center; justify-content: space-between; }
 
     .search-box, select, textarea, input[type="text"] {
       width: 100%; padding: 12px 14px; border-radius: 10px;
       border: 1px solid var(--border); background: #ffffff;
       font-size: 15px; margin-bottom: 12px; outline: none;
     }
-    textarea { height: 180px; resize: vertical; line-height: 1.5; font-size: 14px; }
+    textarea { height: 140px; resize: vertical; line-height: 1.5; font-size: 14px; }
+
+    /* 题目与图片上传样式 */
+    .prompt-box {
+      border: 1px dashed var(--border);
+      background: #fdfdfd;
+      padding: 12px;
+      border-radius: 10px;
+      margin-bottom: 12px;
+    }
+    .prompt-box label { font-size: 13px; font-weight: 600; color: var(--secondary-text); display: block; margin-bottom: 6px; }
+    .upload-btn {
+      display: inline-block;
+      padding: 8px 12px;
+      background: #e5e5ea;
+      border-radius: 8px;
+      font-size: 13px;
+      color: var(--text);
+      cursor: pointer;
+      margin-bottom: 8px;
+    }
+    .img-preview {
+      max-width: 100%;
+      max-height: 180px;
+      border-radius: 8px;
+      display: none;
+      margin-top: 8px;
+      border: 1px solid var(--border);
+    }
+
+    /* 顶部配额 Badge */
+    .usage-badge {
+      font-size: 12px;
+      background: #e5e5ea;
+      color: var(--text);
+      padding: 3px 8px;
+      border-radius: 12px;
+      font-weight: normal;
+    }
 
     .btn-group { display: flex; gap: 8px; margin-top: 8px; }
     .btn {
       flex: 1; padding: 12px; border-radius: 10px; border: none;
       background: var(--primary); color: #fff; font-size: 14px; font-weight: 600;
-      cursor: pointer; transition: opacity 0.2s; text-align: center;
+      cursor: pointer; transition: opacity 0.2s, background-color 0.2s; text-align: center;
     }
     .btn:active { opacity: 0.8; }
+    .btn:disabled { background: #c7c7cc; cursor: not-allowed; opacity: 0.7; }
     .btn-secondary { background: #e5e5ea; color: #000; }
     .btn-danger { background: var(--danger); color: #fff; }
 
@@ -123,13 +162,31 @@
   <!-- 2. AI 写作批改模块 -->
   <div id="view-writing" class="view">
     <div class="card">
-      <h3>✍️ MUET Essay Assessor</h3>
+      <h3>
+        ✍️ MUET Essay Assessor
+        <span class="usage-badge">今日剩余: <b id="rem-count">20</b>/20 次</span>
+      </h3>
+
       <select id="essay-type">
         <option value="Task 1: Guided Writing (Report/Letter)">Task 1: Guided Writing (Report/Email/Letter)</option>
         <option value="Task 2: Extended Writing (Essay)">Task 2: Extended Writing (Discursive/Argumentative)</option>
       </select>
+
+      <!-- 题目输入区块（文本/图片） -->
+      <div class="prompt-box">
+        <label>📌 题目内容 (可选：文字或上传图片题目)</label>
+        <textarea id="prompt-input" style="height: 60px;" placeholder="可在粘贴题目要求/提纲..."></textarea>
+        
+        <label class="upload-btn" for="prompt-file">📷 上传题目图片</label>
+        <input type="file" id="prompt-file" accept="image/*" style="display:none;" onchange="handleImageUpload(this)">
+        <span id="file-name-tip" style="font-size: 12px; color: var(--secondary-text);"></span>
+        <br>
+        <img id="img-preview" class="img-preview" alt="题目预览">
+      </div>
+
       <textarea id="essay-input" placeholder="在此粘贴或输入你的 MUET 作文..."></textarea>
-      <button class="btn" onclick="analyzeEssay()">🤖 开始 AI 语法校验与 Band 评估</button>
+      
+      <button id="submit-btn" class="btn" onclick="analyzeEssay()">🤖 开始 AI 语法校验与 Band 评估</button>
       <div id="ai-output" class="ai-result" style="display:none;"></div>
     </div>
   </div>
@@ -178,14 +235,69 @@
   <script>
     /* ==========================================
        Groq API 配置
-       根据账号权限配置了常用模型的优先级队列
        ========================================== */
     const GROQ_CONFIG = {
       apiKey: "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",
       apiUrl: "https://api.groq.com/openai/v1/chat/completions",
-      // 依序尝试最稳定支持的 API 模型
       models: ["llama-3.1-8b-instant", "openai/gpt-oss-120b", "openai/gpt-oss-20b", "llama-3.3-70b-versatile"]
     };
+
+    const DAILY_LIMIT = 20;
+
+    /* 初始化检查次数 */
+    function initQuota() {
+      const today = new Date().toISOString().slice(0, 10);
+      const savedDate = localStorage.getItem('usage_date');
+      let remaining = localStorage.getItem('usage_count');
+
+      if (savedDate !== today || remaining === null) {
+        localStorage.setItem('usage_date', today);
+        localStorage.setItem('usage_count', DAILY_LIMIT);
+        remaining = DAILY_LIMIT;
+      }
+      updateQuotaDisplay(parseInt(remaining));
+    }
+
+    function updateQuotaDisplay(count) {
+      document.getElementById('rem-count').innerText = count;
+      const btn = document.getElementById('submit-btn');
+      if (count <= 0) {
+        btn.disabled = true;
+        btn.innerText = "❌ 今日批改次数已达上限";
+      }
+    }
+
+    function consumeQuota() {
+      let count = parseInt(localStorage.getItem('usage_count') || 0);
+      if (count > 0) {
+        count--;
+        localStorage.setItem('usage_count', count);
+        updateQuotaDisplay(count);
+      }
+    }
+
+    /* 图片上传预览逻辑 */
+    let uploadedImageBase64 = null;
+    function handleImageUpload(input) {
+      const file = input.files[0];
+      const preview = document.getElementById('img-preview');
+      const tip = document.getElementById('file-name-tip');
+
+      if (file) {
+        tip.innerText = file.name;
+        const reader = new FileReader();
+        reader.onload = function(e) {
+          uploadedImageBase64 = e.target.result;
+          preview.src = e.target.result;
+          preview.style.display = 'block';
+        };
+        reader.readAsDataURL(file);
+      } else {
+        uploadedImageBase64 = null;
+        preview.style.display = 'none';
+        tip.innerText = '';
+      }
+    }
 
     /* 1. 查词逻辑 */
     async function searchDirect() {
@@ -226,30 +338,67 @@
       embedBox.style.display = 'block';
     }
 
-    /* 2. 作文 AI 评估逻辑 */
+    /* 2. 作文 AI 评估逻辑（带 3 秒 Sleep & 题目融合） */
     async function analyzeEssay() {
-      const essay = document.getElementById('essay-input').value;
-      const type = document.getElementById('essay-type').value;
-      const output = document.getElementById('ai-output');
+      const remCount = parseInt(localStorage.getItem('usage_count') || 0);
+      if (remCount <= 0) {
+        alert("今日检查次数已用完，请明天再试！");
+        return;
+      }
 
-      if (!essay.trim()) { alert("请输入作文内容！"); return; }
+      const essay = document.getElementById('essay-input').value.trim();
+      const type = document.getElementById('essay-type').value;
+      const questionPrompt = document.getElementById('prompt-input').value.trim();
+      const output = document.getElementById('ai-output');
+      const btn = document.getElementById('submit-btn');
+
+      if (!essay) { alert("请输入作文内容！"); return; }
+
+      // 禁用按钮并开始 3 秒倒计时锁死（Sleep 3s）
+      btn.disabled = true;
+      let cooldown = 3;
+      const originalText = "🤖 开始 AI 语法校验与 Band 评估";
+      btn.innerText = `⏳ 请稍候 (${cooldown}s)...`;
+
+      const cdInterval = setInterval(() => {
+        cooldown--;
+        if (cooldown > 0) {
+          btn.innerText = `⏳ 请稍候 (${cooldown}s)...`;
+        } else {
+          clearInterval(cdInterval);
+          if (parseInt(localStorage.getItem('usage_count')) > 0) {
+            btn.disabled = false;
+            btn.innerText = originalText;
+          }
+        }
+      }, 1000);
+
+      // 扣除今日次数
+      consumeQuota();
 
       output.style.display = 'block';
       output.innerText = "⏳ Groq AI 正在极速评估中...";
 
-      const prompt = `You are an official MUET writing examiner. Assess the following ${type}.
-Provide response in English with clear sections:
+      // 构建带有题目背景的 Prompt
+      let fullPrompt = `You are an official MUET writing examiner. Assess the following ${type}.\n`;
+      if (questionPrompt) {
+        fullPrompt += `Essay Question/Prompt: "${questionPrompt}"\n`;
+      }
+      if (uploadedImageBase64) {
+        fullPrompt += `[Note: The user also attached a question image.]\n`;
+      }
+      fullPrompt += `Provide response in English with clear sections:
 1. Estimated MUET Band (Band 1.0 - Band 5.0+).
 2. Detailed Grammar & Spelling Corrections.
 3. Vocabulary & Sentence Structure Improvements (Suggest high-level synonyms and phrases).
 4. Detailed Feedback & Tips for Higher Band.
 
-Essay Content:
+Student Essay:
 "${essay}"`;
 
       let lastErrorMsg = "";
 
-      // 循环尝试匹配账号可用的 API 模型
+      // 循环尝试 API 模型
       for (let modelName of GROQ_CONFIG.models) {
         try {
           const response = await fetch(GROQ_CONFIG.apiUrl, {
@@ -260,8 +409,9 @@ Essay Content:
             },
             body: JSON.stringify({
               model: modelName,
-              messages: [{ role: "user", content: prompt }],
-              temperature: 0.3
+              messages: [{ role: "user", content: fullPrompt }],
+              temperature: 0.3,
+              max_completion_tokens: 800
             })
           });
 
@@ -278,8 +428,7 @@ Essay Content:
         }
       }
 
-      // 如果全部模型尝试失败
-      output.innerText = `❌ 请求失败:\n${lastErrorMsg}\n\n建议排查：\n1. 前往 console.groq.com 确认 API Key 状态与权限。\n2. 按 Ctrl + F5 清除浏览器缓存后再试。`;
+      output.innerText = `❌ 请求失败:\n${lastErrorMsg}\n\n建议排查：\n1. 确认网络状况或 API Key 状态。\n2. 稍后再试。`;
     }
 
     /* 3. 口语 Timer 逻辑 */
@@ -337,6 +486,11 @@ Essay Content:
       btn.classList.add('active');
       document.getElementById('header-title').innerText = title;
     }
+
+    // 页面加载完成后初始化配额
+    window.onload = function() {
+      initQuota();
+    };
   </script>
 </body>
 </html>
