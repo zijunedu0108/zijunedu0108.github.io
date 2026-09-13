@@ -41,7 +41,7 @@
     }
     .card h3 { font-size: 16px; color: var(--primary); margin-bottom: 12px; display: flex; align-items: center; gap: 6px; }
 
-    /* Forms & Buttons */
+    /* Inputs & Buttons */
     .search-box, select, textarea, input[type="text"], input[type="password"] {
       width: 100%; padding: 12px 14px; border-radius: 10px;
       border: 1px solid var(--border); background: #ffffff;
@@ -62,7 +62,6 @@
     /* Dictionary UI */
     .dict-word { font-size: 24px; font-weight: bold; color: var(--primary); }
     .dict-phonetic { font-size: 14px; color: var(--secondary-text); margin-bottom: 8px; }
-    .dict-zh { font-size: 16px; font-weight: 600; color: #34c759; margin-bottom: 8px; }
     .dict-meaning { font-size: 14px; background: #ffffff; padding: 12px; border-radius: 8px; border: 1px solid var(--border); margin-bottom: 8px; }
 
     /* Timers */
@@ -89,25 +88,25 @@
 
   <header id="header-title">Online Dictionary</header>
 
-  <!-- 1. 词典模块 (已修复跨域 CORS 拦截问题) -->
+  <!-- 1. 词典模块 (解决 CORS 跨域与 Failed to fetch) -->
   <div id="view-vocab" class="view active">
     <div class="card">
-      <h3>🌐 Network Dictionary (Instant API)</h3>
+      <h3>🌐 Network Dictionary (CORS Supported)</h3>
       <div style="display:flex; gap:8px;">
         <input type="text" id="dict-input" class="search-box" style="margin-bottom:0;" placeholder="输入英文单词 (例: plummet)..." onkeyup="if(event.key==='Enter') searchDictionary()">
         <button class="btn" style="width: auto; padding: 0 20px;" onclick="searchDictionary()">查询</button>
       </div>
       <div id="dict-output" class="dict-result" style="margin-top: 15px;">
-        <div style="text-align: center; color: var(--secondary-text); padding: 20px 0;">输入单词后点击“查询”，将自动抓取英汉释义及英文定义</div>
+        <div style="text-align: center; color: var(--secondary-text); padding: 20px 0;">输入单词后点击“查询”，将自动抓取词性、音标及英文例句</div>
       </div>
     </div>
   </div>
 
-  <!-- 2. AI 写作与 Grammar 评估模块 -->
+  <!-- 2. AI 写作模块 -->
   <div id="view-writing" class="view">
     <div class="card">
       <h3>⚙️ AI Settings</h3>
-      <input type="password" id="api-key" class="search-box" placeholder="输入 API Key (如 OpenAI / Gemini)" onchange="saveApiKey()">
+      <input type="password" id="api-key" class="search-box" placeholder="输入 API Key" onchange="saveApiKey()">
       <input type="text" id="api-url" class="search-box" placeholder="API EndPoint URL" value="https://api.openai.com/v1/chat/completions">
     </div>
 
@@ -148,7 +147,7 @@
     </div>
   </div>
 
-  <!-- Bottom Navigation -->
+  <!-- Bottom Nav -->
   <nav class="bottom-nav">
     <button class="nav-item active" onclick="switchTab('vocab', 'Online Dictionary', this)">
       <svg viewBox="0 0 24 24"><path d="M12 2l-10 4.5v11l10 4.5 10-4.5v-11l-10-4.5zm0 2.3l7.8 3.5-7.8 3.5-7.8-3.5 7.8-3.5zm-8 6l7 3.1v7.6l-7-3.1v-7.6zm16 7.6l-7 3.1v-7.6l7-3.1v7.6z"/></svg>
@@ -166,102 +165,59 @@
 
   <script>
     /* ==========================================
-       1. 容错强化版网络词典 API (自动双源备用 + 解决 Failed to fetch)
+       1. 容错强化版网络词典 (纯 CORS 开放 API)
        ========================================== */
     async function searchDictionary() {
-      const word = document.getElementById('dict-input').value.trim();
+      const rawInput = document.getElementById('dict-input').value.trim();
+      const word = rawInput.toLowerCase();
       const output = document.getElementById('dict-output');
+      
       if (!word) {
         alert("请输入要查询的单词！");
         return;
       }
 
-      output.innerHTML = `<div style="text-align:center; padding:20px 0;">🔍 正在通过网络检索单词...</div>`;
+      output.innerHTML = `<div style="text-align:center; padding:20px 0;">🔍 正在查询中...</div>`;
 
       try {
-        // 主数据源：双语在线词典 API
-        let response = await fetch(`https://dict.youdao.com/suggest?q=${encodeURIComponent(word)}&num=1&doctype=json`);
+        // 主数据源：Free Dictionary API (全网完全无 CORS 限制)
+        const response = await fetch(`https://api.dictionaryapi.dev/api/v2/entries/en/${encodeURIComponent(word)}`);
         
-        if (!response.ok) throw new Error("API 响应失败");
-
-        let data = await response.json();
-
-        if (data && data.data && data.data.entries && data.data.entries.length > 0) {
-          const entry = data.data.entries[0];
-          output.innerHTML = `
-            <div class="dict-word">${entry.entry}</div>
-            <div class="dict-zh" style="margin-top:8px;">💡 释义: ${entry.explain}</div>
-          `;
-          
-          // 异步抓取英文详细定义与例句
-          fetchEnglishDetails(word);
-          return;
+        if (response.status === 404) {
+          throw new Error(`词库中未找到 "${word}"，请确认拼写。`);
+        }
+        
+        if (!response.ok) {
+          throw new Error("网络请求响应异常");
         }
 
-        // 备用数据源 (当主数据源未匹配到词汇时)
-        throw new Error("切入备用词库");
-
-      } catch (e) {
-        // 备用方案：通过代理/通用词典获取
-        try {
-          const altRes = await fetch(`https://api.dictionaryapi.dev/api/v2/entries/en/${encodeURIComponent(word)}`);
-          if (!altRes.ok) throw new Error("未找到该词");
-          const altData = await altRes.json();
-          renderEnglishOnly(altData[0]);
-        } catch (err) {
-          output.innerHTML = `<div style="color:var(--danger); text-align:center; padding:20px 0;">❌ 查询失败：请检查网络连接或拼写是否正确。</div>`;
-        }
-      }
-    }
-
-    async function fetchEnglishDetails(word) {
-      try {
-        const res = await fetch(`https://api.dictionaryapi.dev/api/v2/entries/en/${encodeURIComponent(word)}`);
-        if (!res.ok) return;
-        const data = await res.json();
+        const data = await response.json();
         const entry = data[0];
-        
-        const output = document.getElementById('dict-output');
-        let html = output.innerHTML;
 
-        if (entry.phonetic || (entry.phonetics && entry.phonetics[0])) {
-          html += `<div class="dict-phonetic">${entry.phonetic || entry.phonetics[0].text}</div>`;
-        }
+        let html = `
+          <div class="dict-word">${entry.word}</div>
+          <div class="dict-phonetic">${entry.phonetic || (entry.phonetics && entry.phonetics[0] ? entry.phonetics[0].text : '')}</div>
+        `;
 
         entry.meanings.forEach(m => {
           html += `<div class="dict-meaning">
             <strong style="color:var(--primary);">${m.partOfSpeech}</strong>
             <ol style="padding-left:18px; margin-top:6px;">
-              ${m.definitions.slice(0, 2).map(d => `
+              ${m.definitions.slice(0, 3).map(d => `
                 <li style="margin-bottom:6px;">
                   ${d.definition}
-                  ${d.example ? `<br><small style="color:var(--secondary-text);"><em>Ex: "${d.example}"</em></small>` : ''}
+                  ${d.example ? `<br><small style="color:var(--secondary-text);"><em>例句: "${d.example}"</em></small>` : ''}
                 </li>
               `).join('')}
             </ol>
           </div>`;
         });
-        output.innerHTML = html;
-      } catch (e) {
-        // 忽略英文详细拓展异常
-      }
-    }
 
-    function renderEnglishOnly(entry) {
-      const output = document.getElementById('dict-output');
-      let html = `
-        <div class="dict-word">${entry.word}</div>
-        <div class="dict-phonetic">${entry.phonetic || ''}</div>
-      `;
-      entry.meanings.forEach(m => {
-        html += `<div class="dict-meaning">
-          <strong style="color:var(--primary);">${m.partOfSpeech}</strong>
-          <ol style="padding-left:18px; margin-top:6px;">
-            ${m.definitions.slice(0, 2).map(d => `<li>${d.definition}</li>`).join('')}
-          </ol>
-        </div>`;
-      });
-      output.innerHTML = html;
+        output.innerHTML = html;
+
+      } catch (err) {
+        output.innerHTML = `<div style="color:var(--danger); text-align:center; padding:20px 0;">❌ ${err.message}</div>`;
+      }
     }
 
     /* ==========================================
@@ -279,7 +235,7 @@
       const output = document.getElementById('ai-output');
 
       if (!apiKey) {
-        alert("请先设置 API Key！");
+        alert("请先输入 API Key！");
         return;
       }
       if (!essay.trim()) {
@@ -288,13 +244,13 @@
       }
 
       output.style.display = 'block';
-      output.innerText = "⏳ AI 正在实时评估 Grammar 与 MUET Band...";
+      output.innerText = "⏳ AI 正在评估中...";
 
       const prompt = `You are a MUET examiner. Assess this ${type}.
 1. Estimated MUET Band (Band 1.0 - Band 5.0+).
-2. Grammar & Spelling Mistakes (with corrections).
+2. Grammar & Spelling Mistakes.
 3. Vocabulary & Sentence Structure Enhancements.
-4. Summary Feedback.
+4. Feedback.
 
 Essay:
 "${essay}"`;
@@ -317,10 +273,10 @@ Essay:
         if (data.choices && data.choices[0]) {
           output.innerText = data.choices[0].message.content;
         } else {
-          output.innerText = "❌ 评估失败，请检查配置。\n" + JSON.stringify(data);
+          output.innerText = "❌ 评估失败:\n" + JSON.stringify(data);
         }
       } catch (err) {
-        output.innerText = "❌ 请求出错: " + err.message;
+        output.innerText = "❌ 请求错误: " + err.message;
       }
     }
 
