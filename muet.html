@@ -176,13 +176,18 @@
   </nav>
 
   <script>
-    /* 严格使用 Groq 支持的真实 Model ID */
+    /* ==========================================
+       Groq API 配置
+       根据账号权限配置了常用模型的优先级队列
+       ========================================== */
     const GROQ_CONFIG = {
       apiKey: "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",
       apiUrl: "https://api.groq.com/openai/v1/chat/completions",
-      model: "llama-3.3-70b-versatile"
+      // 依序尝试最稳定支持的 API 模型
+      models: ["llama-3.1-8b-instant", "openai/gpt-oss-120b", "openai/gpt-oss-20b", "llama-3.3-70b-versatile"]
     };
 
+    /* 1. 查词逻辑 */
     async function searchDirect() {
       const word = document.getElementById('dict-input').value.trim();
       const output = document.getElementById('dict-output');
@@ -221,6 +226,7 @@
       embedBox.style.display = 'block';
     }
 
+    /* 2. 作文 AI 评估逻辑 */
     async function analyzeEssay() {
       const essay = document.getElementById('essay-input').value;
       const type = document.getElementById('essay-type').value;
@@ -241,32 +247,42 @@ Provide response in English with clear sections:
 Essay Content:
 "${essay}"`;
 
-      try {
-        const response = await fetch(GROQ_CONFIG.apiUrl, {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-            'Authorization': `Bearer ${GROQ_CONFIG.apiKey}`
-          },
-          body: JSON.stringify({
-            model: GROQ_CONFIG.model,
-            messages: [{ role: "user", content: prompt }],
-            temperature: 0.3
-          })
-        });
+      let lastErrorMsg = "";
 
-        const data = await response.json();
+      // 循环尝试匹配账号可用的 API 模型
+      for (let modelName of GROQ_CONFIG.models) {
+        try {
+          const response = await fetch(GROQ_CONFIG.apiUrl, {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+              'Authorization': `Bearer ${GROQ_CONFIG.apiKey}`
+            },
+            body: JSON.stringify({
+              model: modelName,
+              messages: [{ role: "user", content: prompt }],
+              temperature: 0.3
+            })
+          });
 
-        if (response.ok && data.choices && data.choices[0]) {
-          output.innerText = data.choices[0].message.content;
-        } else {
-          output.innerText = `❌ API 响应错误:\n${JSON.stringify(data, null, 2)}`;
+          const data = await response.json();
+
+          if (response.ok && data.choices && data.choices[0]) {
+            output.innerText = data.choices[0].message.content;
+            return;
+          } else if (data.error) {
+            lastErrorMsg = `[${modelName}] ${data.error.message}`;
+          }
+        } catch (err) {
+          lastErrorMsg = err.message;
         }
-      } catch (err) {
-        output.innerText = `❌ 网络请求异常:\n${err.message}`;
       }
+
+      // 如果全部模型尝试失败
+      output.innerText = `❌ 请求失败:\n${lastErrorMsg}\n\n建议排查：\n1. 前往 console.groq.com 确认 API Key 状态与权限。\n2. 按 Ctrl + F5 清除浏览器缓存后再试。`;
     }
 
+    /* 3. 口语 Timer 逻辑 */
     const timers = { p1: { interval: null, remaining: 0 }, p2: { interval: null, remaining: 0 } };
 
     function startTimer(key, seconds, labelText) {
@@ -313,6 +329,7 @@ Essay Content:
       status.style.color = 'var(--secondary-text)';
     }
 
+    /* 4. 选项卡切换 */
     function switchTab(viewId, title, btn) {
       document.querySelectorAll('.view').forEach(v => v.classList.remove('active'));
       document.querySelectorAll('.nav-item').forEach(b => b.classList.remove('active'));
