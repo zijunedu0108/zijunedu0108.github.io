@@ -4,6 +4,11 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
   <title>MUET Prep Station Pro</title>
+  
+  <!-- Favicon 设置 -->
+  <link rel="icon" href="awado.png" type="image/png">
+  <link rel="apple-touch-icon" href="awado.png">
+
   <style>
     :root {
       --primary: #007aff;
@@ -19,14 +24,22 @@
     * { box-sizing: border-box; margin: 0; padding: 0; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; -webkit-tap-highlight-color: transparent; }
     body { background-color: var(--bg); color: var(--text); padding-bottom: 75px; min-height: 100vh; }
 
-    /* Header */
+    /* Header 带 Logo 布局 */
     header {
       background: rgba(255, 255, 255, 0.85);
       backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px);
       position: sticky; top: 0; left: 0; right: 0;
-      padding: 14px 20px; text-align: center;
+      padding: 12px 20px;
+      display: flex; align-items: center; justify-content: center; gap: 8px;
       border-bottom: 1px solid var(--border);
       z-index: 100; font-size: 17px; font-weight: 600;
+    }
+
+    .header-logo {
+      width: 24px;
+      height: 24px;
+      object-fit: contain;
+      border-radius: 4px;
     }
 
     /* Views */
@@ -59,13 +72,12 @@
     .btn:active { opacity: 0.8; }
     .btn-secondary { background: #e5e5ea; color: #000; }
     .btn-danger { background: var(--danger); color: #fff; }
-    .btn-success { background: var(--success); color: #fff; }
 
     /* Dictionary UI */
     .dict-word { font-size: 24px; font-weight: bold; color: var(--primary); }
     .dict-zh { font-size: 16px; font-weight: 600; color: var(--success); margin: 8px 0; }
     .embed-container {
-      width: 100%; height: 420px; border-radius: 12px; border: 1px solid var(--border);
+      width: 100%; height: 450px; border-radius: 12px; border: 1px solid var(--border);
       overflow: hidden; margin-top: 12px; background: #fff; display: none;
     }
     .embed-container iframe { width: 100%; height: 100%; border: none; }
@@ -92,29 +104,28 @@
 </head>
 <body>
 
-  <header id="header-title">Online Dictionary</header>
+  <!-- Header 引入 awado.png Logo -->
+  <header>
+    <img src="awado.png" alt="Logo" class="header-logo" onerror="this.style.display='none'">
+    <span id="header-title">Online Dictionary</span>
+  </header>
 
-  <!-- 1. 查词模块：支持内部 API API 查词 + 浏览器内置全网快速检索 -->
+  <!-- 1. 词典模块：仅保留快速查词与有道 Web -->
   <div id="view-vocab" class="view active">
     <div class="card">
-      <h3>🌐 Network Search & Dictionary</h3>
+      <h3>🌐 Network Dictionary</h3>
       <input type="text" id="dict-input" class="search-box" placeholder="输入英文单词 (例: plummet)..." onkeyup="if(event.key==='Enter') searchDirect()">
       
       <div class="btn-group" style="margin-top:0;">
-        <button class="btn" onclick="searchDirect()">⚡ 快速查词 (API)</button>
-        <button class="btn btn-secondary" onclick="openExternalSearch('cambridge')">📖 剑桥词典</button>
-      </div>
-
-      <div class="btn-group" style="margin-top:8px;">
-        <button class="btn btn-secondary" onclick="openExternalSearch('google')">🔍 Google 搜索</button>
-        <button class="btn btn-secondary" onclick="openExternalSearch('youdao')">📕 有道 Web</button>
+        <button class="btn" onclick="searchDirect()">⚡ 快速查词</button>
+        <button class="btn btn-secondary" onclick="openYoudaoWeb()">📕 有道 Web</button>
       </div>
 
       <div id="dict-output" style="margin-top: 15px;">
         <div style="text-align: center; color: var(--secondary-text); padding: 15px 0;">输入单词后点击按钮查词</div>
       </div>
 
-      <!-- 内嵌 WebView 检索窗口 -->
+      <!-- 内嵌有道视窗 -->
       <div id="embed-box" class="embed-container">
         <iframe id="dict-iframe" src=""></iframe>
       </div>
@@ -177,14 +188,14 @@
       作文批改
     </button>
     <button class="nav-item" onclick="switchTab('speaking', 'Speaking Timer', this)">
-      <svg viewBox="0 0 24 24"><path d="M12 2c-4.97 0-9 4.03-9 9 0 2.12.74 4.07 1.97 5.61l-1.43 4.33 4.49-1.35c1.1.48 2.33.74 3.6.74 4.97 0 9-4.03 9-9s-4.03-9-9-9zm0 16c-1.16 0-2.27-.29-3.26-.81l-.23-.13-2.4 0.72 0.77-2.33-.16-.25c-.65-1.02-1.01-2.21-1.01-3.46 0-3.69 3.01-6.7 6.7-6.7s6.7 3.01 6.7 6.7-3.01 6.7-6.7 6.7z"/></svg>
+      <svg viewBox="0 0 24 24"><path d="M12 2c-4.97 0-9 4.03-9 9 0 2.12.74 4.07 1.97 5.61l-1.43 4.33 4.49-1.35c1.1.48 2.33.74 3.6.74 4.97 0 9-4.03 9-9s-4.03-9-9-9zm0 16c-1.16 0-2.27-.29-3.26-.81l-.23-.13-2.4 0.72 0.77-2.33-.16-.25c-.65-1.01-1.01-2.21-1.01-3.46 0-3.69 3.01-6.7 6.7-6.7s6.7 3.01 6.7 6.7-3.01 6.7-6.7 6.7z"/></svg>
       口语计时
     </button>
   </nav>
 
   <script>
     /* ==========================================
-       1. 词典 & 浏览器跳转检索逻辑 (完全避开跨域阻断)
+       1. 快速查词 & 有道 Web 内嵌逻辑
        ========================================== */
     async function searchDirect() {
       const word = document.getElementById('dict-input').value.trim();
@@ -196,7 +207,6 @@
       output.innerHTML = `<div style="text-align:center; padding:15px 0;">⚡ 正在查询中...</div>`;
 
       try {
-        // 使用支持跨域的无门槛翻译 API (MyMemory API)
         const res = await fetch(`https://api.mymemory.translated.net/get?q=${encodeURIComponent(word)}&langpair=en|zh-CN`);
         const data = await res.json();
         
@@ -210,30 +220,22 @@
         }
       } catch (err) {
         output.innerHTML = `
-          <div style="color:var(--danger); text-align:center; padding:10px 0;">直接 API 请求被阻断，请使用下方“浏览器词典按钮”一键查询：</div>
+          <div style="color:var(--danger); text-align:center; padding:10px 0;">直接 API 请求被阻断，请点击右侧“📕 有道 Web”查询。</div>
         `;
       }
     }
 
-    function openExternalSearch(engine) {
+    function openYoudaoWeb() {
       const word = document.getElementById('dict-input').value.trim();
       const iframe = document.getElementById('dict-iframe');
       const embedBox = document.getElementById('embed-box');
+      const output = document.getElementById('dict-output');
       
       if (!word) { alert("请输入需要搜索的单词！"); return; }
 
-      let url = "";
-      if (engine === 'cambridge') {
-        url = `https://dictionary.cambridge.org/zhs/%C6%B3%C6%B3/%C6%B3%C6%B3-%BA%BA%D3%EF/${encodeURIComponent(word)}`;
-        window.open(url, '_blank'); // 剑桥保护拦截 iframe，开启新标签
-      } else if (engine === 'google') {
-        url = `https://www.google.com/search?q=${encodeURIComponent(word)}+meaning+in+chinese`;
-        window.open(url, '_blank');
-      } else if (engine === 'youdao') {
-        url = `https://m.youdao.com/dict?le=eng&q=${encodeURIComponent(word)}`;
-        iframe.src = url;
-        embedBox.style.display = 'block'; // 有道移动端允许在网页内嵌窗口直接看结果！
-      }
+      output.innerHTML = '';
+      iframe.src = `https://m.youdao.com/dict?le=eng&q=${encodeURIComponent(word)}`;
+      embedBox.style.display = 'block';
     }
 
     /* ==========================================
