@@ -57,12 +57,12 @@
     .card h3 { font-size: 16px; color: var(--primary); margin-bottom: 12px; display: flex; align-items: center; gap: 6px; }
 
     /* Forms & Buttons */
-    .search-box, select, textarea, input[type="text"], input[type="password"] {
+    .search-box, select, textarea, input[type="text"] {
       width: 100%; padding: 12px 14px; border-radius: 10px;
       border: 1px solid var(--border); background: #ffffff;
       font-size: 15px; margin-bottom: 12px; outline: none;
     }
-    textarea { height: 160px; resize: vertical; line-height: 1.5; font-size: 14px; }
+    textarea { height: 180px; resize: vertical; line-height: 1.5; font-size: 14px; }
 
     .btn-group { display: flex; gap: 8px; margin-top: 8px; }
     .btn {
@@ -105,13 +105,13 @@
 </head>
 <body>
 
-  <!-- Header 引入 awado.png Logo -->
+  <!-- Header -->
   <header>
     <img src="awado.png" alt="Logo" class="header-logo" onerror="this.style.display='none'">
     <span id="header-title">Online Dictionary</span>
   </header>
 
-  <!-- 1. 词典模块：仅保留快速查词与有道 Web -->
+  <!-- 1. 词典模块 -->
   <div id="view-vocab" class="view active">
     <div class="card">
       <h3>🌐 Network Dictionary</h3>
@@ -126,21 +126,14 @@
         <div style="text-align: center; color: var(--secondary-text); padding: 15px 0;">输入单词后点击按钮查词</div>
       </div>
 
-      <!-- 内嵌有道视窗 -->
       <div id="embed-box" class="embed-container">
         <iframe id="dict-iframe" src=""></iframe>
       </div>
     </div>
   </div>
 
-  <!-- 2. AI 写作批改模块 -->
+  <!-- 2. AI 写作批改模块 (已隐藏配置面板) -->
   <div id="view-writing" class="view">
-    <div class="card">
-      <h3>⚙️ AI Settings (Groq API Enabled)</h3>
-      <input type="password" id="api-key" class="search-box" placeholder="输入 API Key" onchange="saveApiKey()" value="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">
-      <input type="text" id="api-url" class="search-box" placeholder="API EndPoint URL" value="https://api.groq.com/openai/v1/chat/completions">
-    </div>
-
     <div class="card">
       <h3>✍️ MUET Essay Assessor</h3>
       <select id="essay-type">
@@ -196,6 +189,15 @@
 
   <script>
     /* ==========================================
+       配置信息硬编码在脚本内部
+       ========================================== */
+    const GROQ_CONFIG = {
+      apiKey: "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",
+      apiUrl: "https://api.groq.com/openai/v1/chat/completions",
+      model: "llama-3.1-8b-instant"
+    };
+
+    /* ==========================================
        1. 快速查词 & 有道 Web 内嵌逻辑
        ========================================== */
     async function searchDirect() {
@@ -240,20 +242,13 @@
     }
 
     /* ==========================================
-       2. AI 写作批改逻辑 (已更新为 Groq 稳定的免费模型)
+       2. AI 写作批改逻辑
        ========================================== */
-    function saveApiKey() {
-      localStorage.setItem('muet_api_key', document.getElementById('api-key').value);
-    }
-
     async function analyzeEssay() {
-      const apiKey = document.getElementById('api-key').value || localStorage.getItem('muet_api_key');
-      const apiUrl = document.getElementById('api-url').value;
       const essay = document.getElementById('essay-input').value;
       const type = document.getElementById('essay-type').value;
       const output = document.getElementById('ai-output');
 
-      if (!apiKey) { alert("请先输入 API Key！"); return; }
       if (!essay.trim()) { alert("请输入作文内容！"); return; }
 
       output.style.display = 'block';
@@ -270,14 +265,14 @@ Essay Content:
 "${essay}"`;
 
       try {
-        const response = await fetch(apiUrl, {
+        const response = await fetch(GROQ_CONFIG.apiUrl, {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json',
-            'Authorization': `Bearer ${apiKey}`
+            'Authorization': `Bearer ${GROQ_CONFIG.apiKey}`
           },
           body: JSON.stringify({
-            model: "llama-3.1-8b-instant", // 👈 使用完全免费且稳定的模型 ID
+            model: GROQ_CONFIG.model,
             messages: [{ role: "user", content: prompt }],
             temperature: 0.3
           })
@@ -359,12 +354,6 @@ Essay Content:
       btn.classList.add('active');
       document.getElementById('header-title').innerText = title;
     }
-
-    window.onload = () => {
-      if (localStorage.getItem('muet_api_key')) {
-        document.getElementById('api-key').value = localStorage.getItem('muet_api_key');
-      }
-    };
   </script>
 </body>
 </html>
