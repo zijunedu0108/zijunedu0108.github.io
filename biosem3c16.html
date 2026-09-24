@@ -1,0 +1,1286 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>STPM Biology Sem 3 · Chapter 16</title>
+    <style>
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            font-family: 'Segoe UI', Roboto, system-ui, sans-serif;
+            background: #f2f7f5;
+            padding: 1.5rem 1rem;
+            display: flex;
+            justify-content: center;
+            min-height: 100vh;
+        }
+
+        .app {
+            max-width: 1100px;
+            width: 100%;
+            background: white;
+            border-radius: 32px;
+            box-shadow: 0 18px 40px -12px rgba(0, 30, 20, 0.25);
+            padding: 2rem 2rem 2rem 2rem;
+            display: flex;
+            flex-direction: column;
+        }
+
+        h1 {
+            font-size: 1.8rem;
+            font-weight: 600;
+            letter-spacing: -0.5px;
+            color: #1a3b32;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            margin-bottom: 0.5rem;
+        }
+
+        h1 small {
+            font-size: 1rem;
+            font-weight: 400;
+            color: #5e7b72;
+            margin-left: auto;
+        }
+
+        .progress-bar {
+            display: flex;
+            align-items: center;
+            gap: 16px;
+            margin: 0.5rem 0 1.2rem 0;
+            flex-wrap: wrap;
+        }
+
+        .progress-bar span {
+            background: #e2ede9;
+            padding: 0.4rem 1rem;
+            border-radius: 40px;
+            font-size: 0.9rem;
+            color: #1a4d3e;
+            font-weight: 500;
+        }
+
+        .progress-bar .timer {
+            background: #d9e9e4;
+            margin-left: auto;
+            font-variant-numeric: tabular-nums;
+        }
+
+        .card {
+            background: #f9fffd;
+            border: 1px solid #cfe3dd;
+            border-radius: 24px;
+            padding: 1.6rem 1.8rem 1.8rem;
+            box-shadow: 0 4px 12px rgba(0, 30, 20, 0.04);
+            margin-bottom: 1.5rem;
+        }
+
+        .question-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            margin-bottom: 1.2rem;
+        }
+
+        .question-text {
+            font-size: 1.3rem;
+            font-weight: 600;
+            color: #0a2e25;
+            line-height: 1.4;
+            max-width: 85%;
+        }
+
+        .marks-badge {
+            background: #b6d9cf;
+            padding: 0.25rem 0.9rem;
+            border-radius: 30px;
+            font-size: 0.9rem;
+            font-weight: 600;
+            color: #0f3a2e;
+            white-space: nowrap;
+        }
+
+        .input-area {
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+            margin: 1rem 0 0.8rem;
+        }
+
+        .input-row {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .input-row input {
+            flex: 1;
+            padding: 0.85rem 1.2rem;
+            border-radius: 60px;
+            border: 1.5px solid #cddfd9;
+            font-size: 1rem;
+            background: white;
+            transition: 0.15s;
+            font-family: inherit;
+        }
+
+        .input-row input:focus {
+            outline: none;
+            border-color: #2b7a62;
+            box-shadow: 0 0 0 3px rgba(43, 122, 98, 0.15);
+        }
+
+        .input-row .score-tag {
+            width: 48px;
+            height: 48px;
+            border-radius: 50%;
+            background: #eef6f3;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 600;
+            color: #1f5a49;
+            border: 1px solid #c2dbd2;
+            font-size: 1rem;
+        }
+
+        .input-row .score-tag.correct {
+            background: #c8f0e0;
+            border-color: #2b8c6b;
+            color: #0b3d2e;
+        }
+
+        .btn-group {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 12px;
+            margin: 1.2rem 0 0.8rem;
+            align-items: center;
+        }
+
+        .btn {
+            padding: 0.8rem 1.8rem;
+            border-radius: 60px;
+            border: none;
+            font-weight: 600;
+            font-size: 0.95rem;
+            cursor: pointer;
+            transition: 0.15s;
+            background: #e6f0ec;
+            color: #1a4d3e;
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            font-family: inherit;
+        }
+
+        .btn-primary {
+            background: #1e5e4b;
+            color: white;
+            box-shadow: 0 6px 14px rgba(30, 94, 75, 0.25);
+        }
+
+        .btn-primary:hover {
+            background: #144c3c;
+        }
+
+        .btn-secondary {
+            background: white;
+            border: 1.5px solid #b8d2c9;
+            color: #1e4b3f;
+        }
+
+        .btn-secondary:hover {
+            background: #ecf6f2;
+        }
+
+        .btn:disabled {
+            opacity: 0.45;
+            pointer-events: none;
+            box-shadow: none;
+        }
+
+        .hint-box {
+            background: #fdf6e3;
+            border-left: 6px solid #e0b354;
+            padding: 1rem 1.4rem;
+            border-radius: 16px;
+            font-size: 0.95rem;
+            color: #3d3520;
+            margin: 0.5rem 0 0.8rem;
+            line-height: 1.6;
+        }
+
+        .hint-box strong {
+            color: #7a5e1a;
+        }
+
+        .skema-panel {
+            background: #f0f7f4;
+            border-radius: 20px;
+            padding: 1.4rem 1.6rem;
+            margin: 1rem 0 1rem;
+            border: 1px solid #c2dbd2;
+            max-height: 260px;
+            overflow-y: auto;
+            font-size: 0.95rem;
+            line-height: 1.65;
+        }
+
+        .skema-panel h4 {
+            font-weight: 600;
+            color: #1e4b3f;
+            margin-bottom: 0.6rem;
+            font-size: 1rem;
+            letter-spacing: 0.2px;
+        }
+
+        .skema-panel ol {
+            padding-left: 1.6rem;
+            color: #1d3d34;
+        }
+
+        .skema-panel li {
+            margin-bottom: 0.3rem;
+        }
+
+        .highlight {
+            background: #c8f0a0;
+            font-weight: 600;
+            color: #173e2e;
+            padding: 0.1rem 0.2rem;
+            border-radius: 6px;
+        }
+
+        .score-summary {
+            background: #e6f3ee;
+            border-radius: 20px;
+            padding: 1.6rem 2rem;
+            margin: 1rem 0 0.5rem;
+            text-align: center;
+        }
+
+        .score-summary h2 {
+            font-size: 1.8rem;
+            font-weight: 600;
+            color: #1e4b3f;
+        }
+
+        .score-summary p {
+            font-size: 1.2rem;
+            color: #2b5f4e;
+            margin-top: 0.4rem;
+        }
+
+        .summary-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 1.4rem;
+            font-size: 0.9rem;
+        }
+
+        .summary-table th {
+            text-align: left;
+            background: #d3e8e0;
+            color: #0f2e25;
+            padding: 0.7rem 1rem;
+            font-weight: 600;
+        }
+
+        .summary-table td {
+            padding: 0.6rem 1rem;
+            border-bottom: 1px solid #d0e2db;
+            color: #1b4237;
+        }
+
+        .summary-table tr:last-child td {
+            border-bottom: none;
+        }
+
+        .hide {
+            display: none;
+        }
+
+        .flex-between {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .mt-1 {
+            margin-top: 0.8rem;
+        }
+    </style>
+</head>
+<body>
+    <div class="app" id="app">
+        <h1>
+            🧬 STPM Biology Sem 3 · Chapter 16
+            <small>39 questions</small>
+        </h1>
+
+        <!-- Start screen -->
+        <div id="startScreen">
+            <div class="card" style="text-align: center; padding: 3rem 1.5rem;">
+                <p style="font-size: 1.2rem; color: #1a4d3e; margin-bottom: 2rem;">
+                    🌿 Ecology &nbsp;|&nbsp; Hierarchy · Biomes · Cycles · Energy Flow · Population
+                </p>
+                <button class="btn btn-primary" style="font-size: 1.3rem; padding: 1rem 3.5rem;" id="startBtn">
+                    ▶ Start Quiz
+                </button>
+                <p style="margin-top: 1.5rem; font-size: 0.9rem; color: #5e7b72;">
+                    Each question requires a specific number of correct sentences. Singular/plural variations are accepted.
+                </p>
+            </div>
+        </div>
+
+        <!-- Quiz screen -->
+        <div id="quizScreen" class="hide">
+            <div class="progress-bar">
+                <span id="questionCounter">Question 1 / 39</span>
+                <span id="timerDisplay" class="timer">⏱ 00:00</span>
+            </div>
+
+            <div class="card" id="questionCard">
+                <div class="question-header">
+                    <div class="question-text" id="questionText"></div>
+                    <div class="marks-badge" id="marksBadge"></div>
+                </div>
+
+                <div id="inputContainer" class="input-area"></div>
+
+                <div class="btn-group">
+                    <button class="btn btn-primary" id="submitBtn">📋 Submit Answers</button>
+                    <button class="btn btn-secondary" id="hintBtn">💡 Hint (keywords)</button>
+                    <button class="btn btn-secondary" id="nextBtn" disabled>Next →</button>
+                </div>
+
+                <div id="hintBox" class="hint-box hide"></div>
+
+                <div id="skemaPanel" class="skema-panel hide">
+                    <h4>📖 Complete Scheme</h4>
+                    <ol id="skemaList"></ol>
+                </div>
+            </div>
+        </div>
+
+        <!-- Summary screen -->
+        <div id="summaryScreen" class="hide">
+            <div class="score-summary">
+                <h2>✅ Quiz Completed</h2>
+                <p id="totalScoreDisplay"></p>
+                <p id="timeTakenDisplay" style="font-size: 1rem; margin-top: 0.3rem;"></p>
+            </div>
+            <div style="max-height: 380px; overflow-y: auto; margin-top: 1rem;">
+                <table class="summary-table" id="summaryTable">
+                    <thead>
+                        <tr><th>#</th><th>Question</th><th>Score</th><th>Max</th></tr>
+                    </thead>
+                    <tbody id="summaryBody"></tbody>
+                </table>
+            </div>
+            <button class="btn btn-primary mt-1" style="margin-top: 1.5rem;" id="restartBtn">↻ Restart Quiz</button>
+        </div>
+    </div>
+
+    <script>
+        // ============================================================
+        //  FULL QUESTION BANK (39 questions)
+        // ============================================================
+        const questions = [
+            { q: "1. Concept of Hierarchy. [8m]", marks: 8, answers: [
+                "All living organisms are made up of cells",
+                "Cells are grouped to form tissues",
+                "Different tissues are arranged to form a functional organ",
+                "Organ are grouped to form a system",
+                "The arrangement of all different systems constitutes a complete individual organism",
+                "Organisms of the same species that live in groups in a particular area at any one time are called a population",
+                "The populations of different species that inhabit a particular area make up a community",
+                "A community interacts with abiotic factors in its environment forms an ecosystem",
+                "All ecosystems on planet Earth together constitute the biosphere",
+                "The biosphere is divided into a number of biomes",
+                "A biome is a large community of units that extends over a wide biogeographical area"
+            ]},
+            { q: "2. Importance of Hierarchy. [8m]", marks: 8, answers: [
+                "To understand the functions and roles of an ecosystem",
+                "Explains how ecosystems maintain balance and support life through energy flow, nutrient cycling and food web",
+                "To understand the concept of natural population control",
+                "Allows the study of natural populations more accurately, aided by improved sampling methods",
+                "To carry out biodiversity conservation",
+                "Facilitates the study of conservation methods to protect endangered species and maintain ecological balance",
+                "To carry out sustainable management of resources",
+                "Promotes responsible use of chemical controls on pests like insects to minimise environmental impact"
+            ]},
+            { q: "3. Terrestrial biomes. [10m]", marks: 10, answers: [
+                "Savannah: Have many grazing species and their predators",
+                "Desert: Mostly barren",
+                "Tundra: Cold for most of the year with a very short growing season",
+                "Tropical rain forest: Great richness and diversity of species",
+                "Temperate rain forest: Cold and wet",
+                "Biome is a large community of units that extends over a wide biogeographical area",
+                "Terrestrial biomes are characterized by distinct climate and vegetation",
+                "They are influenced by temperature and precipitation",
+                "Each biome supports specific adaptations of organisms",
+                "Examples include tropical rainforest, savannah, desert, tundra and temperate forest"
+            ]},
+            { q: "4. Define ecosystems. [10m]", marks: 10, answers: [
+                "An ecosystem is formed by a community interact with abiotic factors in its environment",
+                "Biotic factor involved in an ecosystem are producer, consumers and decomposers",
+                "Producer synthesize organic compounds from inorganic materials via photosynthesis",
+                "Consumers obtain energy by consuming other organisms or producers",
+                "Decomposers break down dead organic matter into inorganic nutrients",
+                "Abiotic components include physical factors (e.g., sunlight, temperature) and chemical factors (e.g., pH, water/soil mineral availability)",
+                "Processes involved in ecosystem are energy flow and biogeochemical cycling",
+                "Energy flow in an ecosystem is the unidirectional movement of energy originating from the sun and passing through different trophic levels",
+                "Biogeochemical cycle is a natural movement of chemical elements through living organisms, the Earth's surface and chemical processes, connecting ecosystems across space and time",
+                "Ecosystem is a functional unit of ecology"
+            ]},
+            { q: "5. Define niche and state four types of niche and their importance. [9m]", marks: 9, answers: [
+                "Niche is a role of an organism and how it uses the resources in its environment",
+                "Fundamental Niche: The full potential range of physical and biological conditions under which a species can survive and reproduce in the absence of competition or limiting factors",
+                "Realized Niche: The actual niche space a species occupies when constrained by biotic interactions such as competition, predation, and disease",
+                "Spatial (Habitat) Niche: The specific physical space or microhabitat occupied by a species within an ecosystem",
+                "Trophic Niche: The functional position of a species within the food web, defined by its food sources and energy relationships",
+                "Reduces Interspecific Competition: Distinct niches allow multiple species to coexist in the same environment by partitioning resources (Resource Partitioning)",
+                "Maintains Ecosystem Stability: Ensures functional roles (e.g., seed dispersal, pollination, decomposition, population regulation via predation) are maintained within the ecosystem",
+                "Drives Evolutionary Adaptation: Defines selective pressures that lead to specializations, adaptations, and speciation over time",
+                "Importance of niche includes reducing competition, maintaining stability and driving evolution"
+            ]},
+            { q: "6. Define biogeochemical cycle. [8m]", marks: 8, answers: [
+                "Biogeochemical cycle is a natural movement of chemical elements through living organisms, the Earth's surface and chemical processes, connecting ecosystems across space and time",
+                "Each specific biogeochemical cycle can be divided into main reservoir, cycling pool and biotic community",
+                "Main reservoir is where elements are stored for long period",
+                "Organic reservoir can be found in living organism where inorganic reservoirs can be found in sedimentary rock, soil or dissolved in water",
+                "The cycling pool is a short-term, active storage, where elements move in and out quickly, such as atmosphere, soil and water",
+                "The biotic community is the living organisms involved in the cycle that use and release the element through food chains",
+                "Elements circulate from producers to consumers and become available again through the action of decomposers and detritivorous",
+                "The biogeochemical cycles consists of carbon cycle, phosphorus cycle and nitrogen cycle"
+            ]},
+            { q: "7. Nitrogen cycle in terrestrial ecosystems. [10m]", marks: 10, answers: [
+                "Producers cannot directly make use of atmospheric nitrogen gas, N2",
+                "This inert gas must be reduced into ammonia, NH3 by nitrogen-fixing bacteria in soil through nitrogen fixation (Nitrogenase)",
+                "Nitrogen-fixing bacteria produce the enzyme nitrogenase, which reduces atmospheric gas, N2 into ammonia, NH3 in the absence of oxygen",
+                "In the nitrification process, ammonia or ammonium ions, NH4+ are converted into nitrate ions, NO3- through a two-step oxidation process",
+                "Plant absorb ammonia, ammonium ions and nitrate ions directly from the soil, and assimilate nitrogen into amino acids, which are then used to form protein and other nitrogen-containing compounds",
+                "Primary consumers feed on producers, obtaining nitrogen in the form of organic compounds",
+                "The waste products and remains of organisms are broken down by decomposers through ammonification producing ammonium ions, NH4+ in the soil",
+                "Denitrifying bacteria convert nitrate ions, NO3- in the soil into nitrogen gas, N2, returning nitrogen to the atmosphere",
+                "Nitrogen fixation, nitrification, assimilation, ammonification and denitrification are key processes",
+                "Nitrogen cycle maintains soil fertility and atmospheric nitrogen balance"
+            ]},
+            { q: "8. Nitrogen cycle in aquatic environments. [10m]", marks: 10, answers: [
+                "In nitrogen-fixation, filamentous cyanobacteria possess heterocysts",
+                "These oxygen-excluding heterocysts provide anaerobic conditions that allow the enzyme nitrogenase to fix atmospheric nitrogen gas, N2 into ammonia, NH3",
+                "Nitrate ions from agricultural and urban run-off increase the concentration of nitrogen compounds in water bodies",
+                "Phytoplankton and aquatic plants absorb ammonium ions, NH4+ and nitrate ions, NO3- from the water",
+                "and assimilate the nitrogen into amino acids",
+                "Phytoplankton and aquatic plants are consumed by zooplankton and larger aquatic organisms",
+                "As a result, nitrogen in organic form is transferred from one organism to another through the aquatic food chain",
+                "Decomposer break down wastes and dead organisms, releasing ammonium ion, NH4+ into the water through ammonification",
+                "These ammonium ions may then be converted into nitrate ions, NO3- by nitrifying bacteria, making nitrogen available again for uptake by aquatic producers",
+                "Aquatic nitrogen cycle involves fixation, assimilation, ammonification and nitrification"
+            ]},
+            { q: "9. Impact of human activities on nitrogen cycle. [10m]", marks: 10, answers: [
+                "Excessive use of nitrogen fertilisers can lead to runoff into rivers, lake, ponds, causing eutrophication",
+                "It will increase BOD and cause oxygen level drop, leading to the death of aquatic organisms due to oxygen depletion",
+                "Intensive agriculture and farming livestock increase the production of manure that is rich in ammonia and nitrate ions",
+                "The nitrate ion can leach into soil and groundwater, causing nitrogen pollution and making groundwater unsafe for drink",
+                "The combustion of fossil fuels in both transportation and industrial activities release nitrogen oxides into the atmosphere",
+                "Nitrogen oxide dissolve in atmospheric water vapour to form nitric acid, which falls as acid rain",
+                "Acid rain lowers soil pH, reducing soil fertility and making conditions unsuitable for plant growth",
+                "Nitrogen oxide also contribute to air pollution",
+                "Nitrogen oxides act as greenhouse gases and play a role in the formation of photochemical smog",
+                "Human activities such as agriculture, fossil fuel burning and livestock farming disrupt the nitrogen cycle"
+            ]},
+            { q: "10. Phosphorus cycle in terrestrial ecosystems. [10m]", marks: 10, answers: [
+                "Erosion and weathering of rocks containing phosphorus release phosphate ion, PO4- into the soil",
+                "Mining of phosphate rock extracts phosphate for use in agricultural fertiliser",
+                "This increase the phosphate ion in soil",
+                "The phosphate is taken up by roots in the form of inorganic phosphate",
+                "Primary consumers feed on producers and incorporate some of the phosphate ions into their teeth, bones, shells and other biological molecules",
+                "The phosphate is then transferred through the food chain from one trophic level to next",
+                "The remains of the organisms and their excretory wastes, which contain phosphate, are decomposed by saprophytic bacteria",
+                "Releasing dissolved phosphate ions back into the soil for uptake by plants",
+                "Phosphorus cycle in terrestrial ecosystems is sedimentary and relatively slow",
+                "Main reservoirs are rocks and soil"
+            ]},
+            { q: "11. Phosphorus cycle in aquatic ecosystems. [10m]", marks: 10, answers: [
+                "Dissolved phosphate ions, PO4- from soil are carried into aquatic ecosystem through leaching and surface runoff",
+                "Aquatic plants and algae absorb phosphate ions to synthesis ATP, nucleic acids and phospholipids",
+                "Phosphate then moves through the aquatic food chain as zooplankton consume phytoplankton, followed by fish, molluscs, other higher consumer",
+                "Decomposers break down dead organisms and waste products, releasing inorganic phosphate, PO4- back into the water",
+                "Some phosphate ions eventually settle and become part of marine sediments on the ocean floor",
+                "This phosphorus is largely inactive and unavailable to aquatic or terrestrial producer, until geologic processes expose sedimentary rock on land",
+                "Phosphorus cycle is incomplete biogeochemical cycle because",
+                "The phosphate on land is eroded, extracted, leaches and then becomes the inactive sedimentary layer in the seabed",
+                "Aquatic phosphorus cycle involves uptake, transfer, decomposition and sedimentation",
+                "Phosphorus is often a limiting nutrient in aquatic ecosystems"
+            ]},
+            { q: "12. Impact of human activities on natural cycling of phosphorus. [6m]", marks: 6, answers: [
+                "Mining phosphorus rock to produce fertiliser and detergents",
+                "Excessive use of phosphate fertiliser and detergents increase the concentration of phosphate ions in soil and water bodies",
+                "Runoff of phosphate ions due to excessive fertiliser use",
+                "Results in eutrophication",
+                "Unsustainable land-denuding practices",
+                "Phosphorus that leaches from the land into the aquatic ecosystem is permanently lost from the terrestrial phosphorus cycle"
+            ]},
+            { q: "13. Carbon cycle in terrestrial ecosystems. [10m]", marks: 10, answers: [
+                "CO2 in the atmosphere is absorbed by producers",
+                "When primary consumers feed on plants, carbon in plant tissues is transferred to animals and incorporated into organic carbon compound, such as glycogen, lipids, protein nucleic acids in animal tissues",
+                "After terrestrial organisms die, the organic compounds in their remains and faeces are decomposed by decomposers (bacteria / fungi)",
+                "These organic forms of carbon become the decaying carbon matter in the soil",
+                "Over millions of years, some plant and animal remains may be converted into fossil fuels (coal, petroleum) under the conditions of extreme pressure and temperature within the Earth's crust",
+                "The combustion of fossil fuels releases CO2 into the atmosphere",
+                "The mining and processing of limestone in the cement industry release CO2 into the atmosphere during calcination",
+                "Volcanic eruption is also a substantial source of CO2",
+                "During cellular respiration, CO2 is liberated and returns to the atmosphere",
+                "Terrestrial carbon cycle involves photosynthesis, respiration, decomposition and combustion"
+            ]},
+            { q: "14. Carbon cycle in aquatic ecosystems. [10m]", marks: 10, answers: [
+                "CO2 from the atmosphere dissolves in water and form carbonic acid, which dissociates to produce bicarbonate ion, HCO3-",
+                "HCO3- are a source of carbon for algae and phytoplankton that convert carbon into organic molecules via photosynthesis",
+                "When primary consumers (zooplankton) feed on phytoplankton, carbon compound are transferred from one trophic level to another through the aquatic food chain",
+                "Many aquatic organisms incorporate carbon into skeleton and shells in the form of calcium carbonate, CaCO3",
+                "After these organisms die, their shells become part of the marine sediments",
+                "Over geological time, the sediments become carbon-rich sedimentary rock, such as limestone and chalk",
+                "When aquatic organisms carry out respiration, the CO2 released dissolved in water and converted into HCO3-",
+                "Contributing to the dissolved inorganic carbon pool",
+                "Methanogens lives in oxygen-free microhabitats (pond, mud, paddy field soil)",
+                "Through anaerobic decomposition, they release methane, CH4 which is eventually oxidised in CO2 in the atmosphere, returning carbon to the atmospheric pool"
+            ]},
+            { q: "15. Impact of human activities on the natural cycling of carbon. [8m]", marks: 8, answers: [
+                "Limestone is mined to extract CaCO3 for cement production",
+                "Heating cement releases CO2 into the atmosphere",
+                "The burning of fossil fuels in vehicles and industries increases the CO2 concentration in the atmosphere",
+                "Deforestation reduces the carbon reservoir because forests act as major carbon sink",
+                "Without plants to absorb excess CO2 through photosynthesis, more CO2 remains in the atmosphere",
+                "Excessive livestock farming",
+                "Increase the release of methane gas",
+                "Methane under anaerobic conditions is eventually oxidised in the atmosphere to CO2",
+                "The greenhouse gases trap heat, contributing to the greenhouse effect and accelerating global warming"
+            ]},
+            { q: "16. Carbon sequestration. [10m]", marks: 10, answers: [
+                "Reforestation, afforestation and forest conservation",
+                "Conserving forests helps to reduce atmospheric CO2, which combats global warming and climate change",
+                "Renewable and clean energy",
+                "Minimises the reliance on combustion of fossil fuels for energy",
+                "Dietary choices and local consumption",
+                "Choosing locally produced food can lower carbon emissions by reducing greenhouse gas release from agriculture and transportation",
+                "Carbon capture and storage",
+                "CO2 captured from industrial sources is injected deep underground into rock or depleted oil fields for long-term storage",
+                "Carbon sequestration is the process of capturing and storing atmospheric carbon dioxide",
+                "It helps mitigate climate change by reducing greenhouse gases"
+            ]},
+            { q: "17. Define first law and second law of thermodynamics. [4m]", marks: 4, answers: [
+                "The first law of thermodynamics state that energy can be converted from one to another, but cannot be destroyed or created",
+                "For example, light is a form of energy that can be converted into heat energy or chemical energy in food, but cannot be eliminated completely",
+                "The second law of thermodynamics state that there will always be losses during energy conversion",
+                "The heat energy is lost through respiration, reproduction and removal of excretory wastes in organisms"
+            ]},
+            { q: "18. Relate GPP and NPP on energy flow. [5m]", marks: 5, answers: [
+                "Gross Primary Production (GPP) is the total amount of energy captured by producers through photosynthesis",
+                "Net Primary Production (NPP) is the energy remaining after respiration losses",
+                "NPP = GPP - Respiration",
+                "NPP represents the energy available to consumers in an ecosystem",
+                "Energy flow through trophic levels is limited by NPP"
+            ]},
+            { q: "19. Explain 2 types of food chains and give one examples for each. [10m]", marks: 10, answers: [
+                "Grazing food chain: starts with producers and moves to herbivores then carnivores",
+                "Example: Grass → Grasshopper → Frog → Snake",
+                "Detrital food chain: starts with dead organic matter and moves to detritivores then their predators",
+                "Example: Leaf litter → Earthworm → Bird",
+                "Grazing food chain is based on living plant material",
+                "Detrital food chain is based on dead organic matter",
+                "Both types of food chains transfer energy and nutrients",
+                "Food chains are interconnected to form food webs",
+                "Energy is lost at each trophic level",
+                "Food chains typically have 3-5 trophic levels"
+            ]},
+            { q: "20. Explain the energy flow in tropical forest in Malaysia. [10m]", marks: 10, answers: [
+                "Sunlight is the primary energy source for tropical forest ecosystems",
+                "Producers such as trees and shrubs absorb about 2% of solar energy through photosynthesis",
+                "Energy is stored as chemical energy in plant biomass",
+                "Primary consumers (herbivores) feed on producers and obtain about 10% of energy",
+                "Secondary consumers (carnivores) feed on primary consumers",
+                "Tertiary consumers feed on secondary consumers",
+                "Energy is lost as heat through respiration, excretion and reproduction at each trophic level",
+                "Only about 10% of energy is transferred between trophic levels",
+                "Decomposers break down dead organic matter and release energy",
+                "Energy flow is unidirectional in the tropical forest ecosystem"
+            ]},
+            { q: "21. Explain the energy flow in lake in Malaysia. [10m]", marks: 10, answers: [
+                "Sunlight is the primary energy source for lake ecosystems",
+                "Phytoplankton and aquatic plants absorb about 2% of solar energy through photosynthesis",
+                "Energy is stored as chemical energy in phytoplankton biomass",
+                "Zooplankton (primary consumers) feed on phytoplankton and obtain about 10% of energy",
+                "Small fish (secondary consumers) feed on zooplankton",
+                "Large fish (tertiary consumers) feed on small fish",
+                "Energy is lost as heat through respiration, excretion and reproduction at each trophic level",
+                "Only about 10% of energy is transferred between trophic levels",
+                "Decomposers break down dead organic matter and release nutrients",
+                "Energy flow is unidirectional in the lake ecosystem"
+            ]},
+            { q: "22. Describe how energy is transferred in an ecosystem from the Sun. [10m]", marks: 10, answers: [
+                "About 2% of energy from the Sun is absorbed by the producers, the first trophic level, such as phytoplankton",
+                "The energy absorbed is used for photosynthesis and is changed into chemical energy in the form of organic food",
+                "Organisms in the second trophic level, which act as primary consumer such as zooplankton, which are herbivores, feed on the plants",
+                "Only 10% of the energy stored in plant tissues is transferred to the herbivores",
+                "Secondary consumers, the third trophic level, such as larger fish, feed on the primary consumers",
+                "Energy is transferred from the second trophic level to the third trophic level",
+                "Only about 10% of the energy in one trophic level ends up in the next trophic level",
+                "As energy transferred along a food chain, some energy is lost to the surroundings as heat released during respiration, excretion or reproduction",
+                "Therefore, each trophic level receives less energy than the trophic level below it",
+                "The energy flows in one direction in the food chain"
+            ]},
+            { q: "23. Describe the flow of energy through ecosystem. [10m]", marks: 10, answers: [
+                "Energy flow in an ecosystem is the unidirectional movement of energy originating from the sun",
+                "Energy passes through different trophic levels",
+                "Producers capture solar energy through photosynthesis",
+                "Energy is transferred to consumers through feeding",
+                "Only about 10% of energy is transferred between trophic levels",
+                "Energy is lost as heat through respiration, excretion and reproduction",
+                "Decomposers obtain energy from dead organic matter",
+                "Energy flow is not cyclic, unlike nutrient cycling",
+                "The amount of energy decreases at each trophic level",
+                "Energy flow sustains ecosystem functions and services"
+            ]},
+            { q: "24. State the factors that influence the increased of population size of animals in a lake ecosystem. [8m]", marks: 8, answers: [
+                "Nutrient Availability (Nitrates & Phosphates): Moderate influx of nutrients enhances phytoplankton blooms, expanding the foundational food supply for animal consumers",
+                "High Immigration Rate: Arrival and integration of individuals from connected rivers, streams, or adjacent water bodies increase overall population density",
+                "Low Predation Pressure: Reduction or absence of top-level predators allows lower trophic populations to multiply rapidly",
+                "Low Disease and Parasite Incidence: Healthy water conditions minimize infections and mortality rates within animal populations",
+                "Favourable water temperature and pH",
+                "Adequate dissolved oxygen levels",
+                "Availability of breeding sites and shelter",
+                "Reduced competition for resources"
+            ]},
+            { q: "25. Explain how the S growth curve affects the population ecology related with biotic potential, natality, mortality and migration. [10m]", marks: 10, answers: [
+                "S-shaped (logistic) growth curve shows initial slow growth, then rapid growth, then slowing down as carrying capacity is reached",
+                "Biotic potential is the maximum reproductive capacity under ideal conditions",
+                "Natality (birth rate) is high during the rapid growth phase",
+                "Mortality (death rate) is low during the rapid growth phase",
+                "Migration (immigration) can increase population size during growth phase",
+                "As population approaches carrying capacity, natality decreases",
+                "Mortality increases due to limited resources",
+                "Emigration may increase as individuals leave to find resources",
+                "Population stabilizes at carrying capacity (K)",
+                "Environmental resistance limits population growth"
+            ]},
+            { q: "26. Explain how the J growth curve affects the population ecology related with biotic potential, natality, mortality and migration. [10m]", marks: 10, answers: [
+                "J-shaped (exponential) growth curve shows rapid, unchecked population growth",
+                "Biotic potential is fully expressed under unlimited resources",
+                "Natality (birth rate) remains high throughout",
+                "Mortality (death rate) remains low and constant",
+                "Migration (immigration) can contribute to rapid growth",
+                "Population grows without limit until environmental resistance causes a crash",
+                "Resources are not limiting in early stages",
+                "Density-independent factors may cause sudden decline",
+                "This curve is typical of populations introduced to new environments",
+                "J-curve eventually leads to overshoot and die-off"
+            ]},
+            { q: "27. Explain the characteristics of three types of survivorship and give one example each. [10m]", marks: 10, answers: [
+                "Type I survivorship: high survival in early and middle life, then sharp decline in old age",
+                "Example: Humans and elephants",
+                "Type II survivorship: constant mortality rate throughout life",
+                "Example: Birds and squirrels",
+                "Type III survivorship: high mortality in early life, but survivors live long",
+                "Example: Fish and insects",
+                "Survivorship curves reflect life history strategies",
+                "Type I is typical of K-selected species",
+                "Type III is typical of r-selected species",
+                "Survivorship curves help understand population dynamics"
+            ]},
+            { q: "28. Explain characteristic of K- strategies and give TWO examples. [8m]", marks: 8, answers: [
+                "K-strategists have low reproductive rates",
+                "They produce few, large offspring with high parental care",
+                "They have long life spans and late maturity",
+                "They are typically found in stable environments",
+                "Population size is regulated near carrying capacity (K)",
+                "Examples: Elephants and humans",
+                "K-strategists invest heavily in each offspring",
+                "They have density-dependent population regulation"
+            ]},
+            { q: "29. Explain characteristics of r- strategies and give TWO examples. [8m]", marks: 8, answers: [
+                "r-strategists have high reproductive rates",
+                "They produce many, small offspring with little or no parental care",
+                "They have short life spans and early maturity",
+                "They are typically found in unstable or unpredictable environments",
+                "Population size is regulated by density-independent factors",
+                "Examples: Insects and weeds",
+                "r-strategists invest little in each offspring",
+                "They exhibit exponential growth when conditions are favourable"
+            ]},
+            { q: "30. Compare the characteristic of K- strategies and r- strategies. [8m]", marks: 8, answers: [
+                "K-strategists: low reproductive rate, few offspring, high parental care",
+                "r-strategists: high reproductive rate, many offspring, low parental care",
+                "K-strategists: long life span, late maturity",
+                "r-strategists: short life span, early maturity",
+                "K-strategists: stable environment, population near K",
+                "r-strategists: unstable environment, population fluctuates",
+                "K-strategists: density-dependent regulation",
+                "r-strategists: density-independent regulation"
+            ]},
+            { q: "31. Define carrying capacity and sustainable development. [4m]", marks: 4, answers: [
+                "Carrying capacity is symbolised as K",
+                "It is the total number of organisms that can be supported by the environmental resources in an ecosystem",
+                "Sustainable development refers to development that meets present needs without compromising the ability of future generations to meet theirs",
+                "It requires human resource consumption and waste production to remain strictly within the environment's carrying capacity"
+            ]},
+            { q: "32. Explain carrying capacity and biotic potential. [8m]", marks: 8, answers: [
+                "Population size increases until it reaches saturation within the carrying capacity of its ecosystem due to limited resources",
+                "The limits the population growth by maintaining an equilibrium between the natality rate and mortality rate",
+                "The biotic potential of a population refers to the ability of its individual organism to reproduce under optimum condition",
+                "The actual capacity of a natural population will only reach biotic potential if all individuals in the population survive and reproduce at the maximum rate",
+                "Full biotic potential is reached if there is no environmental resistance",
+                "Population reproducing at its biotic potential produces an exponential growth curve",
+                "Carrying capacity is the maximum population size an environment can sustain",
+                "Biotic potential is the maximum reproductive capacity under ideal conditions"
+            ]},
+            { q: "33. State six factors that limit the population size of carrying capacity. [6m]", marks: 6, answers: [
+                "Predation",
+                "Competition",
+                "Parasitism",
+                "Territorial",
+                "Overcrowding",
+                "Water availability",
+                "Floods"
+            ]},
+            { q: "34. Describe the competition between Paramecium aurelia and Paramecium caudatum that affect the size of their population. [8m]", marks: 8, answers: [
+                "Both Paramecium aurelia and Paramecium caudatum share the same ecological niche, occupying the same habitat and competing for identical, limited food resources (bacteria)",
+                "When grown separately in isolated cultures with a constant food supply, both species exhibit a typical logistic growth curve and successfully reach their respective carrying capacities (K)",
+                "When both species are grown together in the same culture medium, interspecific competition occurs for the limited food supply",
+                "Paramecium aurelia has a higher rate of population growth (higher r) and utilizes the available bacteria more efficiently than Paramecium caudatum",
+                "As a result of its superior competitive ability, P. aurelia outcompetes P. caudatum, eventually reaching its carrying capacity and surviving in the culture",
+                "The population size of P. caudatum gradually declines over time due to severe starvation and reduced reproduction caused by resource depletion",
+                "Eventually, P. caudatum becomes locally extinct in the mixed culture, demonstrating the Competitive Exclusion Principle (Gause's Principle)",
+                "This interspecific competition strictly regulates population size, showing that two species competing for the exact same limiting resource cannot coexist indefinitely at constant population values"
+            ]},
+            { q: "35. By using the suitable examples, explain the pattern of distribution in organisms. [9m]", marks: 9, answers: [
+                "Clumped distribution occurs when individuals are concentrated in a specific area of the habitat",
+                "Due to the patchiness of resources in the habitat",
+                "For example, mushrooms clumped on a rotting trunk",
+                "Random distribution occurs when individuals in a population are dispersal in a manner unrelated to the present of other in unpredictable spacing",
+                "Due to environmental conditions and resources being constant",
+                "For instance, the dandelion, which is blown by the wind, is randomly distributed in a fairly uniform habitat",
+                "Uniform distribution occurs when individuals are evenly spaced due to the direct interactions between individuals in the population",
+                "Individual keep an equal distance between neighbouring individuals to reduce competition for resources",
+                "To illustrate, in nesting bird, penguins or plants that release chemical inhibiting nearby growth"
+            ]},
+            { q: "36. Define quadrat and line transect sampling methods and state their importance. [8m]", marks: 8, answers: [
+                "Quadrat sampling is a method where a square frame of a standard known size is placed in a study area to quantify non-motile or slow-moving organisms",
+                "Line transect sampling is a technique where a tape measure is laid in a straight line across a habitat to record organisms along an environmental gradient",
+                "Quadrat sampling is used to estimate population density, species frequency, and percentage cover without counting every individual in a large area",
+                "Line transect sampling is important for illustrating zonation and spatial distribution patterns of species in response to changing environmental factors",
+                "Both sampling methods provide an efficient and cost-effective way to gather quantitative ecological data without needing an exhaustive census",
+                "They enable ecologists to monitor changes in plant and animal populations over time due to succession or environmental disturbances",
+                "These standardized methods allow researchers to compare biodiversity and community structures across different ecosystems",
+                "By using systematic or random positioning, both techniques reduce sampling bias and provide a representative picture of the whole habitat"
+            ]},
+            { q: "37. Explain the advantages and disadvantages of quadrat and line transect sampling method. [10m]", marks: 10, answers: [
+                "Quadrat sampling allows accurate estimation of population density and percentage cover for stationary or slow-moving organisms",
+                "Quadrat sampling is simple to standardize and replicate, making it easy to compare data across different sample areas or over time",
+                "Quadrat sampling is unsuitable for mobile animals and can be time-consuming when dealing with extremely dense or large plant populations",
+                "Quadrat sampling can lead to inaccurate population estimates if quadrat placement is biased or if species are unevenly distributed in clumps",
+                "Line transect sampling is highly efficient for illustrating clear zonation patterns and species transitions along an environmental gradient",
+                "Line transect sampling is quick to execute and requires minimal equipment, saving time and labor in field studies",
+                "Line transect sampling may miss rare or sparsely distributed species that do not directly intersect or touch the line",
+                "Line transect sampling provides limited quantitative data on total population density compared to area-based sampling methods",
+                "Both methods rely heavily on proper sampling design to minimize human bias and ensure representative data collection",
+                "Physical terrain or environmental obstacles can hinder the accurate placement and alignment of both quadrats and transect lines"
+            ]},
+            { q: "38. Describe the method used to estimate the size of dragonfly population. [10m]", marks: 10, answers: [
+                "The size of a mobile insect population like dragonflies is estimated using the Mark-Release-Recapture (MRR) method, such as the Lincoln-Petersen Index",
+                "First, a defined sampling area is established, and a initial sample of dragonflies (n1) is captured using sweep nets without causing harm",
+                "Each captured dragonfly is marked on its wing or thorax using waterproof, non-toxic paint or marker ink that does not impede flight or increase predation risk",
+                "The marked dragonflies (n1) are counted and immediately released back into their original habitat to allow them to randomly mix with the unmarked population",
+                "A suitable time interval (e.g., 24 to 48 hours) is allowed for the marked individuals to disperse evenly throughout the habitat",
+                "A second sample of dragonflies (n2) is captured at the same site using identical sampling effort and methods",
+                "The total number of dragonflies in the second sample (n2) and the number of marked individuals recaptured (m2) are recorded",
+                "The total dragonfly population size (N) is estimated using the Lincoln Index formula: N = (n1 × n2) / m2",
+                "This method assumes that the population is closed, meaning there are no significant births, deaths, immigration, or emigration during the study period",
+                "It also assumes that marks are not lost or removed, and that marked individuals have the same chance of capture and survival as unmarked ones"
+            ]},
+            { q: "39. Explain how the population of rats in rice fields can be estimated. Give the assumptions that need to be considered. [10m]", marks: 10, answers: [
+                "Assumption 1: The population is closed, meaning there are no significant births, deaths, immigration, or emigration of rats during the study period",
+                "Assumption 2: Marks are permanent and harmless, ensuring that the marks do not fall off, fade, or make marked rats more vulnerable to predators or death",
+                "Assumption 3: Equal catchability, meaning marked and unmarked rats have an equal probability of being trapped, and marking does not cause traps to be avoided or sought out",
+                "The Lincoln-Petersen method is used to estimate population size",
+                "Capture a sample of rats, mark them and release them",
+                "After a suitable interval, capture a second sample",
+                "Record the number of marked and unmarked individuals in the second sample",
+                "Use the formula N = (M × C) / R to estimate population size",
+                "The method assumes random mixing of marked and unmarked individuals",
+                "It also assumes no loss of marks between sampling periods"
+            ]}
+        ];
+
+        // ============================================================
+        //  SINGULAR / PLURAL EXPANSION
+        // ============================================================
+
+        /**
+         * Generate singular and plural variants of an English word.
+         * Handles common cases:
+         *   - organisms  -> organism
+         *   - cells      -> cell
+         *   - tissues    -> tissue
+         *   - processes  -> process
+         *   - ecosystems -> ecosystem
+         *   - biomes     -> biome
+         *   - species    -> species (unchanged)
+         *   - fungi      -> fungus (irregular)
+         *   - bacteria   -> bacterium (irregular)
+         *   - etc.
+         */
+        function getSingularPluralVariants(word) {
+            const w = word.toLowerCase();
+            const variants = new Set();
+            variants.add(w);
+
+            // --- plural -> singular ---
+            // ends with "ies" -> "y" (e.g., communities -> community, activities -> activity)
+            if (w.endsWith('ies') && w.length > 4) {
+                variants.add(w.slice(0, -3) + 'y');
+            }
+            // ends with "ves" -> "f" or "fe" (e.g., leaves -> leaf, wolves -> wolf)
+            if (w.endsWith('ves') && w.length > 4) {
+                variants.add(w.slice(0, -3) + 'f');
+                variants.add(w.slice(0, -3) + 'fe');
+            }
+            // ends with "ses", "xes", "zes", "ches", "shes" -> remove "es"
+            if (/(ses|xes|zes|ches|shes)$/.test(w) && w.length > 4) {
+                variants.add(w.slice(0, -2));
+            }
+            // ends with "s" but not "ss" -> remove "s"
+            if (w.endsWith('s') && !w.endsWith('ss') && w.length > 3) {
+                variants.add(w.slice(0, -1));
+            }
+
+            // --- singular -> plural ---
+            // ends with "y" preceded by consonant -> "ies"
+            if (w.endsWith('y') && w.length > 2 && !/[aeiou]y$/.test(w)) {
+                variants.add(w.slice(0, -1) + 'ies');
+            }
+            // ends with "f" -> "ves"
+            if (w.endsWith('f') && w.length > 2) {
+                variants.add(w.slice(0, -1) + 'ves');
+            }
+            // ends with "fe" -> "ves"
+            if (w.endsWith('fe') && w.length > 3) {
+                variants.add(w.slice(0, -2) + 'ves');
+            }
+            // ends with "s", "x", "z", "ch", "sh" -> add "es"
+            if (/(s|x|z|ch|sh)$/.test(w)) {
+                variants.add(w + 'es');
+            }
+            // ends with consonant + "o" -> add "es" (e.g., potato -> potatoes)
+            if (/[^aeiou]o$/.test(w)) {
+                variants.add(w + 'es');
+            }
+            // default: add "s"
+            variants.add(w + 's');
+
+            // --- irregular forms ---
+            const irregulars = {
+                'fungus': ['fungi', 'funguses'],
+                'fungi': ['fungus', 'funguses'],
+                'bacterium': ['bacteria'],
+                'bacteria': ['bacterium'],
+                'coccus': ['cocci'],
+                'cocci': ['coccus'],
+                'bacillus': ['bacilli'],
+                'bacilli': ['bacillus'],
+                'medium': ['media'],
+                'media': ['medium'],
+                'datum': ['data'],
+                'data': ['datum'],
+                'analysis': ['analyses'],
+                'analyses': ['analysis'],
+                'crisis': ['crises'],
+                'crises': ['crisis'],
+                'thesis': ['theses'],
+                'theses': ['thesis'],
+                'index': ['indices', 'indexes'],
+                'indices': ['index'],
+                'appendix': ['appendices', 'appendixes'],
+                'appendices': ['appendix'],
+                'criterion': ['criteria'],
+                'criteria': ['criterion'],
+                'phenomenon': ['phenomena'],
+                'phenomena': ['phenomenon'],
+                'species': ['species'],
+                'series': ['series'],
+                'fish': ['fish', 'fishes'],
+                'sheep': ['sheep'],
+                'deer': ['deer'],
+                'mouse': ['mice'],
+                'mice': ['mouse'],
+                'goose': ['geese'],
+                'geese': ['goose'],
+                'tooth': ['teeth'],
+                'teeth': ['tooth'],
+                'foot': ['feet'],
+                'feet': ['foot'],
+                'leaf': ['leaves'],
+                'leaves': ['leaf'],
+                'life': ['lives'],
+                'lives': ['life'],
+                'knife': ['knives'],
+                'knives': ['knife'],
+                'wife': ['wives'],
+                'wives': ['wife'],
+                'wolf': ['wolves'],
+                'wolves': ['wolf'],
+                'shelf': ['shelves'],
+                'shelves': ['shelf'],
+                'half': ['halves'],
+                'halves': ['half'],
+                'self': ['selves'],
+                'selves': ['self'],
+                'thief': ['thieves'],
+                'thieves': ['thief'],
+                'loaf': ['loaves'],
+                'loaves': ['loaf'],
+                'potato': ['potatoes'],
+                'potatoes': ['potato'],
+                'tomato': ['tomatoes'],
+                'tomatoes': ['tomato'],
+                'hero': ['heroes'],
+                'heroes': ['hero'],
+                'echo': ['echoes'],
+                'echoes': ['echo'],
+                'photo': ['photos'],
+                'photos': ['photo'],
+                'piano': ['pianos'],
+                'pianos': ['piano'],
+                'halo': ['halos', 'haloes'],
+                'halos': ['halo'],
+                'haloes': ['halo'],
+            };
+
+            if (irregulars[w]) {
+                irregulars[w].forEach(v => variants.add(v));
+            }
+
+            return [...variants];
+        }
+
+        /**
+         * Extract keywords from a sentence, with singular/plural variants.
+         * Words longer than 3 characters are considered.
+         */
+        function getKeywords(sentence) {
+            const words = sentence.toLowerCase()
+                .replace(/[^a-z0-9\s]/g, '')
+                .split(/\s+/)
+                .filter(w => w.length > 3);
+
+            const expanded = new Set();
+            for (const w of words) {
+                const variants = getSingularPluralVariants(w);
+                variants.forEach(v => expanded.add(v));
+            }
+            return [...expanded];
+        }
+
+        // Check if user answer contains at least 3 keywords from the model answer
+        function isAnswerCorrect(userText, modelSentence) {
+            if (!userText || !userText.trim()) return false;
+            const userLower = userText.toLowerCase();
+            const keywords = getKeywords(modelSentence);
+            if (keywords.length < 3) return false;
+            let matchCount = 0;
+            for (const kw of keywords) {
+                // word-boundary check to avoid partial matches
+                const regex = new RegExp(`\\b${kw.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}\\b`, 'i');
+                if (regex.test(userLower)) matchCount++;
+                if (matchCount >= 3) return true;
+            }
+            return false;
+        }
+
+        // Highlight keywords in user answer (returns HTML string)
+        function highlightUserAnswer(userText, modelSentence) {
+            if (!userText || !userText.trim()) return userText || '';
+            const keywords = getKeywords(modelSentence);
+            let result = userText;
+            const sorted = [...keywords].sort((a, b) => b.length - a.length);
+            for (const kw of sorted) {
+                const escaped = kw.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+                const regex = new RegExp(`\\b(${escaped})\\b`, 'gi');
+                result = result.replace(regex, '<span class="highlight">$1</span>');
+            }
+            return result;
+        }
+
+        // ============================================================
+        //  STATE
+        // ============================================================
+        let currentQIndex = 0;
+        let userAnswers = questions.map(q => Array(q.marks).fill(''));
+        let submitted = questions.map(() => false);
+        let scores = questions.map(() => 0);
+        let startTime = null;
+        let timerInterval = null;
+        let totalSeconds = 0;
+        let quizActive = false;
+
+        // DOM elements
+        const startScreen = document.getElementById('startScreen');
+        const quizScreen = document.getElementById('quizScreen');
+        const summaryScreen = document.getElementById('summaryScreen');
+        const startBtn = document.getElementById('startBtn');
+        const questionCounter = document.getElementById('questionCounter');
+        const timerDisplay = document.getElementById('timerDisplay');
+        const questionText = document.getElementById('questionText');
+        const marksBadge = document.getElementById('marksBadge');
+        const inputContainer = document.getElementById('inputContainer');
+        const submitBtn = document.getElementById('submitBtn');
+        const hintBtn = document.getElementById('hintBtn');
+        const nextBtn = document.getElementById('nextBtn');
+        const hintBox = document.getElementById('hintBox');
+        const skemaPanel = document.getElementById('skemaPanel');
+        const skemaList = document.getElementById('skemaList');
+        const totalScoreDisplay = document.getElementById('totalScoreDisplay');
+        const timeTakenDisplay = document.getElementById('timeTakenDisplay');
+        const summaryBody = document.getElementById('summaryBody');
+        const restartBtn = document.getElementById('restartBtn');
+
+        // ============================================================
+        //  HELPERS
+        // ============================================================
+        function formatTime(sec) {
+            const m = Math.floor(sec / 60).toString().padStart(2, '0');
+            const s = (sec % 60).toString().padStart(2, '0');
+            return `${m}:${s}`;
+        }
+
+        function startTimer() {
+            if (timerInterval) clearInterval(timerInterval);
+            startTime = Date.now();
+            totalSeconds = 0;
+            timerInterval = setInterval(() => {
+                totalSeconds = Math.floor((Date.now() - startTime) / 1000);
+                timerDisplay.textContent = `⏱ ${formatTime(totalSeconds)}`;
+            }, 1000);
+        }
+
+        function stopTimer() {
+            if (timerInterval) {
+                clearInterval(timerInterval);
+                timerInterval = null;
+            }
+        }
+
+        // Compute score for current question
+        function computeScore(qIndex) {
+            const q = questions[qIndex];
+            const userAns = userAnswers[qIndex];
+            let score = 0;
+            for (let i = 0; i < q.marks; i++) {
+                const modelSentence = q.answers[i] || '';
+                const userText = userAns[i] || '';
+                if (isAnswerCorrect(userText, modelSentence)) {
+                    score++;
+                }
+            }
+            return score;
+        }
+
+        // ============================================================
+        //  RENDER
+        // ============================================================
+        function renderQuestion() {
+            const q = questions[currentQIndex];
+            const qNum = currentQIndex + 1;
+
+            questionCounter.textContent = `Question ${qNum} / ${questions.length}`;
+            questionText.textContent = q.q;
+            marksBadge.textContent = `[${q.marks}m]`;
+
+            // Build inputs
+            inputContainer.innerHTML = '';
+            for (let i = 0; i < q.marks; i++) {
+                const row = document.createElement('div');
+                row.className = 'input-row';
+
+                const input = document.createElement('input');
+                input.type = 'text';
+                input.placeholder = `Sentence ${i+1}...`;
+                input.value = userAnswers[currentQIndex][i] || '';
+                input.dataset.index = i;
+                input.addEventListener('input', (e) => {
+                    userAnswers[currentQIndex][i] = e.target.value;
+                    if (submitted[currentQIndex]) {
+                        submitted[currentQIndex] = false;
+                        scores[currentQIndex] = 0;
+                        nextBtn.disabled = true;
+                        skemaPanel.classList.add('hide');
+                    }
+                });
+
+                const tag = document.createElement('div');
+                tag.className = 'score-tag';
+                tag.textContent = '—';
+                tag.id = `tag-${i}`;
+
+                row.appendChild(input);
+                row.appendChild(tag);
+                inputContainer.appendChild(row);
+            }
+
+            // Reset UI
+            submitBtn.disabled = false;
+            nextBtn.disabled = true;
+            hintBox.classList.add('hide');
+            skemaPanel.classList.add('hide');
+            hintBox.innerHTML = '';
+
+            if (submitted[currentQIndex]) {
+                showSubmittedState();
+            }
+        }
+
+        function showSubmittedState() {
+            const q = questions[currentQIndex];
+            const qIndex = currentQIndex;
+
+            const score = computeScore(qIndex);
+            scores[qIndex] = score;
+
+            const inputs = inputContainer.querySelectorAll('input');
+            for (let i = 0; i < q.marks; i++) {
+                const input = inputs[i];
+                const tag = document.getElementById(`tag-${i}`);
+                const modelSentence = q.answers[i] || '';
+                const userText = userAnswers[qIndex][i] || '';
+                const correct = isAnswerCorrect(userText, modelSentence);
+
+                if (correct) {
+                    tag.textContent = '✓';
+                    tag.classList.add('correct');
+                    input.style.borderColor = '#2b8c6b';
+                } else {
+                    tag.textContent = '✗';
+                    tag.classList.remove('correct');
+                    input.style.borderColor = '#c0392b';
+                }
+            }
+
+            skemaList.innerHTML = '';
+            for (let i = 0; i < q.marks; i++) {
+                const li = document.createElement('li');
+                const modelSentence = q.answers[i] || '';
+                const userText = userAnswers[qIndex][i] || '';
+                const correct = isAnswerCorrect(userText, modelSentence);
+
+                if (correct) {
+                    li.innerHTML = `✅ ${modelSentence} <span style="color:#1e7a5a; font-weight:600;">(your answer matched)</span>`;
+                } else {
+                    li.innerHTML = `❌ ${modelSentence}`;
+                    if (userText.trim()) {
+                        li.innerHTML += `<br><span style="font-size:0.85rem; color:#555;">Your answer: ${highlightUserAnswer(userText, modelSentence)}</span>`;
+                    }
+                }
+                skemaList.appendChild(li);
+            }
+            skemaPanel.classList.remove('hide');
+            submitBtn.disabled = true;
+            nextBtn.disabled = false;
+        }
+
+        // ============================================================
+        //  ACTIONS
+        // ============================================================
+        function submitCurrent() {
+            if (submitted[currentQIndex]) return;
+            submitted[currentQIndex] = true;
+            showSubmittedState();
+        }
+
+        function showHint() {
+            const q = questions[currentQIndex];
+            hintBox.innerHTML = '';
+            for (let i = 0; i < q.marks; i++) {
+                const modelSentence = q.answers[i] || '';
+                const keywords = getKeywords(modelSentence).slice(0, 3).join(', ');
+                const p = document.createElement('div');
+                p.innerHTML = `<strong>${i+1}.</strong> ${keywords || '—'}`;
+                hintBox.appendChild(p);
+            }
+            hintBox.classList.remove('hide');
+        }
+
+        function nextQuestion() {
+            if (currentQIndex < questions.length - 1) {
+                currentQIndex++;
+                renderQuestion();
+            } else {
+                stopTimer();
+                showSummary();
+            }
+        }
+
+        function showSummary() {
+            quizScreen.classList.add('hide');
+            summaryScreen.classList.remove('hide');
+
+            const totalScore = scores.reduce((a, b) => a + b, 0);
+            const totalMax = questions.reduce((a, q) => a + q.marks, 0);
+            totalScoreDisplay.textContent = `Total Score: ${totalScore} / ${totalMax}`;
+            timeTakenDisplay.textContent = `⏱ Time taken: ${formatTime(totalSeconds)}`;
+
+            summaryBody.innerHTML = '';
+            questions.forEach((q, idx) => {
+                const tr = document.createElement('tr');
+                const score = scores[idx] || 0;
+                tr.innerHTML = `<td>${idx+1}</td><td>${q.q}</td><td><strong>${score}</strong></td><td>${q.marks}</td>`;
+                summaryBody.appendChild(tr);
+            });
+        }
+
+        function startQuiz() {
+            startScreen.classList.add('hide');
+            quizScreen.classList.remove('hide');
+            summaryScreen.classList.add('hide');
+            currentQIndex = 0;
+            userAnswers = questions.map(q => Array(q.marks).fill(''));
+            submitted = questions.map(() => false);
+            scores = questions.map(() => 0);
+            startTimer();
+            quizActive = true;
+            renderQuestion();
+        }
+
+        function restartQuiz() {
+            stopTimer();
+            summaryScreen.classList.add('hide');
+            startScreen.classList.remove('hide');
+            quizActive = false;
+            currentQIndex = 0;
+            userAnswers = questions.map(q => Array(q.marks).fill(''));
+            submitted = questions.map(() => false);
+            scores = questions.map(() => 0);
+            totalSeconds = 0;
+            timerDisplay.textContent = '⏱ 00:00';
+        }
+
+        // ============================================================
+        //  EVENT LISTENERS
+        // ============================================================
+        startBtn.addEventListener('click', startQuiz);
+        submitBtn.addEventListener('click', submitCurrent);
+        hintBtn.addEventListener('click', showHint);
+        nextBtn.addEventListener('click', nextQuestion);
+        restartBtn.addEventListener('click', restartQuiz);
+
+        renderQuestion();
+    </script>
+</body>
+</html>
