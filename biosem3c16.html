@@ -316,17 +316,89 @@
         .mt-1 {
             margin-top: 0.8rem;
         }
+
+        /* Login screen styles */
+        .login-container {
+            text-align: center;
+            padding: 3rem 1.5rem;
+        }
+
+        .login-container h2 {
+            font-size: 1.5rem;
+            color: #1a4d3e;
+            margin-bottom: 0.5rem;
+        }
+
+        .login-container p {
+            color: #5e7b72;
+            margin-bottom: 2rem;
+            font-size: 0.95rem;
+        }
+
+        .login-container input {
+            width: 100%;
+            max-width: 360px;
+            padding: 1rem 1.4rem;
+            border-radius: 60px;
+            border: 1.5px solid #cddfd9;
+            font-size: 1rem;
+            background: white;
+            transition: 0.15s;
+            font-family: inherit;
+            text-align: center;
+            margin-bottom: 1.2rem;
+            display: block;
+            margin-left: auto;
+            margin-right: auto;
+        }
+
+        .login-container input:focus {
+            outline: none;
+            border-color: #2b7a62;
+            box-shadow: 0 0 0 3px rgba(43, 122, 98, 0.15);
+        }
+
+        .login-error {
+            color: #c0392b;
+            font-size: 0.9rem;
+            margin-top: 0.8rem;
+            min-height: 1.2rem;
+        }
+
+        .welcome-tag {
+            background: #d3e8e0;
+            color: #1a4d3e;
+            padding: 0.35rem 0.9rem;
+            border-radius: 40px;
+            font-size: 0.85rem;
+            font-weight: 500;
+        }
     </style>
 </head>
 <body>
     <div class="app" id="app">
         <h1>
             🧬 STPM Biology Sem 3 · Chapter 16
-            <small>39 questions</small>
+            <small id="userTag" class="welcome-tag hide"></small>
         </h1>
 
+        <!-- ============================================================ -->
+        <!-- LOGIN SCREEN (NEW) -->
+        <!-- ============================================================ -->
+        <div id="loginScreen">
+            <div class="card login-container">
+                <h2>👋 Welcome</h2>
+                <p>Please enter your name to begin the quiz.</p>
+                <input type="text" id="nameInput" placeholder="Your name..." maxlength="40" autocomplete="off">
+                <button class="btn btn-primary" id="loginBtn" style="font-size: 1.1rem; padding: 0.9rem 2.5rem;">
+                    Continue →
+                </button>
+                <div class="login-error" id="loginError"></div>
+            </div>
+        </div>
+
         <!-- Start screen -->
-        <div id="startScreen">
+        <div id="startScreen" class="hide">
             <div class="card" style="text-align: center; padding: 3rem 1.5rem;">
                 <p style="font-size: 1.2rem; color: #1a4d3e; margin-bottom: 2rem;">
                     🌿 Ecology &nbsp;|&nbsp; Hierarchy · Biomes · Cycles · Energy Flow · Population
@@ -389,7 +461,114 @@
         </div>
     </div>
 
+    <!-- ============================================================ -->
+    <!-- FIREBASE SDK (compat version for easy use in vanilla JS) -->
+    <!-- ============================================================ -->
+    <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore-compat.js"></script>
+
     <script>
+        // ============================================================
+        //  FIREBASE INIT (compat)
+        // ============================================================
+        const firebaseConfig = {
+            apiKey: "AIzaSyBhc2JVAoxfk3wEsLee-Gr4I1StgqsPkBU",
+            authDomain: "zijunblog.firebaseapp.com",
+            projectId: "zijunblog",
+            storageBucket: "zijunblog.firebasestorage.app",
+            messagingSenderId: "689359220073",
+            appId: "1:689359220073:web:be9d4a467f438b6e8de1f8",
+            measurementId: "G-M8540FQZQD"
+        };
+
+        firebase.initializeApp(firebaseConfig);
+        const db = firebase.firestore();
+
+        // ============================================================
+        //  LOGIN LOGIC
+        // ============================================================
+        const loginScreen = document.getElementById('loginScreen');
+        const startScreen = document.getElementById('startScreen');
+        const nameInput = document.getElementById('nameInput');
+        const loginBtn = document.getElementById('loginBtn');
+        const loginError = document.getElementById('loginError');
+        const userTag = document.getElementById('userTag');
+
+        let currentUserName = '';
+
+        // Check if user already logged in (localStorage)
+        function checkExistingUser() {
+            const saved = localStorage.getItem('stpm_bio_user');
+            if (saved) {
+                try {
+                    const data = JSON.parse(saved);
+                    if (data.name) {
+                        currentUserName = data.name;
+                        showStartScreen();
+                        return;
+                    }
+                } catch (e) {
+                    // ignore
+                }
+            }
+            // Show login screen
+            loginScreen.classList.remove('hide');
+            nameInput.focus();
+        }
+
+        function showStartScreen() {
+            loginScreen.classList.add('hide');
+            startScreen.classList.remove('hide');
+            userTag.textContent = `👤 ${currentUserName}`;
+            userTag.classList.remove('hide');
+        }
+
+        async function handleLogin() {
+            const name = nameInput.value.trim();
+            if (!name) {
+                loginError.textContent = 'Please enter your name.';
+                return;
+            }
+            if (name.length < 2) {
+                loginError.textContent = 'Name must be at least 2 characters.';
+                return;
+            }
+
+            loginBtn.disabled = true;
+            loginBtn.textContent = 'Saving...';
+            loginError.textContent = '';
+
+            try {
+                // Save to Firestore
+                await db.collection('stpm_bio_users').add({
+                    name: name,
+                    createdAt: firebase.firestore.FieldValue.serverTimestamp(),
+                    userAgent: navigator.userAgent
+                });
+
+                // Save locally
+                currentUserName = name;
+                localStorage.setItem('stpm_bio_user', JSON.stringify({ name: name }));
+
+                // Go to start screen
+                showStartScreen();
+            } catch (error) {
+                console.error('Firestore error:', error);
+                // Even if Firestore fails, allow local login
+                currentUserName = name;
+                localStorage.setItem('stpm_bio_user', JSON.stringify({ name: name }));
+                showStartScreen();
+            } finally {
+                loginBtn.disabled = false;
+                loginBtn.textContent = 'Continue →';
+            }
+        }
+
+        loginBtn.addEventListener('click', handleLogin);
+        nameInput.addEventListener('keydown', (e) => {
+            if (e.key === 'Enter') handleLogin();
+        });
+
         // ============================================================
         //  FULL QUESTION BANK (39 questions)
         // ============================================================
@@ -823,70 +1002,42 @@
         // ============================================================
         //  SINGULAR / PLURAL EXPANSION
         // ============================================================
-
-        /**
-         * Generate singular and plural variants of an English word.
-         * Handles common cases:
-         *   - organisms  -> organism
-         *   - cells      -> cell
-         *   - tissues    -> tissue
-         *   - processes  -> process
-         *   - ecosystems -> ecosystem
-         *   - biomes     -> biome
-         *   - species    -> species (unchanged)
-         *   - fungi      -> fungus (irregular)
-         *   - bacteria   -> bacterium (irregular)
-         *   - etc.
-         */
         function getSingularPluralVariants(word) {
             const w = word.toLowerCase();
             const variants = new Set();
             variants.add(w);
 
-            // --- plural -> singular ---
-            // ends with "ies" -> "y" (e.g., communities -> community, activities -> activity)
             if (w.endsWith('ies') && w.length > 4) {
                 variants.add(w.slice(0, -3) + 'y');
             }
-            // ends with "ves" -> "f" or "fe" (e.g., leaves -> leaf, wolves -> wolf)
             if (w.endsWith('ves') && w.length > 4) {
                 variants.add(w.slice(0, -3) + 'f');
                 variants.add(w.slice(0, -3) + 'fe');
             }
-            // ends with "ses", "xes", "zes", "ches", "shes" -> remove "es"
             if (/(ses|xes|zes|ches|shes)$/.test(w) && w.length > 4) {
                 variants.add(w.slice(0, -2));
             }
-            // ends with "s" but not "ss" -> remove "s"
             if (w.endsWith('s') && !w.endsWith('ss') && w.length > 3) {
                 variants.add(w.slice(0, -1));
             }
 
-            // --- singular -> plural ---
-            // ends with "y" preceded by consonant -> "ies"
             if (w.endsWith('y') && w.length > 2 && !/[aeiou]y$/.test(w)) {
                 variants.add(w.slice(0, -1) + 'ies');
             }
-            // ends with "f" -> "ves"
             if (w.endsWith('f') && w.length > 2) {
                 variants.add(w.slice(0, -1) + 'ves');
             }
-            // ends with "fe" -> "ves"
             if (w.endsWith('fe') && w.length > 3) {
                 variants.add(w.slice(0, -2) + 'ves');
             }
-            // ends with "s", "x", "z", "ch", "sh" -> add "es"
             if (/(s|x|z|ch|sh)$/.test(w)) {
                 variants.add(w + 'es');
             }
-            // ends with consonant + "o" -> add "es" (e.g., potato -> potatoes)
             if (/[^aeiou]o$/.test(w)) {
                 variants.add(w + 'es');
             }
-            // default: add "s"
             variants.add(w + 's');
 
-            // --- irregular forms ---
             const irregulars = {
                 'fungus': ['fungi', 'funguses'],
                 'fungi': ['fungus', 'funguses'],
@@ -971,10 +1122,6 @@
             return [...variants];
         }
 
-        /**
-         * Extract keywords from a sentence, with singular/plural variants.
-         * Words longer than 3 characters are considered.
-         */
         function getKeywords(sentence) {
             const words = sentence.toLowerCase()
                 .replace(/[^a-z0-9\s]/g, '')
@@ -989,7 +1136,6 @@
             return [...expanded];
         }
 
-        // Check if user answer contains at least 3 keywords from the model answer
         function isAnswerCorrect(userText, modelSentence) {
             if (!userText || !userText.trim()) return false;
             const userLower = userText.toLowerCase();
@@ -997,7 +1143,6 @@
             if (keywords.length < 3) return false;
             let matchCount = 0;
             for (const kw of keywords) {
-                // word-boundary check to avoid partial matches
                 const regex = new RegExp(`\\b${kw.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}\\b`, 'i');
                 if (regex.test(userLower)) matchCount++;
                 if (matchCount >= 3) return true;
@@ -1005,7 +1150,6 @@
             return false;
         }
 
-        // Highlight keywords in user answer (returns HTML string)
         function highlightUserAnswer(userText, modelSentence) {
             if (!userText || !userText.trim()) return userText || '';
             const keywords = getKeywords(modelSentence);
@@ -1031,8 +1175,6 @@
         let totalSeconds = 0;
         let quizActive = false;
 
-        // DOM elements
-        const startScreen = document.getElementById('startScreen');
         const quizScreen = document.getElementById('quizScreen');
         const summaryScreen = document.getElementById('summaryScreen');
         const startBtn = document.getElementById('startBtn');
@@ -1052,9 +1194,6 @@
         const summaryBody = document.getElementById('summaryBody');
         const restartBtn = document.getElementById('restartBtn');
 
-        // ============================================================
-        //  HELPERS
-        // ============================================================
         function formatTime(sec) {
             const m = Math.floor(sec / 60).toString().padStart(2, '0');
             const s = (sec % 60).toString().padStart(2, '0');
@@ -1078,7 +1217,6 @@
             }
         }
 
-        // Compute score for current question
         function computeScore(qIndex) {
             const q = questions[qIndex];
             const userAns = userAnswers[qIndex];
@@ -1093,9 +1231,6 @@
             return score;
         }
 
-        // ============================================================
-        //  RENDER
-        // ============================================================
         function renderQuestion() {
             const q = questions[currentQIndex];
             const qNum = currentQIndex + 1;
@@ -1104,7 +1239,6 @@
             questionText.textContent = q.q;
             marksBadge.textContent = `[${q.marks}m]`;
 
-            // Build inputs
             inputContainer.innerHTML = '';
             for (let i = 0; i < q.marks; i++) {
                 const row = document.createElement('div');
@@ -1135,7 +1269,6 @@
                 inputContainer.appendChild(row);
             }
 
-            // Reset UI
             submitBtn.disabled = false;
             nextBtn.disabled = true;
             hintBox.classList.add('hide');
@@ -1195,9 +1328,6 @@
             nextBtn.disabled = false;
         }
 
-        // ============================================================
-        //  ACTIONS
-        // ============================================================
         function submitCurrent() {
             if (submitted[currentQIndex]) return;
             submitted[currentQIndex] = true;
@@ -1236,6 +1366,17 @@
             totalScoreDisplay.textContent = `Total Score: ${totalScore} / ${totalMax}`;
             timeTakenDisplay.textContent = `⏱ Time taken: ${formatTime(totalSeconds)}`;
 
+            // Save result to Firestore (optional)
+            if (currentUserName) {
+                db.collection('stpm_bio_results').add({
+                    name: currentUserName,
+                    score: totalScore,
+                    maxScore: totalMax,
+                    durationSeconds: totalSeconds,
+                    completedAt: firebase.firestore.FieldValue.serverTimestamp()
+                }).catch(err => console.error('Result save error:', err));
+            }
+
             summaryBody.innerHTML = '';
             questions.forEach((q, idx) => {
                 const tr = document.createElement('tr');
@@ -1271,15 +1412,16 @@
             timerDisplay.textContent = '⏱ 00:00';
         }
 
-        // ============================================================
-        //  EVENT LISTENERS
-        // ============================================================
         startBtn.addEventListener('click', startQuiz);
         submitBtn.addEventListener('click', submitCurrent);
         hintBtn.addEventListener('click', showHint);
         nextBtn.addEventListener('click', nextQuestion);
         restartBtn.addEventListener('click', restartQuiz);
 
+        // Initialize login check
+        checkExistingUser();
+
+        // If no login yet, quiz screen stays hidden
         renderQuestion();
     </script>
 </body>
