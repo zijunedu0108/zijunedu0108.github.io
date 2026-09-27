@@ -1,0 +1,1699 @@
+<!DOCTYPE html>
+<html lang="ms">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>STPM Pengajian Am Sem 3 · Esei Percubaan 2024+2025</title>
+    <style>
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            font-family: 'Segoe UI', Roboto, system-ui, sans-serif;
+            background: #fdf5ef;
+            padding: 1.5rem 1rem;
+            display: flex;
+            justify-content: center;
+            min-height: 100vh;
+        }
+
+        .app {
+            max-width: 1100px;
+            width: 100%;
+            background: white;
+            border-radius: 32px;
+            box-shadow: 0 18px 40px -12px rgba(60, 30, 10, 0.2);
+            padding: 2rem;
+            display: flex;
+            flex-direction: column;
+        }
+
+        h1 {
+            font-size: 1.8rem;
+            font-weight: 600;
+            letter-spacing: -0.5px;
+            color: #5c2e1a;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            margin-bottom: 0.5rem;
+        }
+
+        h1 small {
+            font-size: 1rem;
+            font-weight: 400;
+            color: #8f6b5a;
+            margin-left: auto;
+        }
+
+        .progress-bar {
+            display: flex;
+            align-items: center;
+            gap: 16px;
+            margin: 0.5rem 0 1.2rem 0;
+            flex-wrap: wrap;
+        }
+
+        .progress-bar span {
+            background: #f0e2d8;
+            padding: 0.4rem 1rem;
+            border-radius: 40px;
+            font-size: 0.9rem;
+            color: #5c2e1a;
+            font-weight: 500;
+        }
+
+        .progress-bar .timer {
+            background: #e8d5c9;
+            margin-left: auto;
+            font-variant-numeric: tabular-nums;
+        }
+
+        .card {
+            background: #fefcfb;
+            border: 1px solid #e6d5ca;
+            border-radius: 24px;
+            padding: 1.6rem 1.8rem 1.8rem;
+            box-shadow: 0 4px 12px rgba(60, 30, 10, 0.04);
+            margin-bottom: 1.5rem;
+        }
+
+        .question-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            margin-bottom: 1.2rem;
+        }
+
+        .question-text {
+            font-size: 1.2rem;
+            font-weight: 600;
+            color: #3d1e0e;
+            line-height: 1.5;
+            max-width: 85%;
+        }
+
+        .marks-badge {
+            background: #e0c8b8;
+            padding: 0.25rem 0.9rem;
+            border-radius: 30px;
+            font-size: 0.9rem;
+            font-weight: 600;
+            color: #4a2515;
+            white-space: nowrap;
+        }
+
+        .input-area {
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+            margin: 1rem 0 0.8rem;
+        }
+
+        .input-row {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .input-row input {
+            flex: 1;
+            padding: 0.85rem 1.2rem;
+            border-radius: 60px;
+            border: 1.5px solid #d9c5b8;
+            font-size: 0.95rem;
+            background: white;
+            transition: 0.15s;
+            font-family: inherit;
+        }
+
+        .input-row input:focus {
+            outline: none;
+            border-color: #b36b3a;
+            box-shadow: 0 0 0 3px rgba(179, 107, 58, 0.15);
+        }
+
+        .input-row .score-tag {
+            width: 48px;
+            height: 48px;
+            border-radius: 50%;
+            background: #f5ede7;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 600;
+            color: #7a4b2e;
+            border: 1px solid #d9c5b8;
+            font-size: 1rem;
+            flex-shrink: 0;
+        }
+
+        .input-row .score-tag.correct {
+            background: #d4edda;
+            border-color: #4a9e6b;
+            color: #1e5631;
+        }
+
+        .btn-group {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 12px;
+            margin: 1.2rem 0 0.8rem;
+            align-items: center;
+        }
+
+        .btn {
+            padding: 0.8rem 1.8rem;
+            border-radius: 60px;
+            border: none;
+            font-weight: 600;
+            font-size: 0.95rem;
+            cursor: pointer;
+            transition: 0.15s;
+            background: #f5ede7;
+            color: #5c2e1a;
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            font-family: inherit;
+        }
+
+        .btn-primary {
+            background: #8b4513;
+            color: white;
+            box-shadow: 0 6px 14px rgba(139, 69, 19, 0.25);
+        }
+
+        .btn-primary:hover {
+            background: #6d3610;
+        }
+
+        .btn-secondary {
+            background: white;
+            border: 1.5px solid #d9c5b8;
+            color: #5c2e1a;
+        }
+
+        .btn-secondary:hover {
+            background: #fdf5ef;
+        }
+
+        .btn:disabled {
+            opacity: 0.45;
+            pointer-events: none;
+            box-shadow: none;
+        }
+
+        .hint-box {
+            background: #fdf8e3;
+            border-left: 6px solid #d4a843;
+            padding: 1rem 1.4rem;
+            border-radius: 16px;
+            font-size: 0.95rem;
+            color: #3d3520;
+            margin: 0.5rem 0 0.8rem;
+            line-height: 1.6;
+        }
+
+        .hint-box strong {
+            color: #7a5e1a;
+        }
+
+        .skema-panel {
+            background: #f7f0eb;
+            border-radius: 20px;
+            padding: 1.4rem 1.6rem;
+            margin: 1rem 0 1rem;
+            border: 1px solid #e0cfc2;
+            max-height: 300px;
+            overflow-y: auto;
+            font-size: 0.95rem;
+            line-height: 1.7;
+        }
+
+        .skema-panel h4 {
+            font-weight: 600;
+            color: #5c2e1a;
+            margin-bottom: 0.6rem;
+            font-size: 1rem;
+        }
+
+        .skema-panel ol {
+            padding-left: 1.6rem;
+            color: #3d1e0e;
+        }
+
+        .skema-panel li {
+            margin-bottom: 0.4rem;
+        }
+
+        .highlight {
+            background: #f5d9a0;
+            font-weight: 600;
+            color: #3d1e0e;
+            padding: 0.1rem 0.2rem;
+            border-radius: 6px;
+        }
+
+        .score-summary {
+            background: #f5ede7;
+            border-radius: 20px;
+            padding: 1.6rem 2rem;
+            margin: 1rem 0 0.5rem;
+            text-align: center;
+        }
+
+        .score-summary h2 {
+            font-size: 1.8rem;
+            font-weight: 600;
+            color: #5c2e1a;
+        }
+
+        .score-summary p {
+            font-size: 1.2rem;
+            color: #7a4b2e;
+            margin-top: 0.4rem;
+        }
+
+        .summary-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 1.4rem;
+            font-size: 0.9rem;
+        }
+
+        .summary-table th {
+            text-align: left;
+            background: #e0c8b8;
+            color: #3d1e0e;
+            padding: 0.7rem 1rem;
+            font-weight: 600;
+        }
+
+        .summary-table td {
+            padding: 0.6rem 1rem;
+            border-bottom: 1px solid #e6d5ca;
+            color: #3d1e0e;
+        }
+
+        .summary-table tr:last-child td {
+            border-bottom: none;
+        }
+
+        .hide {
+            display: none;
+        }
+
+        .mt-1 {
+            margin-top: 0.8rem;
+        }
+
+        .login-container {
+            text-align: center;
+            padding: 3rem 1.5rem;
+        }
+
+        .login-container h2 {
+            font-size: 1.5rem;
+            color: #5c2e1a;
+            margin-bottom: 0.5rem;
+        }
+
+        .login-container p {
+            color: #8f6b5a;
+            margin-bottom: 2rem;
+            font-size: 0.95rem;
+        }
+
+        .login-container input {
+            width: 100%;
+            max-width: 360px;
+            padding: 1rem 1.4rem;
+            border-radius: 60px;
+            border: 1.5px solid #d9c5b8;
+            font-size: 1rem;
+            background: white;
+            transition: 0.15s;
+            font-family: inherit;
+            text-align: center;
+            margin-bottom: 1.2rem;
+            display: block;
+            margin-left: auto;
+            margin-right: auto;
+        }
+
+        .login-container input:focus {
+            outline: none;
+            border-color: #b36b3a;
+            box-shadow: 0 0 0 3px rgba(179, 107, 58, 0.15);
+        }
+
+        .login-error {
+            color: #c0392b;
+            font-size: 0.9rem;
+            margin-top: 0.8rem;
+            min-height: 1.2rem;
+        }
+
+        .welcome-tag {
+            background: #e0c8b8;
+            color: #5c2e1a;
+            padding: 0.35rem 0.9rem;
+            border-radius: 40px;
+            font-size: 0.85rem;
+            font-weight: 500;
+        }
+
+        .topic-tag {
+            display: inline-block;
+            background: #f0e2d8;
+            color: #7a4b2e;
+            padding: 0.25rem 0.9rem;
+            border-radius: 30px;
+            font-size: 0.8rem;
+            font-weight: 500;
+            margin-bottom: 0.8rem;
+        }
+    </style>
+</head>
+<body>
+    <div class="app" id="app">
+        <h1>
+            📚 STPM Pengajian Am Sem 3
+            <small id="userTag" class="welcome-tag hide"></small>
+        </h1>
+
+        <!-- LOGIN SCREEN -->
+        <div id="loginScreen">
+            <div class="card login-container">
+                <h2>👋 Selamat Datang</h2>
+                <p>Sila masukkan nama anda untuk memulakan latihan.</p>
+                <input type="text" id="nameInput" placeholder="Nama anda..." maxlength="40" autocomplete="off">
+                <button class="btn btn-primary" id="loginBtn" style="font-size: 1.1rem; padding: 0.9rem 2.5rem;">
+                    Teruskan →
+                </button>
+                <div class="login-error" id="loginError"></div>
+            </div>
+        </div>
+
+        <!-- START SCREEN -->
+        <div id="startScreen" class="hide">
+            <div class="card" style="text-align: center; padding: 3rem 1.5rem;">
+                <p style="font-size: 1.2rem; color: #5c2e1a; margin-bottom: 1rem;">
+                    📝 Esei Percubaan Terpilih 2024 + 2025
+                </p>
+                <p style="font-size: 0.95rem; color: #8f6b5a; margin-bottom: 2rem;">
+                    Tema: Hubungan diplomatik · Politik · Ekonomi · Sosial & Budaya · Alam Sekitar · Sains & Teknologi
+                </p>
+                <button class="btn btn-primary" style="font-size: 1.3rem; padding: 1rem 3.5rem;" id="startBtn">
+                    ▶ Mula Latihan
+                </button>
+                <p style="margin-top: 1.5rem; font-size: 0.9rem; color: #8f6b5a;">
+                    Setiap soalan memerlukan bilangan isi/idea yang tertentu. Variasi ejaan diterima.
+                </p>
+            </div>
+        </div>
+
+        <!-- QUIZ SCREEN -->
+        <div id="quizScreen" class="hide">
+            <div class="progress-bar">
+                <span id="questionCounter">Soalan 1 / 50</span>
+                <span id="timerDisplay" class="timer">⏱ 00:00</span>
+            </div>
+
+            <div class="card" id="questionCard">
+                <div id="topicTag" class="topic-tag"></div>
+                <div class="question-header">
+                    <div class="question-text" id="questionText"></div>
+                    <div class="marks-badge" id="marksBadge"></div>
+                </div>
+
+                <div id="inputContainer" class="input-area"></div>
+
+                <div class="btn-group">
+                    <button class="btn btn-primary" id="submitBtn">📋 Hantar Jawapan</button>
+                    <button class="btn btn-secondary" id="hintBtn">💡 Petunjuk (kata kunci)</button>
+                    <button class="btn btn-secondary" id="nextBtn" disabled>Seterusnya →</button>
+                </div>
+
+                <div id="hintBox" class="hint-box hide"></div>
+
+                <div id="skemaPanel" class="skema-panel hide">
+                    <h4>📖 Skema Lengkap</h4>
+                    <ol id="skemaList"></ol>
+                </div>
+            </div>
+        </div>
+
+        <!-- SUMMARY SCREEN -->
+        <div id="summaryScreen" class="hide">
+            <div class="score-summary">
+                <h2>✅ Latihan Selesai</h2>
+                <p id="totalScoreDisplay"></p>
+                <p id="timeTakenDisplay" style="font-size: 1rem; margin-top: 0.3rem;"></p>
+            </div>
+            <div style="max-height: 400px; overflow-y: auto; margin-top: 1rem;">
+                <table class="summary-table" id="summaryTable">
+                    <thead>
+                        <tr><th>#</th><th>Soalan</th><th>Skor</th><th>Max</th></tr>
+                    </thead>
+                    <tbody id="summaryBody"></tbody>
+                </table>
+            </div>
+            <button class="btn btn-primary mt-1" style="margin-top: 1.5rem;" id="restartBtn">↻ Ulang Latihan</button>
+        </div>
+    </div>
+
+    <!-- FIREBASE -->
+    <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore-compat.js"></script>
+
+    <script>
+        // ============================================================
+        //  FIREBASE INIT
+        // ============================================================
+        const firebaseConfig = {
+            apiKey: "AIzaSyBhc2JVAoxfk3wEsLee-Gr4I1StgqsPkBU",
+            authDomain: "zijunblog.firebaseapp.com",
+            projectId: "zijunblog",
+            storageBucket: "zijunblog.firebasestorage.app",
+            messagingSenderId: "689359220073",
+            appId: "1:689359220073:web:be9d4a467f438b6e8de1f8",
+            measurementId: "G-M8540FQZQD"
+        };
+
+        firebase.initializeApp(firebaseConfig);
+        const db = firebase.firestore();
+
+        // ============================================================
+        //  LOGIN LOGIC
+        // ============================================================
+        const loginScreen = document.getElementById('loginScreen');
+        const startScreen = document.getElementById('startScreen');
+        const nameInput = document.getElementById('nameInput');
+        const loginBtn = document.getElementById('loginBtn');
+        const loginError = document.getElementById('loginError');
+        const userTag = document.getElementById('userTag');
+
+        let currentUserName = '';
+
+        function checkExistingUser() {
+            const saved = localStorage.getItem('stpm_pa_user');
+            if (saved) {
+                try {
+                    const data = JSON.parse(saved);
+                    if (data.name) {
+                        currentUserName = data.name;
+                        showStartScreen();
+                        return;
+                    }
+                } catch (e) {}
+            }
+            loginScreen.classList.remove('hide');
+            nameInput.focus();
+        }
+
+        function showStartScreen() {
+            loginScreen.classList.add('hide');
+            startScreen.classList.remove('hide');
+            userTag.textContent = `👤 ${currentUserName}`;
+            userTag.classList.remove('hide');
+        }
+
+        async function handleLogin() {
+            const name = nameInput.value.trim();
+            if (!name) {
+                loginError.textContent = 'Sila masukkan nama anda.';
+                return;
+            }
+            if (name.length < 2) {
+                loginError.textContent = 'Nama mestilah sekurang-kurangnya 2 huruf.';
+                return;
+            }
+
+            loginBtn.disabled = true;
+            loginBtn.textContent = 'Menyimpan...';
+            loginError.textContent = '';
+
+            try {
+                await db.collection('stpm_pa_users').add({
+                    name: name,
+                    createdAt: firebase.firestore.FieldValue.serverTimestamp(),
+                    userAgent: navigator.userAgent
+                });
+                currentUserName = name;
+                localStorage.setItem('stpm_pa_user', JSON.stringify({ name: name }));
+                showStartScreen();
+            } catch (error) {
+                console.error('Firestore error:', error);
+                currentUserName = name;
+                localStorage.setItem('stpm_pa_user', JSON.stringify({ name: name }));
+                showStartScreen();
+            } finally {
+                loginBtn.disabled = false;
+                loginBtn.textContent = 'Teruskan →';
+            }
+        }
+
+        loginBtn.addEventListener('click', handleLogin);
+        nameInput.addEventListener('keydown', (e) => {
+            if (e.key === 'Enter') handleLogin();
+        });
+
+        // ============================================================
+        //  QUESTION BANK — Based on EPT 2024+2025
+        // ============================================================
+        const questions = [
+            // ========== TEMA: HUBUNGAN DIPLOMATIK + POLITIK ==========
+            {
+                topic: "Hubungan Diplomatik + Politik",
+                q: "1. Jelaskan prinsip kerjasama ASEAN yang perlu dipatuhi oleh setiap negara anggotanya.",
+                marks: 7,
+                answers: [
+                    "Menghormati kemerdekaan",
+                    "Meningkatkan keamanan / keselamatan / kemakmuran serantau",
+                    "Menyokong penyelesaian pertikaian secara aman / rundingan",
+                    "Menghormati kebebasan asasi / hak asasi manusia",
+                    "Menghormati budaya",
+                    "Mengutamakan hubungan luar yang aktif",
+                    "Mematuhi peraturan perdagangan"
+                ]
+            },
+            {
+                topic: "Hubungan Diplomatik + Politik",
+                q: "2. Pelbagai manfaat diperoleh hasil pemuafakatan ekonomi dalam kalangan negara ASEAN namun terdapat banyak cabaran yang perlu dihadapi. Jelaskan.",
+                marks: 8,
+                answers: [
+                    "Meningkatkan kemasukan pelaburan asing",
+                    "Menggalakkan pemindahan / pertukaran teknologi",
+                    "Meningkatkan tadbir urus kewangan",
+                    "Mengutamakan kepentingan nasional masing-masing",
+                    "Konflik antara negara",
+                    "Persaingan mendapatkan pelaburan",
+                    "Sumber bekalan makanan",
+                    "Memudahkan urusan kewangan"
+                ]
+            },
+            {
+                topic: "Hubungan Diplomatik + Politik",
+                q: "3. Bincangkan bentuk ancaman di perairan Malaysia merangkumi Laut China Selatan dan Selat Melaka dan pelbagai usaha perlu dilaksanakan untuk menanganinya.",
+                marks: 10,
+                answers: [
+                    "Pencerobohan nelayan asing",
+                    "Kegiatan pelanunan / aktiviti pelanunan",
+                    "Jenayah rentas sempadan",
+                    "Konflik perebutan pulau / pertikaian sempadan / konflik tuntutan bertindih wilayah",
+                    "Pencemaran laut",
+                    "Memperkasa pihak berkuasa keselamatan maritim",
+                    "Meningkatkan penguatkuasaan undang-undang maritim",
+                    "Meningkatkan kerjasama antara agensi penguatkuasa",
+                    "Meningkatkan kerjasama antarabangsa",
+                    "Meningkatkan teknologi sistem pengawasan laut"
+                ]
+            },
+            {
+                topic: "Hubungan Diplomatik + Politik",
+                q: "4. Banyak isu berbangkit dalam hubungan kejiranan Malaysia dengan negara sekitarnya. Malaysia menolak unsur kekerasan dalam menangani konflik yang timbul. Bincangkan.",
+                marks: 10,
+                answers: [
+                    "Mengatasi isu pertindihan wilayah / sempadan perairan",
+                    "Menangani isu pencerobohan nelayan",
+                    "Meningkatkan pasaran komoditi negara",
+                    "Menangani pendatang Tanpa Izin (PATI)",
+                    "Mengatasi penyeludupan barangan",
+                    "Menangani keganasan dan pencerobohan sempadan",
+                    "Menangani isu kebanjiran pelarian",
+                    "Mengatasi konflik pembantu rumah",
+                    "Menangani isu pencemaran merentasi sempadan",
+                    "Berpegang kepada prinsip ASEAN"
+                ]
+            },
+            {
+                topic: "Hubungan Diplomatik + Politik",
+                q: "5. Peranan penting Malaysia dalam Pertubuhan ASEAN tidak terhad hanya untuk mewujudkan kerjasama dalam bidang ekonomi malah melibatkan kerjasama dalam pelbagai aspek. Bincangkan.",
+                marks: 8,
+                answers: [
+                    "Ekonomi",
+                    "Politik",
+                    "Sosial dan budaya",
+                    "Sains dan teknologi",
+                    "Keselamatan",
+                    "Pendidikan",
+                    "Kemanusiaan",
+                    "Rundingan"
+                ]
+            },
+            {
+                topic: "Hubungan Diplomatik + Politik",
+                q: "6. Malaysia merupakan negara membangun yang aktif memberikan pelbagai jenis sumbangan di peringkat antarabangsa. Bincangkan.",
+                marks: 4,
+                answers: [
+                    "Sumbangan dalam menyampaikan bantuan kemanusiaan / kebajikan",
+                    "Sumbangan dalam memelihara keamanan / keselamatan dunia sejagat",
+                    "Sumbangan dalam pengawalan alam sekitar",
+                    "Sumbangan terhadap kemajuan negara Islam"
+                ]
+            },
+            {
+                topic: "Hubungan Diplomatik + Politik",
+                q: "7. Jelaskan kepentingan hubungan multilateral yang terjalin antara Malaysia dan negara-negara lain.",
+                marks: 8,
+                answers: [
+                    "Meningkatkan keselamatan negara",
+                    "Penyelesaian konflik secara bersama",
+                    "Meningkatkan ekonomi negara",
+                    "Peluasan pasaran dan perdagangan negara",
+                    "Meningkatkan pelaburan asing",
+                    "Kemasukan teknologi moden",
+                    "Memperkasakan pendidikan negara",
+                    "Penyelesaian isu alam sekitar"
+                ]
+            },
+            {
+                topic: "Hubungan Diplomatik + Politik",
+                q: "8. Salah satu keutamaan Malaysia dalam melaksanakan dasar luar adalah mengadakan hubungan dengan negara luar. Jelaskan keperluan tindakan Malaysia ini.",
+                marks: 10,
+                answers: [
+                    "Sumber tenaga kerja",
+                    "Menggalakkan pertumbuhan ekonomi",
+                    "Menjamin keselamatan negara",
+                    "Pemindahan teknologi",
+                    "Membanteras jenayah rentas sempadan",
+                    "Memajukan kualiti pendidikan",
+                    "Memelihara alam sekitar secara global",
+                    "Bantuan kemanusiaan",
+                    "Menarik pelaburan asing",
+                    "Perluasan pasaran"
+                ]
+            },
+            {
+                topic: "Hubungan Diplomatik + Politik",
+                q: "9. Bincangkan manfaat yang diperoleh kunjungan pemimpin sesebuah negara ke negara lain.",
+                marks: 5,
+                answers: [
+                    "Meningkatkan lagi hubungan politik",
+                    "Menyelesaikan konflik berbangkit",
+                    "Meningkatkan jaminan keselamatan",
+                    "Mendapat pinjaman / sumber kewangan untuk pembangunan negara",
+                    "Mengukuhkan kerjasama pelbagai bidang"
+                ]
+            },
+            {
+                topic: "Hubungan Diplomatik + Politik",
+                q: "10. Hubungan antara Malaysia dan China kini bergerak daripada hubungan dagangan kepada hubungan strategik. Jelaskan rasional peningkatan hubungan ini.",
+                marks: 8,
+                answers: [
+                    "Kemelesetan ekonomi global",
+                    "Pasaran China yang besar",
+                    "Mengalih konflik Kepulauan Spratly",
+                    "Kesediaan China",
+                    "Wujud cabaran dalam hubungan dua hala",
+                    "Hubungan sosial yang terjalin",
+                    "Kedudukan Malaysia amat geostrategik",
+                    "Memperkukuh hubungan sedia ada dengan China"
+                ]
+            },
+            {
+                topic: "Hubungan Diplomatik + Politik",
+                q: "11. Bincangkan sebab kes pembantu rumah asing melarikan diri daripada rumah majikan semakin meningkat.",
+                marks: 7,
+                answers: [
+                    "Terpengaruh dengan pujuk rayu kekasih",
+                    "Serangan / gangguan seksual",
+                    "Tawaran kerja lebih baik",
+                    "Keterlibatan dalam industri seks",
+                    "Bebanan berat kerja",
+                    "Layanan buruk",
+                    "Kecuaian dan kemalangan terhadap ahli keluarga majikan"
+                ]
+            },
+            {
+                topic: "Hubungan Diplomatik + Politik",
+                q: "12. Keadaan geografi sempadan bukanlah satu-satunya punca yang menyebabkan Malaysia masih gagal menangani isu keselamatan sempadan. Isu ini akan menimbulkan pelbagai implikasi terhadap rakyat dan negara. Bincangkan.",
+                marks: 10,
+                answers: [
+                    "Keadaan geografi sempadan",
+                    "Kelemahan kawalan sempadan",
+                    "Peralatan yang digunakan kurang moden / canggih",
+                    "Hubungan kerjasama antara negara kurang berkesan",
+                    "Pencabulan undang-undang antarabangsa",
+                    "Masalah kebanjiran PATI",
+                    "Keselamatan rakyat tergugat",
+                    "Peningkatan perbelanjaan pertahanan negara",
+                    "Imej negara terjejas",
+                    "Pertumbuhan ekonomi negara terjejas"
+                ]
+            },
+            {
+                topic: "Hubungan Diplomatik + Politik",
+                q: "13. Belakangan ini, tahap keselamatan serantau semakin membimbangkan banyak pihak. Jelaskan tindakan Malaysia dalam memastikan tahap keselamatan serantau berada pada tahap yang optimum.",
+                marks: 5,
+                answers: [
+                    "Perkongsian maklumat keselamatan",
+                    "Mengadakan kawalan keselamatan",
+                    "Menggunakan teknologi moden",
+                    "Memperkasakan pasukan keselamatan",
+                    "Memperkasakan aset pertahanan negara"
+                ]
+            },
+            {
+                topic: "Hubungan Diplomatik + Politik",
+                q: "14. Kawasan perairan negara sering diceroboh oleh pelbagai pihak. Bincangkan.",
+                marks: 5,
+                answers: [
+                    "Syarikat cari gali minyak dan gas asli",
+                    "PATI",
+                    "Sindiket penyeludupan",
+                    "Tentera asing",
+                    "Nelayan asing"
+                ]
+            },
+            {
+                topic: "Hubungan Diplomatik + Politik",
+                q: "15. Huraikan peranan Malaysia dalam memperkukuh kestabilan politik serantau.",
+                marks: 10,
+                answers: [
+                    "Mengamalkan dasar luar yang berkecuali / tidak campur tangan",
+                    "Menjadi orang tengah dalam konflik serantau",
+                    "Menganjurkan persidangan / forum / dialog serantau",
+                    "Memperkukuh hubungan dua hala dengan negara jiran",
+                    "Menggalakkan kerjasama pertahanan / keselamatan serantau",
+                    "Mendukung penubuhan Zon Aman, Bebas dan Berkecuali (ZOPFAN)",
+                    "Menentang keganasan / ekstremisme",
+                    "Menyokong pembangunan ekonomi serantau",
+                    "Mempromosi gerakan kesederhanaan",
+                    "Menganjurkan dialog antara agama / budaya"
+                ]
+            },
+            {
+                topic: "Hubungan Diplomatik + Politik",
+                q: "16. Bincangkan punca kegiatan ekstremisme di peringkat global semakin meningkat dan usaha Malaysia bagi membantu menangani isu ini.",
+                marks: 10,
+                answers: [
+                    "Pengaruh ideologi radikal",
+                    "Ketidakstabilan politik antarabangsa",
+                    "Kemiskinan / ketidaksamaan ekonomi",
+                    "Penindasan / ketidakadilan sosial",
+                    "Campur tangan kuasa asing",
+                    "Fanatik agama",
+                    "Ketegangan etnik / perkauman",
+                    "Kegagalan institusi antarabangsa",
+                    "Mengukuhkan pendirian dasar luar yang berteraskan keamanan",
+                    "Meningkatkan kerjasama serantau dan antarabangsa bagi menentang keganasan"
+                ]
+            },
+            {
+                topic: "Hubungan Diplomatik + Politik",
+                q: "17. Keamanan sejagat adalah salah satu matlamat yang sering diperjuangkan oleh Malaysia dalam pelbagai organisasi dunia. Bincangkan.",
+                marks: 10,
+                answers: [
+                    "Keamanan sejagat",
+                    "Keadilan sosial sejagat",
+                    "Keadilan ekonomi sejagat",
+                    "Pemulihan demokrasi rakyat",
+                    "Perjuangan nasib masyarakat Islam di peringkat antarabangsa",
+                    "Memperjuangkan hak asasi manusia",
+                    "Menyuarakan kelemahan dalam PBB",
+                    "Memperjuangkan isu keselamatan sejagat",
+                    "Mengutarakan isu kelestarian alam sekitar",
+                    "Menyokong hak penentuan nasib sendiri (self-determination)"
+                ]
+            },
+            {
+                topic: "Hubungan Diplomatik + Politik",
+                q: "18. Huraikan kepentingan semangat permuaafakatan dalam kalangan negara anggota ASEAN.",
+                marks: 8,
+                answers: [
+                    "Menjamin keselamatan / kestabilan serantau",
+                    "Menjamin keamanan",
+                    "Mengukuhkan perpaduan / kerjasama serantau",
+                    "Menyelesaikan isu secara rundingan / aman",
+                    "Meningkatkan pembangunan ekonomi",
+                    "Meningkatkan peranan ASEAN di peringkat global",
+                    "Menyemai semangat toleransi / kefahaman antara budaya",
+                    "Meningkatkan taraf hidup rakyat"
+                ]
+            },
+            {
+                topic: "Hubungan Diplomatik + Politik",
+                q: "19. Bincangkan keperluan Malaysia untuk sentiasa mengutamakan kepentingan nasional dalam memelihara hubungan di peringkat serantau dan antarabangsa.",
+                marks: 10,
+                answers: [
+                    "Menjamin kedaulatan / keselamatan negara",
+                    "Menjaga kestabilan politik antarabangsa",
+                    "Menjamin kepentingan ekonomi / perdagangan",
+                    "Mengelakkan tekanan / campur tangan kuasa asing / luar",
+                    "Memelihara keamanan / keharmonian serantau",
+                    "Meningkatkan imej negara",
+                    "Menjamin hak dan kebajikan rakyat Malaysia di luar negara",
+                    "Menyokong prinsip keadilan sejagat",
+                    "Menjana kerjasama antarabangsa berdasarkan kepentingan bersama",
+                    "Mengurangkan kebergantungan kepada produk luar"
+                ]
+            },
+            {
+                topic: "Hubungan Diplomatik + Politik",
+                q: "20. Malaysia sering terdedah kepada ancaman sindiket penyeludupan dadah antarabangsa. Oleh itu, langkah-langkah perlu diambil oleh Malaysia untuk membanteras isu penyeludupan dadah antarabangsa. Bincangkan.",
+                marks: 7,
+                answers: [
+                    "Permintaan pasaran domestik dan global tinggi",
+                    "Sempadan negara yang luas",
+                    "Keterlibatan sindiket antarabangsa",
+                    "Kelemahan kawalan di sempadan negara jiran",
+                    "Penggunaan teknologi antarabangsa",
+                    "Menyertai deklarasi / forum",
+                    "Memperkasakan penguatkuasaan undang-undang"
+                ]
+            },
+
+            // ========== TEMA: EKONOMI ==========
+            {
+                topic: "Ekonomi",
+                q: "21. Bincangkan kelebihan dan kelemahan Liberalisasi dalam perdagangan terhadap negara kita.",
+                marks: 10,
+                answers: [
+                    "Merancakkan pertumbuhan ekonomi negara",
+                    "Meningkatkan daya saing",
+                    "Meningkatkan produktiviti",
+                    "Membuka lebih banyak pelaburan",
+                    "Pasaran produk lebih luas",
+                    "Pembangunan teknologi baru / R&D",
+                    "Peluang pekerjaan yang banyak",
+                    "Monopoli syarikat besar / modal besar",
+                    "Pergantungan terhadap pelaburan / industri asing",
+                    "Polisi perlindungan dihapuskan"
+                ]
+            },
+            {
+                topic: "Ekonomi",
+                q: "22. Pengeluaran minyak sawit Malaysia disabotaj oleh Persatuan Pengeluar Minyak Soya Amerika Syarikat. Jelaskan alasan yang diguna serta langkah yang diambil oleh kerajaan Malaysia bagi menangkis dan meningkatkan kemajuan industri sawit negara.",
+                marks: 7,
+                answers: [
+                    "Isu ekologi dunia",
+                    "Penggunaan dana antarabangsa",
+                    "Memerangi kempen memburuk-burukkan minyak sawit",
+                    "Melancarkan kempen penggalakkan penggunaan minyak sawit",
+                    "Memperjuangkan prinsip perdagangan bebas, adil dan terbuka (BAT)",
+                    "Melakukan pertukaran minyak sawit dengan projek mega",
+                    "Meningkatkan kemajuan industri hiliran asas minyak sawit"
+                ]
+            },
+            {
+                topic: "Ekonomi",
+                q: "23. Bincangkan manfaat ekonomi yang dibawa kepada negara melalui perjanjian perdagangan bebas antara Malaysia dengan negara-negara tertentu.",
+                marks: 10,
+                answers: [
+                    "Meningkatkan kemasukan pelaburan asing",
+                    "Meluaskan pasaran",
+                    "Pemindahan teknologi moden",
+                    "Meningkatkan kepakaran / kemahiran",
+                    "Memperoleh sumber bahan mentah",
+                    "Membangun keupayaan industri tempatan / meningkatkan pertumbuhan industri",
+                    "Peningkatan daya saing",
+                    "Memenuhi keperluan / cita rasa rakyat",
+                    "Meningkatkan kerjasama ekonomi",
+                    "Meningkatkan peluang pekerjaan"
+                ]
+            },
+            {
+                topic: "Ekonomi",
+                q: "24. Eksport merujuk kepada aliran keluar produk ke negara lain. Eksport menjana pendapatan dan pembangunan ekonomi negara. Bincangkan langkah-langkah meningkatkan eksport negara.",
+                marks: 10,
+                answers: [
+                    "Mengekalkan kestabilan politik",
+                    "Mewujudkan hubungan diplomatik yang akrab dengan negara luar",
+                    "Melaksanakan / mengamalkan prinsip perdagangan bebas, adil dan terbuka (BAT)",
+                    "Meningkatkan kualiti barang eksport",
+                    "Perluasan pasaran",
+                    "Mencapai syarat perdagangan yang adil",
+                    "Mempelbagaikan hasil keluaran produk eksport negara",
+                    "Harga produk eksport perlu lebih kompetitif",
+                    "Mengadakan misi perdagangan ke luar negara",
+                    "Meningkatkan kemudahan prasarana fizikal dan perkhidmatan"
+                ]
+            },
+            {
+                topic: "Ekonomi",
+                q: "25. Bincangkan cabaran dalaman dan luaran Malaysia bagi memastikan ekonomi negara berkembang pesat.",
+                marks: 8,
+                answers: [
+                    "Kekurangan tenaga kerja pakar / mahir",
+                    "Kekurangan infrastruktur yang moden dan lengkap",
+                    "Kekurangan penyelidikan dan pembangunan",
+                    "Kebergantungan kepada sektor ekonomi tertentu",
+                    "Ketidakstabilan / ketidaktentuan ekonomi global",
+                    "Konflik geopolitik dunia",
+                    "Persaingan menarik pelaburan asing",
+                    "Tekanan antarabangsa"
+                ]
+            },
+            {
+                topic: "Ekonomi",
+                q: "26. Antara matlamat penubuhan ASEAN adalah untuk mempercepatkan pertumbuhan ekonomi, sosial dan kebudayaan negara serantau. Jelaskan penglibatan Malaysia dalam bidang ekonomi ASEAN dan implikasinya kepada negara.",
+                marks: 10,
+                answers: [
+                    "Menyokong konsep Pertumbuhan Segi Tiga (Segi Tiga Pertumbuhan)",
+                    "Menyokong kawasan Perdagangan Bebas ASEAN (AFTA)",
+                    "Mempelopori penubuhan ASEAN + 3",
+                    "Melaksanakan Projek Perindustrian ASEAN",
+                    "Meningkatkan pertumbuhan ekonomi negara",
+                    "Meningkatkan kemasukan pelaburan asing",
+                    "Perluasan pasaran",
+                    "Sumber tenaga kerja meningkat",
+                    "Perkembangan teknologi pesat / pemindahan teknologi",
+                    "Hubungan diplomatik semakin erat / persahabatan"
+                ]
+            },
+            {
+                topic: "Ekonomi",
+                q: "27. Huraikan faedah pemindahan teknologi moden dalam sektor perindustrian di negara ini.",
+                marks: 9,
+                answers: [
+                    "Peningkatan produktiviti dan kecekapan",
+                    "Penjimatan kos operasi",
+                    "Peningkatan kualiti produk",
+                    "Pemindahan pengetahuan dan kepakaran",
+                    "Menggalakkan perkembangan inovasi",
+                    "Menjimatkan masa / memendekkan masa pengeluaran",
+                    "Peningkatan daya saing industri tempatan",
+                    "Menarik pelabur asing",
+                    "Pemeliharaan alam sekitar"
+                ]
+            },
+            {
+                topic: "Ekonomi",
+                q: "28. Pelbagai manfaat diperoleh hasil permufakatan ekonomi dalam kalangan negara ASEAN namun terdapat banyak cabaran yang perlu dihadapi. Jelaskan.",
+                marks: 10,
+                answers: [
+                    "Sumber bekalan makanan",
+                    "Meningkatkan pelaburan asing",
+                    "Meluaskan pasaran",
+                    "Menggalakkan pemindahan / pertukaran teknologi",
+                    "Memudahkan urusan kewangan",
+                    "Sumber tenaga kerja",
+                    "Kemasukan tenaga pakar",
+                    "Bekalan sumber bahan mentah",
+                    "Pengeluaran barangan yang sama",
+                    "Mengutamakan kepentingan nasional"
+                ]
+            },
+            {
+                topic: "Ekonomi",
+                q: "29. Malaysia berbelanja berbilion ringgit setiap tahun untuk mengimport makanan bagi memenuhi keperluan penduduk. Justeru usaha perlu dilaksanakan untuk mengurangkan kebergantungan tersebut. Bincangkan.",
+                marks: 10,
+                answers: [
+                    "Memenuhi permintaan pengguna",
+                    "Bekalan makanan tidak mencukupi",
+                    "Geografi / iklim",
+                    "Perubahan gaya hidup / diet masyarakat",
+                    "Keperluan kesihatan",
+                    "Peningkatan populasi",
+                    "Mengekal / meluaskan kawasan pertanian",
+                    "Meningkatkan piawaian kualiti / keselamatan makanan",
+                    "Meningkatkan Penyelidikan dan Pembangunan (R&D)",
+                    "Menggunakan teknologi moden"
+                ]
+            },
+
+            // ========== TEMA: SOSIAL DAN BUDAYA ==========
+            {
+                topic: "Sosial dan Budaya",
+                q: "30. Selain penyakit berjangkit, masih terdapat beberapa faktor bukan semula jadi yang mengancam dan menyebabkan kematian dan penderitaan penduduk dunia. Bincangkan.",
+                marks: 8,
+                answers: [
+                    "Penyakit berjangkit",
+                    "Peperangan dan pergolakan politik",
+                    "Pengujian senjata kimia dan nuklear",
+                    "Pembersihan rasis dan etnik",
+                    "Kebuluran",
+                    "Pencemaran udara dan jerebu",
+                    "Penggunaan teknologi",
+                    "Tenaga nuklear"
+                ]
+            },
+            {
+                topic: "Sosial dan Budaya",
+                q: "31. Huraikan kesan perang kepada penduduk dan bantuan Malaysia kepada mangsa perang.",
+                marks: 9,
+                answers: [
+                    "Kemusnahan harta benda",
+                    "Kehilangan ahli keluarga / kematian meningkat",
+                    "Menjejaskan kesihatan",
+                    "Meningkatkan bilangan pelarian perang",
+                    "Hak asasi manusia terjejas",
+                    "Menyediakan pusat perlindungan sementara kepada pelarian perang",
+                    "Memberi bantuan kemanusiaan",
+                    "Menyalurkan bantuan kewangan",
+                    "Membangunkan semula prasarana"
+                ]
+            },
+            {
+                topic: "Sosial dan Budaya",
+                q: "32. Bincangkan punca peningkatan sindiket penipuan pekerjaan di luar negara dan langkah kerajaan membanteras kegiatan penipuan pekerjaan ini.",
+                marks: 4,
+                answers: [
+                    "Terdesak bekerja",
+                    "Sikap mudah terpedaya",
+                    "Pengaruh rakan atau ahli keluarga",
+                    "Meningkatkan pendidikan"
+                ]
+            },
+            {
+                topic: "Sosial dan Budaya",
+                q: "33. Senjata kimia dan senjata nuklear pernah digunakan dalam peperangan. Kini, penggunaan senjata ini dalam sesuatu konflik mendatangkan risiko kepada rakyat dan negara. Bincangkan.",
+                marks: 7,
+                answers: [
+                    "Kematian / kehilangan nyawa dalam skala besar",
+                    "Kecacatan fizikal",
+                    "Menggugat / mengancam kesihatan",
+                    "Menggugat keselamatan negara",
+                    "Memusnahkan kemudahan infrastruktur",
+                    "Pencemaran alam sekitar",
+                    "Menjejaskan kegiatan ekonomi"
+                ]
+            },
+            {
+                topic: "Sosial dan Budaya",
+                q: "34. Ancaman-ancaman kesihatan yang melanda dunia kini, memerlukan usaha bersama untuk menanganinya. Huraikan.",
+                marks: 8,
+                answers: [
+                    "Pencemaran udara",
+                    "Penyakit tidak berjangkit / NCD",
+                    "Penularan wabak penyakit berjangkit",
+                    "Rintangan ubat antimikrob",
+                    "Kurang menitikberatkan kesihatan",
+                    "Perubahan iklim",
+                    "Memperkukuh / meningkatkan kerjasama peringkat serantau / global",
+                    "Meningkatkan kawalan pergerakan rakyat"
+                ]
+            },
+            {
+                topic: "Sosial dan Budaya",
+                q: "35. Jelaskan kesan bencana alam dan cara hulu bantuan Malaysia untuk memberi bantuan kemanusiaan kepada negara-negara yang terlibat dalam bencana alam.",
+                marks: 10,
+                answers: [
+                    "Penularan wabak penyakit",
+                    "Kerosakan harta benda dan kehilangan nyawa",
+                    "Menjejaskan kesihatan",
+                    "Kekurangan sumber makanan",
+                    "Peningkatan aras laut",
+                    "Mengubah landskap pinggir pantai",
+                    "Pencemaran alam sekitar",
+                    "Kepupusan flora dan fauna",
+                    "Membantu di bawah panji PBB",
+                    "Mengutip derma"
+                ]
+            },
+            {
+                topic: "Sosial dan Budaya",
+                q: "36. Peperangan yang terus berlaku di beberapa buah negara bukanlah penyelesaian kepada masalah yang dihadapi. Keadaan ini sebenarnya mendatangkan masalah kepada negara dan rakyat. Bincangkan.",
+                marks: 8,
+                answers: [
+                    "Ketidakstabilan politik",
+                    "Kualiti alam sekitar terjejas",
+                    "Kerosakan kemudahan awam",
+                    "Kesihatan terjejas",
+                    "Kehilangan nyawa / ahli keluarga",
+                    "Trauma",
+                    "Kemusnahan harta benda",
+                    "Peningkatan bilangan pelarian"
+                ]
+            },
+
+            // ========== TEMA: ALAM SEKITAR ==========
+            {
+                topic: "Alam Sekitar",
+                q: "37. Sikap masyarakat yang tidak cakna menjadi punca penjagaan alam sekitar semakin diabaikan. Terdapat juga punca-punca lain yang menyumbang permasalahan tersebut. Huraikan.",
+                marks: 6,
+                answers: [
+                    "Sikap individu - Kurang kesedaran sivik",
+                    "Peladang / petani - Pembakaran hutan secara terbuka",
+                    "Kerajaan - Penguatkuasaan undang-undang yang lemah",
+                    "Pihak industri – Mementingkan keuntungan",
+                    "Media massa / sosial - Kurang hebahan tentang kepentingan menjaga alam sekitar",
+                    "Sikap masyarakat - Tidak cakna"
+                ]
+            },
+            {
+                topic: "Alam Sekitar",
+                q: "38. Bincangkan kesan buruk Penambakan laut di kawasan perairan terhadap alam sekitar.",
+                marks: 7,
+                answers: [
+                    "Kehilangan ekosistem kehidupan marin",
+                    "Pemusnahan zon penampan",
+                    "Gangguan rantaian makanan",
+                    "Pencemaran air di persisiran pantai",
+                    "Peningkatan pemendakan dan kekeruhan",
+                    "Perikanan dan sumber pendapatan",
+                    "Kemasukan air masin dan perubahan sistem air bawah tanah"
+                ]
+            },
+            {
+                topic: "Alam Sekitar",
+                q: "39. Penemuan dan penghasilan sumber tenaga alternatif mendatangkan banyak manfaat dalam kehidupan manusia. Namun begitu, wujud pelbagai cabaran dalam membangunannya. Bincangkan.",
+                marks: 9,
+                answers: [
+                    "Mesra alam / mengatasi masalah pencemaran",
+                    "Boleh diperbaharui / boleh dikitar semula",
+                    "Mengatasi krisis tenaga dunia",
+                    "Meningkatkan / menambah peluang pekerjaan",
+                    "Menjejaskan kesihatan",
+                    "Menjejaskan ekologi (alam sekitar)",
+                    "Kos yang tinggi",
+                    "Kekurangan kepakaran",
+                    "Sumber tenaga terhad di tempat tertentu sahaja"
+                ]
+            },
+            {
+                topic: "Alam Sekitar",
+                q: "40. Huraikan peranan Malaysia bagi menjamin kelestarian alam sekitar dunia.",
+                marks: 10,
+                answers: [
+                    "Menandatangani perjanjian / deklarasi alam sekitar global",
+                    "Menyertai persidangan / forum / dialog alam sekitar antarabangsa",
+                    "Meningkatkan Penyelidikan dan Pembangunan berkaitan alam sekitar",
+                    "Melaksanakan dasar bagi pemeliharaan / pemuliharaan alam sekitar",
+                    "Mewujudkan kawasan perlindungan alam semula jadi",
+                    "Menyokong Matlamat Pembangunan Mampan (SDG)",
+                    "Membangunkan bandar hijau",
+                    "Menjalinkan kerjasama antarabangsa",
+                    "Memperkasa penguatkuasaan undang-undang berkaitan alam sekitar",
+                    "Mempergiat pendidikan alam sekitar"
+                ]
+            },
+            {
+                topic: "Alam Sekitar",
+                q: "41. Kemusnahan alam sekitar sering dikaitkan dengan kegiatan manusia yang tidak terkawal. Langkah-langkah yang wajar perlu diambil oleh Malaysia dan negara-negara lain demi melestarikan alam sekitar. Bincangkan.",
+                marks: 10,
+                answers: [
+                    "Penebangan / penerokaan hutan berleluasa atau tidak terkawal / pembalakan haram",
+                    "Pembakaran terbuka",
+                    "Penggunaan CFC secara aktif",
+                    "Peningkatan penggunaan kenderaan bermotor",
+                    "Perkembangan dalam perindustrian",
+                    "Aktiviti pertanian secara besar-besaran",
+                    "Meningkatkan program pendidikan alam sekitar",
+                    "Meningkatkan penggunaan teknologi mesra alam / teknologi hijau",
+                    "Menyertai atau mengadakan dialog, seminar dan forum antarabangsa berkaitan alam sekitar",
+                    "Menandatangani perjanjian antarabangsa"
+                ]
+            },
+
+            // ========== TEMA: SAINS DAN TEKNOLOGI ==========
+            {
+                topic: "Sains dan Teknologi",
+                q: "42. Teknologi nano merupakan teknologi terkini yang memberikan banyak manfaat dalam pelbagai bidang. Bincangkan.",
+                marks: 9,
+                answers: [
+                    "Bidang perubatan",
+                    "Bidang ketenteraan dan keselamatan negara",
+                    "Bidang perindustrian",
+                    "Bidang pertanian dan penghasilan makanan",
+                    "Bidang sukan",
+                    "Bidang penyelidikan",
+                    "Bidang teknologi maklumat dan teknologi komunikasi elektronik / gajet",
+                    "Bidang kosmetik",
+                    "Bidang aeroangkasa"
+                ]
+            },
+            {
+                topic: "Sains dan Teknologi",
+                q: "43. Jelaskan kebaikan penggunaan teknologi dron atau Pesawat Tanpa Pemandu (UAV) di sempadan negara.",
+                marks: 7,
+                answers: [
+                    "Memantau keselamatan sempadan dengan berkesan",
+                    "Mengurangkan kos operasi keselamatan",
+                    "Pengawasan kawasan sukar diakses",
+                    "Pengumpulan maklumat dan risikan",
+                    "Tindak balas cepat terhadap ancaman",
+                    "Meningkatkan kecekapan penguatkuasaan undang-undang",
+                    "Penggunaan dalam operasi kemanusiaan dan kecemasan"
+                ]
+            },
+            {
+                topic: "Sains dan Teknologi",
+                q: "44. Huraikan usaha kerajaan mengurangkan ketergantungan teknologi asing.",
+                marks: 6,
+                answers: [
+                    "Memperkukuhkan Penyelidikan dan Pembangunan (R&D) tempatan",
+                    "Menggalakkan pembangunan industri teknologi tempatan",
+                    "Pemindahan teknologi secara terancang",
+                    "Pembangunan modal insan berkemahiran tinggi",
+                    "Penggunaan produk dan sistem tempatan oleh kerajaan",
+                    "Kerjasama strategik universiti bersama industri"
+                ]
+            },
+            {
+                topic: "Sains dan Teknologi",
+                q: "45. Bincangkan manfaat teknologi maklumat dan komunikasi (ICT) dalam sektor pendidikan negara.",
+                marks: 8,
+                answers: [
+                    "Memudahkan akses kepada maklumat",
+                    "Pembelajaran secara dalam talian",
+                    "Meningkatkan kualiti pengajaran dan pembelajaran",
+                    "Meningkatkan kemahiran digital pelajar",
+                    "Memperluas peluang pendidikan",
+                    "Menggalakkan pembelajaran kendiri",
+                    "Meningkatkan kerjasama antara pelajar dan guru",
+                    "Menjimatkan kos pendidikan"
+                ]
+            },
+            {
+                topic: "Sains dan Teknologi",
+                q: "46. Huraikan cabaran dalam pembangunan teknologi hijau di Malaysia.",
+                marks: 6,
+                answers: [
+                    "Kos permulaan yang tinggi",
+                    "Kekurangan kepakaran dan tenaga kerja mahir",
+                    "Kurang kesedaran masyarakat",
+                    "Teknologi yang terhad",
+                    "Persaingan dengan teknologi konvensional",
+                    "Kekurangan insentif kerajaan"
+                ]
+            },
+            {
+                topic: "Sains dan Teknologi",
+                q: "47. Jelaskan peranan teknologi dalam meningkatkan produktiviti sektor pertanian negara.",
+                marks: 7,
+                answers: [
+                    "Penggunaan mesin dan peralatan moden",
+                    "Sistem pengairan yang cekap",
+                    "Penggunaan baja dan racun yang tepat",
+                    "Teknologi GPS dan dron",
+                    "Sistem pemantauan tanaman",
+                    "Penyelidikan dan pembangunan benih",
+                    "Pengurusan ladang secara sistematik"
+                ]
+            },
+            {
+                topic: "Sains dan Teknologi",
+                q: "48. Bincangkan kesan negatif penggunaan teknologi yang tidak terkawal terhadap masyarakat.",
+                marks: 7,
+                answers: [
+                    "Pencemaran alam sekitar",
+                    "Ketagihan gajet",
+                    "Masalah kesihatan mental",
+                    "Jenayah siber",
+                    "Penipuan dalam talian",
+                    "Kehilangan pekerjaan",
+                    "Jurang digital"
+                ]
+            },
+            {
+                topic: "Sains dan Teknologi",
+                q: "49. Huraikan langkah-langkah untuk meningkatkan literasi digital dalam kalangan rakyat Malaysia.",
+                marks: 6,
+                answers: [
+                    "Kempen kesedaran digital",
+                    "Latihan dan kursus komputer",
+                    "Integrasi teknologi dalam pendidikan",
+                    "Penyediaan infrastruktur internet",
+                    "Kerjasama dengan pihak swasta",
+                    "Program komuniti digital"
+                ]
+            },
+            {
+                topic: "Sains dan Teknologi",
+                q: "50. Jelaskan kepentingan penyelidikan dan pembangunan (R&D) dalam memajukan negara.",
+                marks: 6,
+                answers: [
+                    "Menghasilkan inovasi baru",
+                    "Meningkatkan daya saing negara",
+                    "Menyelesaikan masalah masyarakat",
+                    "Meningkatkan kualiti produk",
+                    "Menarik pelaburan asing",
+                    "Membangunkan modal insan"
+                ]
+            }
+        ];
+
+        // ============================================================
+        //  MALAY SINGULAR/PLURAL VARIANTS (basic)
+        // ============================================================
+        function getMalayVariants(word) {
+            const w = word.toLowerCase();
+            const variants = new Set();
+            variants.add(w);
+
+            // Common Malay prefixes/suffixes
+            if (w.startsWith('me')) {
+                variants.add(w.slice(2));
+                variants.add('m' + w.slice(2));
+            }
+            if (w.startsWith('ber')) {
+                variants.add(w.slice(3));
+            }
+            if (w.startsWith('ter')) {
+                variants.add(w.slice(3));
+            }
+            if (w.startsWith('di')) {
+                variants.add(w.slice(2));
+            }
+            if (w.endsWith('kan')) {
+                variants.add(w.slice(0, -3));
+                variants.add(w.slice(0, -2));
+            }
+            if (w.endsWith('an')) {
+                variants.add(w.slice(0, -2));
+            }
+            if (w.endsWith('i')) {
+                variants.add(w.slice(0, -1));
+            }
+            if (w.endsWith('nya')) {
+                variants.add(w.slice(0, -3));
+            }
+            // Plural with "meng-"
+            if (w.startsWith('meng')) {
+                variants.add(w.slice(4));
+                variants.add('k' + w.slice(4));
+                variants.add('ng' + w.slice(4));
+            }
+            if (w.startsWith('men')) {
+                variants.add(w.slice(3));
+                variants.add('t' + w.slice(3));
+            }
+            if (w.startsWith('mem')) {
+                variants.add(w.slice(3));
+                variants.add('p' + w.slice(3));
+            }
+            if (w.startsWith('meny')) {
+                variants.add('s' + w.slice(4));
+            }
+
+            // Basic plural-like (reduplication)
+            if (w.length > 3 && !w.includes('-')) {
+                variants.add(w + '-' + w);
+            }
+
+            return [...variants];
+        }
+
+        function getKeywords(sentence) {
+            const words = sentence.toLowerCase()
+                .replace(/[^a-z0-9\s\u00C0-\u024F]/g, '')
+                .split(/\s+/)
+                .filter(w => w.length > 2);
+
+            const expanded = new Set();
+            for (const w of words) {
+                const variants = getMalayVariants(w);
+                variants.forEach(v => expanded.add(v));
+            }
+            return [...expanded];
+        }
+
+        function isAnswerCorrect(userText, modelSentence) {
+            if (!userText || !userText.trim()) return false;
+            const userLower = userText.toLowerCase();
+            const keywords = getKeywords(modelSentence);
+            if (keywords.length < 2) {
+                // Short answers: check if at least one keyword matches
+                for (const kw of keywords) {
+                    const regex = new RegExp(`\\b${kw.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}\\b`, 'i');
+                    if (regex.test(userLower)) return true;
+                }
+                return false;
+            }
+            let matchCount = 0;
+            for (const kw of keywords) {
+                const regex = new RegExp(`\\b${kw.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}\\b`, 'i');
+                if (regex.test(userLower)) matchCount++;
+                if (matchCount >= 2) return true;
+            }
+            return false;
+        }
+
+        function highlightUserAnswer(userText, modelSentence) {
+            if (!userText || !userText.trim()) return userText || '';
+            const keywords = getKeywords(modelSentence);
+            let result = userText;
+            const sorted = [...keywords].sort((a, b) => b.length - a.length);
+            for (const kw of sorted) {
+                const escaped = kw.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+                const regex = new RegExp(`\\b(${escaped})\\b`, 'gi');
+                result = result.replace(regex, '<span class="highlight">$1</span>');
+            }
+            return result;
+        }
+
+        // ============================================================
+        //  STATE
+        // ============================================================
+        let currentQIndex = 0;
+        let userAnswers = questions.map(q => Array(q.marks).fill(''));
+        let submitted = questions.map(() => false);
+        let scores = questions.map(() => 0);
+        let startTime = null;
+        let timerInterval = null;
+        let totalSeconds = 0;
+
+        const quizScreen = document.getElementById('quizScreen');
+        const summaryScreen = document.getElementById('summaryScreen');
+        const startBtn = document.getElementById('startBtn');
+        const questionCounter = document.getElementById('questionCounter');
+        const timerDisplay = document.getElementById('timerDisplay');
+        const questionText = document.getElementById('questionText');
+        const marksBadge = document.getElementById('marksBadge');
+        const inputContainer = document.getElementById('inputContainer');
+        const submitBtn = document.getElementById('submitBtn');
+        const hintBtn = document.getElementById('hintBtn');
+        const nextBtn = document.getElementById('nextBtn');
+        const hintBox = document.getElementById('hintBox');
+        const skemaPanel = document.getElementById('skemaPanel');
+        const skemaList = document.getElementById('skemaList');
+        const totalScoreDisplay = document.getElementById('totalScoreDisplay');
+        const timeTakenDisplay = document.getElementById('timeTakenDisplay');
+        const summaryBody = document.getElementById('summaryBody');
+        const restartBtn = document.getElementById('restartBtn');
+        const topicTag = document.getElementById('topicTag');
+
+        function formatTime(sec) {
+            const m = Math.floor(sec / 60).toString().padStart(2, '0');
+            const s = (sec % 60).toString().padStart(2, '0');
+            return `${m}:${s}`;
+        }
+
+        function startTimer() {
+            if (timerInterval) clearInterval(timerInterval);
+            startTime = Date.now();
+            totalSeconds = 0;
+            timerInterval = setInterval(() => {
+                totalSeconds = Math.floor((Date.now() - startTime) / 1000);
+                timerDisplay.textContent = `⏱ ${formatTime(totalSeconds)}`;
+            }, 1000);
+        }
+
+        function stopTimer() {
+            if (timerInterval) {
+                clearInterval(timerInterval);
+                timerInterval = null;
+            }
+        }
+
+        function computeScore(qIndex) {
+            const q = questions[qIndex];
+            const userAns = userAnswers[qIndex];
+            let score = 0;
+            for (let i = 0; i < q.marks; i++) {
+                const modelSentence = q.answers[i] || '';
+                const userText = userAns[i] || '';
+                if (isAnswerCorrect(userText, modelSentence)) {
+                    score++;
+                }
+            }
+            return score;
+        }
+
+        function renderQuestion() {
+            const q = questions[currentQIndex];
+            const qNum = currentQIndex + 1;
+
+            questionCounter.textContent = `Soalan ${qNum} / ${questions.length}`;
+            questionText.textContent = q.q;
+            marksBadge.textContent = `[${q.marks} isi]`;
+            topicTag.textContent = q.topic;
+
+            inputContainer.innerHTML = '';
+            for (let i = 0; i < q.marks; i++) {
+                const row = document.createElement('div');
+                row.className = 'input-row';
+
+                const input = document.createElement('input');
+                input.type = 'text';
+                input.placeholder = `Isi / idea ${i+1}...`;
+                input.value = userAnswers[currentQIndex][i] || '';
+                input.dataset.index = i;
+                input.addEventListener('input', (e) => {
+                    userAnswers[currentQIndex][i] = e.target.value;
+                    if (submitted[currentQIndex]) {
+                        submitted[currentQIndex] = false;
+                        scores[currentQIndex] = 0;
+                        nextBtn.disabled = true;
+                        skemaPanel.classList.add('hide');
+                    }
+                });
+
+                const tag = document.createElement('div');
+                tag.className = 'score-tag';
+                tag.textContent = '—';
+                tag.id = `tag-${i}`;
+
+                row.appendChild(input);
+                row.appendChild(tag);
+                inputContainer.appendChild(row);
+            }
+
+            submitBtn.disabled = false;
+            nextBtn.disabled = true;
+            hintBox.classList.add('hide');
+            skemaPanel.classList.add('hide');
+            hintBox.innerHTML = '';
+
+            if (submitted[currentQIndex]) {
+                showSubmittedState();
+            }
+        }
+
+        function showSubmittedState() {
+            const q = questions[currentQIndex];
+            const qIndex = currentQIndex;
+
+            const score = computeScore(qIndex);
+            scores[qIndex] = score;
+
+            const inputs = inputContainer.querySelectorAll('input');
+            for (let i = 0; i < q.marks; i++) {
+                const input = inputs[i];
+                const tag = document.getElementById(`tag-${i}`);
+                const modelSentence = q.answers[i] || '';
+                const userText = userAnswers[qIndex][i] || '';
+                const correct = isAnswerCorrect(userText, modelSentence);
+
+                if (correct) {
+                    tag.textContent = '✓';
+                    tag.classList.add('correct');
+                    input.style.borderColor = '#4a9e6b';
+                } else {
+                    tag.textContent = '✗';
+                    tag.classList.remove('correct');
+                    input.style.borderColor = '#c0392b';
+                }
+            }
+
+            skemaList.innerHTML = '';
+            for (let i = 0; i < q.marks; i++) {
+                const li = document.createElement('li');
+                const modelSentence = q.answers[i] || '';
+                const userText = userAnswers[qIndex][i] || '';
+                const correct = isAnswerCorrect(userText, modelSentence);
+
+                if (correct) {
+                    li.innerHTML = `✅ ${modelSentence} <span style="color:#1e7a5a; font-weight:600;">(jawapan anda sepadan)</span>`;
+                } else {
+                    li.innerHTML = `❌ ${modelSentence}`;
+                    if (userText.trim()) {
+                        li.innerHTML += `<br><span style="font-size:0.85rem; color:#555;">Jawapan anda: ${highlightUserAnswer(userText, modelSentence)}</span>`;
+                    }
+                }
+                skemaList.appendChild(li);
+            }
+            skemaPanel.classList.remove('hide');
+            submitBtn.disabled = true;
+            nextBtn.disabled = false;
+        }
+
+        function submitCurrent() {
+            if (submitted[currentQIndex]) return;
+            submitted[currentQIndex] = true;
+            showSubmittedState();
+        }
+
+        function showHint() {
+            const q = questions[currentQIndex];
+            hintBox.innerHTML = '';
+            for (let i = 0; i < q.marks; i++) {
+                const modelSentence = q.answers[i] || '';
+                const keywords = getKeywords(modelSentence).slice(0, 2).join(', ');
+                const p = document.createElement('div');
+                p.innerHTML = `<strong>${i+1}.</strong> ${keywords || '—'}`;
+                hintBox.appendChild(p);
+            }
+            hintBox.classList.remove('hide');
+        }
+
+        function nextQuestion() {
+            if (currentQIndex < questions.length - 1) {
+                currentQIndex++;
+                renderQuestion();
+            } else {
+                stopTimer();
+                showSummary();
+            }
+        }
+
+        function showSummary() {
+            quizScreen.classList.add('hide');
+            summaryScreen.classList.remove('hide');
+
+            const totalScore = scores.reduce((a, b) => a + b, 0);
+            const totalMax = questions.reduce((a, q) => a + q.marks, 0);
+            totalScoreDisplay.textContent = `Jumlah Skor: ${totalScore} / ${totalMax}`;
+            timeTakenDisplay.textContent = `⏱ Masa diambil: ${formatTime(totalSeconds)}`;
+
+            if (currentUserName) {
+                db.collection('stpm_pa_results').add({
+                    name: currentUserName,
+                    score: totalScore,
+                    maxScore: totalMax,
+                    durationSeconds: totalSeconds,
+                    completedAt: firebase.firestore.FieldValue.serverTimestamp()
+                }).catch(err => console.error('Result save error:', err));
+            }
+
+            summaryBody.innerHTML = '';
+            questions.forEach((q, idx) => {
+                const tr = document.createElement('tr');
+                const score = scores[idx] || 0;
+                tr.innerHTML = `<td>${idx+1}</td><td>${q.q}</td><td><strong>${score}</strong></td><td>${q.marks}</td>`;
+                summaryBody.appendChild(tr);
+            });
+        }
+
+        function startQuiz() {
+            startScreen.classList.add('hide');
+            quizScreen.classList.remove('hide');
+            summaryScreen.classList.add('hide');
+            currentQIndex = 0;
+            userAnswers = questions.map(q => Array(q.marks).fill(''));
+            submitted = questions.map(() => false);
+            scores = questions.map(() => 0);
+            startTimer();
+            renderQuestion();
+        }
+
+        function restartQuiz() {
+            stopTimer();
+            summaryScreen.classList.add('hide');
+            startScreen.classList.remove('hide');
+            currentQIndex = 0;
+            userAnswers = questions.map(q => Array(q.marks).fill(''));
+            submitted = questions.map(() => false);
+            scores = questions.map(() => 0);
+            totalSeconds = 0;
+            timerDisplay.textContent = '⏱ 00:00';
+        }
+
+        startBtn.addEventListener('click', startQuiz);
+        submitBtn.addEventListener('click', submitCurrent);
+        hintBtn.addEventListener('click', showHint);
+        nextBtn.addEventListener('click', nextQuestion);
+        restartBtn.addEventListener('click', restartQuiz);
+
+        checkExistingUser();
+        renderQuestion();
+    </script>
+</body>
+</html>
