@@ -1,0 +1,1137 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.5, user-scalable=yes">
+  <title>MUET Speaking 2023 Season 3 · 完整备考</title>
+  <style>
+    /* 全局重置与颜色系统 */
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    :root {
+      --bg: #f6f9fc;
+      --card-bg: #ffffff;
+      --text-main: #0b2b44;
+      --text-soft: #2c3e50;
+      --accent: #1e6f9f;
+      --accent-light: #e1eff9;
+      --border: #cbdae6;
+      --proverb-bg: #f1f7fb;
+      --tag-bg: #d9e9f5;
+      --shadow: 0 8px 20px rgba(0, 20, 40, 0.06), 0 2px 6px rgba(0, 0, 0, 0.03);
+      --radius: 20px;
+      --radius-sm: 12px;
+    }
+
+    body {
+      background-color: var(--bg);
+      font-family: system-ui, -apple-system, 'Segoe UI', Roboto, 'Helvetica Neue', sans-serif;
+      color: var(--text-main);
+      line-height: 1.55;
+      padding: 1rem 1rem 3rem;
+    }
+
+    /* 主容器 */
+    .container {
+      max-width: 1200px;
+      margin: 0 auto;
+    }
+
+    /* 头部 */
+    .site-header {
+      text-align: center;
+      margin-bottom: 2.2rem;
+      padding: 1.2rem 0.5rem 0.8rem;
+    }
+
+    .site-header h1 {
+      font-size: clamp(1.6rem, 5vw, 2.6rem);
+      font-weight: 700;
+      letter-spacing: -0.01em;
+      color: #0a2e42;
+      margin-bottom: 0.4rem;
+    }
+
+    .site-header .subhead {
+      font-size: clamp(0.9rem, 3vw, 1.1rem);
+      color: var(--text-soft);
+      background: var(--accent-light);
+      display: inline-block;
+      padding: 0.35rem 1.2rem;
+      border-radius: 50px;
+      font-weight: 500;
+    }
+
+    /* Booklet 卡片 */
+    .booklet {
+      background: var(--card-bg);
+      border-radius: var(--radius);
+      box-shadow: var(--shadow);
+      margin-bottom: 2rem;
+      overflow: hidden;
+      border: 1px solid var(--border);
+      transition: box-shadow 0.15s ease;
+    }
+
+    .booklet:hover {
+      box-shadow: 0 12px 28px rgba(0, 30, 60, 0.08);
+    }
+
+    .booklet-header {
+      background: linear-gradient(105deg, #eef6fd 0%, #ffffff 90%);
+      padding: 1.2rem 1.5rem 0.9rem;
+      border-bottom: 2px solid var(--accent-light);
+      display: flex;
+      flex-wrap: wrap;
+      align-items: baseline;
+      gap: 0.5rem 1rem;
+    }
+
+    .booklet-header h2 {
+      font-size: clamp(1.2rem, 4vw, 1.65rem);
+      font-weight: 650;
+      color: #0a2e42;
+      letter-spacing: -0.01em;
+      line-height: 1.3;
+      flex: 1 1 auto;
+    }
+
+    .booklet-header .badge {
+      background-color: var(--accent);
+      color: white;
+      font-size: 0.8rem;
+      font-weight: 600;
+      padding: 0.25rem 0.9rem;
+      border-radius: 40px;
+      white-space: nowrap;
+      letter-spacing: 0.3px;
+    }
+
+    /* candidate 卡片网格 */
+    .candidates-grid {
+      display: grid;
+      grid-template-columns: 1fr;
+      gap: 1rem;
+      padding: 1.5rem;
+    }
+
+    @media (min-width: 640px) {
+      .candidates-grid {
+        grid-template-columns: repeat(2, 1fr);
+        gap: 1.25rem;
+        padding: 1.5rem;
+      }
+    }
+
+    @media (min-width: 1024px) {
+      .candidates-grid {
+        grid-template-columns: repeat(2, 1fr);
+        gap: 1.5rem;
+        padding: 1.8rem 2rem;
+      }
+    }
+
+    /* Candidate 卡 */
+    .candidate-card {
+      background: #ffffff;
+      border-radius: var(--radius-sm);
+      border: 1px solid #e3eef7;
+      padding: 1.2rem 1.2rem 1rem;
+      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.02);
+      transition: border-color 0.15s, background 0.15s;
+      display: flex;
+      flex-direction: column;
+    }
+
+    .candidate-card:hover {
+      border-color: #b6d2e9;
+      background: #fafdff;
+    }
+
+    .candidate-name {
+      font-weight: 700;
+      font-size: 1.2rem;
+      color: #0b3b5c;
+      margin-bottom: 0.6rem;
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+      border-left: 5px solid var(--accent);
+      padding-left: 0.75rem;
+      line-height: 1.3;
+    }
+
+    .point-list {
+      list-style: none;
+      margin: 0.25rem 0 0.9rem;
+      display: flex;
+      flex-direction: column;
+      gap: 0.65rem;
+    }
+
+    .point-item {
+      display: flex;
+      gap: 0.6rem;
+      font-size: 0.98rem;
+      color: #1e405b;
+    }
+
+    .point-marker {
+      font-weight: 700;
+      color: var(--accent);
+      flex-shrink: 0;
+      background: var(--accent-light);
+      border-radius: 6px;
+      padding: 0.1rem 0.45rem;
+      font-size: 0.8rem;
+      height: fit-content;
+      margin-top: 0.1rem;
+      letter-spacing: 0.2px;
+    }
+
+    .point-text {
+      flex: 1;
+      line-height: 1.5;
+    }
+
+    .chinese-note {
+      background: #f4f9fe;
+      border-radius: 10px;
+      padding: 0.7rem 1rem;
+      font-size: 0.9rem;
+      color: #1b4b6c;
+      margin: 0.8rem 0 0.75rem;
+      border-left: 4px solid #7fb6da;
+      line-height: 1.6;
+    }
+
+    .proverb-box {
+      background: var(--proverb-bg);
+      border-radius: 12px;
+      padding: 0.8rem 1rem;
+      margin-top: auto;
+      display: flex;
+      flex-wrap: wrap;
+      align-items: baseline;
+      gap: 0.4rem 0.7rem;
+      border: 1px solid #cde0ee;
+    }
+
+    .proverb-label {
+      font-weight: 700;
+      font-size: 0.75rem;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      color: #1e6f9f;
+      background: #d9e9f5;
+      padding: 0.15rem 0.7rem;
+      border-radius: 40px;
+      white-space: nowrap;
+    }
+
+    .proverb-text {
+      font-style: italic;
+      font-weight: 500;
+      color: #103f5e;
+      font-size: 0.95rem;
+      line-height: 1.5;
+    }
+
+    .proverb-trans {
+      font-size: 0.85rem;
+      color: #3f627c;
+      font-style: normal;
+      width: 100%;
+      margin-top: 0.15rem;
+      padding-left: 0.1rem;
+    }
+
+    /* 示例和额外区域（节水示例 + 提示） */
+    .extra-section {
+      background: #ffffffec;
+      backdrop-filter: blur(4px);
+      border-radius: var(--radius);
+      padding: 1.6rem 1.5rem;
+      margin: 2rem 0 1rem;
+      border: 1px solid var(--border);
+      box-shadow: var(--shadow);
+    }
+
+    .extra-section h3 {
+      font-size: 1.3rem;
+      font-weight: 650;
+      color: #0a2e42;
+      margin-bottom: 1rem;
+      display: flex;
+      align-items: center;
+      gap: 0.6rem;
+      flex-wrap: wrap;
+    }
+
+    .extra-section h3 span {
+      background: var(--accent);
+      color: white;
+      font-size: 0.8rem;
+      padding: 0.2rem 0.9rem;
+      border-radius: 40px;
+      font-weight: 500;
+    }
+
+    .example-grid {
+      display: grid;
+      grid-template-columns: 1fr;
+      gap: 1.2rem;
+      margin-top: 0.8rem;
+    }
+
+    @media (min-width: 768px) {
+      .example-grid {
+        grid-template-columns: repeat(2, 1fr);
+      }
+    }
+
+    .example-card {
+      background: #f6fbfe;
+      border-radius: var(--radius-sm);
+      padding: 1rem 1.2rem;
+      border-left: 5px solid #7fb6da;
+    }
+
+    .example-card .candidate-name {
+      border-left: none;
+      padding-left: 0;
+      font-size: 1.05rem;
+      margin-bottom: 0.4rem;
+    }
+
+    .example-card ul {
+      list-style: none;
+      margin: 0.5rem 0 0.6rem;
+    }
+
+    .example-card li {
+      margin-bottom: 0.4rem;
+      padding-left: 1.2rem;
+      position: relative;
+      font-size: 0.93rem;
+    }
+
+    .example-card li::before {
+      content: "•";
+      color: var(--accent);
+      font-weight: 700;
+      position: absolute;
+      left: 0;
+    }
+
+    .inline-proverb {
+      background: #e1eff9;
+      border-radius: 10px;
+      padding: 0.5rem 0.8rem;
+      font-size: 0.9rem;
+      margin-top: 0.6rem;
+      font-style: italic;
+      color: #103f5e;
+    }
+
+    .footer-note {
+      text-align: center;
+      margin-top: 2.5rem;
+      font-size: 0.9rem;
+      color: #5f7d94;
+      border-top: 1px dashed #bdd3e6;
+      padding-top: 2rem;
+    }
+
+    /* 移动端微调 */
+    @media (max-width: 480px) {
+      body {
+        padding: 0.7rem 0.7rem 2.5rem;
+      }
+      .booklet-header {
+        padding: 1rem 1rem 0.7rem;
+      }
+      .candidates-grid {
+        padding: 1rem;
+        gap: 0.9rem;
+      }
+      .candidate-card {
+        padding: 1rem;
+      }
+      .point-text {
+        font-size: 0.93rem;
+      }
+      .chinese-note {
+        font-size: 0.85rem;
+        padding: 0.6rem 0.8rem;
+      }
+    }
+
+    /* 打印友好 */
+    @media print {
+      body {
+        background: white;
+        padding: 0.2in;
+      }
+      .booklet {
+        box-shadow: none;
+        border: 1px solid #ccc;
+        break-inside: avoid;
+      }
+      .candidate-card {
+        break-inside: avoid;
+      }
+    }
+
+    /* 平滑细节 */
+    .proverb-box .proverb-text::before {
+      content: "“";
+    }
+    .proverb-box .proverb-text::after {
+      content: "”";
+    }
+  </style>
+</head>
+<body>
+<div class="container">
+  <header class="site-header">
+    <h1>MUET Speaking 2023 Season 3</h1>
+    <div class="subhead">Booklet 1 – 12 · 完整论点 + 专属谚语 + 中文解析</div>
+  </header>
+
+  <!-- Booklet 1 -->
+  <section class="booklet">
+    <div class="booklet-header">
+      <h2>Booklet 1: Good college facilities</h2>
+      <span class="badge">选择具有良好设施的大学</span>
+    </div>
+    <div class="candidates-grid">
+      <!-- A -->
+      <div class="candidate-card">
+        <div class="candidate-name">Candidate A · Libraries</div>
+        <ul class="point-list">
+          <li class="point-item"><span class="point-marker">P1</span><span class="point-text">Providing quiet study spaces and extensive physical and digital academic resources.</span></li>
+          <li class="point-item"><span class="point-marker">P2</span><span class="point-text">Offering conducive group study rooms for collaborative assignments.</span></li>
+        </ul>
+        <div class="chinese-note">图书馆提供安静的复习环境与丰富的学术资源，同时设有小组讨论室，满足独立学习与团队协作的需求。</div>
+        <div class="proverb-box">
+          <span class="proverb-label">Proverb</span>
+          <span class="proverb-text">A room without books is like a body without a soul.</span>
+          <span class="proverb-trans">(无书之室，如无魂之躯。)</span>
+        </div>
+      </div>
+      <!-- B -->
+      <div class="candidate-card">
+        <div class="candidate-name">Candidate B · Smart classrooms</div>
+        <ul class="point-list">
+          <li class="point-item"><span class="point-marker">P1</span><span class="point-text">Incorporating interactive whiteboards and modern audiovisual systems to enhance learning efficiency.</span></li>
+          <li class="point-item"><span class="point-marker">P2</span><span class="point-text">Facilitating seamless digital learning and interactive student participation.</span></li>
+        </ul>
+        <div class="chinese-note">智能教室配备现代化的互动白板和音响设备，能显著提升课堂互动性与学习效率。</div>
+        <div class="proverb-box">
+          <span class="proverb-label">Proverb</span>
+          <span class="proverb-text">Knowledge is power.</span>
+          <span class="proverb-trans">(知识就是力量。)</span>
+        </div>
+      </div>
+      <!-- C -->
+      <div class="candidate-card">
+        <div class="candidate-name">Candidate C · Cafeteria</div>
+        <ul class="point-list">
+          <li class="point-item"><span class="point-marker">P1</span><span class="point-text">Offering a wide variety of affordable and nutritious meal options for students.</span></li>
+          <li class="point-item"><span class="point-marker">P2</span><span class="point-text">Serving as a vital social hub for relaxation and networking between classes.</span></li>
+        </ul>
+        <div class="chinese-note">饭堂能为学生提供价格亲民且营养均衡的饮食，也是课余时间放松和社交的重要场所。</div>
+        <div class="proverb-box">
+          <span class="proverb-label">Proverb</span>
+          <span class="proverb-text">Good food closes no door.</span>
+          <span class="proverb-trans">(美食面前，无门不开 / 良好的饮食是沟通的桥梁。)</span>
+        </div>
+      </div>
+      <!-- D -->
+      <div class="candidate-card">
+        <div class="candidate-name">Candidate D · Sports facilities</div>
+        <ul class="point-list">
+          <li class="point-item"><span class="point-marker">P1</span><span class="point-text">Promoting physical health and relieving academic stress through well-equipped gyms and courts.</span></li>
+          <li class="point-item"><span class="point-marker">P2</span><span class="point-text">Encouraging teamwork and campus spirit through sporting activities.</span></li>
+        </ul>
+        <div class="chinese-note">完善的体育设施能帮助学生强身健体、缓解课业压力，同时培养团队合作与校园精神。</div>
+        <div class="proverb-box">
+          <span class="proverb-label">Proverb</span>
+          <span class="proverb-text">A sound mind in a sound body.</span>
+          <span class="proverb-trans">(健全的精神寓于健全的身体。)</span>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Booklet 2 -->
+  <section class="booklet">
+    <div class="booklet-header">
+      <h2>Booklet 2: Reasons why people use social media</h2>
+      <span class="badge">人们使用社交媒体的原因</span>
+    </div>
+    <div class="candidates-grid">
+      <div class="candidate-card">
+        <div class="candidate-name">Candidate A · Entertainment</div>
+        <ul class="point-list">
+          <li class="point-item"><span class="point-marker">P1</span><span class="point-text">Streaming short videos, memes, and music to decompress after work or school.</span></li>
+          <li class="point-item"><span class="point-marker">P2</span><span class="point-text">Following favorite content creators, gaming streams, and pop culture trends.</span></li>
+        </ul>
+        <div class="chinese-note">主要是为了放松身心，通过刷短视频、听音乐、看游戏直播或追踪网红动态来缓解日常压力。</div>
+        <div class="proverb-box">
+          <span class="proverb-label">Proverb</span>
+          <span class="proverb-text">All work and no play makes Jack a dull boy.</span>
+          <span class="proverb-trans">(只工作不娱乐，聪明孩子也变傻 / 适当娱乐放松必不可少。)</span>
+        </div>
+      </div>
+      <div class="candidate-card">
+        <div class="candidate-name">Candidate B · Education</div>
+        <ul class="point-list">
+          <li class="point-item"><span class="point-marker">P1</span><span class="point-text">Accessing free educational tutorials, language learning tips, and online masterclasses.</span></li>
+          <li class="point-item"><span class="point-marker">P2</span><span class="point-text">Joining study groups and discussion forums to share academic knowledge and resources.</span></li>
+        </ul>
+        <div class="chinese-note">将社交媒体作为学习工具，通过观看教学视频、加入学术讨论组和分享资源来获取新知识。</div>
+        <div class="proverb-box">
+          <span class="proverb-label">Proverb</span>
+          <span class="proverb-text">Learning is a treasure that will follow its owner everywhere.</span>
+          <span class="proverb-trans">(学习是随身携带的宝藏。)</span>
+        </div>
+      </div>
+      <div class="candidate-card">
+        <div class="candidate-name">Candidate C · Communication</div>
+        <ul class="point-list">
+          <li class="point-item"><span class="point-marker">P1</span><span class="point-text">Maintaining instant connection with distant friends and family members via video calls and chats.</span></li>
+          <li class="point-item"><span class="point-marker">P2</span><span class="point-text">Making new friends globally with shared interests without geographical boundaries.</span></li>
+        </ul>
+        <div class="chinese-note">破除地理限制，通过即时通讯与远方的亲友保持联系，并跨国界结交志同道合的新朋友。</div>
+        <div class="proverb-box">
+          <span class="proverb-label">Proverb</span>
+          <span class="proverb-text">Distance joins heartily lovers.</span>
+          <span class="proverb-trans">(距离阻隔不了真挚的心 / 海内存知己，天涯若比邻。)</span>
+        </div>
+      </div>
+      <div class="candidate-card">
+        <div class="candidate-name">Candidate D · Business</div>
+        <ul class="point-list">
+          <li class="point-item"><span class="point-marker">P1</span><span class="point-text">Promoting products and brand awareness through targeted digital marketing and targeted advertising.</span></li>
+          <li class="point-item"><span class="point-marker">P2</span><span class="point-text">Engaging directly with prospective customers and providing instant customer service feedback.</span></li>
+        </ul>
+        <div class="chinese-note">商业用途，企业或创业者利用平台精准推广产品、树立品牌形象，并直接与客户沟通互动。</div>
+        <div class="proverb-box">
+          <span class="proverb-label">Proverb</span>
+          <span class="proverb-text">Strike while the iron is hot.</span>
+          <span class="proverb-trans">(趁热打铁 / 抓住市场与商业时机。)</span>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- 节水示例 (ways to save water at home) 额外区域 -->
+  <section class="extra-section">
+    <h3>💧 示例：Ways to save water at home <span>参考范例</span></h3>
+    <div class="example-grid">
+      <div class="example-card">
+        <div class="candidate-name">Candidate A · Saving water while cooking</div>
+        <ul>
+          <li>Washing vegetables in a bowl rather than under a running tap.</li>
+          <li>Reusing vegetable-washing water to rinse dirty pots.</li>
+        </ul>
+        <div class="chinese-note" style="margin:0.4rem 0 0.4rem;">主要是通过改变厨房用水的习惯（如用盆盛水洗菜、二次利用煮菜/洗菜水），减少洗涤时的无谓流水浪费。</div>
+      </div>
+      <div class="example-card">
+        <div class="candidate-name">Candidate B · Saving water while bathing</div>
+        <ul>
+          <li>Taking shorter showers instead of full baths.</li>
+          <li>Turning off the tap while applying soap or shampoo.</li>
+        </ul>
+        <div class="chinese-note" style="margin:0.4rem 0 0.4rem;">聚焦于个人卫生习惯，通过控制淋浴时间和在搓抹沐浴露时关掉水龙头来大幅节约水量。</div>
+      </div>
+      <div class="example-card">
+        <div class="candidate-name">Candidate C · Saving water while gardening</div>
+        <ul>
+          <li>Watering plants during early mornings or evenings to reduce evaporation.</li>
+          <li>Installing rainwater harvesting systems for garden irrigation.</li>
+        </ul>
+        <div class="chinese-note" style="margin:0.4rem 0 0.4rem;">针对户外园艺，利用选择蒸发量低的时段浇花，或收集雨水来代替自来水进行浇灌。</div>
+      </div>
+      <div class="example-card">
+        <div class="candidate-name">Candidate D · Saving water while cleaning</div>
+        <ul>
+          <li>Using a bucket and mop instead of a continuous running hose.</li>
+          <li>Repurposing laundry greywater for scrubbing floors or outdoor tiles.</li>
+        </ul>
+        <div class="chinese-note" style="margin:0.4rem 0 0.4rem;">针对居家打扫，用“桶装水打扫”代替“水管冲洗”，并将洗衣后的废冲洗水二次用于打扫地面。</div>
+      </div>
+    </div>
+    <div class="inline-proverb" style="margin-top:1rem;">推荐谚语： “Waste not, want not.” (不浪费，不匮乏。)</div>
+  </section>
+
+  <!-- Booklet 4 -->
+  <section class="booklet">
+    <div class="booklet-header">
+      <h2>Booklet 4: Advantages of living in a small town</h2>
+      <span class="badge">在小镇生活的优势</span>
+    </div>
+    <div class="candidates-grid">
+      <div class="candidate-card">
+        <div class="candidate-name">Candidate A · Helpful neighbours</div>
+        <ul class="point-list">
+          <li class="point-item"><span class="point-marker">P1</span><span class="point-text">Building tight-knit community bonds where neighbours actively look out for one another.</span></li>
+          <li class="point-item"><span class="point-marker">P2</span><span class="point-text">Fostering a strong sense of security and belonging in daily life.</span></li>
+        </ul>
+        <div class="chinese-note">邻里关系紧密且互帮互助，能在日常生活中营造强烈的安全感与归属感。</div>
+        <div class="proverb-box">
+          <span class="proverb-label">Proverb</span>
+          <span class="proverb-text">A good neighbour is a found treasure.</span>
+          <span class="proverb-trans">(好邻居是无价之宝 / 远亲不如近邻。)</span>
+        </div>
+      </div>
+      <div class="candidate-card">
+        <div class="candidate-name">Candidate B · Clean environment</div>
+        <ul class="point-list">
+          <li class="point-item"><span class="point-marker">P1</span><span class="point-text">Experiencing lower pollution levels with fresher air and cleaner surroundings.</span></li>
+          <li class="point-item"><span class="point-marker">P2</span><span class="point-text">Promoting better long-term physical health and reduced daily stress.</span></li>
+        </ul>
+        <div class="chinese-note">小镇环境污染少、空气清新，有助于改善身体健康并减轻生活压力。</div>
+        <div class="proverb-box">
+          <span class="proverb-label">Proverb</span>
+          <span class="proverb-text">Cleanliness is next to godliness.</span>
+          <span class="proverb-trans">(清洁乃圣洁之本 / 良好的环境对身心大有裨益。)</span>
+        </div>
+      </div>
+      <div class="candidate-card">
+        <div class="candidate-name">Candidate C · Safe neighbourhood</div>
+        <ul class="point-list">
+          <li class="point-item"><span class="point-marker">P1</span><span class="point-text">Enjoying significantly lower crime rates compared to bustling urban cities.</span></li>
+          <li class="point-item"><span class="point-marker">P2</span><span class="point-text">Providing a peaceful environment for raising children and allowing the elderly to live worry-free.</span></li>
+        </ul>
+        <div class="chinese-note">犯罪率远低于大城市，整体治安良好，非常适合小孩成长和老人养老。</div>
+        <div class="proverb-box">
+          <span class="proverb-label">Proverb</span>
+          <span class="proverb-text">Peace of mind is the greatest wealth.</span>
+          <span class="proverb-trans">(内心平安是最大的财富 / 安居才能乐业。)</span>
+        </div>
+      </div>
+      <div class="candidate-card">
+        <div class="candidate-name">Candidate D · Spending less money</div>
+        <ul class="point-list">
+          <li class="point-item"><span class="point-marker">P1</span><span class="point-text">Benefiting from a lower cost of living, including cheaper housing and daily necessities.</span></li>
+          <li class="point-item"><span class="point-marker">P2</span><span class="point-text">Allowing individuals to save more capital for future investments and emergencies.</span></li>
+        </ul>
+        <div class="chinese-note">物价和房价相对便宜，生活成本低，能省下更多钱用于储蓄或未来规划。</div>
+        <div class="proverb-box">
+          <span class="proverb-label">Proverb</span>
+          <span class="proverb-text">A penny saved is a penny earned.</span>
+          <span class="proverb-trans">(省钱等于赚钱 / 勤俭节约聚少成多。)</span>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Booklet 5 -->
+  <section class="booklet">
+    <div class="booklet-header">
+      <h2>Booklet 5: Ways to stay healthy</h2>
+      <span class="badge">保持健康的方法</span>
+    </div>
+    <div class="candidates-grid">
+      <div class="candidate-card">
+        <div class="candidate-name">Candidate A · Exercising regularly</div>
+        <ul class="point-list">
+          <li class="point-item"><span class="point-marker">P1</span><span class="point-text">Boosting cardiovascular health and building physical stamina.</span></li>
+          <li class="point-item"><span class="point-marker">P2</span><span class="point-text">Releasing endorphins to combat daily anxiety and mental fatigue.</span></li>
+        </ul>
+        <div class="chinese-note">定期运动能增强心血管功能与体能，同时促进内啡肽分泌以缓解焦虑与精神疲劳。</div>
+        <div class="proverb-box">
+          <span class="proverb-label">Proverb</span>
+          <span class="proverb-text">Action is the foundational key to all success.</span>
+          <span class="proverb-trans">(行动是一切成功的基石 / 保持运动是健康的根本。)</span>
+        </div>
+      </div>
+      <div class="candidate-card">
+        <div class="candidate-name">Candidate B · Getting enough rest</div>
+        <ul class="point-list">
+          <li class="point-item"><span class="point-marker">P1</span><span class="point-text">Allowing the body to repair tissues and strengthen the immune system overnight.</span></li>
+          <li class="point-item"><span class="point-marker">P2</span><span class="point-text">Enhancing brain focus, memory retention, and cognitive performance.</span></li>
+        </ul>
+        <div class="chinese-note">充足的睡眠能帮助身体修复组织并提升免疫力，同时保持大脑专注力与记忆力。</div>
+        <div class="proverb-box">
+          <span class="proverb-label">Proverb</span>
+          <span class="proverb-text">Early to bed and early to rise makes a man healthy, wealthy, and wise.</span>
+          <span class="proverb-trans">(早睡早起使人健康、富裕且聪明。)</span>
+        </div>
+      </div>
+      <div class="candidate-card">
+        <div class="candidate-name">Candidate C · Clean habits</div>
+        <ul class="point-list">
+          <li class="point-item"><span class="point-marker">P1</span><span class="point-text">Practicing good personal hygiene to prevent the spread of infectious diseases.</span></li>
+          <li class="point-item"><span class="point-marker">P2</span><span class="point-text">Keeping living environments sanitary to reduce allergens and bacteria.</span></li>
+        </ul>
+        <div class="chinese-note">保持良好卫生习惯可以有效预防传染病，并减少生活环境中的细菌与过敏原。</div>
+        <div class="proverb-box">
+          <span class="proverb-label">Proverb</span>
+          <span class="proverb-text">Prevention is better than cure.</span>
+          <span class="proverb-trans">(预防胜于治疗。)</span>
+        </div>
+      </div>
+      <div class="candidate-card">
+        <div class="candidate-name">Candidate D · Medical check-ups</div>
+        <ul class="point-list">
+          <li class="point-item"><span class="point-marker">P1</span><span class="point-text">Detecting potential health risks or hidden illnesses at an early stage.</span></li>
+          <li class="point-item"><span class="point-marker">P2</span><span class="point-text">Receiving professional advice from doctors to maintain long-term well-being.</span></li>
+        </ul>
+        <div class="chinese-note">定期体检能及早发现潜在的健康隐患，并获得专业医生的健康规划建议。</div>
+        <div class="proverb-box">
+          <span class="proverb-label">Proverb</span>
+          <span class="proverb-text">An ounce of prevention is worth a pound of cure.</span>
+          <span class="proverb-trans">(一分预防胜过十分治疗。)</span>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Booklet 6 -->
+  <section class="booklet">
+    <div class="booklet-header">
+      <h2>Booklet 6: Things to do before going on a holiday</h2>
+      <span class="badge">度假前的准备事项</span>
+    </div>
+    <div class="candidates-grid">
+      <div class="candidate-card">
+        <div class="candidate-name">Candidate A · Booking a place to stay</div>
+        <ul class="point-list">
+          <li class="point-item"><span class="point-marker">P1</span><span class="point-text">Securing comfortable and safe accommodations in advance to avoid last-minute price spikes.</span></li>
+          <li class="point-item"><span class="point-marker">P2</span><span class="point-text">Ensuring proximity to key tourist attractions for convenient daily travel.</span></li>
+        </ul>
+        <div class="chinese-note">提前预订住宿可以避免临近假期时的价格暴涨和无房危机，同时确保酒店离景区较近、交通便利。</div>
+        <div class="proverb-box">
+          <span class="proverb-label">Proverb</span>
+          <span class="proverb-text">The early bird catches the worm.</span>
+          <span class="proverb-trans">(捷足先登 / 早做准备抢占先机。)</span>
+        </div>
+      </div>
+      <div class="candidate-card">
+        <div class="candidate-name">Candidate B · Planning activities</div>
+        <ul class="point-list">
+          <li class="point-item"><span class="point-marker">P1</span><span class="point-text">Outlining a well-structured itinerary to maximize time and avoid missing popular spots.</span></li>
+          <li class="point-item"><span class="point-marker">P2</span><span class="point-text">Pre-booking tickets for attractions to bypass long queues.</span></li>
+        </ul>
+        <div class="chinese-note">规划清晰的行程路线能最大化利用假期时间，提前购买门票还可以免去现场排队之苦。</div>
+        <div class="proverb-box">
+          <span class="proverb-label">Proverb</span>
+          <span class="proverb-text">He who fails to plan, plans to fail.</span>
+          <span class="proverb-trans">(未筹先败 / 没有计划就是计划失败。)</span>
+        </div>
+      </div>
+      <div class="candidate-card">
+        <div class="candidate-name">Candidate C · Packing suitable clothes</div>
+        <ul class="point-list">
+          <li class="point-item"><span class="point-marker">P1</span><span class="point-text">Preparing weather-appropriate attire to ensure personal comfort during outdoor excursions.</span></li>
+          <li class="point-item"><span class="point-marker">P2</span><span class="point-text">Respecting local dress codes and cultural norms at historical or religious sites.</span></li>
+        </ul>
+        <div class="chinese-note">根据目的地天气准备合适的衣物能保证出游舒适度，同时也是对当地历史或宗教场所文化习俗的尊重。</div>
+        <div class="proverb-box">
+          <span class="proverb-label">Proverb</span>
+          <span class="proverb-text">When in Rome, do as the Romans do.</span>
+          <span class="proverb-trans">(入乡随俗。)</span>
+        </div>
+      </div>
+      <div class="candidate-card">
+        <div class="candidate-name">Candidate D · Preparing enough money</div>
+        <ul class="point-list">
+          <li class="point-item"><span class="point-marker">P1</span><span class="point-text">Allocating funds for daily expenses, dining, transport, and unexpected emergencies.</span></li>
+          <li class="point-item"><span class="point-marker">P2</span><span class="point-text">Exchanging foreign currency or notifying banks in advance to prevent transactional issues.</span></li>
+        </ul>
+        <div class="chinese-note">准备充裕的资金（含应急预备金），并提前兑换外币或开启海外刷卡，能确保整趟行程顺畅无忧。</div>
+        <div class="proverb-box">
+          <span class="proverb-label">Proverb</span>
+          <span class="proverb-text">Money makes the world go round.</span>
+          <span class="proverb-trans">(金钱通天下 / 有备无患保障出行。)</span>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Booklet 7 -->
+  <section class="booklet">
+    <div class="booklet-header">
+      <h2>Booklet 7: Reasons why people order food online and have it delivered</h2>
+      <span class="badge">网上订餐送货上门的原因</span>
+    </div>
+    <div class="candidates-grid">
+      <div class="candidate-card">
+        <div class="candidate-name">Candidate A · More food choices</div>
+        <ul class="point-list">
+          <li class="point-item"><span class="point-marker">P1</span><span class="point-text">Exploring a wide variety of cuisines and restaurants from local eateries to international franchises on a single platform.</span></li>
+          <li class="point-item"><span class="point-marker">P2</span><span class="point-text">Satisfying diverse dietary preferences and cravings within a family or group without visiting multiple locations.</span></li>
+        </ul>
+        <div class="chinese-note">外卖平台汇集了从本土小吃到国际美食的丰富选择，能一次性满足全家或同伴不同的口味与饮食需求，无需跑多个地方。</div>
+        <div class="proverb-box">
+          <span class="proverb-label">Proverb</span>
+          <span class="proverb-text">Variety is the spice of life.</span>
+          <span class="proverb-trans">(丰富多彩是生活的调味品 / 选项多样让生活更有滋有味。)</span>
+        </div>
+      </div>
+      <div class="candidate-card">
+        <div class="candidate-name">Candidate B · Quick and easy delivery</div>
+        <ul class="point-list">
+          <li class="point-item"><span class="point-marker">P1</span><span class="point-text">Saving time and energy by having meals delivered straight to the doorstep with just a few taps.</span></li>
+          <li class="point-item"><span class="point-marker">P2</span><span class="point-text">Avoiding the hassle of driving through traffic, finding parking, and waiting in long restaurant queues.</span></li>
+        </ul>
+        <div class="chinese-note">动动手指就能送餐上门，极大地节省了时间和精力，避免了堵车、找车位和排队等候的繁琐。</div>
+        <div class="proverb-box">
+          <span class="proverb-label">Proverb</span>
+          <span class="proverb-text">Time is money.</span>
+          <span class="proverb-trans">(时间就是金钱 / 快捷高效即是效益。)</span>
+        </div>
+      </div>
+      <div class="candidate-card">
+        <div class="candidate-name">Candidate C · Discounts and coupons</div>
+        <ul class="point-list">
+          <li class="point-item"><span class="point-marker">P1</span><span class="point-text">Taking advantage of platform-exclusive promo codes, free delivery vouchers, and bundle deals.</span></li>
+          <li class="point-item"><span class="point-marker">P2</span><span class="point-text">Lowering overall meal costs compared to dining out, making gourmet food more affordable.</span></li>
+        </ul>
+        <div class="chinese-note">可以利用外卖平台专属的折扣券、免运费卷和套餐优惠，比起堂食能省下不少开销，性价比极高。</div>
+        <div class="proverb-box">
+          <span class="proverb-label">Proverb</span>
+          <span class="proverb-text">A penny saved is a penny earned.</span>
+          <span class="proverb-trans">(省钱等于赚钱 / 善用折扣即是理财。)</span>
+        </div>
+      </div>
+      <div class="candidate-card">
+        <div class="candidate-name">Candidate D · Reviews and ratings</div>
+        <ul class="point-list">
+          <li class="point-item"><span class="point-marker">P1</span><span class="point-text">Reading real customer feedback and photo reviews before ordering to ensure food quality and portion sizes.</span></li>
+          <li class="point-item"><span class="point-marker">P2</span><span class="point-text">Making informed decisions to avoid disappointing meals and discovering highly-rated hidden gems.</span></li>
+        </ul>
+        <div class="chinese-note">在下单前参考其他顾客的真实评价和评分，能避免踩雷，并轻松发现高好评率的优质藏宝店家。</div>
+        <div class="proverb-box">
+          <span class="proverb-label">Proverb</span>
+          <span class="proverb-text">Look before you leap.</span>
+          <span class="proverb-trans">(三思而后行 / 先看评价再决定。)</span>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Booklet 8 -->
+  <section class="booklet">
+    <div class="booklet-header">
+      <h2>Booklet 8: Why fast food is popular among young people</h2>
+      <span class="badge">快餐在年轻人中受欢迎的原因</span>
+    </div>
+    <div class="candidates-grid">
+      <div class="candidate-card">
+        <div class="candidate-name">Candidate A · Taste</div>
+        <ul class="point-list">
+          <li class="point-item"><span class="point-marker">P1</span><span class="point-text">Offering bold, savory, and rich flavors with combinations of crispy and juicy textures.</span></li>
+          <li class="point-item"><span class="point-marker">P2</span><span class="point-text">Formulating consistent recipes that satisfy sudden cravings for comfort food.</span></li>
+        </ul>
+        <div class="chinese-note">快餐口感丰富、香脆多汁，且标准化的调味能迅速满足年轻人对美食和重口味解压食物的渴望。</div>
+        <div class="proverb-box">
+          <span class="proverb-label">Proverb</span>
+          <span class="proverb-text">Beauty is in the eye of the beholder.</span>
+          <span class="proverb-trans">(萝卜青菜，各有所爱 / 独特的美味迎合了年轻人的偏好。)</span>
+        </div>
+      </div>
+      <div class="candidate-card">
+        <div class="candidate-name">Candidate B · Cost</div>
+        <ul class="point-list">
+          <li class="point-item"><span class="point-marker">P1</span><span class="point-text">Providing affordable meal sets and student promotions that fit tight daily budgets.</span></li>
+          <li class="point-item"><span class="point-marker">P2</span><span class="point-text">Delivering high satiety and value for money compared to formal dining restaurants.</span></li>
+        </ul>
+        <div class="chinese-note">价格亲民，经常推出学生套餐与优惠卷，对预算有限的年轻群体来说性价比极高。</div>
+        <div class="proverb-box">
+          <span class="proverb-label">Proverb</span>
+          <span class="proverb-text">Cut your coat according to your cloth.</span>
+          <span class="proverb-trans">(量入为出 / 选择符合自身经济能力的消费。)</span>
+        </div>
+      </div>
+      <div class="candidate-card">
+        <div class="candidate-name">Candidate C · Service</div>
+        <ul class="point-list">
+          <li class="point-item"><span class="point-marker">P1</span><span class="point-text">Serving food within minutes through efficient assembly lines and drive-thru windows.</span></li>
+          <li class="point-item"><span class="point-marker">P2</span><span class="point-text">Offering 24/7 operations and online self-ordering kiosks for hassle-free convenience.</span></li>
+        </ul>
+        <div class="chinese-note">上菜速度极快，且拥有自助点餐机和 24 小时营业等便捷服务，契合年轻人快节奏的生活方式。</div>
+        <div class="proverb-box">
+          <span class="proverb-label">Proverb</span>
+          <span class="proverb-text">Time and tide wait for no man.</span>
+          <span class="proverb-trans">(岁月不等人 / 高效快捷的服务切中痛点。)</span>
+        </div>
+      </div>
+      <div class="candidate-card">
+        <div class="candidate-name">Candidate D · Choices</div>
+        <ul class="point-list">
+          <li class="point-item"><span class="point-marker">P1</span><span class="point-text">Providing a wide variety of menu items ranging from burgers and fried chicken to desserts and seasonal specials.</span></li>
+          <li class="point-item"><span class="point-marker">P2</span><span class="point-text">Catering to diverse tastes with customizable options and fusion flavor releases.</span></li>
+        </ul>
+        <div class="chinese-note">菜单选择丰富，从汉堡、炸鸡到甜品一应俱全，且频繁推出限定新品，保持对年轻人的吸引力。</div>
+        <div class="proverb-box">
+          <span class="proverb-label">Proverb</span>
+          <span class="proverb-text">Variety is the spice of life.</span>
+          <span class="proverb-trans">(丰富多彩是生活的调味品。)</span>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Booklet 9 -->
+  <section class="booklet">
+    <div class="booklet-header">
+      <h2>Booklet 9: Reasons why people like to play sports</h2>
+      <span class="badge">人们喜欢运动的原因</span>
+    </div>
+    <div class="candidates-grid">
+      <div class="candidate-card">
+        <div class="candidate-name">Candidate A · Keeping fit</div>
+        <ul class="point-list">
+          <li class="point-item"><span class="point-marker">P1</span><span class="point-text">Building muscle strength, maintaining weight, and improving overall cardiovascular health.</span></li>
+          <li class="point-item"><span class="point-marker">P2</span><span class="point-text">Boosting energy levels and building immunity against modern chronic diseases.</span></li>
+        </ul>
+        <div class="chinese-note">运动能增强体能、维持身材与心血管健康，同时提高免疫力以预防慢性疾病。</div>
+        <div class="proverb-box">
+          <span class="proverb-label">Proverb</span>
+          <span class="proverb-text">Health is wealth.</span>
+          <span class="proverb-trans">(健康就是财富。)</span>
+        </div>
+      </div>
+      <div class="candidate-card">
+        <div class="candidate-name">Candidate B · Having fun</div>
+        <ul class="point-list">
+          <li class="point-item"><span class="point-marker">P1</span><span class="point-text">Experiencing excitement, adrenaline rushes, and pure enjoyment during active gameplay.</span></li>
+          <li class="point-item"><span class="point-marker">P2</span><span class="point-text">Serving as a healthy way to release mental stress and take a break from academic or work pressure.</span></li>
+        </ul>
+        <div class="chinese-note">运动本身充满乐趣与刺激感，是释放日常课业或工作强压的绝佳娱乐方式。</div>
+        <div class="proverb-box">
+          <span class="proverb-label">Proverb</span>
+          <span class="proverb-text">Laughter and joy are the best medicines.</span>
+          <span class="proverb-trans">(欢乐与愉悦是最好的良药。)</span>
+        </div>
+      </div>
+      <div class="candidate-card">
+        <div class="candidate-name">Candidate C · Meeting people</div>
+        <ul class="point-list">
+          <li class="point-item"><span class="point-marker">P1</span><span class="point-text">Expanding social circles by engaging with team members, opponents, and fellow sports enthusiasts.</span></li>
+          <li class="point-item"><span class="point-marker">P2</span><span class="point-text">Developing teamwork, communication skills, and lifelong friendships through shared interests.</span></li>
+        </ul>
+        <div class="chinese-note">可以在球场或队伍中结识新朋友、拓展社交圈，并在团队合作中培养沟通技巧与深厚友谊。</div>
+        <div class="proverb-box">
+          <span class="proverb-label">Proverb</span>
+          <span class="proverb-text">Birds of a feather flock together.</span>
+          <span class="proverb-trans">(物以类聚，人以群分 / 志同道合者相聚。)</span>
+        </div>
+      </div>
+      <div class="candidate-card">
+        <div class="candidate-name">Candidate D · Joining competitions</div>
+        <ul class="point-list">
+          <li class="point-item"><span class="point-marker">P1</span><span class="point-text">Pushing personal boundaries, achieving goals, and experiencing the thrill of victory.</span></li>
+          <li class="point-item"><span class="point-marker">P2</span><span class="point-text">Learning discipline, sportsmanship, and resilience when handling losses and setbacks.</span></li>
+        </ul>
+        <div class="chinese-note">参加比赛能挑战个人极限、激发拼搏精神，并在面对胜负中学会自律、体育精神与抗挫折能力。</div>
+        <div class="proverb-box">
+          <span class="proverb-label">Proverb</span>
+          <span class="proverb-text">Practice makes perfect.</span>
+          <span class="proverb-trans">(熟能生巧 / 熟练与磨炼造就卓越。)</span>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Booklet 10 -->
+  <section class="booklet">
+    <div class="booklet-header">
+      <h2>Booklet 10: Ways young people can help their families manage money</h2>
+      <span class="badge">年轻人帮助家庭理财的方法</span>
+    </div>
+    <div class="candidates-grid">
+      <div class="candidate-card">
+        <div class="candidate-name">Candidate A · Buying only what is needed</div>
+        <ul class="point-list">
+          <li class="point-item"><span class="point-marker">P1</span><span class="point-text">Distinguishing between essential needs and non-essential wants to avoid impulse spending.</span></li>
+          <li class="point-item"><span class="point-marker">P2</span><span class="point-text">Creating a strict shopping list before visiting stores to control unnecessary household expenses.</span></li>
+        </ul>
+        <div class="chinese-note">明确区分“必需品”与“想要品”，避免冲动消费，并在购物前列好清单以控制开支。</div>
+        <div class="proverb-box">
+          <span class="proverb-label">Proverb</span>
+          <span class="proverb-text">Beware of little expenses; a small leak will sink a great ship.</span>
+          <span class="proverb-trans">(谨防小额开销，微小的漏洞也能沉大船。)</span>
+        </div>
+      </div>
+      <div class="candidate-card">
+        <div class="candidate-name">Candidate B · Doing basic repairs</div>
+        <ul class="point-list">
+          <li class="point-item"><span class="point-marker">P1</span><span class="point-text">Fixing simple household issues independently using DIY online tutorials instead of hiring technicians.</span></li>
+          <li class="point-item"><span class="point-marker">P2</span><span class="point-text">Extending the lifespan of furniture and appliances to reduce maintenance and replacement costs.</span></li>
+        </ul>
+        <div class="chinese-note">学会通过网络教程自行维修简单的家居用品，避免聘请维修工，延长物品寿命以省下开销。</div>
+        <div class="proverb-box">
+          <span class="proverb-label">Proverb</span>
+          <span class="proverb-text">A stitch in time saves nine.</span>
+          <span class="proverb-trans">(及时补一针，能省九针 / 小洞不补，大洞吃苦。)</span>
+        </div>
+      </div>
+      <div class="candidate-card">
+        <div class="candidate-name">Candidate C · Getting part-time jobs</div>
+        <ul class="point-list">
+          <li class="point-item"><span class="point-marker">P1</span><span class="point-text">Earning extra income during weekends or holidays to subsidize personal and household allowances.</span></li>
+          <li class="point-item"><span class="point-marker">P2</span><span class="point-text">Developing financial independence, money management skills, and early work experience.</span></li>
+        </ul>
+        <div class="chinese-note">利用课余或假期兼职赚取额外收入以分担家计，同时培养自身的财务独立与理财意识。</div>
+        <div class="proverb-box">
+          <span class="proverb-label">Proverb</span>
+          <span class="proverb-text">Every little bit helps.</span>
+          <span class="proverb-trans">(点滴皆有助 / 聚沙成塔。)</span>
+        </div>
+      </div>
+      <div class="candidate-card">
+        <div class="candidate-name">Candidate D · Cooking meals at home</div>
+        <ul class="point-list">
+          <li class="point-item"><span class="point-marker">P1</span><span class="point-text">Preparing homemade food in bulk to lower the daily cost per meal compared to dining out.</span></li>
+          <li class="point-item"><span class="point-marker">P2</span><span class="point-text">Encouraging healthier eating habits while reducing food delivery fees and service taxes.</span></li>
+        </ul>
+        <div class="chinese-note">在家做饭成本远低于外食，不仅能省下服务费与外送费，还能吃得更健康。</div>
+        <div class="proverb-box">
+          <span class="proverb-label">Proverb</span>
+          <span class="proverb-text">Cut your coat according to your cloth.</span>
+          <span class="proverb-trans">(量入为出 / 根据经济能力理性生活。)</span>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Booklet 11 -->
+  <section class="booklet">
+    <div class="booklet-header">
+      <h2>Booklet 11: Advice on how to do well in exams</h2>
+      <span class="badge">考好考试的建议</span>
+    </div>
+    <div class="candidates-grid">
+      <div class="candidate-card">
+        <div class="candidate-name">Candidate A · Having a timetable</div>
+        <ul class="point-list">
+          <li class="point-item"><span class="point-marker">P1</span><span class="point-text">Allocating dedicated time slots for each subject to ensure balanced and consistent revision.</span></li>
+          <li class="point-item"><span class="point-marker">P2</span><span class="point-text">Preventing last-minute cramming and reducing pre-exam anxiety through structured study routines.</span></li>
+        </ul>
+        <div class="chinese-note">制定合理的时间表能确保各个科目得到均衡复习，避免临考前抱佛脚，从而减轻备考焦虑。</div>
+        <div class="proverb-box">
+          <span class="proverb-label">Proverb</span>
+          <span class="proverb-text">An hour in the morning is worth two in the evening.</span>
+          <span class="proverb-trans">(一日之计在于晨 / 科学规划时间能事半功倍。)</span>
+        </div>
+      </div>
+      <div class="candidate-card">
+        <div class="candidate-name">Candidate B · Paying attention in class</div>
+        <ul class="point-list">
+          <li class="point-item"><span class="point-marker">P1</span><span class="point-text">Grasping core concepts directly from teachers to build a solid foundational understanding.</span></li>
+          <li class="point-item"><span class="point-marker">P2</span><span class="point-text">Asking immediate questions when confused, saving hours of self-study time later.</span></li>
+        </ul>
+        <div class="chinese-note">课堂上专心听讲能直接吸收老师讲解的核心知识点，有疑问当场解决，节省课后自行摸索的时间。</div>
+        <div class="proverb-box">
+          <span class="proverb-label">Proverb</span>
+          <span class="proverb-text">Listening is the key to learning.</span>
+          <span class="proverb-trans">(倾听是学习之钥匙 / 专心听讲是掌握知识的第一步。)</span>
+        </div>
+      </div>
+      <div class="candidate-card">
+        <div class="candidate-name">Candidate C · Taking part in group discussion</div>
+        <ul class="point-list">
+          <li class="point-item"><span class="point-marker">P1</span><span class="point-text">Exchanging different perspectives and problem-solving methods with peers to deepen comprehension.</span></li>
+          <li class="point-item"><span class="point-marker">P2</span><span class="point-text">Reinforcing personal knowledge by explaining difficult concepts to study partners.</span></li>
+        </ul>
+        <div class="chinese-note">参与小组讨论可以与同学交流不同的解题思路，并在向他人讲解难点时巩固自己所学的知识。</div>
+        <div class="proverb-box">
+          <span class="proverb-label">Proverb</span>
+          <span class="proverb-text">Two heads are better than one.</span>
+          <span class="proverb-trans">(三个臭皮匠，顶个诸葛亮 / 团队智慧胜于个人独思。)</span>
+        </div>
+      </div>
+      <div class="candidate-card">
+        <div class="candidate-name">Candidate D · Doing past year exam questions</div>
+        <ul class="point-list">
+          <li class="point-item"><span class="point-marker">P1</span><span class="point-text">Familiarizing oneself with exam formats, question patterns, and marking schemes.</span></li>
+          <li class="point-item"><span class="point-marker">P2</span><span class="point-text">Improving time management skills during actual exam conditions through practice.</span></li>
+        </ul>
+        <div class="chinese-note">刷历年真题能帮助熟悉考试题型与评分标准，并在模拟实战中提升答题的时间分配能力。</div>
+        <div class="proverb-box">
+          <span class="proverb-label">Proverb</span>
+          <span class="proverb-text">Practice makes perfect.</span>
+          <span class="proverb-trans">(熟能生巧 / 多练才能精通。)</span>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Booklet 12 -->
+  <section class="booklet">
+    <div class="booklet-header">
+      <h2>Booklet 12: Ways to spend the weekend with friends</h2>
+      <span class="badge">与朋友度周末的方式</span>
+    </div>
+    <div class="candidates-grid">
+      <div class="candidate-card">
+        <div class="candidate-name">Candidate A · Going to the beach</div>
+        <ul class="point-list">
+          <li class="point-item"><span class="point-marker">P1</span><span class="point-text">Enjoying outdoor water activities, sunbathing, and taking a refreshing break from city life.</span></li>
+          <li class="point-item"><span class="point-marker">P2</span><span class="point-text">Watching sunsets together and holding casual beach picnics to foster deeper personal conversations.</span></li>
+        </ul>
+        <div class="chinese-note">去海滩可以体验水上活动与海风放松，在海边野餐、看日落更有利于朋友间敞开心扉聊天。</div>
+        <div class="proverb-box">
+          <span class="proverb-label">Proverb</span>
+          <span class="proverb-text">A change of scenery brings a change of mind.</span>
+          <span class="proverb-trans">(换个风景，换个心情。)</span>
+        </div>
+      </div>
+      <div class="candidate-card">
+        <div class="candidate-name">Candidate B · Going to a theme park</div>
+        <ul class="point-list">
+          <li class="point-item"><span class="point-marker">P1</span><span class="point-text">Experiencing thrilling rides, roller coasters, and interactive games that boost adrenaline.</span></li>
+          <li class="point-item"><span class="point-marker">P2</span><span class="point-text">Creating fun-filled, memorable moments together through shared laughter and excitement.</span></li>
+        </ul>
+        <div class="chinese-note">主题乐园里的各种刺激游乐设施能迅速拉满快乐氛围，创造充满欢声笑语的难忘回忆。</div>
+        <div class="proverb-box">
+          <span class="proverb-label">Proverb</span>
+          <span class="proverb-text">Laughter is the shortest distance between two people.</span>
+          <span class="proverb-trans">(微笑与欢笑是拉近人与人距离最短的捷径。)</span>
+        </div>
+      </div>
+      <div class="candidate-card">
+        <div class="candidate-name">Candidate C · Going for a city tour</div>
+        <ul class="point-list">
+          <li class="point-item"><span class="point-marker">P1</span><span class="point-text">Exploring cultural heritage sites, hidden cafes, and modern architecture within the urban area.</span></li>
+          <li class="point-item"><span class="point-marker">P2</span><span class="point-text">Trying local street food and taking photos at famous city landmarks.</span></li>
+        </ul>
+        <div class="chinese-note">探索城市里的文化遗迹、特色咖啡馆与地标，通过打卡美食与景点丰富周末生活。</div>
+        <div class="proverb-box">
+          <span class="proverb-label">Proverb</span>
+          <span class="proverb-text">To travel is to live.</span>
+          <span class="proverb-trans">(旅行即是生活 / 探索新角落能丰富生活体验。)</span>
+        </div>
+      </div>
+      <div class="candidate-card">
+        <div class="candidate-name">Candidate D · Going for jungle trekking</div>
+        <ul class="point-list">
+          <li class="point-item"><span class="point-marker">P1</span><span class="point-text">Immersing in nature, breathing fresh air, and maintaining physical fitness through hiking.</span></li>
+          <li class="point-item"><span class="point-marker">P2</span><span class="point-text">Strengthening teamwork and mutual trust when overcoming challenging trail obstacles.</span></li>
+        </ul>
+        <div class="chinese-note">走进大自然呼吸新鲜空气、锻炼体能，并在互相扶持克服陡峭山路的体验中加深信任。</div>
+        <div class="proverb-box">
+          <span class="proverb-label">Proverb</span>
+          <span class="proverb-text">Where there is a will, there is a way.</span>
+          <span class="proverb-trans">(有志者事竟成 / 互相鼓励就能克服山途艰难。)</span>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <div class="footer-note">
+    ⚡ 全部 Booklet 1–12 完整论点 · 专属谚语 · 中文解析 · 节水范例 · 适配手机与电脑
+  </div>
+</div>
+</body>
+</html>
