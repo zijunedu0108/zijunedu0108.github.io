@@ -27,6 +27,10 @@
       --radius-sm: 12px;
     }
 
+    html {
+      scroll-behavior: smooth;
+    }
+
     body {
       background-color: var(--bg);
       font-family: system-ui, -apple-system, 'Segoe UI', Roboto, 'Helvetica Neue', sans-serif;
@@ -39,6 +43,83 @@
     .container {
       max-width: 1200px;
       margin: 0 auto;
+    }
+
+    /* ===== 导航栏 ===== */
+    .navbar {
+      position: sticky;
+      top: 0;
+      z-index: 999;
+      background: rgba(255, 255, 255, 0.95);
+      backdrop-filter: blur(10px);
+      -webkit-backdrop-filter: blur(10px);
+      border-bottom: 1px solid var(--border);
+      box-shadow: 0 2px 12px rgba(0, 30, 60, 0.06);
+      margin: -1rem -1rem 1.5rem;
+      padding: 0.6rem 1rem;
+    }
+
+    .navbar-inner {
+      max-width: 1200px;
+      margin: 0 auto;
+      display: flex;
+      align-items: center;
+      gap: 0.8rem;
+      flex-wrap: wrap;
+      justify-content: center;
+    }
+
+    .navbar-title {
+      font-weight: 700;
+      font-size: 0.9rem;
+      color: var(--accent);
+      letter-spacing: 0.3px;
+      white-space: nowrap;
+    }
+
+    .navbar-links {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.4rem;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .navbar-links a {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      min-width: 2rem;
+      height: 2rem;
+      padding: 0 0.55rem;
+      font-size: 0.85rem;
+      font-weight: 600;
+      color: var(--text-soft);
+      background: var(--accent-light);
+      border-radius: 8px;
+      text-decoration: none;
+      transition: all 0.15s ease;
+      border: 1px solid transparent;
+    }
+
+    .navbar-links a:hover,
+    .navbar-links a:focus {
+      background: var(--accent);
+      color: white;
+      border-color: var(--accent);
+      transform: translateY(-1px);
+      box-shadow: 0 3px 8px rgba(30, 111, 159, 0.25);
+    }
+
+    .navbar-links a.top-btn {
+      background: #e8f0f7;
+      color: var(--accent);
+      font-size: 1rem;
+    }
+
+    /* 锚点定位时避免被导航栏遮挡 */
+    .booklet {
+      scroll-margin-top: 4.5rem;
     }
 
     /* 头部 */
@@ -352,6 +433,22 @@
       body {
         padding: 0.7rem 0.7rem 2.5rem;
       }
+      .navbar {
+        padding: 0.5rem 0.6rem;
+        margin: -0.7rem -0.7rem 1.2rem;
+      }
+      .navbar-title {
+        font-size: 0.8rem;
+      }
+      .navbar-links a {
+        min-width: 1.75rem;
+        height: 1.75rem;
+        font-size: 0.78rem;
+        padding: 0 0.4rem;
+      }
+      .booklet {
+        scroll-margin-top: 5rem;
+      }
       .booklet-header {
         padding: 1rem 1rem 0.7rem;
       }
@@ -377,6 +474,9 @@
         background: white;
         padding: 0.2in;
       }
+      .navbar {
+        display: none;
+      }
       .booklet {
         box-shadow: none;
         border: 1px solid #ccc;
@@ -397,14 +497,35 @@
   </style>
 </head>
 <body>
-<div class="container">
+<!-- 导航栏 -->
+<nav class="navbar">
+  <div class="navbar-inner">
+    <span class="navbar-title">📚 Booklets</span>
+    <div class="navbar-links">
+      <a href="#booklet-1">1</a>
+      <a href="#booklet-2">2</a>
+      <a href="#booklet-4">4</a>
+      <a href="#booklet-5">5</a>
+      <a href="#booklet-6">6</a>
+      <a href="#booklet-7">7</a>
+      <a href="#booklet-8">8</a>
+      <a href="#booklet-9">9</a>
+      <a href="#booklet-10">10</a>
+      <a href="#booklet-11">11</a>
+      <a href="#booklet-12">12</a>
+      <a href="#top" class="top-btn" title="回到顶部">↑</a>
+    </div>
+  </div>
+</nav>
+
+<div class="container" id="top">
   <header class="site-header">
     <h1>MUET Speaking 2023 Season 3</h1>
     <div class="subhead">Booklet 1 – 12 · 完整论点 + 专属谚语 + 中文解析</div>
   </header>
 
   <!-- Booklet 1 -->
-  <section class="booklet">
+  <section class="booklet" id="booklet-1">
     <div class="booklet-header">
       <h2>Booklet 1: Good college facilities</h2>
       <span class="badge">选择具有良好设施的大学</span>
@@ -470,7 +591,7 @@
   </section>
 
   <!-- Booklet 2 -->
-  <section class="booklet">
+  <section class="booklet" id="booklet-2">
     <div class="booklet-header">
       <h2>Booklet 2: Reasons why people use social media</h2>
       <span class="badge">人们使用社交媒体的原因</span>
@@ -572,7 +693,7 @@
   </section>
 
   <!-- Booklet 4 -->
-  <section class="booklet">
+  <section class="booklet" id="booklet-4">
     <div class="booklet-header">
       <h2>Booklet 4: Advantages of living in a small town</h2>
       <span class="badge">在小镇生活的优势</span>
@@ -634,7 +755,7 @@
   </section>
 
   <!-- Booklet 5 -->
-  <section class="booklet">
+  <section class="booklet" id="booklet-5">
     <div class="booklet-header">
       <h2>Booklet 5: Ways to stay healthy</h2>
       <span class="badge">保持健康的方法</span>
@@ -696,7 +817,7 @@
   </section>
 
   <!-- Booklet 6 -->
-  <section class="booklet">
+  <section class="booklet" id="booklet-6">
     <div class="booklet-header">
       <h2>Booklet 6: Things to do before going on a holiday</h2>
       <span class="badge">度假前的准备事项</span>
@@ -758,7 +879,7 @@
   </section>
 
   <!-- Booklet 7 -->
-  <section class="booklet">
+  <section class="booklet" id="booklet-7">
     <div class="booklet-header">
       <h2>Booklet 7: Reasons why people order food online and have it delivered</h2>
       <span class="badge">网上订餐送货上门的原因</span>
@@ -820,7 +941,7 @@
   </section>
 
   <!-- Booklet 8 -->
-  <section class="booklet">
+  <section class="booklet" id="booklet-8">
     <div class="booklet-header">
       <h2>Booklet 8: Why fast food is popular among young people</h2>
       <span class="badge">快餐在年轻人中受欢迎的原因</span>
@@ -882,7 +1003,7 @@
   </section>
 
   <!-- Booklet 9 -->
-  <section class="booklet">
+  <section class="booklet" id="booklet-9">
     <div class="booklet-header">
       <h2>Booklet 9: Reasons why people like to play sports</h2>
       <span class="badge">人们喜欢运动的原因</span>
@@ -944,7 +1065,7 @@
   </section>
 
   <!-- Booklet 10 -->
-  <section class="booklet">
+  <section class="booklet" id="booklet-10">
     <div class="booklet-header">
       <h2>Booklet 10: Ways young people can help their families manage money</h2>
       <span class="badge">年轻人帮助家庭理财的方法</span>
@@ -1006,7 +1127,7 @@
   </section>
 
   <!-- Booklet 11 -->
-  <section class="booklet">
+  <section class="booklet" id="booklet-11">
     <div class="booklet-header">
       <h2>Booklet 11: Advice on how to do well in exams</h2>
       <span class="badge">考好考试的建议</span>
@@ -1068,7 +1189,7 @@
   </section>
 
   <!-- Booklet 12 -->
-  <section class="booklet">
+  <section class="booklet" id="booklet-12">
     <div class="booklet-header">
       <h2>Booklet 12: Ways to spend the weekend with friends</h2>
       <span class="badge">与朋友度周末的方式</span>
