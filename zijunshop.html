@@ -5,15 +5,9 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=yes">
     <title>ZIJUN Shop · Order & Pay</title>
     <link rel="icon" href="zijunlogo.png" type="image/png">
-    <!-- Font Awesome 6 (free) -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
     <style>
-        /* ===== Global Reset & Formal Style (match index.html) ===== */
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-        }
+        * { margin: 0; padding: 0; box-sizing: border-box; }
 
         :root {
             --primary-blue: #0a84ff;
@@ -40,37 +34,28 @@
             line-height: 1.5;
         }
 
-        /* ===== Background Video ===== */
         .bg-video {
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            object-fit: cover;
-            z-index: -2;
+            position: fixed; top: 0; left: 0;
+            width: 100%; height: 100%;
+            object-fit: cover; z-index: -2;
             filter: brightness(0.35) saturate(0.9);
         }
 
-        /* ===== Scanline ===== */
         body::after {
             content: "";
             position: fixed;
             top: 0; left: 0; right: 0; bottom: 0;
-            background: repeating-linear-gradient(0deg, 
-                rgba(0, 0, 0, 0.03) 0px, 
-                rgba(0, 0, 0, 0.03) 2px, 
-                transparent 2px, 
+            background: repeating-linear-gradient(0deg,
+                rgba(0, 0, 0, 0.03) 0px,
+                rgba(0, 0, 0, 0.03) 2px,
+                transparent 2px,
                 transparent 6px);
             pointer-events: none;
             z-index: 999;
         }
 
-        /* ===== Navbar ===== */
         .navbar {
-            position: sticky;
-            top: 0;
-            z-index: 100;
+            position: sticky; top: 0; z-index: 100;
             padding: 14px 28px;
             background: rgba(10, 14, 23, 0.65);
             backdrop-filter: saturate(180%) blur(24px) brightness(0.9);
@@ -84,46 +69,26 @@
         }
 
         .brand {
-            display: flex;
-            align-items: center;
-            gap: 14px;
+            display: flex; align-items: center; gap: 14px;
             text-decoration: none;
         }
 
         .brand img {
-            width: 44px;
-            height: 44px;
+            width: 44px; height: 44px;
             border-radius: 12px;
             box-shadow: 0 6px 18px rgba(0, 0, 0, 0.5);
             background: #1a1f2a;
             object-fit: contain;
         }
 
-        .brand-text {
-            display: flex;
-            flex-direction: column;
-        }
-
-        .brand-text .name {
-            font-size: 20px;
-            font-weight: 700;
-            letter-spacing: 0.5px;
-            color: white;
-        }
-
-        .brand-text .sub {
-            font-size: 11px;
-            font-weight: 400;
-            color: var(--text-muted);
-            letter-spacing: 0.8px;
-            margin-top: 1px;
-        }
+        .brand-text { display: flex; flex-direction: column; }
+        .brand-text .name { font-size: 20px; font-weight: 700; letter-spacing: 0.5px; color: white; }
+        .brand-text .sub { font-size: 11px; font-weight: 400; color: var(--text-muted); letter-spacing: 0.8px; margin-top: 1px; }
 
         .back-link {
             color: rgba(255,255,255,0.7);
             text-decoration: none;
-            font-size: 13px;
-            font-weight: 500;
+            font-size: 13px; font-weight: 500;
             padding: 8px 18px;
             border-radius: 30px;
             background: rgba(255,255,255,0.04);
@@ -133,63 +98,27 @@
             align-items: center;
             gap: 8px;
         }
-        .back-link:hover {
-            background: rgba(255,255,255,0.1);
-            color: white;
-        }
+        .back-link:hover { background: rgba(255,255,255,0.1); color: white; }
         .back-link i { font-size: 12px; }
 
-        /* ===== Main ===== */
-        .main-container {
-            max-width: 1280px;
-            margin: 0 auto;
-            padding: 30px 20px 80px;
-        }
+        .main-container { max-width: 1280px; margin: 0 auto; padding: 30px 20px 80px; }
 
         .page-title {
-            font-size: 26px;
-            font-weight: 700;
-            letter-spacing: 0.3px;
+            font-size: 26px; font-weight: 700; letter-spacing: 0.3px;
             margin-bottom: 6px;
-            display: flex;
-            align-items: center;
-            gap: 12px;
+            display: flex; align-items: center; gap: 12px;
         }
-
         .page-title i {
-            color: var(--neon-blue);
-            font-size: 26px;
+            color: var(--neon-blue); font-size: 26px;
             filter: drop-shadow(0 0 8px rgba(0, 200, 255, 0.4));
         }
 
-        .page-sub {
-            font-size: 14px;
-            color: var(--text-muted);
-            margin-bottom: 28px;
-        }
+        .page-sub { font-size: 14px; color: var(--text-muted); margin-bottom: 28px; }
 
-        /* ===== Layout ===== */
-        .shop-layout {
-            display: flex;
-            flex-wrap: wrap;
-            gap: 24px;
-            align-items: flex-start;
-        }
+        .shop-layout { display: flex; flex-wrap: wrap; gap: 24px; align-items: flex-start; }
+        .products-col { flex: 2 1 520px; display: flex; flex-direction: column; gap: 18px; }
+        .checkout-col { flex: 1 1 340px; position: sticky; top: 90px; }
 
-        .products-col {
-            flex: 2 1 520px;
-            display: flex;
-            flex-direction: column;
-            gap: 18px;
-        }
-
-        .checkout-col {
-            flex: 1 1 340px;
-            position: sticky;
-            top: 90px;
-        }
-
-        /* ===== Product Card ===== */
         .product-card {
             background: var(--glass-bg);
             backdrop-filter: saturate(180%) blur(24px) brightness(0.92);
@@ -200,82 +129,42 @@
             box-shadow: var(--shadow-heavy);
             transition: border-color 0.2s, transform 0.2s;
         }
-
-        .product-card:hover {
-            border-color: rgba(0, 200, 255, 0.25);
-        }
+        .product-card:hover { border-color: rgba(0, 200, 255, 0.25); }
 
         .product-head {
-            display: flex;
-            justify-content: space-between;
-            align-items: flex-start;
-            gap: 16px;
-            margin-bottom: 8px;
+            display: flex; justify-content: space-between;
+            align-items: flex-start; gap: 16px; margin-bottom: 8px;
         }
 
         .product-name {
-            font-size: 18px;
-            font-weight: 600;
-            color: white;
+            font-size: 18px; font-weight: 600; color: white;
             letter-spacing: 0.2px;
-            display: flex;
-            align-items: center;
-            gap: 10px;
+            display: flex; align-items: center; gap: 10px;
         }
-
         .product-name i {
-            color: var(--neon-blue);
-            font-size: 17px;
+            color: var(--neon-blue); font-size: 17px;
             filter: drop-shadow(0 0 6px rgba(0, 200, 255, 0.35));
         }
 
         .product-price {
-            font-size: 20px;
-            font-weight: 700;
-            color: var(--neon-blue);
-            font-family: "SF Mono", monospace;
-            white-space: nowrap;
+            font-size: 20px; font-weight: 700; color: var(--neon-blue);
+            font-family: "SF Mono", monospace; white-space: nowrap;
         }
 
-        .product-desc {
-            font-size: 14px;
-            color: rgba(255,255,255,0.7);
-            line-height: 1.55;
-            margin-bottom: 14px;
-        }
-
-        .product-desc ul {
-            list-style: none;
-            padding-left: 0;
-            margin-top: 6px;
-        }
-        .product-desc ul li {
-            position: relative;
-            padding-left: 20px;
-            margin-bottom: 3px;
-        }
+        .product-desc { font-size: 14px; color: rgba(255,255,255,0.7); line-height: 1.55; margin-bottom: 14px; }
+        .product-desc ul { list-style: none; padding-left: 0; margin-top: 6px; }
+        .product-desc ul li { position: relative; padding-left: 20px; margin-bottom: 3px; }
         .product-desc ul li i {
-            position: absolute;
-            left: 0;
-            top: 4px;
-            font-size: 9px;
-            color: var(--neon-blue);
-            opacity: 0.8;
+            position: absolute; left: 0; top: 4px;
+            font-size: 9px; color: var(--neon-blue); opacity: 0.8;
         }
 
-        /* Variant chips */
-        .variant-group {
-            display: flex;
-            flex-wrap: wrap;
-            gap: 8px;
-            margin-bottom: 14px;
-        }
+        .variant-group { display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 14px; }
 
         .variant-chip {
             padding: 8px 16px;
             border-radius: 30px;
-            font-size: 13px;
-            font-weight: 500;
+            font-size: 13px; font-weight: 500;
             background: rgba(255,255,255,0.04);
             border: 0.5px solid rgba(255,255,255,0.1);
             color: rgba(255,255,255,0.8);
@@ -283,11 +172,7 @@
             transition: all 0.2s;
             user-select: none;
         }
-
-        .variant-chip:hover {
-            background: rgba(255,255,255,0.08);
-        }
-
+        .variant-chip:hover { background: rgba(255,255,255,0.08); }
         .variant-chip.active {
             background: rgba(10, 132, 255, 0.2);
             border-color: var(--primary-blue);
@@ -297,69 +182,49 @@
         }
 
         .product-foot {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            gap: 12px;
-            flex-wrap: wrap;
+            display: flex; justify-content: space-between;
+            align-items: center; gap: 12px; flex-wrap: wrap;
         }
 
         .qty-control {
-            display: flex;
-            align-items: center;
-            gap: 0;
+            display: flex; align-items: center; gap: 0;
             background: rgba(255,255,255,0.04);
             border: 0.5px solid rgba(255,255,255,0.08);
             border-radius: 12px;
             overflow: hidden;
         }
-
         .qty-control button {
-            width: 38px;
-            height: 38px;
-            background: transparent;
-            border: none;
-            color: white;
-            font-size: 14px;
-            cursor: pointer;
-            transition: background 0.15s;
+            width: 38px; height: 38px;
+            background: transparent; border: none;
+            color: white; font-size: 14px;
+            cursor: pointer; transition: background 0.15s;
         }
         .qty-control button:hover { background: rgba(255,255,255,0.08); }
         .qty-control button:active { background: rgba(255,255,255,0.15); }
 
         .qty-control .qty-val {
-            width: 44px;
-            text-align: center;
-            font-size: 15px;
-            font-weight: 600;
+            width: 44px; text-align: center;
+            font-size: 15px; font-weight: 600;
             font-family: "SF Mono", monospace;
             color: white;
         }
 
         .btn-add {
-            flex: 1;
-            min-width: 140px;
+            flex: 1; min-width: 140px;
             padding: 11px 20px;
-            border-radius: 14px;
-            border: none;
+            border-radius: 14px; border: none;
             background: var(--primary-blue);
-            color: white;
-            font-size: 14px;
-            font-weight: 600;
-            letter-spacing: 0.3px;
-            cursor: pointer;
+            color: white; font-size: 14px; font-weight: 600;
+            letter-spacing: 0.3px; cursor: pointer;
             transition: all 0.2s;
             box-shadow: 0 4px 14px rgba(10,132,255,0.25);
-            display: inline-flex;
-            align-items: center;
-            justify-content: center;
-            gap: 8px;
+            display: inline-flex; align-items: center;
+            justify-content: center; gap: 8px;
         }
         .btn-add:hover { background: #0077e6; transform: translateY(-1px); }
         .btn-add:active { transform: scale(0.97); }
         .btn-add i { font-size: 13px; }
 
-        /* ===== Checkout / Cart ===== */
         .checkout-card {
             background: var(--glass-bg);
             backdrop-filter: saturate(180%) blur(28px) brightness(0.94);
@@ -371,32 +236,21 @@
         }
 
         .checkout-title {
-            font-size: 16px;
-            font-weight: 700;
-            letter-spacing: 0.3px;
+            font-size: 16px; font-weight: 700; letter-spacing: 0.3px;
             margin-bottom: 16px;
-            display: flex;
-            align-items: center;
-            gap: 10px;
+            display: flex; align-items: center; gap: 10px;
         }
-        .checkout-title i {
-            color: var(--neon-blue);
-            font-size: 16px;
-        }
+        .checkout-title i { color: var(--neon-blue); font-size: 16px; }
 
         .cart-empty {
-            font-size: 13px;
-            color: var(--text-muted);
-            text-align: center;
-            padding: 24px 0;
+            font-size: 13px; color: var(--text-muted);
+            text-align: center; padding: 24px 0;
             font-style: italic;
         }
 
         .cart-item {
-            display: flex;
-            justify-content: space-between;
-            align-items: flex-start;
-            gap: 10px;
+            display: flex; justify-content: space-between;
+            align-items: flex-start; gap: 10px;
             padding: 10px 0;
             border-bottom: 0.5px solid rgba(255,255,255,0.06);
             font-size: 13px;
@@ -408,86 +262,134 @@
         .cart-item-variant { color: var(--text-muted); font-size: 12px; margin-top: 1px; }
         .cart-item-price {
             font-family: "SF Mono", monospace;
-            color: var(--neon-blue);
-            font-weight: 600;
+            color: var(--neon-blue); font-weight: 600;
             white-space: nowrap;
         }
 
         .cart-remove {
-            background: none;
-            border: none;
+            background: none; border: none;
             color: rgba(255,90,90,0.7);
-            cursor: pointer;
-            font-size: 12px;
-            padding: 3px 7px;
-            border-radius: 6px;
+            cursor: pointer; font-size: 12px;
+            padding: 3px 7px; border-radius: 6px;
             transition: all 0.15s;
         }
         .cart-remove:hover { background: rgba(255,60,60,0.12); color: #ff5a5a; }
 
         .cart-total {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin-top: 16px;
+            display: flex; justify-content: space-between;
+            align-items: center; margin-top: 16px;
             padding-top: 14px;
             border-top: 1px solid rgba(255,255,255,0.1);
         }
-
-        .cart-total .label {
-            font-size: 14px;
-            color: rgba(255,255,255,0.8);
-            font-weight: 500;
-        }
-
+        .cart-total .label { font-size: 14px; color: rgba(255,255,255,0.8); font-weight: 500; }
         .cart-total .amount {
-            font-size: 24px;
-            font-weight: 700;
+            font-size: 24px; font-weight: 700;
             color: var(--neon-blue);
             font-family: "SF Mono", monospace;
         }
 
-        /* ===== Form ===== */
-        .form-group {
-            margin-top: 16px;
-        }
+        .form-group { margin-top: 16px; }
 
         .form-group label {
             display: block;
-            font-size: 12px;
-            font-weight: 600;
+            font-size: 12px; font-weight: 600;
             color: rgba(255,255,255,0.7);
-            margin-bottom: 6px;
-            letter-spacing: 0.3px;
+            margin-bottom: 6px; letter-spacing: 0.3px;
         }
 
-        .form-group input,
+        .form-group input[type="text"],
         .form-group textarea {
             width: 100%;
             padding: 11px 14px;
             border-radius: 12px;
             border: 0.5px solid rgba(255,255,255,0.1);
             background: rgba(0,0,0,0.25);
-            color: white;
-            font-size: 14px;
-            font-family: inherit;
-            outline: none;
+            color: white; font-size: 14px;
+            font-family: inherit; outline: none;
             transition: border-color 0.2s, box-shadow 0.2s;
             resize: vertical;
         }
-
-        .form-group input:focus,
+        .form-group input[type="text"]:focus,
         .form-group textarea:focus {
             border-color: var(--primary-blue);
             box-shadow: 0 0 0 3px rgba(10,132,255,0.15);
         }
+        .form-group input[type="text"]::placeholder,
+        .form-group textarea::placeholder { color: rgba(255,255,255,0.3); }
 
-        .form-group input::placeholder,
-        .form-group textarea::placeholder {
-            color: rgba(255,255,255,0.3);
+        /* ===== Receipt upload ===== */
+        .upload-box {
+            position: relative;
+            border: 1.5px dashed rgba(255,255,255,0.18);
+            border-radius: 14px;
+            background: rgba(0,0,0,0.2);
+            padding: 18px 14px;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.2s;
+            overflow: hidden;
+        }
+        .upload-box:hover {
+            border-color: var(--primary-blue);
+            background: rgba(10,132,255,0.06);
+        }
+        .upload-box.has-file {
+            border-style: solid;
+            border-color: rgba(48, 209, 88, 0.5);
+            background: rgba(48,209,88,0.05);
+            padding: 0;
+        }
+        .upload-box input[type="file"] {
+            position: absolute; inset: 0;
+            opacity: 0; cursor: pointer;
+            width: 100%; height: 100%;
         }
 
-        /* ===== Bank Info ===== */
+        .upload-placeholder {
+            display: flex; flex-direction: column;
+            align-items: center; gap: 6px;
+            pointer-events: none;
+        }
+        .upload-placeholder i {
+            font-size: 22px; color: var(--neon-blue);
+            filter: drop-shadow(0 0 6px rgba(0,200,255,0.4));
+        }
+        .upload-placeholder .line1 {
+            font-size: 13px; font-weight: 600; color: white;
+        }
+        .upload-placeholder .line2 {
+            font-size: 11px; color: var(--text-muted);
+        }
+
+        .upload-preview {
+            display: none;
+            position: relative;
+            width: 100%;
+        }
+        .upload-preview img {
+            display: block;
+            width: 100%;
+            max-height: 220px;
+            object-fit: contain;
+            background: #0b111a;
+            border-radius: 12px;
+        }
+        .upload-remove {
+            position: absolute;
+            top: 8px; right: 8px;
+            width: 28px; height: 28px;
+            border-radius: 50%;
+            background: rgba(0,0,0,0.7);
+            border: 0.5px solid rgba(255,255,255,0.2);
+            color: #ff6b6b;
+            cursor: pointer;
+            display: flex; align-items: center; justify-content: center;
+            font-size: 12px;
+            transition: all 0.15s;
+            z-index: 3;
+        }
+        .upload-remove:hover { background: rgba(255,60,60,0.25); }
+
         .bank-info {
             margin-top: 18px;
             background: rgba(0, 200, 255, 0.05);
@@ -495,39 +397,28 @@
             border-radius: 14px;
             padding: 14px 16px;
         }
-
         .bank-info .bank-title {
-            font-size: 12px;
-            font-weight: 700;
-            letter-spacing: 0.8px;
-            text-transform: uppercase;
-            color: var(--neon-blue);
-            opacity: 0.9;
+            font-size: 12px; font-weight: 700;
+            letter-spacing: 0.8px; text-transform: uppercase;
+            color: var(--neon-blue); opacity: 0.9;
             margin-bottom: 10px;
-            display: flex;
-            align-items: center;
-            gap: 8px;
+            display: flex; align-items: center; gap: 8px;
         }
         .bank-info .bank-title i { font-size: 12px; }
 
         .bank-row {
-            display: flex;
-            justify-content: space-between;
-            font-size: 13px;
-            padding: 3px 0;
+            display: flex; justify-content: space-between;
+            font-size: 13px; padding: 3px 0;
         }
         .bank-row .k { color: rgba(255,255,255,0.6); }
         .bank-row .v { color: white; font-weight: 600; font-family: "SF Mono", monospace; }
         .bank-row .v.name { font-family: inherit; letter-spacing: 0.3px; }
 
         .bank-note {
-            font-size: 11px;
-            color: rgba(255,255,255,0.45);
-            margin-top: 10px;
-            line-height: 1.4;
+            font-size: 11px; color: rgba(255,255,255,0.45);
+            margin-top: 10px; line-height: 1.4;
         }
 
-        /* ===== Submit Button ===== */
         .btn-checkout {
             width: 100%;
             margin-top: 18px;
@@ -536,59 +427,42 @@
             border: none;
             background: linear-gradient(135deg, #0a84ff, #00c8ff);
             color: white;
-            font-size: 15px;
-            font-weight: 700;
+            font-size: 15px; font-weight: 700;
             letter-spacing: 0.5px;
             cursor: pointer;
             transition: all 0.2s;
             box-shadow: 0 6px 20px rgba(10,132,255,0.3);
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            gap: 10px;
+            display: flex; align-items: center;
+            justify-content: center; gap: 10px;
         }
         .btn-checkout:hover:not(:disabled) { transform: translateY(-1px); box-shadow: 0 8px 26px rgba(10,132,255,0.45); }
         .btn-checkout:active:not(:disabled) { transform: scale(0.98); }
-        .btn-checkout:disabled {
-            opacity: 0.45;
-            cursor: not-allowed;
-            box-shadow: none;
-        }
+        .btn-checkout:disabled { opacity: 0.45; cursor: not-allowed; box-shadow: none; }
 
-        /* ===== Status toast ===== */
         .toast {
             position: fixed;
-            bottom: 30px;
-            left: 50%;
+            bottom: 30px; left: 50%;
             transform: translateX(-50%) translateY(120px);
             background: rgba(20, 22, 28, 0.95);
             backdrop-filter: blur(20px);
             border: 0.5px solid rgba(255,255,255,0.1);
             border-radius: 16px;
             padding: 14px 24px;
-            font-size: 14px;
-            font-weight: 500;
+            font-size: 14px; font-weight: 500;
             color: white;
             box-shadow: 0 20px 50px rgba(0,0,0,0.7);
-            z-index: 1000;
-            opacity: 0;
+            z-index: 1000; opacity: 0;
             transition: all 0.4s cubic-bezier(0.25, 0.1, 0.15, 1);
-            display: flex;
-            align-items: center;
-            gap: 10px;
+            display: flex; align-items: center; gap: 10px;
             max-width: 90vw;
         }
-        .toast.show {
-            transform: translateX(-50%) translateY(0);
-            opacity: 1;
-        }
+        .toast.show { transform: translateX(-50%) translateY(0); opacity: 1; }
         .toast.success { border-color: rgba(48, 209, 88, 0.4); }
         .toast.error { border-color: rgba(255, 90, 90, 0.4); }
         .toast i { font-size: 16px; }
         .toast.success i { color: var(--success); }
         .toast.error i { color: #ff5a5a; }
 
-        /* ===== Responsive ===== */
         @media (max-width: 820px) {
             .navbar { padding: 12px 20px; }
             .brand img { width: 38px; height: 38px; }
@@ -617,7 +491,6 @@
         <source src="zijunbg.mp4" type="video/mp4">
     </video>
 
-    <!-- ===== Navbar ===== -->
     <header class="navbar">
         <a href="index.html" class="brand">
             <img src="zijunlogo.png" alt="ZIJUN logo">
@@ -631,24 +504,20 @@
         </a>
     </header>
 
-    <!-- ===== Main ===== -->
     <main class="main-container">
         <h1 class="page-title">
             <i class="fa-solid fa-cart-shopping"></i> Order &amp; Payment
         </h1>
-        <p class="page-sub">Select a service, add to cart, fill in your details, then transfer the total via Maybank. Orders are automatically pushed to Telegram.</p>
+        <p class="page-sub">Select a service, add to cart, fill in your details, transfer via Maybank, then upload your receipt. Order + receipt will be pushed to Telegram.</p>
 
         <div class="shop-layout">
 
-            <!-- ========== Products ========== -->
             <div class="products-col">
 
                 <!-- 1. Video Editing -->
                 <div class="product-card" data-product-id="video">
                     <div class="product-head">
-                        <div class="product-name">
-                            <i class="fa-solid fa-film"></i> Video Editing
-                        </div>
+                        <div class="product-name"><i class="fa-solid fa-film"></i> Video Editing</div>
                         <div class="product-price" id="price-video">RM 30</div>
                     </div>
                     <div class="product-desc">
@@ -674,12 +543,10 @@
                     </div>
                 </div>
 
-                <!-- 2. Website Customization -->
+                <!-- 2. Website -->
                 <div class="product-card" data-product-id="website">
                     <div class="product-head">
-                        <div class="product-name">
-                            <i class="fa-solid fa-globe"></i> Basic Website Customization
-                        </div>
+                        <div class="product-name"><i class="fa-solid fa-globe"></i> Basic Website Customization</div>
                         <div class="product-price" id="price-website">RM 80</div>
                     </div>
                     <div class="product-desc">
@@ -705,9 +572,7 @@
                 <!-- 3. Notes -->
                 <div class="product-card" data-product-id="notes">
                     <div class="product-head">
-                        <div class="product-name">
-                            <i class="fa-solid fa-book"></i> STPM Notes Bundle
-                        </div>
+                        <div class="product-name"><i class="fa-solid fa-book"></i> STPM Notes Bundle</div>
                         <div class="product-price" id="price-notes">RM 2</div>
                     </div>
                     <div class="product-desc">
@@ -741,7 +606,7 @@
 
             </div>
 
-            <!-- ========== Checkout ========== -->
+            <!-- Checkout -->
             <div class="checkout-col">
                 <div class="checkout-card">
                     <div class="checkout-title">
@@ -756,7 +621,6 @@
                         <span class="amount" id="cartTotal">RM 0</span>
                     </div>
 
-                    <!-- Customer info -->
                     <div class="form-group">
                         <label for="custName">Your Name *</label>
                         <input type="text" id="custName" placeholder="e.g. Ali bin Ahmad" autocomplete="name">
@@ -770,7 +634,7 @@
                         <textarea id="custNote" rows="3" placeholder="e.g. deadline, requirements, link to raw files..."></textarea>
                     </div>
 
-                    <!-- Bank Info -->
+                    <!-- ===== Bank Info ===== -->
                     <div class="bank-info">
                         <div class="bank-title">
                             <i class="fa-solid fa-building-columns"></i> Transfer To
@@ -788,7 +652,26 @@
                             <span class="v">159013219994</span>
                         </div>
                         <div class="bank-note">
-                            Please transfer the exact total, then submit your order below. Your order will be pushed to Telegram automatically for confirmation.
+                            Transfer the exact total, then upload your receipt below and submit.
+                        </div>
+                    </div>
+
+                    <!-- ===== Receipt Upload ===== -->
+                    <div class="form-group">
+                        <label for="receiptInput">Payment Receipt *</label>
+                        <div class="upload-box" id="uploadBox">
+                            <input type="file" id="receiptInput" accept="image/*">
+                            <div class="upload-placeholder" id="uploadPlaceholder">
+                                <i class="fa-solid fa-cloud-arrow-up"></i>
+                                <div class="line1">Upload receipt image</div>
+                                <div class="line2">JPG / PNG · max 5 MB</div>
+                            </div>
+                            <div class="upload-preview" id="uploadPreview">
+                                <img id="previewImg" alt="Receipt preview">
+                                <button class="upload-remove" id="uploadRemove" type="button" title="Remove">
+                                    <i class="fa-solid fa-xmark"></i>
+                                </button>
+                            </div>
                         </div>
                     </div>
 
@@ -801,7 +684,6 @@
         </div>
     </main>
 
-    <!-- Toast -->
     <div class="toast" id="toast">
         <i class="fa-solid fa-circle-check" id="toastIcon"></i>
         <span id="toastMsg">Message</span>
@@ -809,13 +691,12 @@
 
     <script>
         /* ============================================================
-           ⚙️  TELEGRAM CONFIG — BOT TOKEN ALREADY SET
+           ⚙️  TELEGRAM CONFIG
            ============================================================ */
         const TELEGRAM_BOT_TOKEN = "8724573178:AAFjCHYB6tQ1FxIlkBk1A3qUIStfomBU1Xo";
-        const TELEGRAM_CHAT_ID   = "2057699071";   // ← replace after getting your chat id
+        const TELEGRAM_CHAT_ID   = "2057699071";
         /* ============================================================ */
 
-        // Product definitions
         const PRODUCTS = {
             video: {
                 name: "Video Editing",
@@ -849,8 +730,9 @@
         };
 
         let cart = [];
+        let receiptFile = null;
 
-        /* ===== Variant chip handling ===== */
+        /* ===== Variant chips ===== */
         document.querySelectorAll('#variants-video .variant-chip').forEach(chip => {
             chip.addEventListener('click', () => {
                 document.querySelectorAll('#variants-video .variant-chip').forEach(c => c.classList.remove('active'));
@@ -869,7 +751,6 @@
             });
         });
 
-        /* ===== Qty controls ===== */
         function changeQty(productId, delta) {
             const p = PRODUCTS[productId];
             if (!p) return;
@@ -877,7 +758,6 @@
             document.getElementById('qty-' + productId).innerText = p.qty;
         }
 
-        /* ===== Add to cart ===== */
         function addToCart(productId) {
             const p = PRODUCTS[productId];
             if (!p) return;
@@ -894,12 +774,12 @@
                 existing.qty += p.qty;
             } else {
                 cart.push({
-                    productId:    productId,
-                    name:         p.name,
-                    variantKey:   variantKey,
+                    productId,
+                    name: p.name,
+                    variantKey,
                     variantLabel: variantData.label,
-                    price:        variantData.price,
-                    qty:          p.qty
+                    price: variantData.price,
+                    qty: p.qty
                 });
             }
 
@@ -910,17 +790,15 @@
             showToast('success', 'Added to cart');
         }
 
-        /* ===== Render cart ===== */
         function renderCart() {
             const listEl  = document.getElementById('cartList');
             const totalEl = document.getElementById('cartTotal');
             const boxEl   = document.getElementById('cartTotalBox');
-            const btn     = document.getElementById('btnCheckout');
 
             if (cart.length === 0) {
                 listEl.innerHTML = '<div class="cart-empty">Cart is empty. Add a service above.</div>';
                 boxEl.style.display = 'none';
-                btn.disabled = true;
+                updateCheckoutBtn();
                 return;
             }
 
@@ -947,13 +825,68 @@
             listEl.innerHTML = html;
             totalEl.innerText = 'RM ' + total;
             boxEl.style.display = 'flex';
-            btn.disabled = false;
+            updateCheckoutBtn();
         }
 
         function removeCartItem(idx) {
             cart.splice(idx, 1);
             renderCart();
         }
+
+        function updateCheckoutBtn() {
+            const btn = document.getElementById('btnCheckout');
+            btn.disabled = !(cart.length > 0 && receiptFile);
+        }
+
+        /* ===== Receipt upload handling ===== */
+        const uploadBox      = document.getElementById('uploadBox');
+        const receiptInput   = document.getElementById('receiptInput');
+        const uploadPreview  = document.getElementById('uploadPreview');
+        const uploadPlaceholder = document.getElementById('uploadPlaceholder');
+        const previewImg     = document.getElementById('previewImg');
+        const uploadRemove   = document.getElementById('uploadRemove');
+
+        const MAX_SIZE = 5 * 1024 * 1024; // 5 MB
+
+        receiptInput.addEventListener('change', (e) => {
+            const file = e.target.files && e.target.files[0];
+            if (!file) return;
+
+            if (!file.type.startsWith('image/')) {
+                showToast('error', 'Only image files allowed');
+                receiptInput.value = '';
+                return;
+            }
+            if (file.size > MAX_SIZE) {
+                showToast('error', 'Image too large (max 5 MB)');
+                receiptInput.value = '';
+                return;
+            }
+
+            receiptFile = file;
+
+            const reader = new FileReader();
+            reader.onload = (ev) => {
+                previewImg.src = ev.target.result;
+                uploadPlaceholder.style.display = 'none';
+                uploadPreview.style.display = 'block';
+                uploadBox.classList.add('has-file');
+                updateCheckoutBtn();
+            };
+            reader.readAsDataURL(file);
+        });
+
+        uploadRemove.addEventListener('click', (e) => {
+            e.preventDefault();
+            e.stopPropagation();
+            receiptFile = null;
+            receiptInput.value = '';
+            previewImg.src = '';
+            uploadPreview.style.display = 'none';
+            uploadPlaceholder.style.display = 'flex';
+            uploadBox.classList.remove('has-file');
+            updateCheckoutBtn();
+        });
 
         /* ===== Toast ===== */
         let toastTimer = null;
@@ -973,15 +906,17 @@
             toast.classList.add('show');
 
             if (toastTimer) clearTimeout(toastTimer);
-            toastTimer = setTimeout(() => {
-                toast.classList.remove('show');
-            }, 3200);
+            toastTimer = setTimeout(() => toast.classList.remove('show'), 3200);
         }
 
-        /* ===== Submit Order ===== */
+        /* ===== Submit order ===== */
         async function submitOrder() {
             if (cart.length === 0) {
                 showToast('error', 'Cart is empty');
+                return;
+            }
+            if (!receiptFile) {
+                showToast('error', 'Please upload your payment receipt');
                 return;
             }
 
@@ -1011,7 +946,7 @@
             const orderId = 'ZJ-' + Date.now().toString().slice(-8);
             const now = new Date().toLocaleString('en-MY', { timeZone: 'Asia/Kuala_Lumpur' });
 
-            const message =
+            const caption =
 `🛒 NEW ORDER — ${orderId}
 
 👤 Name: ${name}
@@ -1026,40 +961,49 @@ ${itemsText}
    Name: KONG ZI JUN
    Acc: 159013219994
 
+🧾 Receipt attached below.
 🕒 ${now}`;
 
             const btn = document.getElementById('btnCheckout');
             btn.disabled = true;
             btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Sending...';
 
-            const ok = await sendToTelegram(message);
+            // 1) Send text order
+            const okText = await sendToTelegram(caption);
+            // 2) Send photo with same caption
+            const okPhoto = await sendPhotoToTelegram(receiptFile, caption);
 
-            if (ok) {
-                showToast('success', 'Order sent! Please complete payment.');
+            if (okText && okPhoto) {
+                showToast('success', 'Order + receipt sent! Please wait for confirmation.');
                 cart = [];
-                renderCart();
+                receiptFile = null;
+                receiptInput.value = '';
+                previewImg.src = '';
+                uploadPreview.style.display = 'none';
+                uploadPlaceholder.style.display = 'flex';
+                uploadBox.classList.remove('has-file');
                 document.getElementById('custName').value    = '';
                 document.getElementById('custContact').value = '';
                 document.getElementById('custNote').value    = '';
+                renderCart();
             } else {
-                showToast('error', 'Failed to send. Check chat id config.');
+                showToast('error', 'Failed to send. Check bot config / console.');
             }
 
             btn.disabled = false;
             btn.innerHTML = '<i class="fa-solid fa-paper-plane"></i> Submit Order &amp; Notify';
+            updateCheckoutBtn();
         }
 
-        /* ===== Telegram sender ===== */
+        /* ===== Telegram: text ===== */
         async function sendToTelegram(text) {
-            // 只有在未配置 chat id 时才走模拟分支
             if (!TELEGRAM_CHAT_ID || TELEGRAM_CHAT_ID === 'YOUR_CHAT_ID_HERE') {
-                console.warn('⚠️ TELEGRAM_CHAT_ID not set. Order logged to console only.');
-                console.log('Order would be sent:\n' + text);
+                console.warn('⚠️ CHAT_ID not set. Order logged to console only.');
+                console.log(text);
                 return true;
             }
-        
+
             const url = `https://api.telegram.org/bot${TELEGRAM_BOT_TOKEN}/sendMessage`;
-        
             try {
                 const res = await fetch(url, {
                     method: 'POST',
@@ -1071,16 +1015,38 @@ ${itemsText}
                     })
                 });
                 const data = await res.json();
-                if (!data.ok) {
-                    console.error('Telegram API error:', data);
-                }
+                if (!data.ok) console.error('Telegram sendMessage error:', data);
                 return data.ok === true;
             } catch (err) {
-                console.error('Telegram error:', err);
+                console.error('Telegram sendMessage network error:', err);
                 return false;
             }
         }
-       
+
+        /* ===== Telegram: photo ===== */
+        async function sendPhotoToTelegram(file, caption) {
+            if (!TELEGRAM_CHAT_ID || TELEGRAM_CHAT_ID === 'YOUR_CHAT_ID_HERE') {
+                console.warn('⚠️ CHAT_ID not set. Photo not sent.');
+                return true;
+            }
+
+            const url = `https://api.telegram.org/bot${TELEGRAM_BOT_TOKEN}/sendPhoto`;
+            const fd  = new FormData();
+            fd.append('chat_id', TELEGRAM_CHAT_ID);
+            fd.append('caption', caption.slice(0, 1024)); // Telegram caption limit
+            fd.append('photo', file, file.name || 'receipt.jpg');
+
+            try {
+                const res = await fetch(url, { method: 'POST', body: fd });
+                const data = await res.json();
+                if (!data.ok) console.error('Telegram sendPhoto error:', data);
+                return data.ok === true;
+            } catch (err) {
+                console.error('Telegram sendPhoto network error:', err);
+                return false;
+            }
+        }
+
         /* ===== Init ===== */
         renderCart();
     </script>
