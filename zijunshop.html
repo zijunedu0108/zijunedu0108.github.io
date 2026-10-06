@@ -1051,14 +1051,15 @@ ${itemsText}
 
         /* ===== Telegram sender ===== */
         async function sendToTelegram(text) {
-            if (TELEGRAM_CHAT_ID === '2057699071') {
+            // 只有在未配置 chat id 时才走模拟分支
+            if (!TELEGRAM_CHAT_ID || TELEGRAM_CHAT_ID === 'YOUR_CHAT_ID_HERE') {
                 console.warn('⚠️ TELEGRAM_CHAT_ID not set. Order logged to console only.');
                 console.log('Order would be sent:\n' + text);
-                return true; // simulated success for demo
+                return true;
             }
-
+        
             const url = `https://api.telegram.org/bot${TELEGRAM_BOT_TOKEN}/sendMessage`;
-
+        
             try {
                 const res = await fetch(url, {
                     method: 'POST',
@@ -1070,13 +1071,16 @@ ${itemsText}
                     })
                 });
                 const data = await res.json();
+                if (!data.ok) {
+                    console.error('Telegram API error:', data);
+                }
                 return data.ok === true;
             } catch (err) {
                 console.error('Telegram error:', err);
                 return false;
             }
         }
-
+       
         /* ===== Init ===== */
         renderCart();
     </script>
