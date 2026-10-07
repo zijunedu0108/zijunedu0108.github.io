@@ -1279,7 +1279,7 @@
                 return;
             }
             try {
-                state.screenStream = await navigator.mediaDevices.getDisplayMedia({ video: true });
+                state.screenStream = await navigator.mediaDevices.getDisplayMedia({ video: true, audio: true });
                 state.isScreenSharing = true;
 
                 const screenTrack = state.screenStream.getVideoTracks()[0];
