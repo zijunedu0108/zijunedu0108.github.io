@@ -63,6 +63,20 @@
 
         .video-clickable { cursor: pointer; }
 
+        /* ★ 说话高亮 */
+        .speaking-ring {
+            position: absolute;
+            inset: 0;
+            border-radius: 16px;
+            border: 3px solid #10b981;
+            box-shadow: 0 0 0 4px rgba(16, 185, 129, 0.3), 0 0 20px rgba(16, 185, 129, 0.5);
+            pointer-events: none;
+            z-index: 2;
+            opacity: 0;
+            transition: opacity 0.15s;
+        }
+        .speaking-ring.active { opacity: 1; }
+
         /* 全屏 */
         #fullscreenOverlay {
             position: fixed; inset: 0; background: black;
@@ -140,7 +154,7 @@
             </div>
         </div>
 
-        <div class="flex items-center gap-4">
+        <div class="flex items-center gap-3">
             <div id="connectionStatus" class="hidden sm:flex items-center gap-2 px-3 py-1.5 rounded-full text-xs font-medium glass-card border border-slate-700/50">
                 <span class="relative flex h-2.5 w-2.5">
                   <span id="statusPing" class="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
@@ -149,11 +163,24 @@
                 <span id="statusText" class="text-slate-300">Ready</span>
             </div>
 
+            <div id="timerBadge" class="hidden items-center gap-2 px-3 py-1.5 rounded-full text-xs font-mono bg-emerald-500/10 border border-emerald-500/30 text-emerald-300">
+                <i class="fa-solid fa-clock text-emerald-400"></i>
+                <span id="timerText">00:00</span>
+            </div>
+
+            <div id="participantBadge" class="hidden items-center gap-2 px-3 py-1.5 rounded-full text-xs font-mono bg-amber-500/10 border border-amber-500/30 text-amber-300">
+                <i class="fa-solid fa-users text-amber-400"></i>
+                <span><strong id="participantCount">1</strong> 人</span>
+            </div>
+
             <div id="roomBadge" class="hidden items-center gap-2 px-3 py-1.5 rounded-full text-xs font-mono bg-indigo-500/10 border border-indigo-500/30 text-indigo-300">
                 <i class="fa-solid fa-door-open text-indigo-400"></i>
                 <span>Room: <strong id="currentRoomId">--</strong></span>
-                <button id="copyRoomBtn" title="Copy Invite Link" class="ml-1 hover:text-white transition-colors">
+                <button id="copyRoomBtn" title="复制房间号" class="ml-1 hover:text-white transition-colors">
                     <i class="fa-regular fa-copy"></i>
+                </button>
+                <button id="shareLinkBtn" title="分享邀请链接" class="hover:text-white transition-colors">
+                    <i class="fa-solid fa-link"></i>
                 </button>
             </div>
         </div>
@@ -172,7 +199,6 @@
                     <p class="text-slate-400 text-sm">Peer-to-peer secure video room powered by WebRTC</p>
                 </div>
 
-                <!-- ★ 大厅预览 + 开关 -->
                 <div class="relative w-full h-48 bg-black rounded-2xl overflow-hidden border border-slate-800">
                     <video id="lobbyPreview" class="w-full h-full object-cover mirror" autoplay muted playsinline></video>
                     <div id="lobbyPreviewAvatar" class="hidden absolute inset-0 flex items-center justify-center bg-slate-900">
@@ -180,7 +206,6 @@
                             <i class="fa-solid fa-video-slash"></i>
                         </div>
                     </div>
-                    <!-- 底部开关 -->
                     <div class="absolute bottom-3 left-1/2 -translate-x-1/2 flex items-center gap-3">
                         <button id="lobbyMicBtn" class="w-11 h-11 rounded-xl bg-slate-900/80 backdrop-blur-md hover:bg-slate-800 text-slate-200 flex items-center justify-center transition-all border border-slate-700/60" title="麦克风">
                             <i class="fa-solid fa-microphone"></i>
@@ -248,6 +273,7 @@
                     <div id="sharingIndicator" class="hidden absolute top-3 left-3 bg-indigo-600/90 backdrop-blur-md px-3 py-1 rounded-lg text-xs font-medium text-white border border-indigo-400/50 flex items-center gap-2 pointer-events-none">
                         <i class="fa-solid fa-desktop"></i> Sharing screen
                     </div>
+                    <div id="localSpeakingRing" class="speaking-ring"></div>
                 </div>
 
                 <div id="remoteVideoWrapper" data-video-type="remote" class="video-clickable relative bg-slate-900/90 rounded-2xl overflow-hidden border border-slate-800 shadow-lg group flex items-center justify-center">
@@ -269,6 +295,7 @@
                         <i id="remoteCamOffIcon" class="fa-solid fa-video-slash text-rose-400 hidden"></i>
                         <i id="remoteHandIcon" class="fa-solid fa-hand text-amber-400 hand-anim hidden"></i>
                     </div>
+                    <div id="remoteSpeakingRing" class="speaking-ring"></div>
                 </div>
             </div>
 
@@ -422,6 +449,19 @@
             isHandRaised: false,
             activeTab: 'chat',
             sidebarOpen: false,
+            // 新功能状态
+            callStartTime: null,
+            timerInterval: null,
+            reconnectAttempts: 0,
+            maxReconnectAttempts: 5,
+            isReconnecting: false,
+            localAudioContext: null,
+            localAnalyser: null,
+            remoteAudioContext: null,
+            remoteAnalyser: null,
+            localSpeakingInterval: null,
+            remoteSpeakingInterval: null,
+            speakingThreshold: 25,
             // 全屏状态
             isFullscreen: false,
             fullscreenType: 'local',
@@ -451,9 +491,14 @@
             roomBadge: document.getElementById('roomBadge'),
             currentRoomId: document.getElementById('currentRoomId'),
             copyRoomBtn: document.getElementById('copyRoomBtn'),
+            shareLinkBtn: document.getElementById('shareLinkBtn'),
             statusPing: document.getElementById('statusPing'),
             statusDot: document.getElementById('statusDot'),
             statusText: document.getElementById('statusText'),
+            timerBadge: document.getElementById('timerBadge'),
+            timerText: document.getElementById('timerText'),
+            participantBadge: document.getElementById('participantBadge'),
+            participantCount: document.getElementById('participantCount'),
             localVideo: document.getElementById('localVideo'),
             remoteVideo: document.getElementById('remoteVideo'),
             remotePlaceholder: document.getElementById('remotePlaceholder'),
@@ -492,14 +537,12 @@
             chatBadge: document.getElementById('chatBadge'),
             localVideoWrapper: document.getElementById('localVideoWrapper'),
             remoteVideoWrapper: document.getElementById('remoteVideoWrapper'),
-
-            // 大厅预览
             lobbyPreview: document.getElementById('lobbyPreview'),
             lobbyPreviewAvatar: document.getElementById('lobbyPreviewAvatar'),
             lobbyMicBtn: document.getElementById('lobbyMicBtn'),
             lobbyCamBtn: document.getElementById('lobbyCamBtn'),
-
-            // 全屏相关
+            localSpeakingRing: document.getElementById('localSpeakingRing'),
+            remoteSpeakingRing: document.getElementById('remoteSpeakingRing'),
             fullscreenOverlay: document.getElementById('fullscreenOverlay'),
             fullscreenVideo: document.getElementById('fullscreenVideo'),
             fullscreenTopBar: document.getElementById('fullscreenTopBar'),
@@ -523,7 +566,6 @@
             fsChatInput: document.getElementById('fsChatInput')
         };
 
-        // ==== Init ====
         function init() {
             el.usernameInput.value = state.username;
             setupEventListeners();
@@ -534,28 +576,166 @@
             document.addEventListener('fullscreenchange', handleNativeFullscreenChange);
         }
 
-        // ============================================================
-        //  ★ 全屏功能核心
-        // ============================================================
+        // ============ 工具函数 ============
+        function showToast(msg, duration = 2000) {
+            const toast = document.createElement('div');
+            toast.className = 'fixed top-20 left-1/2 -translate-x-1/2 z-50 px-4 py-2 rounded-xl bg-slate-800 text-white text-sm border border-slate-700 shadow-2xl transition-all';
+            toast.style.opacity = '0';
+            toast.style.transform = 'translateX(-50%) translateY(-10px)';
+            toast.textContent = msg;
+            document.body.appendChild(toast);
 
+            requestAnimationFrame(() => {
+                toast.style.opacity = '1';
+                toast.style.transform = 'translateX(-50%) translateY(0)';
+            });
+
+            setTimeout(() => {
+                toast.style.opacity = '0';
+                toast.style.transform = 'translateX(-50%) translateY(-10px)';
+                setTimeout(() => toast.remove(), 300);
+            }, duration);
+        }
+
+        function playJoinSound() {
+            try {
+                const ctx = new (window.AudioContext || window.webkitAudioContext)();
+                [660, 880].forEach((freq, i) => {
+                    const osc = ctx.createOscillator();
+                    const gain = ctx.createGain();
+                    osc.connect(gain);
+                    gain.connect(ctx.destination);
+                    osc.type = 'sine';
+                    osc.frequency.setValueAtTime(freq, ctx.currentTime + i * 0.15);
+                    gain.gain.setValueAtTime(0, ctx.currentTime + i * 0.15);
+                    gain.gain.linearRampToValueAtTime(0.2, ctx.currentTime + i * 0.15 + 0.02);
+                    gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + i * 0.15 + 0.25);
+                    osc.start(ctx.currentTime + i * 0.15);
+                    osc.stop(ctx.currentTime + i * 0.15 + 0.3);
+                });
+            } catch (e) {}
+        }
+
+        function startCallTimer() {
+            if (state.timerInterval) return;
+            state.callStartTime = Date.now();
+            el.timerBadge.classList.remove('hidden');
+            el.timerBadge.classList.add('flex');
+            state.timerInterval = setInterval(() => {
+                const elapsed = Math.floor((Date.now() - state.callStartTime) / 1000);
+                const mm = String(Math.floor(elapsed / 60)).padStart(2, '0');
+                const ss = String(elapsed % 60).padStart(2, '0');
+                el.timerText.textContent = `${mm}:${ss}`;
+            }, 1000);
+        }
+
+        function stopCallTimer() {
+            if (state.timerInterval) {
+                clearInterval(state.timerInterval);
+                state.timerInterval = null;
+            }
+            el.timerBadge.classList.add('hidden');
+            el.timerBadge.classList.remove('flex');
+            el.timerText.textContent = '00:00';
+        }
+
+        function updateParticipantCount() {
+            const count = 1 + state.calls.size;
+            el.participantCount.textContent = count;
+            el.participantBadge.classList.remove('hidden');
+            el.participantBadge.classList.add('flex');
+        }
+
+        function hideParticipantBadge() {
+            el.participantBadge.classList.add('hidden');
+            el.participantBadge.classList.remove('flex');
+        }
+
+        function startSpeakingDetection(stream, ringEl, isLocal) {
+            try {
+                if (!stream) return;
+                const audioTracks = stream.getAudioTracks();
+                if (audioTracks.length === 0) return;
+
+                const audioContext = new (window.AudioContext || window.webkitAudioContext)();
+                const analyser = audioContext.createAnalyser();
+                analyser.fftSize = 512;
+                const source = audioContext.createMediaStreamSource(stream);
+                source.connect(analyser);
+                const dataArray = new Uint8Array(analyser.frequencyBinCount);
+
+                const interval = setInterval(() => {
+                    analyser.getByteFrequencyData(dataArray);
+                    let sum = 0;
+                    for (let i = 0; i < dataArray.length; i++) sum += dataArray[i];
+                    const avg = sum / dataArray.length;
+                    if (avg > state.speakingThreshold) ringEl.classList.add('active');
+                    else ringEl.classList.remove('active');
+                }, 100);
+
+                if (isLocal) {
+                    state.localAudioContext = audioContext;
+                    state.localSpeakingInterval = interval;
+                } else {
+                    state.remoteAudioContext = audioContext;
+                    state.remoteSpeakingInterval = interval;
+                }
+            } catch (e) {
+                logSystem(`Speaker detection error: ${e.message}`, 'warn');
+            }
+        }
+
+        function stopSpeakingDetection(isLocal) {
+            if (isLocal) {
+                if (state.localSpeakingInterval) clearInterval(state.localSpeakingInterval);
+                state.localSpeakingInterval = null;
+                if (state.localAudioContext) state.localAudioContext.close().catch(() => {});
+                state.localAudioContext = null;
+                el.localSpeakingRing.classList.remove('active');
+            } else {
+                if (state.remoteSpeakingInterval) clearInterval(state.remoteSpeakingInterval);
+                state.remoteSpeakingInterval = null;
+                if (state.remoteAudioContext) state.remoteAudioContext.close().catch(() => {});
+                state.remoteAudioContext = null;
+                el.remoteSpeakingRing.classList.remove('active');
+            }
+        }
+
+        function attemptReconnect() {
+            if (state.isReconnecting) return;
+            if (state.reconnectAttempts >= state.maxReconnectAttempts) {
+                logSystem('Reconnect failed: max attempts reached', 'error');
+                updateStatus('Connection Lost', 'red');
+                showToast('连接已断开，请重新加入房间');
+                return;
+            }
+            state.isReconnecting = true;
+            state.reconnectAttempts++;
+            const delay = Math.min(1000 * Math.pow(2, state.reconnectAttempts - 1), 10000);
+            logSystem(`Reconnect attempt ${state.reconnectAttempts}/${state.maxReconnectAttempts} in ${delay}ms...`, 'warn');
+
+            setTimeout(() => {
+                try {
+                    if (state.peer && !state.peer.destroyed) state.peer.reconnect();
+                } catch (e) {
+                    logSystem(`Reconnect error: ${e.message}`, 'error');
+                }
+                state.isReconnecting = false;
+            }, delay);
+        }
+
+        // ============ 全屏 ============
         function enterFullscreen(type) {
             if (state.isFullscreen) return;
             state.isFullscreen = true;
             state.fullscreenType = type;
             state.fullscreenControlsVisible = true;
             state.fullscreenChatOpen = false;
-
             const sourceVideo = type === 'local' ? el.localVideo : el.remoteVideo;
             el.fullscreenVideo.srcObject = sourceVideo.srcObject;
-
             el.fullscreenOverlay.classList.toggle('mirrored', type === 'local');
-
-            if (type === 'local') {
-                el.fullscreenLabel.textContent = el.localNameTag.textContent + ' (你)';
-            } else {
-                el.fullscreenLabel.textContent = el.remoteNameTag.textContent || '远端';
-            }
-
+            if (type === 'local') el.fullscreenLabel.textContent = el.localNameTag.textContent + ' (你)';
+            else el.fullscreenLabel.textContent = el.remoteNameTag.textContent || '远端';
             syncFullscreenButtons();
             el.fullscreenOverlay.classList.add('active');
             tryNativeFullscreen(el.fullscreenOverlay);
@@ -571,10 +751,8 @@
             el.fullscreenOverlay.classList.remove('active');
             el.fullscreenOverlay.classList.remove('mirrored');
             el.fullscreenChat.classList.remove('open');
-
             if (document.fullscreenElement) { try { document.exitFullscreen(); } catch (e) {} }
             if (document.webkitFullscreenElement) { try { document.webkitExitFullscreen(); } catch (e) {} }
-
             if (state.fullscreenControlsTimer) {
                 clearTimeout(state.fullscreenControlsTimer);
                 state.fullscreenControlsTimer = null;
@@ -639,7 +817,6 @@
                 el.fsMicBtn.classList.remove('active-red');
                 el.fsMicBtn.querySelector('i').className = 'fa-solid fa-microphone';
             }
-
             if (state.isVideoMuted) {
                 el.fsCamBtn.classList.add('active-red');
                 el.fsCamBtn.querySelector('i').className = 'fa-solid fa-video-slash';
@@ -647,7 +824,6 @@
                 el.fsCamBtn.classList.remove('active-red');
                 el.fsCamBtn.querySelector('i').className = 'fa-solid fa-video';
             }
-
             if (state.isHandRaised) el.fsHandBtn.classList.add('active-amber');
             else el.fsHandBtn.classList.remove('active-amber');
 
@@ -682,7 +858,6 @@
         function toggleFullscreenChat() {
             state.fullscreenChatOpen = !state.fullscreenChatOpen;
             el.fullscreenChat.classList.toggle('open', state.fullscreenChatOpen);
-
             if (state.fullscreenChatOpen) {
                 showFullscreenControls();
                 el.fsChatBadge.classList.add('hidden');
@@ -731,7 +906,6 @@
             return ROOM_PREFIX + stripRoomPrefix(code);
         }
 
-        // ==== 本地媒体 ====
         async function initializeLocalMedia() {
             try {
                 state.localStream = await navigator.mediaDevices.getUserMedia({ video: true, audio: true });
@@ -755,9 +929,7 @@
             }
         }
 
-        // ==== 大厅预览开关 ====
         function syncLobbyButtons() {
-            // 麦克风
             if (state.isAudioMuted) {
                 el.lobbyMicBtn.classList.add('bg-rose-600', 'hover:bg-rose-500', 'border-rose-500/50');
                 el.lobbyMicBtn.classList.remove('bg-slate-900/80', 'hover:bg-slate-800', 'border-slate-700/60');
@@ -767,7 +939,6 @@
                 el.lobbyMicBtn.classList.add('bg-slate-900/80', 'hover:bg-slate-800', 'border-slate-700/60');
                 el.lobbyMicBtn.querySelector('i').className = 'fa-solid fa-microphone';
             }
-            // 摄像头
             if (state.isVideoMuted) {
                 el.lobbyCamBtn.classList.add('bg-rose-600', 'hover:bg-rose-500', 'border-rose-500/50');
                 el.lobbyCamBtn.classList.remove('bg-slate-900/80', 'hover:bg-slate-800', 'border-slate-700/60');
@@ -803,7 +974,6 @@
             logSystem(`[Lobby] Camera ${state.isVideoMuted ? 'disabled' : 'enabled'}.`);
         }
 
-        // ==== PeerJS ====
         function initPeer(customId = null) {
             return new Promise((resolve, reject) => {
                 updateStatus('Connecting to PeerServer...', 'yellow');
@@ -812,6 +982,8 @@
 
                 state.peer.on('open', (id) => {
                     state.myPeerId = id;
+                    state.reconnectAttempts = 0;
+                    state.isReconnecting = false;
                     updateStatus('Connected to PeerServer', 'green');
                     logSystem(`Peer initialized with ID: ${id}`);
                     resolve(id);
@@ -832,7 +1004,7 @@
                 state.peer.on('disconnected', () => {
                     logSystem('Disconnected from signaling server. Attempting reconnect...', 'warn');
                     updateStatus('Reconnecting...', 'yellow');
-                    try { state.peer.reconnect(); } catch (e) {}
+                    attemptReconnect();
                 });
             });
         }
@@ -890,7 +1062,6 @@
                 el.roomBadge.classList.add('flex');
                 el.lobbyContainer.classList.add('hidden');
                 syncRoomUI();
-
                 connectToHost(fullId);
             } catch (err) {
                 logSystem('Failed to join room.', 'error');
@@ -898,15 +1069,12 @@
             }
         }
 
-        // ★ 进入房间时同步 UI（按钮状态、摄像头显示）
         function syncRoomUI() {
-            // 麦克风
             el.toggleMicBtn.classList.toggle('bg-slate-800', !state.isAudioMuted);
             el.toggleMicBtn.classList.toggle('bg-rose-600', state.isAudioMuted);
             el.toggleMicBtn.classList.toggle('hover:bg-rose-500', state.isAudioMuted);
             el.localMuteIcon.classList.toggle('hidden', !state.isAudioMuted);
 
-            // 摄像头
             el.toggleCamBtn.classList.toggle('bg-slate-800', !state.isVideoMuted);
             el.toggleCamBtn.classList.toggle('bg-rose-600', state.isVideoMuted);
             el.toggleCamBtn.classList.toggle('hover:bg-rose-500', state.isVideoMuted);
@@ -918,6 +1086,12 @@
             el.localVideo.classList.toggle('opacity-0', state.isVideoMuted);
 
             syncFullscreenButtons();
+
+            if (state.localStream) {
+                stopSpeakingDetection(true);
+                startSpeakingDetection(state.localStream, el.localSpeakingRing, true);
+            }
+            updateParticipantCount();
         }
 
         function connectToHost(hostPeerId) {
@@ -942,7 +1116,6 @@
                 clearTimeout(timeout);
                 logSystem(`Data channel opened with host ${hostPeerId}.`);
                 setupDataConnection(conn);
-
                 const streamToSend = state.screenStream || state.localStream;
                 const call = state.peer.call(hostPeerId, streamToSend, {
                     metadata: { username: state.username }
@@ -999,6 +1172,14 @@
                     vt.onunmute = () => el.remotePlaceholder.classList.add('hidden');
                     vt.onended = () => el.remotePlaceholder.classList.remove('hidden');
                 }
+
+                startCallTimer();
+                updateParticipantCount();
+                playJoinSound();
+                showToast('对方已加入通话');
+
+                stopSpeakingDetection(false);
+                startSpeakingDetection(remoteStream, el.remoteSpeakingRing, false);
             });
 
             call.on('close', () => {
@@ -1097,30 +1278,23 @@
 
         async function toggleCamera() {
             if (!state.localStream) return;
-
             if (state.isVideoMuted) {
                 try {
                     const freshCam = await navigator.mediaDevices.getUserMedia({ video: true });
                     const freshTrack = freshCam.getVideoTracks()[0];
                     state.cameraTrack = freshTrack;
-
                     const oldVideo = state.localStream.getVideoTracks()[0];
                     if (oldVideo) state.localStream.removeTrack(oldVideo);
                     state.localStream.addTrack(freshTrack);
-
                     state.isVideoMuted = false;
-
                     el.localVideo.srcObject = state.localStream;
                     el.localVideo.classList.remove('opacity-0');
                     el.localAvatar.classList.add('hidden');
                     el.localCamOffIcon.classList.add('hidden');
-
                     el.toggleCamBtn.classList.add('bg-slate-800', 'hover:bg-slate-700');
                     el.toggleCamBtn.classList.remove('bg-rose-600', 'hover:bg-rose-500');
                     el.toggleCamBtn.querySelector('i').className = 'fa-solid fa-video text-lg';
-
                     state.calls.forEach(call => replaceVideoTrack(call, freshTrack));
-
                     syncFullscreenButtons();
                     broadcastMediaState();
                     logSystem('Camera enabled. Hardware re-acquired.');
@@ -1132,16 +1306,13 @@
                 const videoTracks = state.localStream.getVideoTracks();
                 if (videoTracks.length === 0) return;
                 videoTracks.forEach(t => t.stop());
-
                 state.isVideoMuted = true;
                 el.localVideo.classList.add('opacity-0');
                 el.localAvatar.classList.remove('hidden');
                 el.localCamOffIcon.classList.remove('hidden');
-
                 el.toggleCamBtn.classList.remove('bg-slate-800', 'hover:bg-slate-700');
                 el.toggleCamBtn.classList.add('bg-rose-600', 'hover:bg-rose-500');
                 el.toggleCamBtn.querySelector('i').className = 'fa-solid fa-video-slash text-lg';
-
                 syncFullscreenButtons();
                 broadcastMediaState();
                 logSystem('Camera disabled. Hardware released.');
@@ -1151,10 +1322,8 @@
         function toggleHand() {
             state.isHandRaised = !state.isHandRaised;
             setLocalHand(state.isHandRaised);
-
             const payload = { type: 'hand', raised: state.isHandRaised };
             state.dataConns.forEach(conn => { if (conn.open) conn.send(payload); });
-
             syncFullscreenButtons();
             logSystem(`Hand ${state.isHandRaised ? 'raised' : 'lowered'}.`);
         }
@@ -1215,22 +1384,17 @@
             try {
                 state.screenStream = await navigator.mediaDevices.getDisplayMedia({ video: true, audio: true });
                 state.isScreenSharing = true;
-
                 const screenTrack = state.screenStream.getVideoTracks()[0];
                 if (!state.isVideoMuted && state.cameraTrack) state.cameraTrack.stop();
-
                 el.localVideo.srcObject = state.screenStream;
                 el.localVideo.classList.remove('mirror', 'opacity-0');
                 el.localAvatar.classList.add('hidden');
                 el.sharingIndicator.classList.remove('hidden');
-
                 state.calls.forEach(call => replaceVideoTrack(call, screenTrack));
                 refreshFullscreenVideo();
-
                 el.toggleScreenBtn.classList.remove('bg-slate-800');
                 el.toggleScreenBtn.classList.add('bg-indigo-600', 'hover:bg-indigo-500');
                 logSystem('Screen sharing started.');
-
                 screenTrack.onended = () => stopScreenSharing();
             } catch (err) {
                 logSystem(`Screen share error: ${err.message}`, 'warn');
@@ -1244,22 +1408,18 @@
                 state.screenStream = null;
             }
             state.isScreenSharing = false;
-
             if (!state.isVideoMuted) {
                 try {
                     const freshCam = await navigator.mediaDevices.getUserMedia({ video: true });
                     const freshTrack = freshCam.getVideoTracks()[0];
                     state.cameraTrack = freshTrack;
-
                     const oldVideo = state.localStream.getVideoTracks()[0];
                     if (oldVideo) state.localStream.removeTrack(oldVideo);
                     state.localStream.addTrack(freshTrack);
-
                     el.localVideo.srcObject = state.localStream;
                     el.localVideo.classList.add('mirror');
                     el.localVideo.classList.remove('opacity-0');
                     el.localAvatar.classList.add('hidden');
-
                     state.calls.forEach(call => replaceVideoTrack(call, freshTrack));
                 } catch (err) {
                     logSystem(`Failed to restore camera: ${err.message}`, 'error');
@@ -1268,7 +1428,6 @@
                 el.localVideo.classList.add('opacity-0');
                 el.localAvatar.classList.remove('hidden');
             }
-
             refreshFullscreenVideo();
             el.sharingIndicator.classList.add('hidden');
             el.toggleScreenBtn.classList.add('bg-slate-800');
@@ -1314,6 +1473,11 @@
         }
 
         function cleanupAllConnections() {
+            stopCallTimer();
+            hideParticipantBadge();
+            stopSpeakingDetection(true);
+            stopSpeakingDetection(false);
+
             if (state.isScreenSharing && state.screenStream) {
                 state.screenStream.getTracks().forEach(t => t.stop());
                 state.screenStream = null;
@@ -1363,13 +1527,19 @@
             el.chatMessages.innerHTML = '<div class="text-center text-xs text-slate-500 my-2">Chat session started</div>';
             el.fsChatMessages.innerHTML = '<div class="text-center text-xs text-slate-500">Chat session started</div>';
 
-            // 大厅预览同步
             if (state.localStream) {
                 el.lobbyPreview.srcObject = state.localStream;
                 syncLobbyButtons();
             }
 
             updateStatus('Ready', 'green');
+
+            state.reconnectAttempts = 0;
+            state.isReconnecting = false;
+            stopCallTimer();
+            hideParticipantBadge();
+            stopSpeakingDetection(true);
+            stopSpeakingDetection(false);
         }
 
         function handleRemoteHangup(peerId) {
@@ -1507,29 +1677,47 @@
         function setupEventListeners() {
             el.createRoomBtn.addEventListener('click', handleCreateRoom);
             el.joinRoomBtn.addEventListener('click', handleJoinRoom);
-
             el.toggleMicBtn.addEventListener('click', toggleMicrophone);
             el.toggleCamBtn.addEventListener('click', toggleCamera);
             el.toggleScreenBtn.addEventListener('click', toggleScreenShare);
             el.toggleHandBtn.addEventListener('click', toggleHand);
             el.hangupBtn.addEventListener('click', () => handleHangup());
-
             el.chatForm.addEventListener('submit', (e) => handleSendMessage(e, false));
 
-            // ★ 大厅预览开关
             el.lobbyMicBtn.addEventListener('click', toggleLobbyMic);
             el.lobbyCamBtn.addEventListener('click', toggleLobbyCam);
 
             el.copyRoomBtn.addEventListener('click', () => {
                 if (!state.roomCode) return;
-                const shareUrl = `${window.location.origin}${window.location.pathname}?room=${state.roomCode}`;
-                const done = () => alert(`Invite link copied:\n${shareUrl}`);
+                const code = state.roomCode;
                 if (navigator.clipboard && navigator.clipboard.writeText) {
-                    navigator.clipboard.writeText(shareUrl).then(done).catch(() => {
-                        prompt('Copy this link:', shareUrl);
+                    navigator.clipboard.writeText(code).then(() => {
+                        showToast(`已复制房间号: ${code}`);
+                    }).catch(() => {
+                        prompt('复制房间号:', code);
                     });
                 } else {
-                    prompt('Copy this link:', shareUrl);
+                    prompt('复制房间号:', code);
+                }
+            });
+
+            el.shareLinkBtn.addEventListener('click', () => {
+                if (!state.roomCode) return;
+                const shareUrl = `${window.location.origin}${window.location.pathname}?room=${state.roomCode}`;
+                if (navigator.share) {
+                    navigator.share({
+                        title: 'P2P Connect 邀请你加入通话',
+                        text: `房间号: ${state.roomCode}`,
+                        url: shareUrl
+                    }).catch(() => {});
+                } else if (navigator.clipboard && navigator.clipboard.writeText) {
+                    navigator.clipboard.writeText(shareUrl).then(() => {
+                        showToast('邀请链接已复制，可粘贴发送');
+                    }).catch(() => {
+                        prompt('复制邀请链接:', shareUrl);
+                    });
+                } else {
+                    prompt('复制邀请链接:', shareUrl);
                 }
             });
 
@@ -1557,7 +1745,6 @@
                 el.tabChatBtn.className = 'flex-1 py-3 text-xs font-semibold uppercase tracking-wider text-slate-400 hover:text-slate-200 focus:outline-none flex items-center justify-center gap-2';
             });
 
-            // 全屏事件
             el.localVideoWrapper.addEventListener('click', () => { if (state.roomID) enterFullscreen('local'); });
             el.remoteVideoWrapper.addEventListener('click', () => { if (state.roomID) enterFullscreen('remote'); });
             el.fullscreenVideo.addEventListener('click', (e) => { e.stopPropagation(); toggleFullscreenControls(); });
