@@ -4,14 +4,10 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>WebRTC Video Call & Screen Share</title>
-    <!-- Tailwind CSS -->
     <script src="https://cdn.tailwindcss.com"></script>
-    <!-- Font Awesome Icons -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    <!-- PeerJS Library -->
     <script src="https://unpkg.com/peerjs@1.5.2/dist/peerjs.min.js"></script>
     <style>
-        /* Custom styling for glassmorphism and smooth transitions */
         .glass {
             background: rgba(15, 23, 42, 0.75);
             backdrop-filter: blur(16px);
@@ -23,32 +19,15 @@
             backdrop-filter: blur(12px);
             border: 1px solid rgba(255, 255, 255, 0.05);
         }
-        /* Custom scrollbar */
-        ::-webkit-scrollbar {
-            width: 6px;
-            height: 6px;
-        }
-        ::-webkit-scrollbar-track {
-            background: rgba(15, 23, 42, 0.6);
-        }
-        ::-webkit-scrollbar-thumb {
-            background: rgba(51, 65, 85, 0.8);
-            border-radius: 9999px;
-        }
-        ::-webkit-scrollbar-thumb:hover {
-            background: rgba(71, 85, 105, 1);
-        }
-        .video-container {
-            transform: scaleX(-1); /* Mirror local video */
-        }
-        .no-mirror {
-            transform: scaleX(1) !important;
-        }
+        ::-webkit-scrollbar { width: 6px; height: 6px; }
+        ::-webkit-scrollbar-track { background: rgba(15, 23, 42, 0.6); }
+        ::-webkit-scrollbar-thumb { background: rgba(51, 65, 85, 0.8); border-radius: 9999px; }
+        ::-webkit-scrollbar-thumb:hover { background: rgba(71, 85, 105, 1); }
+        .mirror { transform: scaleX(-1); }
     </style>
 </head>
 <body class="h-full flex flex-col font-sans overflow-hidden antialiased">
 
-    <!-- Header Navigation -->
     <header class="glass h-16 px-6 flex items-center justify-between z-20 shrink-0 border-b border-slate-800">
         <div class="flex items-center gap-3">
             <div class="w-10 h-10 rounded-xl bg-gradient-to-tr from-indigo-600 to-violet-500 flex items-center justify-center shadow-lg shadow-indigo-500/20">
@@ -59,8 +38,6 @@
                 <p class="text-xs text-slate-400">WebRTC Real-time Calling & Screen Sharing</p>
             </div>
         </div>
-
-        <!-- Connection Status Indicator -->
         <div class="flex items-center gap-4">
             <div id="connectionStatus" class="hidden sm:flex items-center gap-2 px-3 py-1.5 rounded-full text-xs font-medium glass-card border border-slate-700/50">
                 <span class="relative flex h-2.5 w-2.5">
@@ -69,7 +46,6 @@
                 </span>
                 <span id="statusText" class="text-slate-300">Ready</span>
             </div>
-
             <div id="roomBadge" class="hidden items-center gap-2 px-3 py-1.5 rounded-full text-xs font-mono bg-indigo-500/10 border border-indigo-500/30 text-indigo-300">
                 <i class="fa-solid fa-door-open text-indigo-400"></i>
                 <span>Room: <strong id="currentRoomId">--</strong></span>
@@ -82,16 +58,13 @@
 
     <main class="flex-1 relative flex overflow-hidden">
 
-        <!-- Lobby View (Shown when not in call) -->
         <div id="lobbyContainer" class="absolute inset-0 z-30 flex items-center justify-center p-4 bg-slate-950/90 backdrop-blur-md">
             <div class="max-w-md w-full glass p-8 rounded-2xl shadow-2xl space-y-6 border border-slate-800">
                 <div class="text-center space-y-2">
                     <h2 class="text-2xl font-bold text-white">Start or Join Call</h2>
                     <p class="text-slate-400 text-sm">Peer-to-peer secure video room powered by WebRTC</p>
                 </div>
-
                 <div class="space-y-4">
-                    <!-- Custom Name Input -->
                     <div>
                         <label class="block text-xs font-semibold text-slate-400 uppercase tracking-wider mb-2">Your Name</label>
                         <div class="relative">
@@ -99,21 +72,16 @@
                             <input type="text" id="usernameInput" placeholder="Enter your name" class="w-full bg-slate-900/80 border border-slate-700/80 rounded-xl py-2.5 pl-10 pr-4 text-sm text-slate-100 placeholder-slate-500 focus:outline-none focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500 transition-all">
                         </div>
                     </div>
-
-                    <!-- Create Room Box -->
                     <div class="p-4 rounded-xl bg-slate-900/50 border border-slate-800/80 space-y-3">
                         <button id="createRoomBtn" class="w-full bg-indigo-600 hover:bg-indigo-500 text-white font-medium py-2.5 px-4 rounded-xl shadow-lg shadow-indigo-600/25 transition-all flex items-center justify-center gap-2 text-sm">
                             <i class="fa-solid fa-plus"></i> Create New Room
                         </button>
                     </div>
-
                     <div class="relative flex py-1 items-center">
                         <div class="flex-grow border-t border-slate-800"></div>
                         <span class="flex-shrink mx-4 text-xs text-slate-500 uppercase tracking-widest">Or Join</span>
                         <div class="flex-grow border-t border-slate-800"></div>
                     </div>
-
-                    <!-- Join Room Input -->
                     <div class="space-y-3">
                         <div>
                             <label class="block text-xs font-semibold text-slate-400 uppercase tracking-wider mb-2">Room ID</label>
@@ -130,13 +98,10 @@
             </div>
         </div>
 
-        <!-- Main Call Grid Display -->
         <div class="flex-1 flex flex-col p-4 relative overflow-hidden">
-            <!-- Video Grid -->
             <div id="videoGrid" class="flex-1 grid grid-cols-1 sm:grid-cols-2 gap-4 h-full min-h-0">
-                <!-- Local Video Container -->
                 <div id="localVideoWrapper" class="relative bg-slate-900/90 rounded-2xl overflow-hidden border border-slate-800 shadow-lg group flex items-center justify-center">
-                    <video id="localVideo" class="w-full h-full object-cover video-container" autoplay muted playsinline></video>
+                    <video id="localVideo" class="w-full h-full object-cover mirror" autoplay muted playsinline></video>
                     <div id="localAvatar" class="hidden absolute inset-0 flex items-center justify-center bg-slate-900">
                         <div class="w-20 h-20 rounded-full bg-slate-800 flex items-center justify-center border-2 border-slate-700 text-slate-400 text-2xl font-bold">
                             <span id="localAvatarInitial">Me</span>
@@ -146,11 +111,13 @@
                         <span id="localNameTag">You (Host)</span>
                         <i id="localMuteIcon" class="fa-solid fa-microphone-slash text-rose-400 hidden"></i>
                     </div>
+                    <div id="sharingIndicator" class="hidden absolute top-3 left-3 bg-indigo-600/90 backdrop-blur-md px-3 py-1 rounded-lg text-xs font-medium text-white border border-indigo-400/50 flex items-center gap-2">
+                        <i class="fa-solid fa-desktop"></i> Sharing screen
+                    </div>
                 </div>
 
-                <!-- Remote Video Container -->
                 <div id="remoteVideoWrapper" class="relative bg-slate-900/90 rounded-2xl overflow-hidden border border-slate-800 shadow-lg group flex items-center justify-center">
-                    <video id="remoteVideo" class="w-full h-full object-cover no-mirror" autoplay playsinline></video>
+                    <video id="remoteVideo" class="w-full h-full object-cover" autoplay playsinline></video>
                     <div id="remotePlaceholder" class="absolute inset-0 flex flex-col items-center justify-center bg-slate-900/90 gap-3 text-slate-500">
                         <div class="w-16 h-16 rounded-full bg-slate-800/80 flex items-center justify-center border border-slate-700">
                             <i class="fa-solid fa-user-clock text-2xl"></i>
@@ -164,33 +131,22 @@
                 </div>
             </div>
 
-            <!-- Floating Control Bar -->
             <div class="h-20 flex items-center justify-center mt-4">
                 <div class="glass px-6 py-3 rounded-2xl flex items-center gap-4 shadow-2xl border border-slate-800">
-                    <!-- Toggle Microphone -->
                     <button id="toggleMicBtn" class="w-12 h-12 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-200 flex items-center justify-center transition-all focus:outline-none" title="Toggle Mic">
                         <i class="fa-solid fa-microphone text-lg"></i>
                     </button>
-
-                    <!-- Toggle Camera -->
                     <button id="toggleCamBtn" class="w-12 h-12 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-200 flex items-center justify-center transition-all focus:outline-none" title="Toggle Camera">
                         <i class="fa-solid fa-video text-lg"></i>
                     </button>
-
-                    <!-- Toggle Screen Share -->
                     <button id="toggleScreenBtn" class="w-12 h-12 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-200 flex items-center justify-center transition-all focus:outline-none" title="Share Screen">
                         <i class="fa-solid fa-desktop text-lg"></i>
                     </button>
-
-                    <!-- Toggle Sidebar Panel -->
                     <button id="toggleSidebarBtn" class="w-12 h-12 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-200 flex items-center justify-center transition-all focus:outline-none relative" title="Chat & Logs">
                         <i class="fa-solid fa-comments text-lg"></i>
                         <span id="chatBadge" class="hidden absolute top-2 right-2 w-2.5 h-2.5 bg-indigo-500 rounded-full"></span>
                     </button>
-
                     <div class="w-px h-6 bg-slate-800 my-auto"></div>
-
-                    <!-- Hangup / Leave Call -->
                     <button id="hangupBtn" class="w-12 h-12 rounded-xl bg-rose-600 hover:bg-rose-500 text-white flex items-center justify-center transition-all shadow-lg shadow-rose-600/30 focus:outline-none" title="Leave Call">
                         <i class="fa-solid fa-phone-slash text-lg"></i>
                     </button>
@@ -198,9 +154,7 @@
             </div>
         </div>
 
-        <!-- Chat & Info Sidebar -->
         <aside id="sidebar" class="w-80 glass border-l border-slate-800 flex flex-col transition-all duration-300 transform translate-x-0 hidden md:flex z-10">
-            <!-- Sidebar Tab Navigation -->
             <div class="flex border-b border-slate-800">
                 <button id="tabChatBtn" class="flex-1 py-3 text-xs font-semibold uppercase tracking-wider text-indigo-400 border-b-2 border-indigo-500 focus:outline-none flex items-center justify-center gap-2">
                     <i class="fa-solid fa-message"></i> Chat
@@ -209,8 +163,6 @@
                     <i class="fa-solid fa-list-ul"></i> System Logs
                 </button>
             </div>
-
-            <!-- Tab Content 1: Chat -->
             <div id="tabChat" class="flex-1 flex flex-col overflow-hidden p-4">
                 <div id="chatMessages" class="flex-1 overflow-y-auto space-y-3 pr-1 text-sm">
                     <div class="text-center text-xs text-slate-500 my-2">Chat session started</div>
@@ -222,548 +174,736 @@
                     </button>
                 </form>
             </div>
-
-            <!-- Tab Content 2: Logs -->
             <div id="tabLogs" class="flex-1 overflow-y-auto p-4 hidden">
                 <div id="systemLogs" class="space-y-2 font-mono text-xs text-slate-400">
                     <div>[System] Initializing application...</div>
                 </div>
             </div>
         </aside>
-
     </main>
 
     <script>
-        // Core WebRTC Application Logic
-        (function() {
-            // App State
-            const state = {
-                peer: null,
-                myPeerId: null,
-                roomID: null,
-                currentCall: null,
-                dataConn: null,
-                localStream: null,
-                screenStream: null,
-                username: 'User_' + Math.floor(Math.random() * 1000),
-                isAudioMuted: false,
-                isVideoMuted: false,
-                isScreenSharing: false,
-                activeTab: 'chat'
-            };
+    (function() {
+        // ==== App State ====
+        const state = {
+            peer: null,
+            myPeerId: null,
+            roomID: null,
+            isHost: false,
+            calls: new Map(),          // peerId -> MediaConnection
+            dataConns: new Map(),      // peerId -> DataConnection
+            localStream: null,
+            cameraTrack: null,
+            screenStream: null,
+            username: 'User_' + Math.floor(Math.random() * 1000),
+            isAudioMuted: false,
+            isVideoMuted: false,
+            isScreenSharing: false,
+            activeTab: 'chat'
+        };
 
-            // DOM Elements
-            const elements = {
-                lobbyContainer: document.getElementById('lobbyContainer'),
-                usernameInput: document.getElementById('usernameInput'),
-                createRoomBtn: document.getElementById('createRoomBtn'),
-                joinRoomInput: document.getElementById('joinRoomInput'),
-                joinRoomBtn: document.getElementById('joinRoomBtn'),
-                
-                roomBadge: document.getElementById('roomBadge'),
-                currentRoomId: document.getElementById('currentRoomId'),
-                copyRoomBtn: document.getElementById('copyRoomBtn'),
-                statusPing: document.getElementById('statusPing'),
-                statusDot: document.getElementById('statusDot'),
-                statusText: document.getElementById('statusText'),
-                
-                localVideo: document.getElementById('localVideo'),
-                remoteVideo: document.getElementById('remoteVideo'),
-                remotePlaceholder: document.getElementById('remotePlaceholder'),
-                localAvatar: document.getElementById('localAvatar'),
-                localAvatarInitial: document.getElementById('localAvatarInitial'),
-                localNameTag: document.getElementById('localNameTag'),
-                remoteBadge: document.getElementById('remoteBadge'),
-                remoteNameTag: document.getElementById('remoteNameTag'),
-                localMuteIcon: document.getElementById('localMuteIcon'),
-                remoteMuteIcon: document.getElementById('remoteMuteIcon'),
-                
-                toggleMicBtn: document.getElementById('toggleMicBtn'),
-                toggleCamBtn: document.getElementById('toggleCamBtn'),
-                toggleScreenBtn: document.getElementById('toggleScreenBtn'),
-                toggleSidebarBtn: document.getElementById('toggleSidebarBtn'),
-                hangupBtn: document.getElementById('hangupBtn'),
-                
-                sidebar: document.getElementById('sidebar'),
-                tabChatBtn: document.getElementById('tabChatBtn'),
-                tabLogsBtn: document.getElementById('tabLogsBtn'),
-                tabChat: document.getElementById('tabChat'),
-                tabLogs: document.getElementById('tabLogs'),
-                chatMessages: document.getElementById('chatMessages'),
-                chatForm: document.getElementById('chatForm'),
-                chatInput: document.getElementById('chatInput'),
-                systemLogs: document.getElementById('systemLogs'),
-                chatBadge: document.getElementById('chatBadge')
-            };
-
-            // Initialization Function
-            function init() {
-                elements.usernameInput.value = state.username;
-                setupEventListeners();
-                initializeLocalMedia();
-                checkUrlRoomCode();
-            }
-
-            // Check if Room ID is passed in URL query params
-            function checkUrlRoomCode() {
-                const urlParams = new URLSearchParams(window.location.search);
-                const roomFromUrl = urlParams.get('room');
-                if (roomFromUrl) {
-                    elements.joinRoomInput.value = roomFromUrl;
-                    logSystem(`Found room code in URL: ${roomFromUrl}`);
-                }
-            }
-
-            // Stream Initialization
-            async function initializeLocalMedia() {
-                try {
-                    state.localStream = await navigator.mediaDevices.getUserMedia({
-                        video: true,
-                        audio: true
-                    });
-                    elements.localVideo.srcObject = state.localStream;
-                    logSystem('Camera and Microphone access granted.');
-                } catch (err) {
-                    logSystem(`Error acquiring local stream: ${err.message}`, 'error');
-                    // Fallback to audio only if video fails
-                    try {
-                        state.localStream = await navigator.mediaDevices.getUserMedia({ audio: true });
-                        logSystem('Fallback to Microphone-only audio stream.');
-                    } catch (audioErr) {
-                        logSystem('Unable to get audio or video devices.', 'error');
+        // 免费的 OpenRelay TURN 服务器（用于穿透严格 NAT）
+        const peerConfig = {
+            config: {
+                iceServers: [
+                    { urls: 'stun:stun.l.google.com:19302' },
+                    { urls: 'stun:global.stun.twilio.com:3478' },
+                    {
+                        urls: 'turn:openrelay.metered.ca:80',
+                        username: 'openrelayproject',
+                        credential: 'openrelayproject'
+                    },
+                    {
+                        urls: 'turn:openrelay.metered.ca:443',
+                        username: 'openrelayproject',
+                        credential: 'openrelayproject'
+                    },
+                    {
+                        urls: 'turn:openrelay.metered.ca:443?transport=tcp',
+                        username: 'openrelayproject',
+                        credential: 'openrelayproject'
                     }
-                }
+                ]
             }
+        };
 
-            // Initialize PeerJS
-            function initPeer(customId = null) {
-                return new Promise((resolve, reject) => {
-                    updateStatus('Connecting to PeerServer...', 'yellow');
-                    
-                    // Create peer connection
-                    state.peer = customId ? new Peer(customId) : new Peer();
+        // ==== DOM ====
+        const el = {
+            lobbyContainer: document.getElementById('lobbyContainer'),
+            usernameInput: document.getElementById('usernameInput'),
+            createRoomBtn: document.getElementById('createRoomBtn'),
+            joinRoomInput: document.getElementById('joinRoomInput'),
+            joinRoomBtn: document.getElementById('joinRoomBtn'),
+            roomBadge: document.getElementById('roomBadge'),
+            currentRoomId: document.getElementById('currentRoomId'),
+            copyRoomBtn: document.getElementById('copyRoomBtn'),
+            statusPing: document.getElementById('statusPing'),
+            statusDot: document.getElementById('statusDot'),
+            statusText: document.getElementById('statusText'),
+            localVideo: document.getElementById('localVideo'),
+            remoteVideo: document.getElementById('remoteVideo'),
+            remotePlaceholder: document.getElementById('remotePlaceholder'),
+            localAvatar: document.getElementById('localAvatar'),
+            localAvatarInitial: document.getElementById('localAvatarInitial'),
+            localNameTag: document.getElementById('localNameTag'),
+            remoteBadge: document.getElementById('remoteBadge'),
+            remoteNameTag: document.getElementById('remoteNameTag'),
+            localMuteIcon: document.getElementById('localMuteIcon'),
+            remoteMuteIcon: document.getElementById('remoteMuteIcon'),
+            sharingIndicator: document.getElementById('sharingIndicator'),
+            toggleMicBtn: document.getElementById('toggleMicBtn'),
+            toggleCamBtn: document.getElementById('toggleCamBtn'),
+            toggleScreenBtn: document.getElementById('toggleScreenBtn'),
+            toggleSidebarBtn: document.getElementById('toggleSidebarBtn'),
+            hangupBtn: document.getElementById('hangupBtn'),
+            sidebar: document.getElementById('sidebar'),
+            tabChatBtn: document.getElementById('tabChatBtn'),
+            tabLogsBtn: document.getElementById('tabLogsBtn'),
+            tabChat: document.getElementById('tabChat'),
+            tabLogs: document.getElementById('tabLogs'),
+            chatMessages: document.getElementById('chatMessages'),
+            chatForm: document.getElementById('chatForm'),
+            chatInput: document.getElementById('chatInput'),
+            systemLogs: document.getElementById('systemLogs'),
+            chatBadge: document.getElementById('chatBadge')
+        };
 
-                    state.peer.on('open', (id) => {
-                        state.myPeerId = id;
-                        updateStatus('Connected to PeerServer', 'green');
-                        logSystem(`Peer initialized with ID: ${id}`);
-                        resolve(id);
-                    });
+        // ==== Init ====
+        function init() {
+            el.usernameInput.value = state.username;
+            setupEventListeners();
+            initializeLocalMedia();
+            checkUrlRoomCode();
+            window.addEventListener('beforeunload', cleanupBeforeUnload);
+        }
 
-                    state.peer.on('call', handleIncomingCall);
-                    state.peer.on('connection', handleIncomingDataConnection);
-
-                    state.peer.on('error', (err) => {
-                        logSystem(`PeerJS Error [${err.type}]: ${err.message}`, 'error');
-                        updateStatus('Peer Connection Error', 'red');
-                        if (err.type === 'unavailable-id') {
-                            alert('Room ID is already taken. Please try a different ID.');
-                        }
-                        reject(err);
-                    });
-
-                    state.peer.on('disconnected', () => {
-                        logSystem('Disconnected from signaling server.', 'warn');
-                        updateStatus('Disconnected', 'yellow');
-                    });
-                });
+        function checkUrlRoomCode() {
+            const params = new URLSearchParams(window.location.search);
+            const roomFromUrl = params.get('room');
+            if (roomFromUrl) {
+                el.joinRoomInput.value = roomFromUrl;
+                logSystem(`Found room code in URL: ${roomFromUrl}`);
             }
+        }
 
-            // Room Creation Logic
-            async function handleCreateRoom() {
-                state.username = elements.usernameInput.value.trim() || state.username;
-                elements.localNameTag.textContent = `${state.username} (Host)`;
-                elements.localAvatarInitial.textContent = state.username.charAt(0).toUpperCase();
-
-                const generatedRoomId = 'room-' + Math.random().toString(36).substring(2, 8);
-                
+        // ==== 本地媒体 ====
+        async function initializeLocalMedia() {
+            try {
+                state.localStream = await navigator.mediaDevices.getUserMedia({ video: true, audio: true });
+                state.cameraTrack = state.localStream.getVideoTracks()[0];
+                el.localVideo.srcObject = state.localStream;
+                logSystem('Camera and Microphone access granted.');
+            } catch (err) {
+                logSystem(`Error acquiring local stream: ${err.message}`, 'error');
                 try {
-                    await initPeer(generatedRoomId);
-                    state.roomID = generatedRoomId;
-                    elements.currentRoomId.textContent = state.roomID;
-                    elements.roomBadge.classList.remove('hidden');
-                    elements.roomBadge.classList.add('flex');
-                    elements.lobbyContainer.classList.add('hidden');
-                    logSystem(`Room created successfully: ${state.roomID}`);
-                } catch (err) {
-                    console.error('Failed to create room:', err);
+                    state.localStream = await navigator.mediaDevices.getUserMedia({ audio: true });
+                    logSystem('Fallback to Microphone-only audio stream.');
+                    el.localAvatar.classList.remove('hidden');
+                } catch (audioErr) {
+                    logSystem('Unable to get audio or video devices.', 'error');
                 }
             }
+        }
 
-            // Join Room Logic
-            async function handleJoinRoom() {
-                const targetRoomId = elements.joinRoomInput.value.trim();
-                if (!targetRoomId) {
-                    alert('Please enter a valid Room ID to join.');
-                    return;
-                }
+        // ==== PeerJS ====
+        function initPeer(customId = null) {
+            return new Promise((resolve, reject) => {
+                updateStatus('Connecting to PeerServer...', 'yellow');
+                const opts = customId ? { ...peerConfig, debug: 2 } : { ...peerConfig, debug: 2 };
+                state.peer = customId ? new Peer(customId, opts) : new Peer(opts);
 
-                state.username = elements.usernameInput.value.trim() || state.username;
-                elements.localNameTag.textContent = `${state.username}`;
-                elements.localAvatarInitial.textContent = state.username.charAt(0).toUpperCase();
-
-                try {
-                    await initPeer(); // Initialize with random ID
-                    state.roomID = targetRoomId;
-                    elements.currentRoomId.textContent = state.roomID;
-                    elements.roomBadge.classList.remove('hidden');
-                    elements.roomBadge.classList.add('flex');
-                    elements.lobbyContainer.classList.add('hidden');
-
-                    // Initiate call & data connection to host
-                    connectToPeer(targetRoomId);
-                } catch (err) {
-                    console.error('Failed to join room:', err);
-                }
-            }
-
-            // Call Remote Peer
-            function connectToPeer(remotePeerId) {
-                logSystem(`Connecting to peer: ${remotePeerId}...`);
-
-                // 1. Data Connection for text chat
-                const conn = state.peer.connect(remotePeerId, {
-                    metadata: { username: state.username }
+                state.peer.on('open', (id) => {
+                    state.myPeerId = id;
+                    updateStatus('Connected to PeerServer', 'green');
+                    logSystem(`Peer initialized with ID: ${id}`);
+                    resolve(id);
                 });
+
+                state.peer.on('call', handleIncomingCall);
+                state.peer.on('connection', handleIncomingDataConnection);
+
+                state.peer.on('error', (err) => {
+                    logSystem(`PeerJS Error [${err.type}]: ${err.message}`, 'error');
+                    updateStatus('Peer Connection Error', 'red');
+
+                    if (err.type === 'unavailable-id') {
+                        alert('Room ID is already taken. Please try a different ID.');
+                    } else if (err.type === 'peer-unavailable') {
+                        // 发生在 connectToPeer 中，那里会处理
+                    }
+                    reject(err);
+                });
+
+                state.peer.on('disconnected', () => {
+                    logSystem('Disconnected from signaling server. Attempting reconnect...', 'warn');
+                    updateStatus('Reconnecting...', 'yellow');
+                    try { state.peer.reconnect(); } catch (e) {}
+                });
+            });
+        }
+
+        // ==== 创建房间 ====
+        async function handleCreateRoom() {
+            state.username = el.usernameInput.value.trim() || state.username;
+            el.localNameTag.textContent = `${state.username} (Host)`;
+            el.localAvatarInitial.textContent = state.username.charAt(0).toUpperCase();
+
+            const generatedRoomId = 'room-' + Math.random().toString(36).substring(2, 8);
+            try {
+                await initPeer(generatedRoomId);
+                state.roomID = generatedRoomId;
+                state.isHost = true;
+                el.currentRoomId.textContent = state.roomID;
+                el.roomBadge.classList.remove('hidden');
+                el.roomBadge.classList.add('flex');
+                el.lobbyContainer.classList.add('hidden');
+                logSystem(`Room created successfully: ${state.roomID}`);
+            } catch (err) {
+                logSystem('Failed to create room.', 'error');
+            }
+        }
+
+        // ==== 加入房间 ====
+        async function handleJoinRoom() {
+            const targetRoomId = el.joinRoomInput.value.trim();
+            if (!targetRoomId) {
+                alert('Please enter a valid Room ID to join.');
+                return;
+            }
+
+            state.username = el.usernameInput.value.trim() || state.username;
+            el.localNameTag.textContent = `${state.username}`;
+            el.localAvatarInitial.textContent = state.username.charAt(0).toUpperCase();
+
+            try {
+                await initPeer();
+                state.roomID = targetRoomId;
+                state.isHost = false;
+                el.currentRoomId.textContent = state.roomID;
+                el.roomBadge.classList.remove('hidden');
+                el.roomBadge.classList.add('flex');
+                el.lobbyContainer.classList.add('hidden');
+
+                connectToHost(targetRoomId);
+            } catch (err) {
+                logSystem('Failed to join room.', 'error');
+                resetToLobby();
+            }
+        }
+
+        // ==== 连接到 Host ====
+        function connectToHost(hostPeerId) {
+            logSystem(`Connecting to host: ${hostPeerId}...`);
+
+            let connectionFailed = false;
+            const conn = state.peer.connect(hostPeerId, {
+                metadata: { username: state.username },
+                reliable: true
+            });
+
+            // 超时检测
+            const timeout = setTimeout(() => {
+                if (!state.dataConns.has(hostPeerId) && !connectionFailed) {
+                    connectionFailed = true;
+                    logSystem('Connection timed out. Room may not exist.', 'error');
+                    alert('无法连接到房间。请确认 Room ID 是否正确，或主机是否在线。');
+                    cleanupAllConnections();
+                    resetToLobby();
+                }
+            }, 8000);
+
+            conn.on('open', () => {
+                clearTimeout(timeout);
+                logSystem(`Data channel opened with host ${hostPeerId}.`);
                 setupDataConnection(conn);
 
-                // 2. Media Connection
+                // 加入者主动发起媒体呼叫
                 const streamToSend = state.screenStream || state.localStream;
-                const call = state.peer.call(remotePeerId, streamToSend, {
+                const call = state.peer.call(hostPeerId, streamToSend, {
                     metadata: { username: state.username }
                 });
                 setupMediaCall(call);
-            }
+            });
 
-            // Handle Incoming Video Call
-            function handleIncomingCall(call) {
-                logSystem(`Receiving call from: ${call.peer}`);
-                state.currentCall = call;
-
-                const streamToSend = state.screenStream || state.localStream;
-                call.answer(streamToSend);
-                setupMediaCall(call);
-            }
-
-            // Handle Incoming Data Connection
-            function handleIncomingDataConnection(conn) {
-                logSystem(`Data connection established with: ${conn.peer}`);
-                setupDataConnection(conn);
-            }
-
-            // Media Call Setup & Event Handlers
-            function setupMediaCall(call) {
-                state.currentCall = call;
-
-                if (call.metadata && call.metadata.username) {
-                    elements.remoteNameTag.textContent = call.metadata.username;
+            conn.on('error', (err) => {
+                clearTimeout(timeout);
+                logSystem(`Data connection error: ${err.type || err.message}`, 'error');
+                if (err.type === 'peer-unavailable') {
+                    alert('房间不存在或主机已离线。');
+                    cleanupAllConnections();
+                    resetToLobby();
                 }
+            });
+        }
 
-                call.on('stream', (remoteStream) => {
-                    logSystem('Remote media stream received.');
-                    elements.remoteVideo.srcObject = remoteStream;
-                    elements.remotePlaceholder.classList.add('hidden');
-                    elements.remoteBadge.classList.remove('hidden');
-                });
+        // ==== 收到别人呼叫 ====
+        function handleIncomingCall(call) {
+            logSystem(`Receiving call from: ${call.peer}`);
 
-                call.on('close', () => {
-                    logSystem('Call closed by remote peer.');
-                    handleRemoteHangup();
-                });
-
-                call.on('error', (err) => {
-                    logSystem(`Call error: ${err.message}`, 'error');
-                });
+            // 处理呼叫冲突（glare）：如果双方同时呼叫，字典序大的一方放弃主动呼叫
+            // 但由于我们是 1 对多，规则简化：如果已经有这个 peer 的 call，忽略
+            if (state.calls.has(call.peer)) {
+                logSystem(`Already have a call with ${call.peer}, ignoring duplicate.`, 'warn');
+                call.close();
+                return;
             }
 
-            // Setup Data Connection for Messaging
-            function setupDataConnection(conn) {
-                state.dataConn = conn;
+            const streamToSend = state.screenStream || state.localStream;
+            call.answer(streamToSend);
+            setupMediaCall(call);
+        }
 
-                conn.on('open', () => {
-                    logSystem('Data channel opened for real-time chat.');
-                    // Send initial metadata
-                    conn.send({
-                        type: 'user-info',
-                        username: state.username
-                    });
-                });
+        // ==== 收到 Data 连接 ====
+        function handleIncomingDataConnection(conn) {
+            logSystem(`Data connection established with: ${conn.peer}`);
+            setupDataConnection(conn);
+        }
 
-                conn.on('data', (data) => {
-                    if (data.type === 'chat') {
-                        appendChatMessage(data.sender, data.message, false);
-                    } else if (data.type === 'user-info') {
-                        elements.remoteNameTag.textContent = data.username;
-                    } else if (data.type === 'media-state') {
-                        if (data.audio !== undefined) {
-                            elements.remoteMuteIcon.classList.toggle('hidden', data.audio);
-                        }
-                    }
-                });
+        // ==== 媒体呼叫设置 ====
+        function setupMediaCall(call) {
+            state.calls.set(call.peer, call);
 
-                conn.on('close', () => {
-                    logSystem('Data connection closed.');
-                    state.dataConn = null;
-                });
+            if (call.metadata && call.metadata.username) {
+                el.remoteNameTag.textContent = call.metadata.username;
             }
 
-            // Control Button Implementations
-            function toggleMicrophone() {
-                if (!state.localStream) return;
-                const audioTracks = state.localStream.getAudioTracks();
-                if (audioTracks.length === 0) return;
+            call.on('stream', (remoteStream) => {
+                logSystem(`Remote media stream received from ${call.peer}.`);
+                // 目前 UI 只有单个远端视频位，直接显示最新进来的
+                el.remoteVideo.srcObject = remoteStream;
+                el.remotePlaceholder.classList.add('hidden');
+                el.remoteBadge.classList.remove('hidden');
 
-                state.isAudioMuted = !state.isAudioMuted;
-                audioTracks[0].enabled = !state.isAudioMuted;
-
-                elements.toggleMicBtn.classList.toggle('bg-slate-800', !state.isAudioMuted);
-                elements.toggleMicBtn.classList.toggle('bg-rose-600', state.isAudioMuted);
-                elements.toggleMicBtn.classList.toggle('hover:bg-rose-500', state.isAudioMuted);
-                elements.localMuteIcon.classList.toggle('hidden', !state.isAudioMuted);
-
-                // Notify Remote Peer
-                if (state.dataConn) {
-                    state.dataConn.send({
-                        type: 'media-state',
-                        audio: !state.isAudioMuted
-                    });
-                }
-                logSystem(`Microphone ${state.isAudioMuted ? 'muted' : 'unmuted'}.`);
-            }
-
-            function toggleCamera() {
-                if (!state.localStream) return;
-                const videoTracks = state.localStream.getVideoTracks();
-                if (videoTracks.length === 0) return;
-
-                state.isVideoMuted = !state.isVideoMuted;
-                videoTracks[0].enabled = !state.isVideoMuted;
-
-                elements.toggleCamBtn.classList.toggle('bg-slate-800', !state.isVideoMuted);
-                elements.toggleCamBtn.classList.toggle('bg-rose-600', state.isVideoMuted);
-                elements.toggleCamBtn.classList.toggle('hover:bg-rose-500', state.isVideoMuted);
-                elements.localAvatar.classList.toggle('hidden', !state.isVideoMuted);
-
-                logSystem(`Camera ${state.isVideoMuted ? 'disabled' : 'enabled'}.`);
-            }
-
-            // Screen Sharing Switch Logic
-            async function toggleScreenShare() {
-                if (state.isScreenSharing) {
-                    stopScreenSharing();
-                    return;
-                }
-
-                try {
-                    state.screenStream = await navigator.mediaDevices.getDisplayMedia({ video: true });
-                    state.isScreenSharing = true;
-
-                    const screenTrack = state.screenStream.getVideoTracks()[0];
-                    elements.localVideo.srcObject = state.screenStream;
-                    elements.localVideo.classList.add('no-mirror');
-
-                    // Replace track in active WebRTC Call sender if connected
-                    if (state.currentCall && state.currentCall.peerConnection) {
-                        const senders = state.currentCall.peerConnection.getSenders();
-                        const sender = senders.find(s => s.track && s.track.kind === 'video');
-                        if (sender) {
-                            sender.replaceTrack(screenTrack);
-                        }
-                    }
-
-                    elements.toggleScreenBtn.classList.remove('bg-slate-800');
-                    elements.toggleScreenBtn.classList.add('bg-indigo-600', 'hover:bg-indigo-500');
-                    logSystem('Screen sharing started.');
-
-                    // Handle screen share stop via browser UI controls
-                    screenTrack.onended = () => {
-                        stopScreenSharing();
+                // 监听远端视频 track 状态，决定是否显示占位符
+                const vt = remoteStream.getVideoTracks()[0];
+                if (vt) {
+                    vt.onmute = () => {
+                        el.remotePlaceholder.classList.remove('hidden');
                     };
-                } catch (err) {
-                    logSystem(`Screen share error: ${err.message}`, 'warn');
+                    vt.onunmute = () => {
+                        el.remotePlaceholder.classList.add('hidden');
+                    };
+                    vt.onended = () => {
+                        el.remotePlaceholder.classList.remove('hidden');
+                    };
                 }
-            }
+            });
 
-            function stopScreenSharing() {
-                if (!state.isScreenSharing) return;
+            call.on('close', () => {
+                logSystem(`Call closed by ${call.peer}.`);
+                state.calls.delete(call.peer);
+                handleRemoteHangup(call.peer);
+            });
 
-                if (state.screenStream) {
-                    state.screenStream.getTracks().forEach(track => track.stop());
-                    state.screenStream = null;
-                }
-                state.isScreenSharing = false;
+            call.on('error', (err) => {
+                logSystem(`Call error with ${call.peer}: ${err.message}`, 'error');
+            });
+        }
 
-                // Revert local video back to camera stream
-                elements.localVideo.srcObject = state.localStream;
-                elements.localVideo.classList.remove('no-mirror');
+        // ==== Data 连接设置 ====
+        function setupDataConnection(conn) {
+            state.dataConns.set(conn.peer, conn);
 
-                // Switch WebRTC Sender back to camera track
-                if (state.currentCall && state.currentCall.peerConnection && state.localStream) {
-                    const cameraTrack = state.localStream.getVideoTracks()[0];
-                    const senders = state.currentCall.peerConnection.getSenders();
-                    const sender = senders.find(s => s.track && s.track.kind === 'video');
-                    if (sender && cameraTrack) {
-                        sender.replaceTrack(cameraTrack);
+            conn.on('open', () => {
+                logSystem(`Data channel open with ${conn.peer}.`);
+                conn.send({ type: 'user-info', username: state.username });
+                conn.send({
+                    type: 'media-state',
+                    audio: !state.isAudioMuted,
+                    video: !state.isVideoMuted
+                });
+            });
+
+            conn.on('data', (data) => {
+                if (!data || typeof data !== 'object') return;
+
+                if (data.type === 'chat') {
+                    appendChatMessage(data.sender, data.message, false);
+                    // 侧边栏关闭时点亮小红点
+                    if (el.sidebar.classList.contains('hidden') || !el.tabChat.classList.contains('hidden') === false) {
+                        // 只在侧边栏隐藏时点亮
+                    }
+                    if (el.sidebar.classList.contains('hidden')) {
+                        el.chatBadge.classList.remove('hidden');
+                    } else if (!el.tabChat.classList.contains('hidden')) {
+                        el.chatBadge.classList.add('hidden');
+                    }
+                } else if (data.type === 'user-info') {
+                    el.remoteNameTag.textContent = data.username;
+                } else if (data.type === 'media-state') {
+                    if (data.audio !== undefined) {
+                        el.remoteMuteIcon.classList.toggle('hidden', data.audio);
                     }
                 }
+            });
 
-                elements.toggleScreenBtn.classList.add('bg-slate-800');
-                elements.toggleScreenBtn.classList.remove('bg-indigo-600', 'hover:bg-indigo-500');
-                logSystem('Screen sharing stopped.');
+            conn.on('close', () => {
+                logSystem(`Data connection closed with ${conn.peer}.`);
+                state.dataConns.delete(conn.peer);
+            });
+
+            conn.on('error', (err) => {
+                logSystem(`Data connection error: ${err.message}`, 'error');
+            });
+        }
+
+        // ==== 控制按钮 ====
+        function toggleMicrophone() {
+            if (!state.localStream) return;
+            const audioTracks = state.localStream.getAudioTracks();
+            if (audioTracks.length === 0) return;
+
+            state.isAudioMuted = !state.isAudioMuted;
+            audioTracks[0].enabled = !state.isAudioMuted;
+
+            el.toggleMicBtn.classList.toggle('bg-slate-800', !state.isAudioMuted);
+            el.toggleMicBtn.classList.toggle('bg-rose-600', state.isAudioMuted);
+            el.toggleMicBtn.classList.toggle('hover:bg-rose-500', state.isAudioMuted);
+            el.localMuteIcon.classList.toggle('hidden', !state.isAudioMuted);
+
+            broadcastMediaState();
+            logSystem(`Microphone ${state.isAudioMuted ? 'muted' : 'unmuted'}.`);
+        }
+
+        function toggleCamera() {
+            if (!state.localStream) return;
+            const videoTracks = state.localStream.getVideoTracks();
+            if (videoTracks.length === 0) return;
+
+            state.isVideoMuted = !state.isVideoMuted;
+            videoTracks[0].enabled = !state.isVideoMuted;
+
+            el.toggleCamBtn.classList.toggle('bg-slate-800', !state.isVideoMuted);
+            el.toggleCamBtn.classList.toggle('bg-rose-600', state.isVideoMuted);
+            el.toggleCamBtn.classList.toggle('hover:bg-rose-500', state.isVideoMuted);
+            el.localAvatar.classList.toggle('hidden', !state.isVideoMuted);
+
+            // 摄像头被禁用时，本地画面切回视频元素（清空）
+            if (state.isVideoMuted) {
+                el.localVideo.classList.add('opacity-0');
+            } else {
+                el.localVideo.classList.remove('opacity-0');
             }
 
-            // Leave / Hangup Call
-            function handleHangup() {
-                if (confirm('Are you sure you want to leave the room?')) {
-                    if (state.currentCall) state.currentCall.close();
-                    if (state.dataConn) state.dataConn.close();
-                    if (state.peer) state.peer.destroy();
+            broadcastMediaState();
+            logSystem(`Camera ${state.isVideoMuted ? 'disabled' : 'enabled'}.`);
+        }
 
-                    stopScreenSharing();
-                    
-                    // Reset UI State
-                    elements.lobbyContainer.classList.remove('hidden');
-                    elements.roomBadge.classList.add('hidden');
-                    elements.remotePlaceholder.classList.remove('hidden');
-                    elements.remoteBadge.classList.add('hidden');
-                    elements.remoteVideo.srcObject = null;
-                    
-                    updateStatus('Ready', 'green');
-                    logSystem('Left the room call session.');
+        function broadcastMediaState() {
+            const payload = {
+                type: 'media-state',
+                audio: !state.isAudioMuted,
+                video: !state.isVideoMuted
+            };
+            state.dataConns.forEach(conn => {
+                if (conn.open) conn.send(payload);
+            });
+        }
+
+        // ==== 屏幕共享（修复版） ====
+        async function toggleScreenShare() {
+            if (state.isScreenSharing) {
+                stopScreenSharing();
+                return;
+            }
+
+            try {
+                state.screenStream = await navigator.mediaDevices.getDisplayMedia({ video: true });
+                state.isScreenSharing = true;
+
+                const screenTrack = state.screenStream.getVideoTracks()[0];
+
+                // 停掉摄像头 track（隐私）
+                if (state.cameraTrack) {
+                    state.cameraTrack.stop();
                 }
+
+                // 本地预览切换到屏幕流
+                el.localVideo.srcObject = state.screenStream;
+                el.localVideo.classList.remove('mirror');
+                el.localAvatar.classList.add('hidden');
+                el.sharingIndicator.classList.remove('hidden');
+
+                // 替换所有呼叫中的 video sender
+                state.calls.forEach(call => {
+                    replaceVideoTrack(call, screenTrack);
+                });
+
+                el.toggleScreenBtn.classList.remove('bg-slate-800');
+                el.toggleScreenBtn.classList.add('bg-indigo-600', 'hover:bg-indigo-500');
+                logSystem('Screen sharing started.');
+
+                screenTrack.onended = () => stopScreenSharing();
+            } catch (err) {
+                logSystem(`Screen share error: ${err.message}`, 'warn');
+            }
+        }
+
+        async function stopScreenSharing() {
+            if (!state.isScreenSharing) return;
+
+            if (state.screenStream) {
+                state.screenStream.getTracks().forEach(t => t.stop());
+                state.screenStream = null;
+            }
+            state.isScreenSharing = false;
+
+            // 重新获取摄像头（旧的已被 stop）
+            try {
+                const freshCam = await navigator.mediaDevices.getUserMedia({ video: true });
+                const freshTrack = freshCam.getVideoTracks()[0];
+                state.cameraTrack = freshTrack;
+
+                // 替换到 localStream
+                const oldVideo = state.localStream.getVideoTracks()[0];
+                if (oldVideo) {
+                    state.localStream.removeTrack(oldVideo);
+                }
+                state.localStream.addTrack(freshTrack);
+
+                // 应用当前的 mute 状态
+                freshTrack.enabled = !state.isVideoMuted;
+
+                // 本地预览切回
+                el.localVideo.srcObject = state.localStream;
+                el.localVideo.classList.toggle('mirror', !state.isVideoMuted);
+                if (state.isVideoMuted) {
+                    el.localAvatar.classList.remove('hidden');
+                } else {
+                    el.localAvatar.classList.add('hidden');
+                }
+
+                // 替换所有呼叫中的 video sender
+                state.calls.forEach(call => {
+                    replaceVideoTrack(call, freshTrack);
+                });
+            } catch (err) {
+                logSystem(`Failed to restore camera: ${err.message}`, 'error');
             }
 
-            function handleRemoteHangup() {
-                elements.remoteVideo.srcObject = null;
-                elements.remotePlaceholder.classList.remove('hidden');
-                elements.remoteBadge.classList.add('hidden');
-                logSystem('Peer left the room.');
+            el.sharingIndicator.classList.add('hidden');
+            el.toggleScreenBtn.classList.add('bg-slate-800');
+            el.toggleScreenBtn.classList.remove('bg-indigo-600', 'hover:bg-indigo-500');
+            logSystem('Screen sharing stopped.');
+        }
+
+        function replaceVideoTrack(call, newTrack) {
+            try {
+                const pc = call.peerConnection;
+                if (!pc) return;
+                const senders = pc.getSenders();
+                const sender = senders.find(s => s.track && s.track.kind === 'video');
+                if (sender) {
+                    sender.replaceTrack(newTrack);
+                }
+            } catch (e) {
+                logSystem(`replaceTrack failed: ${e.message}`, 'warn');
+            }
+        }
+
+        // ==== 挂断 ====
+        function handleHangup() {
+            if (!confirm('Are you sure you want to leave the room?')) return;
+
+            cleanupAllConnections();
+            resetToLobby();
+            logSystem('Left the room call session.');
+        }
+
+        function cleanupAllConnections() {
+            // 停止屏幕共享
+            if (state.isScreenSharing && state.screenStream) {
+                state.screenStream.getTracks().forEach(t => t.stop());
+                state.screenStream = null;
+                state.isScreenSharing = false;
             }
 
-            // Chat Message Handling
-            function handleSendMessage(e) {
-                e.preventDefault();
-                const text = elements.chatInput.value.trim();
-                if (!text) return;
+            // 关闭所有 call
+            state.calls.forEach(call => {
+                try { call.close(); } catch (e) {}
+            });
+            state.calls.clear();
 
-                appendChatMessage('You', text, true);
+            // 关闭所有 data conn
+            state.dataConns.forEach(conn => {
+                try { conn.close(); } catch (e) {}
+            });
+            state.dataConns.clear();
 
-                if (state.dataConn) {
-                    state.dataConn.send({
-                        type: 'chat',
-                        sender: state.username,
-                        message: text
+            // 销毁 peer
+            if (state.peer) {
+                try { state.peer.destroy(); } catch (e) {}
+                state.peer = null;
+            }
+
+            // 重置 UI
+            el.remoteVideo.srcObject = null;
+            el.remotePlaceholder.classList.remove('hidden');
+            el.remoteBadge.classList.add('hidden');
+            el.remoteMuteIcon.classList.add('hidden');
+            el.sharingIndicator.classList.add('hidden');
+            el.toggleScreenBtn.classList.add('bg-slate-800');
+            el.toggleScreenBtn.classList.remove('bg-indigo-600', 'hover:bg-indigo-500');
+            el.chatBadge.classList.add('hidden');
+        }
+
+        function resetToLobby() {
+            state.roomID = null;
+            state.isHost = false;
+            state.myPeerId = null;
+
+            el.lobbyContainer.classList.remove('hidden');
+            el.roomBadge.classList.add('hidden');
+            el.roomBadge.classList.remove('flex');
+            el.currentRoomId.textContent = '--';
+            el.joinRoomInput.value = '';
+            el.chatMessages.innerHTML = '<div class="text-center text-xs text-slate-500 my-2">Chat session started</div>';
+
+            updateStatus('Ready', 'green');
+        }
+
+        function handleRemoteHangup(peerId) {
+            if (state.calls.size === 0) {
+                el.remoteVideo.srcObject = null;
+                el.remotePlaceholder.classList.remove('hidden');
+                el.remoteBadge.classList.add('hidden');
+                el.remoteMuteIcon.classList.add('hidden');
+            }
+            logSystem(`Peer ${peerId} left.`);
+        }
+
+        // ==== 聊天 ====
+        function handleSendMessage(e) {
+            e.preventDefault();
+            const text = el.chatInput.value.trim();
+            if (!text) return;
+
+            appendChatMessage('You', text, true);
+
+            let sent = false;
+            state.dataConns.forEach(conn => {
+                if (conn.open) {
+                    conn.send({ type: 'chat', sender: state.username, message: text });
+                    sent = true;
+                }
+            });
+
+            if (!sent) {
+                logSystem('No connected peer to receive message.', 'warn');
+            }
+
+            el.chatInput.value = '';
+        }
+
+        function appendChatMessage(sender, message, isSelf) {
+            const msgDiv = document.createElement('div');
+            msgDiv.className = `flex flex-col ${isSelf ? 'items-end' : 'items-start'} my-1`;
+
+            const nameTag = document.createElement('span');
+            nameTag.className = 'text-[10px] text-slate-500 mb-0.5 px-1';
+            const time = new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+            nameTag.textContent = `${sender} · ${time}`;
+
+            const bubble = document.createElement('div');
+            bubble.className = `max-w-[85%] rounded-2xl px-3 py-2 text-xs ${
+                isSelf
+                    ? 'bg-indigo-600 text-white rounded-br-none'
+                    : 'bg-slate-800 text-slate-200 border border-slate-700/60 rounded-bl-none'
+            }`;
+            bubble.textContent = message;
+
+            msgDiv.appendChild(nameTag);
+            msgDiv.appendChild(bubble);
+            el.chatMessages.appendChild(msgDiv);
+            el.chatMessages.scrollTop = el.chatMessages.scrollHeight;
+        }
+
+        // ==== 日志 ====
+        function logSystem(message, level = 'info') {
+            const logEntry = document.createElement('div');
+            const time = new Date().toLocaleTimeString();
+            let colorClass = 'text-slate-400';
+            if (level === 'error') colorClass = 'text-rose-400 font-semibold';
+            if (level === 'warn') colorClass = 'text-amber-400';
+            logEntry.className = `${colorClass} text-[11px] leading-relaxed`;
+            logEntry.textContent = `[${time}] ${message}`;
+            el.systemLogs.appendChild(logEntry);
+            el.systemLogs.scrollTop = el.systemLogs.scrollHeight;
+            console.log(`[P2P App] ${message}`);
+        }
+
+        function updateStatus(text, color) {
+            el.statusText.textContent = text;
+            const colorMap = {
+                green:  ['bg-emerald-500', 'bg-emerald-400'],
+                yellow: ['bg-amber-500',   'bg-amber-400'],
+                red:    ['bg-rose-500',    'bg-rose-400']
+            };
+            const c = colorMap[color] || colorMap.green;
+            el.statusDot.className = `relative inline-flex rounded-full h-2.5 w-2.5 ${c[0]}`;
+            el.statusPing.className = `animate-ping absolute inline-flex h-full w-full rounded-full opacity-75 ${c[1]}`;
+        }
+
+        // ==== 关闭页面前清理 ====
+        function cleanupBeforeUnload() {
+            try {
+                state.calls.forEach(c => c.close());
+                state.dataConns.forEach(d => d.close());
+                if (state.peer) state.peer.destroy();
+                if (state.screenStream) state.screenStream.getTracks().forEach(t => t.stop());
+            } catch (e) {}
+        }
+
+        // ==== 事件绑定 ====
+        function setupEventListeners() {
+            el.createRoomBtn.addEventListener('click', handleCreateRoom);
+            el.joinRoomBtn.addEventListener('click', handleJoinRoom);
+
+            el.toggleMicBtn.addEventListener('click', toggleMicrophone);
+            el.toggleCamBtn.addEventListener('click', toggleCamera);
+            el.toggleScreenBtn.addEventListener('click', toggleScreenShare);
+            el.hangupBtn.addEventListener('click', handleHangup);
+
+            el.chatForm.addEventListener('submit', handleSendMessage);
+
+            el.copyRoomBtn.addEventListener('click', () => {
+                if (!state.roomID) return;
+                const shareUrl = `${window.location.origin}${window.location.pathname}?room=${state.roomID}`;
+                const done = () => alert(`Invite link copied:\n${shareUrl}`);
+                if (navigator.clipboard && navigator.clipboard.writeText) {
+                    navigator.clipboard.writeText(shareUrl).then(done).catch(() => {
+                        prompt('Copy this link:', shareUrl);
                     });
                 } else {
-                    logSystem('No connected peer to receive message.', 'warn');
+                    prompt('Copy this link:', shareUrl);
                 }
+            });
 
-                elements.chatInput.value = '';
-            }
+            el.toggleSidebarBtn.addEventListener('click', () => {
+                el.sidebar.classList.toggle('hidden');
+                if (!el.sidebar.classList.contains('hidden')) {
+                    el.chatBadge.classList.add('hidden');
+                }
+            });
 
-            function appendChatMessage(sender, message, isSelf) {
-                const msgDiv = document.createElement('div');
-                msgDiv.className = `flex flex-col ${isSelf ? 'items-end' : 'items-start'} my-1`;
-                
-                const bubble = document.createElement('div');
-                bubble.className = `max-w-[85%] rounded-2xl px-3 py-2 text-xs ${
-                    isSelf 
-                        ? 'bg-indigo-600 text-white rounded-br-none' 
-                        : 'bg-slate-800 text-slate-200 border border-slate-700/60 rounded-bl-none'
-                }`;
-                bubble.textContent = message;
+            el.tabChatBtn.addEventListener('click', () => {
+                el.tabChat.classList.remove('hidden');
+                el.tabLogs.classList.add('hidden');
+                el.tabChatBtn.className = 'flex-1 py-3 text-xs font-semibold uppercase tracking-wider text-indigo-400 border-b-2 border-indigo-500 focus:outline-none flex items-center justify-center gap-2';
+                el.tabLogsBtn.className = 'flex-1 py-3 text-xs font-semibold uppercase tracking-wider text-slate-400 hover:text-slate-200 focus:outline-none flex items-center justify-center gap-2';
+                el.chatBadge.classList.add('hidden');
+            });
 
-                const nameTag = document.createElement('span');
-                nameTag.className = 'text-[10px] text-slate-500 mb-0.5 px-1';
-                nameTag.textContent = sender;
+            el.tabLogsBtn.addEventListener('click', () => {
+                el.tabLogs.classList.remove('hidden');
+                el.tabChat.classList.add('hidden');
+                el.tabLogsBtn.className = 'flex-1 py-3 text-xs font-semibold uppercase tracking-wider text-indigo-400 border-b-2 border-indigo-500 focus:outline-none flex items-center justify-center gap-2';
+                el.tabChatBtn.className = 'flex-1 py-3 text-xs font-semibold uppercase tracking-wider text-slate-400 hover:text-slate-200 focus:outline-none flex items-center justify-center gap-2';
+            });
+        }
 
-                msgDiv.appendChild(nameTag);
-                msgDiv.appendChild(bubble);
-                elements.chatMessages.appendChild(msgDiv);
-
-                // Auto Scroll Chat
-                elements.chatMessages.scrollTop = elements.chatMessages.scrollHeight;
-            }
-
-            // System Log Helper
-            function logSystem(message, level = 'info') {
-                const logEntry = document.createElement('div');
-                const time = new Date().toLocaleTimeString();
-                
-                let colorClass = 'text-slate-400';
-                if (level === 'error') colorClass = 'text-rose-400 font-semibold';
-                if (level === 'warn') colorClass = 'text-amber-400';
-
-                logEntry.className = `${colorClass} text-[11px] leading-relaxed`;
-                logEntry.textContent = `[${time}] ${message}`;
-
-                elements.systemLogs.appendChild(logEntry);
-                elements.systemLogs.scrollTop = elements.systemLogs.scrollHeight;
-                console.log(`[P2P App] ${message}`);
-            }
-
-            // Status Indicator Helper
-            function updateStatus(text, color) {
-                elements.statusText.textContent = text;
-                const colorMap = {
-                    green: ['bg-emerald-500', 'bg-emerald-400'],
-                    yellow: ['bg-amber-500', 'bg-amber-400'],
-                    red: ['bg-rose-500', 'bg-rose-400']
-                };
-                
-                elements.statusDot.className = `relative inline-flex rounded-full h-2.5 w-2.5 ${colorMap[color][0]}`;
-                elements.statusPing.className = `animate-ping absolute inline-flex h-full w-full rounded-full opacity-75 ${colorMap[color][1]}`;
-            }
-
-            // Attach Event Listeners
-            function setupEventListeners() {
-                elements.createRoomBtn.addEventListener('click', handleCreateRoom);
-                elements.joinRoomBtn.addEventListener('click', handleJoinRoom);
-
-                elements.toggleMicBtn.addEventListener('click', toggleMicrophone);
-                elements.toggleCamBtn.addEventListener('click', toggleCamera);
-                elements.toggleScreenBtn.addEventListener('click', toggleScreenShare);
-                elements.hangupBtn.addEventListener('click', handleHangup);
-
-                elements.chatForm.addEventListener('submit', handleSendMessage);
-
-                // Copy Room ID Action
-                elements.copyRoomBtn.addEventListener('click', () => {
-                    if (state.roomID) {
-                        const shareUrl = `${window.location.origin}${window.location.pathname}?room=${state.roomID}`;
-                        navigator.clipboard.writeText(shareUrl).then(() => {
-                            alert(`Invite link copied to clipboard:\n${shareUrl}`);
-                        }).catch(() => {
-                            document.execCommand('copy');
-                            alert(`Room ID copied: ${state.roomID}`);
-                        });
-                    }
-                });
-
-                // Toggle Mobile/Desktop Sidebar Visibility
-                elements.toggleSidebarBtn.addEventListener('click', () => {
-                    elements.sidebar.classList.toggle('hidden');
-                });
-
-                // Sidebar Tab Switcher
-                elements.tabChatBtn.addEventListener('click', () => {
-                    elements.tabChat.classList.remove('hidden');
-                    elements.tabLogs.classList.add('hidden');
-                    elements.tabChatBtn.className = 'flex-1 py-3 text-xs font-semibold uppercase tracking-wider text-indigo-400 border-b-2 border-indigo-500 focus:outline-none flex items-center justify-center gap-2';
-                    elements.tabLogsBtn.className = 'flex-1 py-3 text-xs font-semibold uppercase tracking-wider text-slate-400 hover:text-slate-200 focus:outline-none flex items-center justify-center gap-2';
-                });
-
-                elements.tabLogsBtn.addEventListener('click', () => {
-                    elements.tabLogs.classList.remove('hidden');
-                    elements.tabChat.classList.add('hidden');
-                    elements.tabLogsBtn.className = 'flex-1 py-3 text-xs font-semibold uppercase tracking-wider text-indigo-400 border-b-2 border-indigo-500 focus:outline-none flex items-center justify-center gap-2';
-                    elements.tabChatBtn.className = 'flex-1 py-3 text-xs font-semibold uppercase tracking-wider text-slate-400 hover:text-slate-200 focus:outline-none flex items-center justify-center gap-2';
-                });
-            }
-
-            // Start setup when DOM ready
-            document.addEventListener('DOMContentLoaded', init);
-        })();
+        document.addEventListener('DOMContentLoaded', init);
+    })();
     </script>
 </body>
 </html>
