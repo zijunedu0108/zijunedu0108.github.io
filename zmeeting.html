@@ -9,7 +9,6 @@
 
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    <script src="https://unpkg.com/peerjs@1.5.2/dist/peerjs.min.js"></script>
     <style>
         .glass {
             background: rgba(15, 23, 42, 0.75);
@@ -47,168 +46,18 @@
         @media (max-width: 767px) {
             #sidebar {
                 position: fixed;
-                top: 0;
-                right: 0;
-                bottom: 0;
-                width: 85%;
-                max-width: 340px;
+                top: 0; right: 0; bottom: 0;
+                width: 85%; max-width: 340px;
                 z-index: 40;
                 transition: transform 0.3s ease-out;
             }
-            #sidebar.sidebar-hidden {
-                transform: translateX(100%);
-            }
+            #sidebar.sidebar-hidden { transform: translateX(100%); }
             #sidebarBackdrop {
-                position: fixed;
-                inset: 0;
+                position: fixed; inset: 0;
                 background: rgba(0,0,0,0.5);
                 z-index: 35;
                 transition: opacity 0.3s;
             }
-        }
-
-        /* 视频画面点击提示（悬停时显示） */
-        .video-clickable {
-            cursor: pointer;
-        }
-        .video-clickable:hover::after {
-            content: '\f065';
-            font-family: 'Font Awesome 6 Free';
-            font-weight: 900;
-            position: absolute;
-            top: 12px;
-            right: 12px;
-            color: white;
-            background: rgba(0,0,0,0.55);
-            padding: 8px 10px;
-            border-radius: 10px;
-            font-size: 14px;
-            opacity: 1;
-            transition: opacity 0.2s;
-            z-index: 5;
-        }
-
-        /* ===== 全屏容器 ===== */
-        #fullscreenOverlay {
-            position: fixed;
-            inset: 0;
-            background: black;
-            z-index: 100;
-            display: none;
-        }
-        #fullscreenOverlay.active {
-            display: block;
-        }
-        #fullscreenOverlay video {
-            width: 100%;
-            height: 100%;
-            object-fit: contain;
-            background: black;
-        }
-        #fullscreenOverlay.mirrored video {
-            transform: scaleX(-1);
-        }
-
-        /* 全屏底部控制栏 */
-        #fullscreenControls {
-            position: absolute;
-            bottom: 0;
-            left: 0;
-            right: 0;
-            padding: 20px 16px 32px;
-            display: flex;
-            justify-content: center;
-            gap: 12px;
-            background: linear-gradient(to top, rgba(0,0,0,0.85) 0%, rgba(0,0,0,0.4) 60%, transparent 100%);
-            transition: opacity 0.3s, transform 0.3s;
-            flex-wrap: wrap;
-        }
-        #fullscreenControls.hidden-controls {
-            opacity: 0;
-            transform: translateY(100%);
-            pointer-events: none;
-        }
-
-        /* 全屏顶部信息 */
-        #fullscreenTopBar {
-            position: absolute;
-            top: 0;
-            left: 0;
-            right: 0;
-            padding: 16px 20px;
-            background: linear-gradient(to bottom, rgba(0,0,0,0.7) 0%, transparent 100%);
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            transition: opacity 0.3s, transform 0.3s;
-        }
-        #fullscreenTopBar.hidden-controls {
-            opacity: 0;
-            transform: translateY(-100%);
-            pointer-events: none;
-        }
-
-        .fs-btn {
-            width: 52px;
-            height: 52px;
-            border-radius: 16px;
-            background: rgba(30, 41, 59, 0.9);
-            backdrop-filter: blur(12px);
-            border: 1px solid rgba(255, 255, 255, 0.1);
-            color: #e2e8f0;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            transition: all 0.15s;
-            font-size: 18px;
-            cursor: pointer;
-        }
-        .fs-btn:hover {
-            background: rgba(51, 65, 85, 1);
-            transform: scale(1.05);
-        }
-        .fs-btn.active-red {
-            background: rgba(225, 29, 72, 0.9);
-            border-color: rgba(244, 63, 94, 0.5);
-        }
-        .fs-btn.active-amber {
-            background: rgba(245, 158, 11, 0.9);
-            border-color: rgba(251, 191, 36, 0.5);
-            color: white;
-        }
-        .fs-btn.active-indigo {
-            background: rgba(79, 70, 229, 0.9);
-            border-color: rgba(99, 102, 241, 0.5);
-            color: white;
-        }
-        .fs-btn.hangup {
-            background: rgba(225, 29, 72, 1);
-            border-color: rgba(244, 63, 94, 0.6);
-            color: white;
-        }
-        .fs-btn.hangup:hover {
-            background: rgba(244, 63, 94, 1);
-        }
-
-        /* 全屏聊天侧边栏 */
-        #fullscreenChat {
-            position: absolute;
-            top: 0;
-            right: 0;
-            bottom: 0;
-            width: 360px;
-            max-width: 90vw;
-            background: rgba(15, 23, 42, 0.95);
-            backdrop-filter: blur(20px);
-            border-left: 1px solid rgba(255, 255, 255, 0.08);
-            display: flex;
-            flex-direction: column;
-            transform: translateX(100%);
-            transition: transform 0.3s ease-out;
-            z-index: 5;
-        }
-        #fullscreenChat.open {
-            transform: translateX(0);
         }
     </style>
 </head>
@@ -221,23 +70,14 @@
             </div>
             <div>
                 <h1 class="font-bold text-lg leading-tight bg-gradient-to-r from-white via-slate-200 to-slate-400 bg-clip-text text-transparent">P2P Connect</h1>
-                <p class="text-xs text-slate-400">WebRTC Real-time Calling & Screen Sharing</p>
+                <p class="text-xs text-slate-400">WebRTC Real-time Calling</p>
             </div>
         </div>
-
         <div class="flex items-center gap-4">
-            <div id="connectionStatus" class="hidden sm:flex items-center gap-2 px-3 py-1.5 rounded-full text-xs font-medium glass-card border border-slate-700/50">
-                <span class="relative flex h-2.5 w-2.5">
-                  <span id="statusPing" class="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
-                  <span id="statusDot" class="relative inline-flex rounded-full h-2.5 w-2.5 bg-emerald-500"></span>
-                </span>
-                <span id="statusText" class="text-slate-300">Ready</span>
-            </div>
-
             <div id="roomBadge" class="hidden items-center gap-2 px-3 py-1.5 rounded-full text-xs font-mono bg-indigo-500/10 border border-indigo-500/30 text-indigo-300">
                 <i class="fa-solid fa-door-open text-indigo-400"></i>
                 <span>Room: <strong id="currentRoomId">--</strong></span>
-                <button id="copyRoomBtn" title="Copy Invite Link" class="ml-1 hover:text-white transition-colors">
+                <button id="copyRoomBtn" title="Copy Room ID" class="ml-1 hover:text-white transition-colors">
                     <i class="fa-regular fa-copy"></i>
                 </button>
             </div>
@@ -245,16 +85,15 @@
     </header>
 
     <main class="flex-1 relative flex overflow-hidden">
-
         <!-- Lobby -->
         <div id="lobbyContainer" class="absolute inset-0 z-30 flex items-center justify-center p-4 bg-slate-950/90 backdrop-blur-md">
             <div class="max-w-md w-full glass p-8 rounded-2xl shadow-2xl space-y-6 border border-slate-800">
                 <div class="text-center space-y-3">
-                    <div class="w-16 h-16 mx-auto rounded-2xl overflow-hidden bg-slate-900 border border-slate-800 shadow-lg shadow-indigo-500/20">
+                    <div class="w-16 h-16 mx-auto rounded-2xl overflow-hidden bg-slate-900 border border-slate-800">
                         <img src="zijunlogo.png" alt="Logo" class="w-full h-full object-cover">
                     </div>
                     <h2 class="text-2xl font-bold text-white">Start or Join Call</h2>
-                    <p class="text-slate-400 text-sm">Peer-to-peer secure video room powered by WebRTC</p>
+                    <p class="text-slate-400 text-sm">Peer-to-peer secure video room</p>
                 </div>
 
                 <div class="space-y-4">
@@ -262,15 +101,13 @@
                         <label class="block text-xs font-semibold text-slate-400 uppercase tracking-wider mb-2">Your Name</label>
                         <div class="relative">
                             <i class="fa-solid fa-user absolute left-3.5 top-3.5 text-slate-500 text-sm"></i>
-                            <input type="text" id="usernameInput" placeholder="Enter your name" class="w-full bg-slate-900/80 border border-slate-700/80 rounded-xl py-2.5 pl-10 pr-4 text-sm text-slate-100 placeholder-slate-500 focus:outline-none focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500 transition-all">
+                            <input type="text" id="usernameInput" placeholder="Enter your name" class="w-full bg-slate-900/80 border border-slate-700/80 rounded-xl py-2.5 pl-10 pr-4 text-sm text-slate-100 placeholder-slate-500 focus:outline-none focus:border-indigo-500">
                         </div>
                     </div>
 
-                    <div class="p-4 rounded-xl bg-slate-900/50 border border-slate-800/80 space-y-3">
-                        <button id="createRoomBtn" class="w-full bg-indigo-600 hover:bg-indigo-500 text-white font-medium py-2.5 px-4 rounded-xl shadow-lg shadow-indigo-600/25 transition-all flex items-center justify-center gap-2 text-sm">
-                            <i class="fa-solid fa-plus"></i> Create New Room
-                        </button>
-                    </div>
+                    <button id="createRoomBtn" class="w-full bg-indigo-600 hover:bg-indigo-500 text-white font-medium py-2.5 px-4 rounded-xl transition-all flex items-center justify-center gap-2 text-sm">
+                        <i class="fa-solid fa-plus"></i> Create New Room
+                    </button>
 
                     <div class="relative flex py-1 items-center">
                         <div class="flex-grow border-t border-slate-800"></div>
@@ -278,243 +115,107 @@
                         <div class="flex-grow border-t border-slate-800"></div>
                     </div>
 
-                    <div class="space-y-3">
-                        <div>
-                            <label class="block text-xs font-semibold text-slate-400 uppercase tracking-wider mb-2">Room Code</label>
-                            <div class="relative">
-                                <i class="fa-solid fa-key absolute left-3.5 top-3.5 text-slate-500 text-sm"></i>
-                                <input type="text" id="joinRoomInput" placeholder="e.g. ab12cd" class="w-full bg-slate-900/80 border border-slate-700/80 rounded-xl py-2.5 pl-10 pr-4 text-sm text-slate-100 placeholder-slate-500 focus:outline-none focus:border-emerald-500 focus:ring-1 focus:ring-emerald-500 transition-all font-mono lowercase">
-                            </div>
-                            <p class="text-[10px] text-slate-500 mt-1.5 pl-1">Just the code, no need for "room-" prefix</p>
+                    <div>
+                        <label class="block text-xs font-semibold text-slate-400 uppercase tracking-wider mb-2">Room Code</label>
+                        <div class="relative">
+                            <i class="fa-solid fa-key absolute left-3.5 top-3.5 text-slate-500 text-sm"></i>
+                            <input type="text" id="joinRoomInput" placeholder="e.g. ab12cd" class="w-full bg-slate-900/80 border border-slate-700/80 rounded-xl py-2.5 pl-10 pr-4 text-sm text-slate-100 placeholder-slate-500 focus:outline-none focus:border-emerald-500 font-mono lowercase">
                         </div>
-                        <button id="joinRoomBtn" class="w-full bg-emerald-600 hover:bg-emerald-500 text-white font-medium py-2.5 px-4 rounded-xl shadow-lg shadow-emerald-600/25 transition-all flex items-center justify-center gap-2 text-sm">
-                            <i class="fa-solid fa-right-to-bracket"></i> Join Room
-                        </button>
                     </div>
+
+                    <button id="joinRoomBtn" class="w-full bg-emerald-600 hover:bg-emerald-500 text-white font-medium py-2.5 px-4 rounded-xl transition-all flex items-center justify-center gap-2 text-sm">
+                        <i class="fa-solid fa-right-to-bracket"></i> Join Room
+                    </button>
                 </div>
             </div>
         </div>
 
-        <!-- Main Call Grid -->
+        <!-- Call view -->
         <div class="flex-1 flex flex-col p-4 relative overflow-hidden">
-            <div id="videoGrid" class="flex-1 grid grid-cols-1 sm:grid-cols-2 gap-4 h-full min-h-0">
+            <div class="flex-1 grid grid-cols-1 sm:grid-cols-2 gap-4 h-full min-h-0">
                 <!-- Local -->
-                <div id="localVideoWrapper" data-video-type="local" class="video-clickable relative bg-slate-900/90 rounded-2xl overflow-hidden border border-slate-800 shadow-lg group flex items-center justify-center">
+                <div class="relative bg-slate-900/90 rounded-2xl overflow-hidden border border-slate-800 flex items-center justify-center">
                     <video id="localVideo" class="w-full h-full object-cover mirror" autoplay muted playsinline></video>
-                    <div id="localAvatar" class="hidden absolute inset-0 flex items-center justify-center bg-slate-900">
-                        <div class="w-20 h-20 rounded-full bg-slate-800 flex items-center justify-center border-2 border-slate-700 text-slate-400 text-2xl font-bold">
-                            <span id="localAvatarInitial">Me</span>
-                        </div>
-                    </div>
-                    <div class="absolute bottom-3 left-3 bg-slate-950/70 backdrop-blur-md px-3 py-1 rounded-lg text-xs font-medium text-slate-200 border border-slate-800/60 flex items-center gap-2 pointer-events-none">
-                        <span id="localNameTag">You (Host)</span>
-                        <i id="localMuteIcon" class="fa-solid fa-microphone-slash text-rose-400 hidden"></i>
-                        <i id="localCamOffIcon" class="fa-solid fa-video-slash text-rose-400 hidden"></i>
-                        <i id="localHandIcon" class="fa-solid fa-hand text-amber-400 hand-anim hidden"></i>
-                    </div>
-                    <div id="sharingIndicator" class="hidden absolute top-3 left-3 bg-indigo-600/90 backdrop-blur-md px-3 py-1 rounded-lg text-xs font-medium text-white border border-indigo-400/50 flex items-center gap-2 pointer-events-none">
-                        <i class="fa-solid fa-desktop"></i> Sharing screen
+                    <div class="absolute bottom-3 left-3 bg-slate-950/70 backdrop-blur-md px-3 py-1 rounded-lg text-xs text-slate-200 border border-slate-800/60">
+                        <span id="localNameTag">You</span>
                     </div>
                 </div>
 
                 <!-- Remote -->
-                <div id="remoteVideoWrapper" data-video-type="remote" class="video-clickable relative bg-slate-900/90 rounded-2xl overflow-hidden border border-slate-800 shadow-lg group flex items-center justify-center">
+                <div class="relative bg-slate-900/90 rounded-2xl overflow-hidden border border-slate-800 flex items-center justify-center">
                     <video id="remoteVideo" class="w-full h-full object-cover" autoplay playsinline></video>
-                    <div id="remoteAvatar" class="hidden absolute inset-0 flex items-center justify-center bg-slate-900">
-                        <div class="w-20 h-20 rounded-full bg-slate-800 flex items-center justify-center border-2 border-slate-700 text-slate-400 text-2xl font-bold">
-                            <span id="remoteAvatarInitial">P</span>
-                        </div>
-                    </div>
-                    <div id="remotePlaceholder" class="absolute inset-0 flex flex-col items-center justify-center bg-slate-900/90 gap-3 text-slate-500 pointer-events-none">
+                    <div id="remotePlaceholder" class="absolute inset-0 flex flex-col items-center justify-center bg-slate-900/90 gap-3 text-slate-500">
                         <div class="w-16 h-16 rounded-full bg-slate-800/80 flex items-center justify-center border border-slate-700">
                             <i class="fa-solid fa-user-clock text-2xl"></i>
                         </div>
-                        <p class="text-sm font-medium">Waiting for participant...</p>
+                        <p id="remoteStatusText" class="text-sm font-medium">Waiting for participant...</p>
                     </div>
-                    <div id="remoteBadge" class="hidden absolute bottom-3 left-3 bg-slate-950/70 backdrop-blur-md px-3 py-1 rounded-lg text-xs font-medium text-slate-200 border border-slate-800/60 flex items-center gap-2 pointer-events-none">
+                    <div id="remoteBadge" class="hidden absolute bottom-3 left-3 bg-slate-950/70 backdrop-blur-md px-3 py-1 rounded-lg text-xs text-slate-200 border border-slate-800/60">
                         <span id="remoteNameTag">Peer</span>
-                        <i id="remoteMuteIcon" class="fa-solid fa-microphone-slash text-rose-400 hidden"></i>
-                        <i id="remoteCamOffIcon" class="fa-solid fa-video-slash text-rose-400 hidden"></i>
-                        <i id="remoteHandIcon" class="fa-solid fa-hand text-amber-400 hand-anim hidden"></i>
                     </div>
                 </div>
             </div>
 
-            <!-- Floating Control Bar -->
+            <!-- Controls -->
             <div class="h-20 flex items-center justify-center mt-4">
                 <div class="glass px-6 py-3 rounded-2xl flex items-center gap-4 shadow-2xl border border-slate-800">
-                    <button id="toggleMicBtn" class="w-12 h-12 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-200 flex items-center justify-center transition-all focus:outline-none" title="Toggle Mic">
+                    <button id="toggleMicBtn" class="w-12 h-12 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-200 flex items-center justify-center transition-all" title="Toggle Mic">
                         <i class="fa-solid fa-microphone text-lg"></i>
                     </button>
-                    <button id="toggleCamBtn" class="w-12 h-12 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-200 flex items-center justify-center transition-all focus:outline-none" title="Toggle Camera">
+                    <button id="toggleCamBtn" class="w-12 h-12 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-200 flex items-center justify-center transition-all" title="Toggle Camera">
                         <i class="fa-solid fa-video text-lg"></i>
                     </button>
-                    <button id="toggleScreenBtn" class="w-12 h-12 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-200 flex items-center justify-center transition-all focus:outline-none" title="Share Screen">
-                        <i class="fa-solid fa-desktop text-lg"></i>
-                    </button>
-                    <button id="toggleHandBtn" class="w-12 h-12 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-200 flex items-center justify-center transition-all focus:outline-none relative" title="Raise Hand">
-                        <i class="fa-solid fa-hand text-lg"></i>
-                        <span id="handPulse" class="hidden absolute inset-0 rounded-xl pulse-ring pointer-events-none"></span>
-                    </button>
-                    <button id="toggleSidebarBtn" class="w-12 h-12 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-200 flex items-center justify-center transition-all focus:outline-none relative" title="Chat & Logs">
-                        <i class="fa-solid fa-comments text-lg"></i>
-                        <span id="chatBadge" class="hidden absolute top-2 right-2 w-2.5 h-2.5 bg-indigo-500 rounded-full"></span>
-                    </button>
-                    <div class="w-px h-6 bg-slate-800 my-auto"></div>
-                    <button id="hangupBtn" class="w-12 h-12 rounded-xl bg-rose-600 hover:bg-rose-500 text-white flex items-center justify-center transition-all shadow-lg shadow-rose-600/30 focus:outline-none" title="Leave Call">
+                    <div class="w-px h-6 bg-slate-800"></div>
+                    <button id="hangupBtn" class="w-12 h-12 rounded-xl bg-rose-600 hover:bg-rose-500 text-white flex items-center justify-center transition-all" title="Leave Call">
                         <i class="fa-solid fa-phone-slash text-lg"></i>
                     </button>
                 </div>
             </div>
         </div>
-
-        <div id="sidebarBackdrop" class="hidden md:hidden"></div>
-
-        <aside id="sidebar" class="w-80 glass border-l border-slate-800 flex flex-col transition-all duration-300 transform translate-x-0 hidden md:flex md:relative sidebar-hidden z-10">
-            <div class="flex border-b border-slate-800">
-                <button id="tabChatBtn" class="flex-1 py-3 text-xs font-semibold uppercase tracking-wider text-indigo-400 border-b-2 border-indigo-500 focus:outline-none flex items-center justify-center gap-2">
-                    <i class="fa-solid fa-message"></i> Chat
-                </button>
-                <button id="tabLogsBtn" class="flex-1 py-3 text-xs font-semibold uppercase tracking-wider text-slate-400 hover:text-slate-200 focus:outline-none flex items-center justify-center gap-2">
-                    <i class="fa-solid fa-list-ul"></i> System Logs
-                </button>
-                <button id="closeSidebarBtn" class="md:hidden px-3 text-slate-400 hover:text-white focus:outline-none" title="Close">
-                    <i class="fa-solid fa-xmark"></i>
-                </button>
-            </div>
-
-            <div id="tabChat" class="flex-1 flex flex-col overflow-hidden p-4">
-                <div id="chatMessages" class="flex-1 overflow-y-auto space-y-3 pr-1 text-sm">
-                    <div class="text-center text-xs text-slate-500 my-2">Chat session started</div>
-                </div>
-                <form id="chatForm" class="mt-3 flex gap-2">
-                    <input type="text" id="chatInput" placeholder="Type a message..." autocomplete="off" class="flex-1 bg-slate-900 border border-slate-700/80 rounded-xl px-3 py-2 text-xs text-slate-100 placeholder-slate-500 focus:outline-none focus:border-indigo-500">
-                    <button type="submit" class="bg-indigo-600 hover:bg-indigo-500 text-white rounded-xl px-3.5 py-2 text-xs transition-colors flex items-center justify-center">
-                        <i class="fa-solid fa-paper-plane"></i>
-                    </button>
-                </form>
-            </div>
-
-            <div id="tabLogs" class="flex-1 overflow-y-auto p-4 hidden">
-                <div id="systemLogs" class="space-y-2 font-mono text-xs text-slate-400">
-                    <div>[System] Initializing application...</div>
-                </div>
-            </div>
-        </aside>
     </main>
-
-    <!-- ===== 全屏覆盖层 ===== -->
-    <div id="fullscreenOverlay">
-        <!-- 视频 -->
-        <video id="fullscreenVideo" autoplay playsinline></video>
-
-        <!-- 顶部信息 -->
-        <div id="fullscreenTopBar">
-            <div class="flex items-center gap-3">
-                <div class="w-8 h-8 rounded-lg overflow-hidden bg-slate-900 border border-slate-700">
-                    <img src="zijunlogo.png" alt="Logo" class="w-full h-full object-cover">
-                </div>
-                <span id="fullscreenLabel" class="text-white font-medium text-sm">远端画面</span>
-                <span id="fullscreenHandIndicator" class="hidden items-center gap-1.5 px-2.5 py-1 rounded-full bg-amber-500/90 text-white text-xs font-medium">
-                    <i class="fa-solid fa-hand hand-anim"></i> 举手
-                </span>
-                <span id="fullscreenMuteIndicator" class="hidden items-center gap-1.5 px-2.5 py-1 rounded-full bg-rose-600/90 text-white text-xs font-medium">
-                    <i class="fa-solid fa-microphone-slash"></i> 已静音
-                </span>
-                <span id="fullscreenCamOffIndicator" class="hidden items-center gap-1.5 px-2.5 py-1 rounded-full bg-rose-600/90 text-white text-xs font-medium">
-                    <i class="fa-solid fa-video-slash"></i> 摄像头关
-                </span>
-            </div>
-            <button id="fsCloseTopBtn" class="w-10 h-10 rounded-xl bg-black/50 hover:bg-black/70 text-white flex items-center justify-center transition-all" title="Exit Fullscreen">
-                <i class="fa-solid fa-compress"></i>
-            </button>
-        </div>
-
-        <!-- 底部控制栏 -->
-        <div id="fullscreenControls">
-            <button id="fsMicBtn" class="fs-btn" title="Toggle Mic">
-                <i class="fa-solid fa-microphone"></i>
-            </button>
-            <button id="fsCamBtn" class="fs-btn" title="Toggle Camera">
-                <i class="fa-solid fa-video"></i>
-            </button>
-            <button id="fsHandBtn" class="fs-btn" title="Raise Hand">
-                <i class="fa-solid fa-hand"></i>
-            </button>
-            <button id="fsChatBtn" class="fs-btn relative" title="Chat">
-                <i class="fa-solid fa-comments"></i>
-                <span id="fsChatBadge" class="hidden absolute top-1 right-1 w-2.5 h-2.5 bg-indigo-500 rounded-full"></span>
-            </button>
-            <button id="fsExitBtn" class="fs-btn" title="Exit Fullscreen">
-                <i class="fa-solid fa-compress"></i>
-            </button>
-            <button id="fsHangupBtn" class="fs-btn hangup" title="Leave Call">
-                <i class="fa-solid fa-phone-slash"></i>
-            </button>
-        </div>
-
-        <!-- 全屏聊天侧边栏 -->
-        <div id="fullscreenChat">
-            <div class="flex items-center justify-between p-4 border-b border-slate-800">
-                <h3 class="text-sm font-semibold text-white">Chat</h3>
-                <button id="fsChatCloseBtn" class="w-8 h-8 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-300 flex items-center justify-center">
-                    <i class="fa-solid fa-xmark"></i>
-                </button>
-            </div>
-            <div id="fsChatMessages" class="flex-1 overflow-y-auto p-4 space-y-3 text-sm">
-                <div class="text-center text-xs text-slate-500">Chat session started</div>
-            </div>
-            <form id="fsChatForm" class="p-4 border-t border-slate-800 flex gap-2">
-                <input type="text" id="fsChatInput" placeholder="Type a message..." autocomplete="off" class="flex-1 bg-slate-900 border border-slate-700/80 rounded-xl px-3 py-2 text-xs text-slate-100 placeholder-slate-500 focus:outline-none focus:border-indigo-500">
-                <button type="submit" class="bg-indigo-600 hover:bg-indigo-500 text-white rounded-xl px-3.5 py-2 text-xs flex items-center justify-center">
-                    <i class="fa-solid fa-paper-plane"></i>
-                </button>
-            </form>
-        </div>
-    </div>
 
     <script>
     (function() {
-        const ROOM_PREFIX = 'room-';
-
+        // ==================== 状态 ====================
         const state = {
-            peer: null,
+            ws: null,
             myPeerId: null,
-            roomID: null,
             roomCode: null,
             isHost: false,
-            calls: new Map(),
-            dataConns: new Map(),
+            pc: null,
             localStream: null,
-            cameraTrack: null,
-            screenStream: null,
+            remotePeerId: null,
+            connected: false,
             username: 'User_' + Math.floor(Math.random() * 1000),
-            isAudioMuted: false,
-            isVideoMuted: false,
-            isScreenSharing: false,
-            isHandRaised: false,
-            activeTab: 'chat',
-            sidebarOpen: false,
-            // 全屏状态
-            isFullscreen: false,
-            fullscreenType: 'local',    // 'local' 或 'remote'
-            fullscreenControlsVisible: true,
-            fullscreenControlsTimer: null,
-            fullscreenChatOpen: false
+            heartbeatTimer: null,
+            pendingCandidates: [],
+            hasRemoteDesc: false,
         };
 
-        const peerConfig = {
-            config: {
-                iceServers: [
-                    { urls: 'stun:stun.l.google.com:19302' },
-                    { urls: 'stun:global.stun.twilio.com:3478' },
-                    { urls: 'turn:openrelay.metered.ca:80', username: 'openrelayproject', credential: 'openrelayproject' },
-                    { urls: 'turn:openrelay.metered.ca:443', username: 'openrelayproject', credential: 'openrelayproject' },
-                    { urls: 'turn:openrelay.metered.ca:443?transport=tcp', username: 'openrelayproject', credential: 'openrelayproject' }
-                ]
-            }
+        // ==================== 常量 ====================
+        const ROOM_PREFIX = 'room-';
+        const PEER_HOST = '0.peerjs.com';
+        const PEER_KEY = 'peerjs';
+        const PEER_VERSION = '1.5.2';
+
+        const ICE_CONFIG = {
+            iceServers: [
+                { urls: 'stun:stun.l.google.com:19302' },
+                { urls: 'stun:global.stun.twilio.com:3478' },
+                {
+                    urls: 'turn:openrelay.metered.ca:80',
+                    username: 'openrelayproject',
+                    credential: 'openrelayproject'
+                },
+                {
+                    urls: 'turn:openrelay.metered.ca:443',
+                    username: 'openrelayproject',
+                    credential: 'openrelayproject'
+                }
+            ]
         };
 
+        // ==================== DOM ====================
         const el = {
             lobbyContainer: document.getElementById('lobbyContainer'),
             usernameInput: document.getElementById('usernameInput'),
@@ -524,1191 +225,416 @@
             roomBadge: document.getElementById('roomBadge'),
             currentRoomId: document.getElementById('currentRoomId'),
             copyRoomBtn: document.getElementById('copyRoomBtn'),
-            statusPing: document.getElementById('statusPing'),
-            statusDot: document.getElementById('statusDot'),
-            statusText: document.getElementById('statusText'),
             localVideo: document.getElementById('localVideo'),
             remoteVideo: document.getElementById('remoteVideo'),
             remotePlaceholder: document.getElementById('remotePlaceholder'),
-            remoteAvatar: document.getElementById('remoteAvatar'),
-            remoteAvatarInitial: document.getElementById('remoteAvatarInitial'),
-            localAvatar: document.getElementById('localAvatar'),
-            localAvatarInitial: document.getElementById('localAvatarInitial'),
-            localNameTag: document.getElementById('localNameTag'),
+            remoteStatusText: document.getElementById('remoteStatusText'),
             remoteBadge: document.getElementById('remoteBadge'),
+            localNameTag: document.getElementById('localNameTag'),
             remoteNameTag: document.getElementById('remoteNameTag'),
-            localMuteIcon: document.getElementById('localMuteIcon'),
-            remoteMuteIcon: document.getElementById('remoteMuteIcon'),
-            localHandIcon: document.getElementById('localHandIcon'),
-            remoteHandIcon: document.getElementById('remoteHandIcon'),
-            localCamOffIcon: document.getElementById('localCamOffIcon'),
-            remoteCamOffIcon: document.getElementById('remoteCamOffIcon'),
-            sharingIndicator: document.getElementById('sharingIndicator'),
             toggleMicBtn: document.getElementById('toggleMicBtn'),
             toggleCamBtn: document.getElementById('toggleCamBtn'),
-            toggleScreenBtn: document.getElementById('toggleScreenBtn'),
-            toggleHandBtn: document.getElementById('toggleHandBtn'),
-            handPulse: document.getElementById('handPulse'),
-            toggleSidebarBtn: document.getElementById('toggleSidebarBtn'),
-            closeSidebarBtn: document.getElementById('closeSidebarBtn'),
             hangupBtn: document.getElementById('hangupBtn'),
-            sidebar: document.getElementById('sidebar'),
-            sidebarBackdrop: document.getElementById('sidebarBackdrop'),
-            tabChatBtn: document.getElementById('tabChatBtn'),
-            tabLogsBtn: document.getElementById('tabLogsBtn'),
-            tabChat: document.getElementById('tabChat'),
-            tabLogs: document.getElementById('tabLogs'),
-            chatMessages: document.getElementById('chatMessages'),
-            chatForm: document.getElementById('chatForm'),
-            chatInput: document.getElementById('chatInput'),
-            systemLogs: document.getElementById('systemLogs'),
-            chatBadge: document.getElementById('chatBadge'),
-            localVideoWrapper: document.getElementById('localVideoWrapper'),
-            remoteVideoWrapper: document.getElementById('remoteVideoWrapper'),
-
-            // 全屏相关
-            fullscreenOverlay: document.getElementById('fullscreenOverlay'),
-            fullscreenVideo: document.getElementById('fullscreenVideo'),
-            fullscreenTopBar: document.getElementById('fullscreenTopBar'),
-            fullscreenControls: document.getElementById('fullscreenControls'),
-            fullscreenLabel: document.getElementById('fullscreenLabel'),
-            fullscreenHandIndicator: document.getElementById('fullscreenHandIndicator'),
-            fullscreenMuteIndicator: document.getElementById('fullscreenMuteIndicator'),
-            fullscreenCamOffIndicator: document.getElementById('fullscreenCamOffIndicator'),
-            fsCloseTopBtn: document.getElementById('fsCloseTopBtn'),
-            fsMicBtn: document.getElementById('fsMicBtn'),
-            fsCamBtn: document.getElementById('fsCamBtn'),
-            fsHandBtn: document.getElementById('fsHandBtn'),
-            fsChatBtn: document.getElementById('fsChatBtn'),
-            fsChatBadge: document.getElementById('fsChatBadge'),
-            fsExitBtn: document.getElementById('fsExitBtn'),
-            fsHangupBtn: document.getElementById('fsHangupBtn'),
-            fullscreenChat: document.getElementById('fullscreenChat'),
-            fsChatCloseBtn: document.getElementById('fsChatCloseBtn'),
-            fsChatMessages: document.getElementById('fsChatMessages'),
-            fsChatForm: document.getElementById('fsChatForm'),
-            fsChatInput: document.getElementById('fsChatInput')
         };
 
-        // ==== Init ====
-        function init() {
-            el.usernameInput.value = state.username;
-            setupEventListeners();
-            initializeLocalMedia();
-            checkUrlRoomCode();
-            setupBackButtonHandler();
-            window.addEventListener('beforeunload', cleanupBeforeUnload);
-            document.addEventListener('fullscreenchange', handleNativeFullscreenChange);
+        // ==================== 工具 ====================
+        function log(msg) {
+            console.log('[P2P]', msg);
         }
 
-        // ============================================================
-        //  ★ 全屏功能核心
-        // ============================================================
-
-        function enterFullscreen(type) {
-            if (state.isFullscreen) return;
-
-            state.isFullscreen = true;
-            state.fullscreenType = type;
-            state.fullscreenControlsVisible = true;
-            state.fullscreenChatOpen = false;
-
-            // 把对应的视频流给全屏 video
-            const sourceVideo = type === 'local' ? el.localVideo : el.remoteVideo;
-            el.fullscreenVideo.srcObject = sourceVideo.srcObject;
-
-            // 镜像本地画面
-            el.fullscreenOverlay.classList.toggle('mirrored', type === 'local');
-
-            // 更新标签
-            if (type === 'local') {
-                el.fullscreenLabel.textContent = el.localNameTag.textContent + ' (你)';
-            } else {
-                el.fullscreenLabel.textContent = el.remoteNameTag.textContent || '远端';
-            }
-
-            // 更新按钮状态
-            syncFullscreenButtons();
-
-            // 显示覆盖层
-            el.fullscreenOverlay.classList.add('active');
-
-            // 尝试浏览器原生全屏（在手机上尤其重要）
-            tryNativeFullscreen(el.fullscreenOverlay);
-
-            // 自动隐藏控制栏
-            resetControlsTimer();
-
-            logSystem(`Entered fullscreen: ${type}`);
-        }
-
-        function exitFullscreen() {
-            if (!state.isFullscreen) return;
-
-            state.isFullscreen = false;
-            state.fullscreenChatOpen = false;
-
-            // 清空全屏 video 的 srcObject
-            el.fullscreenVideo.srcObject = null;
-
-            el.fullscreenOverlay.classList.remove('active');
-            el.fullscreenOverlay.classList.remove('mirrored');
-            el.fullscreenChat.classList.remove('open');
-
-            // 退出浏览器原生全屏
-            if (document.fullscreenElement) {
-                try { document.exitFullscreen(); } catch (e) {}
-            }
-            // Safari
-            if (document.webkitFullscreenElement) {
-                try { document.webkitExitFullscreen(); } catch (e) {}
-            }
-
-            // 清理计时器
-            if (state.fullscreenControlsTimer) {
-                clearTimeout(state.fullscreenControlsTimer);
-                state.fullscreenControlsTimer = null;
-            }
-
-            logSystem('Exited fullscreen.');
-        }
-
-        function tryNativeFullscreen(element) {
-            try {
-                if (element.requestFullscreen) {
-                    element.requestFullscreen().catch(() => {});
-                } else if (element.webkitRequestFullscreen) {
-                    element.webkitRequestFullscreen();
-                } else if (element.msRequestFullscreen) {
-                    element.msRequestFullscreen();
-                }
-            } catch (e) {}
-        }
-
-        function handleNativeFullscreenChange() {
-            // 用户按 ESC 或系统退出原生全屏 → 关闭我们的全屏覆盖层
-            const isNativeFs = document.fullscreenElement || document.webkitFullscreenElement;
-            if (!isNativeFs && state.isFullscreen) {
-                exitFullscreen();
-            }
-        }
-
-        // 全屏时点击画面 → 切换控制栏显示
-        function toggleFullscreenControls() {
-            state.fullscreenControlsVisible = !state.fullscreenControlsVisible;
-
-            if (state.fullscreenControlsVisible) {
-                el.fullscreenControls.classList.remove('hidden-controls');
-                el.fullscreenTopBar.classList.remove('hidden-controls');
-                resetControlsTimer();
-            } else {
-                el.fullscreenControls.classList.add('hidden-controls');
-                el.fullscreenTopBar.classList.add('hidden-controls');
-                if (state.fullscreenControlsTimer) {
-                    clearTimeout(state.fullscreenControlsTimer);
-                    state.fullscreenControlsTimer = null;
-                }
-            }
-        }
-
-        function resetControlsTimer() {
-            if (state.fullscreenControlsTimer) {
-                clearTimeout(state.fullscreenControlsTimer);
-            }
-            // 3.5 秒后自动隐藏（只在聊天未打开时）
-            state.fullscreenControlsTimer = setTimeout(() => {
-                if (state.isFullscreen && !state.fullscreenChatOpen) {
-                    state.fullscreenControlsVisible = false;
-                    el.fullscreenControls.classList.add('hidden-controls');
-                    el.fullscreenTopBar.classList.add('hidden-controls');
-                }
-            }, 3500);
-        }
-
-        function showFullscreenControls() {
-            if (!state.fullscreenControlsVisible) {
-                state.fullscreenControlsVisible = true;
-                el.fullscreenControls.classList.remove('hidden-controls');
-                el.fullscreenTopBar.classList.remove('hidden-controls');
-            }
-            resetControlsTimer();
-        }
-
-        // 同步全屏按钮状态（静音、关镜头、举手）
-        function syncFullscreenButtons() {
-            // Mic
-            if (state.isAudioMuted) {
-                el.fsMicBtn.classList.add('active-red');
-                el.fsMicBtn.querySelector('i').className = 'fa-solid fa-microphone-slash';
-            } else {
-                el.fsMicBtn.classList.remove('active-red');
-                el.fsMicBtn.querySelector('i').className = 'fa-solid fa-microphone';
-            }
-
-            // Cam
-            if (state.isVideoMuted) {
-                el.fsCamBtn.classList.add('active-red');
-                el.fsCamBtn.querySelector('i').className = 'fa-solid fa-video-slash';
-            } else {
-                el.fsCamBtn.classList.remove('active-red');
-                el.fsCamBtn.querySelector('i').className = 'fa-solid fa-video';
-            }
-
-            // Hand
-            if (state.isHandRaised) {
-                el.fsHandBtn.classList.add('active-amber');
-            } else {
-                el.fsHandBtn.classList.remove('active-amber');
-            }
-
-            // 全屏顶部指示器
-            if (state.fullscreenType === 'local') {
-                el.fullscreenHandIndicator.classList.toggle('hidden', !state.isHandRaised);
-                el.fullscreenHandIndicator.classList.toggle('flex', state.isHandRaised);
-                el.fullscreenMuteIndicator.classList.toggle('hidden', !state.isAudioMuted);
-                el.fullscreenMuteIndicator.classList.toggle('flex', state.isAudioMuted);
-                el.fullscreenCamOffIndicator.classList.toggle('hidden', !state.isVideoMuted);
-                el.fullscreenCamOffIndicator.classList.toggle('flex', state.isVideoMuted);
-            } else {
-                // 远端
-                const remoteHand = !el.remoteHandIcon.classList.contains('hidden');
-                const remoteMute = !el.remoteMuteIcon.classList.contains('hidden');
-                const remoteCamOff = !el.remoteCamOffIcon.classList.contains('hidden');
-
-                el.fullscreenHandIndicator.classList.toggle('hidden', !remoteHand);
-                el.fullscreenHandIndicator.classList.toggle('flex', remoteHand);
-                el.fullscreenMuteIndicator.classList.toggle('hidden', !remoteMute);
-                el.fullscreenMuteIndicator.classList.toggle('flex', remoteMute);
-                el.fullscreenCamOffIndicator.classList.toggle('hidden', !remoteCamOff);
-                el.fullscreenCamOffIndicator.classList.toggle('flex', remoteCamOff);
-            }
-        }
-
-        // 刷新全屏里的视频源（当本地/远端流发生变化时调用）
-        function refreshFullscreenVideo() {
-            if (!state.isFullscreen) return;
-            const sourceVideo = state.fullscreenType === 'local' ? el.localVideo : el.remoteVideo;
-            if (el.fullscreenVideo.srcObject !== sourceVideo.srcObject) {
-                el.fullscreenVideo.srcObject = sourceVideo.srcObject;
-            }
-        }
-
-        // 全屏聊天
-        function toggleFullscreenChat() {
-            state.fullscreenChatOpen = !state.fullscreenChatOpen;
-            el.fullscreenChat.classList.toggle('open', state.fullscreenChatOpen);
-
-            if (state.fullscreenChatOpen) {
-                showFullscreenControls();
-                el.fsChatBadge.classList.add('hidden');
-                // 同步历史消息
-                el.fsChatMessages.innerHTML = el.chatMessages.innerHTML;
-                el.fsChatMessages.scrollTop = el.fsChatMessages.scrollHeight;
-                setTimeout(() => el.fsChatInput.focus(), 100);
-            }
-        }
-
-        // ==== 返回键拦截 ====
-        function setupBackButtonHandler() {
-            history.pushState({ page: 'app' }, '', window.location.href);
-
-            window.addEventListener('popstate', (e) => {
-                // 全屏时 → 优先退出全屏
-                if (state.isFullscreen) {
-                    exitFullscreen();
-                    history.pushState({ page: 'app' }, '', window.location.href);
-                    return;
-                }
-                // 侧边栏打开 → 关掉侧边栏
-                if (state.sidebarOpen) {
-                    closeSidebar();
-                    history.pushState({ page: 'app' }, '', window.location.href);
-                    return;
-                }
-                if (!state.roomID) return;
-                const leave = confirm('要离开房间吗？');
-                if (leave) {
-                    handleHangup(true);
-                } else {
-                    history.pushState({ page: 'app' }, '', window.location.href);
-                }
-            });
-        }
-
-        function checkUrlRoomCode() {
-            const params = new URLSearchParams(window.location.search);
-            const roomFromUrl = params.get('room');
-            if (roomFromUrl) {
-                const code = stripRoomPrefix(roomFromUrl);
-                el.joinRoomInput.value = code;
-                logSystem(`Found room code in URL: ${code}`);
-            }
-        }
-
-        function stripRoomPrefix(input) {
-            let s = (input || '').trim().toLowerCase();
-            if (s.startsWith(ROOM_PREFIX)) s = s.substring(ROOM_PREFIX.length);
+        function generateId(len = 16) {
+            const chars = 'abcdefghijklmnopqrstuvwxyz0123456789';
+            let s = '';
+            for (let i = 0; i < len; i++) s += chars[Math.floor(Math.random() * chars.length)];
             return s;
         }
-        function toFullRoomId(code) {
-            return ROOM_PREFIX + stripRoomPrefix(code);
+
+        function generateRoomCode() {
+            return generateId(6);
         }
 
-        // ==== 本地媒体 ====
-        async function initializeLocalMedia() {
+        // ==================== 本地媒体 ====================
+        async function initLocalStream() {
             try {
-                state.localStream = await navigator.mediaDevices.getUserMedia({ video: true, audio: true });
-                state.cameraTrack = state.localStream.getVideoTracks()[0];
+                state.localStream = await navigator.mediaDevices.getUserMedia({
+                    audio: true,
+                    video: { facingMode: 'user', width: { ideal: 640 }, height: { ideal: 480 } }
+                });
                 el.localVideo.srcObject = state.localStream;
-                logSystem('Camera and Microphone access granted.');
-            } catch (err) {
-                logSystem(`Error acquiring local stream: ${err.message}`, 'error');
-                try {
-                    state.localStream = await navigator.mediaDevices.getUserMedia({ audio: true });
-                    logSystem('Fallback to Microphone-only audio stream.');
-                    el.localAvatar.classList.remove('hidden');
-                    state.isVideoMuted = true;
-                    el.localCamOffIcon.classList.remove('hidden');
-                } catch (audioErr) {
-                    logSystem('Unable to get audio or video devices.', 'error');
-                }
+                log('Local stream ready');
+            } catch (e) {
+                log('getUserMedia error: ' + e.message);
+                alert('无法获取摄像头/麦克风权限');
             }
         }
 
-        // ==== PeerJS ====
-        function initPeer(customId = null) {
-            return new Promise((resolve, reject) => {
-                updateStatus('Connecting to PeerServer...', 'yellow');
-                const opts = { ...peerConfig, debug: 2 };
-                state.peer = customId ? new Peer(customId, opts) : new Peer(opts);
+        // ==================== WebSocket 连接 ====================
+        function connectPeerJS(id, onOpen) {
+            const token = generateId(16);
+            const query = `key=${PEER_KEY}&id=${id}&token=${token}&version=${PEER_VERSION}`;
+            const url = `wss://${PEER_HOST}/peerjs?${query}`;
+            log('Connecting to ' + url);
 
-                state.peer.on('open', (id) => {
-                    state.myPeerId = id;
-                    updateStatus('Connected to PeerServer', 'green');
-                    logSystem(`Peer initialized with ID: ${id}`);
-                    resolve(id);
-                });
+            const ws = new WebSocket(url);
+            state.ws = ws;
 
-                state.peer.on('call', handleIncomingCall);
-                state.peer.on('connection', handleIncomingDataConnection);
-
-                state.peer.on('error', (err) => {
-                    logSystem(`PeerJS Error [${err.type}]: ${err.message}`, 'error');
-                    updateStatus('Peer Connection Error', 'red');
-                    if (err.type === 'unavailable-id') {
-                        alert('Room code is already taken. Please try again.');
+            ws.onopen = () => {
+                log('WebSocket connected');
+                // 心跳
+                state.heartbeatTimer = setInterval(() => {
+                    if (ws.readyState === WebSocket.OPEN) {
+                        ws.send(JSON.stringify({ type: 'HEARTBEAT' }));
                     }
-                    reject(err);
-                });
+                }, 5000);
 
-                state.peer.on('disconnected', () => {
-                    logSystem('Disconnected from signaling server. Attempting reconnect...', 'warn');
-                    updateStatus('Reconnecting...', 'yellow');
-                    try { state.peer.reconnect(); } catch (e) {}
+                // 3 秒兜底：如果没收到 ID 消息，用我们传的 id
+                setTimeout(() => {
+                    if (!state.connected) {
+                        state.myPeerId = id;
+                        state.connected = true;
+                        log('Using provided id: ' + id);
+                        if (onOpen) onOpen(id);
+                    }
+                }, 1500);
+            };
+
+            ws.onmessage = (ev) => {
+                try {
+                    const msg = JSON.parse(ev.data);
+                    handleSignalMessage(msg);
+                } catch (e) {
+                    log('Parse error: ' + e.message);
+                }
+            };
+
+            ws.onerror = (e) => log('WebSocket error');
+            ws.onclose = () => {
+                log('WebSocket closed');
+                if (state.heartbeatTimer) clearInterval(state.heartbeatTimer);
+            };
+        }
+
+        // ==================== 信令消息处理 ====================
+        async function handleSignalMessage(msg) {
+            const type = msg.type;
+            log('recv: ' + type);
+
+            switch (type) {
+                case 'OPEN':
+                    break;
+
+                case 'ID':
+                    state.myPeerId = msg.id;
+                    state.connected = true;
+                    log('Got ID: ' + msg.id);
+                    break;
+
+                case 'OFFER':
+                    await handleOffer(msg);
+                    break;
+
+                case 'ANSWER':
+                    await handleAnswer(msg);
+                    break;
+
+                case 'CANDIDATE':
+                    await handleCandidate(msg);
+                    break;
+
+                case 'LEAVE':
+                    if (msg.src) closeConnection();
+                    break;
+
+                case 'ERROR':
+                    log('Server error: ' + JSON.stringify(msg.payload));
+                    break;
+            }
+        }
+
+        function sendSignal(msg) {
+            if (state.ws && state.ws.readyState === WebSocket.OPEN) {
+                state.ws.send(JSON.stringify(msg));
+            }
+        }
+
+        // ==================== 创建 PeerConnection ====================
+        async function createPeerConnection(peerId) {
+            const pc = new RTCPeerConnection(ICE_CONFIG);
+            state.pc = pc;
+            state.remotePeerId = peerId;
+
+            // 添加本地流（用 addTrack，Unified Plan）
+            if (state.localStream) {
+                for (const track of state.localStream.getTracks()) {
+                    pc.addTrack(track, state.localStream);
+                }
+            }
+
+            // 收集 ICE candidate
+            pc.onicecandidate = (event) => {
+                if (!event.candidate) return;
+                sendSignal({
+                    type: 'CANDIDATE',
+                    payload: {
+                        candidate: event.candidate.candidate,
+                        sdpMid: event.candidate.sdpMid,
+                        sdpMLineIndex: event.candidate.sdpMLineIndex,
+                        connectionId: peerId
+                    },
+                    dst: peerId
                 });
+            };
+
+            // 接收远端流
+            pc.ontrack = (event) => {
+                log('Remote track: ' + event.track.kind);
+                if (event.streams && event.streams[0]) {
+                    el.remoteVideo.srcObject = event.streams[0];
+                    el.remotePlaceholder.classList.add('hidden');
+                    el.remoteBadge.classList.remove('hidden');
+                }
+            };
+
+            pc.oniceconnectionstatechange = () => {
+                log('ICE state: ' + pc.iceConnectionState);
+                if (pc.iceConnectionState === 'connected' ||
+                    pc.iceConnectionState === 'completed') {
+                    el.remoteStatusText.textContent = '已连接';
+                } else if (pc.iceConnectionState === 'disconnected' ||
+                           pc.iceConnectionState === 'failed' ||
+                           pc.iceConnectionState === 'closed') {
+                    closeConnection();
+                }
+            };
+
+            return pc;
+        }
+
+        // ==================== 发起呼叫（App 作为 host 时） ====================
+        async function startCall(peerId) {
+            log('Starting call to ' + peerId);
+            const pc = await createPeerConnection(peerId);
+
+            const offer = await pc.createOffer();
+            await pc.setLocalDescription(offer);
+
+            sendSignal({
+                type: 'OFFER',
+                payload: {
+                    sdp: offer.sdp,
+                    type: offer.type,
+                    connectionId: peerId,
+                    connectionType: 'media'
+                },
+                dst: peerId
             });
         }
 
+        // ==================== 收到 Offer ====================
+        async function handleOffer(msg) {
+            const src = msg.src;
+            const payload = msg.payload;
+            if (!src || !payload || !payload.sdp) return;
+
+            log('Offer from ' + src);
+
+            const pc = await createPeerConnection(src);
+            await pc.setRemoteDescription({ type: payload.type, sdp: payload.sdp });
+            state.hasRemoteDesc = true;
+
+            // 处理暂存的 candidates
+            for (const c of state.pendingCandidates) {
+                try { await pc.addIceCandidate(c); } catch (e) {}
+            }
+            state.pendingCandidates = [];
+
+            const answer = await pc.createAnswer();
+            await pc.setLocalDescription(answer);
+
+            sendSignal({
+                type: 'ANSWER',
+                payload: {
+                    sdp: answer.sdp,
+                    type: answer.type,
+                    connectionId: src
+                },
+                dst: src
+            });
+        }
+
+        // ==================== 收到 Answer ====================
+        async function handleAnswer(msg) {
+            const payload = msg.payload;
+            if (!payload || !payload.sdp || !state.pc) return;
+
+            log('Answer from ' + msg.src);
+            await state.pc.setRemoteDescription({ type: payload.type, sdp: payload.sdp });
+            state.hasRemoteDesc = true;
+
+            for (const c of state.pendingCandidates) {
+                try { await state.pc.addIceCandidate(c); } catch (e) {}
+            }
+            state.pendingCandidates = [];
+        }
+
+        // ==================== 收到 Candidate ====================
+        async function handleCandidate(msg) {
+            const payload = msg.payload;
+            if (!payload) return;
+
+            const candidate = {
+                candidate: payload.candidate,
+                sdpMid: payload.sdpMid,
+                sdpMLineIndex: payload.sdpMLineIndex
+            };
+
+            if (state.pc && state.hasRemoteDesc) {
+                try { await state.pc.addIceCandidate(candidate); } catch (e) {}
+            } else {
+                state.pendingCandidates.push(candidate);
+            }
+        }
+
+        // ==================== 房间操作 ====================
         async function handleCreateRoom() {
             state.username = el.usernameInput.value.trim() || state.username;
-            el.localNameTag.textContent = `${state.username} (Host)`;
-            el.localAvatarInitial.textContent = state.username.charAt(0).toUpperCase();
+            el.localNameTag.textContent = state.username + ' (你)';
 
-            const code = Math.random().toString(36).substring(2, 8);
-            const fullId = toFullRoomId(code);
+            const code = generateRoomCode();
+            state.roomCode = code;
+            state.isHost = true;
 
-            try {
-                await initPeer(fullId);
-                state.roomID = fullId;
-                state.roomCode = code;
-                state.isHost = true;
+            const fullId = ROOM_PREFIX + code;
 
+            connectPeerJS(fullId, () => {
                 el.currentRoomId.textContent = code;
                 el.roomBadge.classList.remove('hidden');
                 el.roomBadge.classList.add('flex');
                 el.lobbyContainer.classList.add('hidden');
-                logSystem(`Room created: ${fullId} (code: ${code})`);
-            } catch (err) {
-                logSystem('Failed to create room.', 'error');
-            }
+                el.remoteStatusText.textContent = '等待对方加入...';
+                log('Room created: ' + code);
+            });
         }
 
         async function handleJoinRoom() {
-            const rawCode = el.joinRoomInput.value.trim();
-            if (!rawCode) {
-                alert('Please enter a Room Code to join.');
-                return;
-            }
-            const code = stripRoomPrefix(rawCode);
+            let code = el.joinRoomInput.value.trim().toLowerCase();
+            if (code.startsWith(ROOM_PREFIX)) code = code.substring(ROOM_PREFIX.length);
             if (!code) {
-                alert('Invalid Room Code.');
+                alert('请输入房间码');
                 return;
             }
-            const fullId = toFullRoomId(code);
 
             state.username = el.usernameInput.value.trim() || state.username;
-            el.localNameTag.textContent = `${state.username}`;
-            el.localAvatarInitial.textContent = state.username.charAt(0).toUpperCase();
+            el.localNameTag.textContent = state.username;
 
-            try {
-                await initPeer();
-                state.roomID = fullId;
-                state.roomCode = code;
-                state.isHost = false;
+            state.roomCode = code;
+            state.isHost = false;
 
+            const myId = generateId(16);
+            const hostId = ROOM_PREFIX + code;
+
+            connectPeerJS(myId, async () => {
                 el.currentRoomId.textContent = code;
                 el.roomBadge.classList.remove('hidden');
                 el.roomBadge.classList.add('flex');
                 el.lobbyContainer.classList.add('hidden');
+                el.remoteStatusText.textContent = '正在连接对方...';
 
-                connectToHost(fullId);
-            } catch (err) {
-                logSystem('Failed to join room.', 'error');
-                resetToLobby();
-            }
-        }
-
-        function connectToHost(hostPeerId) {
-            logSystem(`Connecting to host: ${hostPeerId}...`);
-            let connectionFailed = false;
-            const conn = state.peer.connect(hostPeerId, {
-                metadata: { username: state.username },
-                reliable: true
-            });
-
-            const timeout = setTimeout(() => {
-                if (!state.dataConns.has(hostPeerId) && !connectionFailed) {
-                    connectionFailed = true;
-                    logSystem('Connection timed out. Room may not exist.', 'error');
-                    alert('Unable to connect. Please check the Room Code and make sure the host is online.');
-                    cleanupAllConnections();
-                    resetToLobby();
-                }
-            }, 8000);
-
-            conn.on('open', () => {
-                clearTimeout(timeout);
-                logSystem(`Data channel opened with host ${hostPeerId}.`);
-                setupDataConnection(conn);
-
-                const streamToSend = state.screenStream || state.localStream;
-                const call = state.peer.call(hostPeerId, streamToSend, {
-                    metadata: { username: state.username }
-                });
-                setupMediaCall(call);
-            });
-
-            conn.on('error', (err) => {
-                clearTimeout(timeout);
-                logSystem(`Data connection error: ${err.type || err.message}`, 'error');
-                if (err.type === 'peer-unavailable') {
-                    alert('Room not found or host is offline.');
-                    cleanupAllConnections();
-                    resetToLobby();
-                }
+                // 等 1 秒让 WebSocket 稳定，然后呼叫
+                setTimeout(() => startCall(hostId), 500);
             });
         }
 
-        function handleIncomingCall(call) {
-            logSystem(`Receiving call from: ${call.peer}`);
-            if (state.calls.has(call.peer)) {
-                logSystem(`Already have a call with ${call.peer}, ignoring duplicate.`, 'warn');
-                call.close();
-                return;
+        // ==================== 挂断 ====================
+        function closeConnection() {
+            if (state.pc) {
+                try { state.pc.close(); } catch (e) {}
+                state.pc = null;
             }
-            const streamToSend = state.screenStream || state.localStream;
-            call.answer(streamToSend);
-            setupMediaCall(call);
-        }
-
-        function handleIncomingDataConnection(conn) {
-            logSystem(`Data connection established with: ${conn.peer}`);
-            setupDataConnection(conn);
-        }
-
-        function setupMediaCall(call) {
-            state.calls.set(call.peer, call);
-
-            if (call.metadata && call.metadata.username) {
-                el.remoteNameTag.textContent = call.metadata.username;
-                el.remoteAvatarInitial.textContent = call.metadata.username.charAt(0).toUpperCase();
-            }
-
-            call.on('stream', (remoteStream) => {
-                logSystem(`Remote media stream received from ${call.peer}.`);
-                el.remoteVideo.srcObject = remoteStream;
-                el.remotePlaceholder.classList.add('hidden');
-                el.remoteBadge.classList.remove('hidden');
-                refreshFullscreenVideo();
-
-                const vt = remoteStream.getVideoTracks()[0];
-                if (vt) {
-                    vt.onmute = () => el.remotePlaceholder.classList.remove('hidden');
-                    vt.onunmute = () => el.remotePlaceholder.classList.add('hidden');
-                    vt.onended = () => el.remotePlaceholder.classList.remove('hidden');
-                }
-            });
-
-            call.on('close', () => {
-                logSystem(`Call closed by ${call.peer}.`);
-                state.calls.delete(call.peer);
-                handleRemoteHangup(call.peer);
-            });
-
-            call.on('error', (err) => {
-                logSystem(`Call error with ${call.peer}: ${err.message}`, 'error');
-            });
-        }
-
-        function setupDataConnection(conn) {
-            state.dataConns.set(conn.peer, conn);
-
-            conn.on('open', () => {
-                logSystem(`Data channel open with ${conn.peer}.`);
-                conn.send({ type: 'user-info', username: state.username });
-                conn.send({
-                    type: 'media-state',
-                    audio: !state.isAudioMuted,
-                    video: !state.isVideoMuted,
-                    hand: state.isHandRaised
-                });
-            });
-
-            conn.on('data', (data) => {
-                if (!data || typeof data !== 'object') return;
-
-                if (data.type === 'chat') {
-                    appendChatMessage(data.sender, data.message, false);
-                    // 侧边栏关闭 & 全屏聊天未打开 → 显示小红点
-                    const mainHidden = window.innerWidth < 768 ? !state.sidebarOpen : el.sidebar.classList.contains('hidden');
-                    if (mainHidden && !state.fullscreenChatOpen) {
-                        el.chatBadge.classList.remove('hidden');
-                        el.fsChatBadge.classList.remove('hidden');
-                    }
-                } else if (data.type === 'user-info') {
-                    el.remoteNameTag.textContent = data.username;
-                    el.remoteAvatarInitial.textContent = data.username.charAt(0).toUpperCase();
-                    if (state.isFullscreen && state.fullscreenType === 'remote') {
-                        el.fullscreenLabel.textContent = data.username;
-                    }
-                } else if (data.type === 'media-state') {
-                    if (data.audio !== undefined) {
-                        el.remoteMuteIcon.classList.toggle('hidden', data.audio);
-                    }
-                    if (data.video !== undefined) {
-                        el.remoteCamOffIcon.classList.toggle('hidden', data.video);
-                        el.remoteAvatar.classList.toggle('hidden', data.video);
-                        el.remoteVideo.classList.toggle('opacity-0', !data.video);
-                    }
-                    if (data.hand !== undefined) {
-                        setRemoteHand(data.hand);
-                    }
-                    syncFullscreenButtons();
-                } else if (data.type === 'hand') {
-                    setRemoteHand(data.raised);
-                    if (data.raised) {
-                        playHandSound();
-                        logSystem(`${el.remoteNameTag.textContent} raised their hand.`, 'warn');
-                    }
-                    syncFullscreenButtons();
-                } else if (data.type === 'host-left') {
-                    logSystem('Host has left. Room is now closed.', 'warn');
-                    alert('房主已退出，房间已解散。');
-                    exitFullscreen();
-                    cleanupAllConnections();
-                    resetToLobby();
-                }
-            });
-
-            conn.on('close', () => {
-                logSystem(`Data connection closed with ${conn.peer}.`);
-                state.dataConns.delete(conn.peer);
-            });
-
-            conn.on('error', (err) => {
-                logSystem(`Data connection error: ${err.message}`, 'error');
-            });
-        }
-
-        // ==== 麦克风 ====
-        function toggleMicrophone() {
-            if (!state.localStream) return;
-            const audioTracks = state.localStream.getAudioTracks();
-            if (audioTracks.length === 0) return;
-
-            state.isAudioMuted = !state.isAudioMuted;
-            audioTracks[0].enabled = !state.isAudioMuted;
-
-            el.toggleMicBtn.classList.toggle('bg-slate-800', !state.isAudioMuted);
-            el.toggleMicBtn.classList.toggle('bg-rose-600', state.isAudioMuted);
-            el.toggleMicBtn.classList.toggle('hover:bg-rose-500', state.isAudioMuted);
-            el.localMuteIcon.classList.toggle('hidden', !state.isAudioMuted);
-
-            syncFullscreenButtons();
-            broadcastMediaState();
-            logSystem(`Microphone ${state.isAudioMuted ? 'muted' : 'unmuted'}.`);
-        }
-
-        // ==== 摄像头 ====
-        async function toggleCamera() {
-            if (!state.localStream) return;
-
-            if (state.isVideoMuted) {
-                try {
-                    const freshCam = await navigator.mediaDevices.getUserMedia({ video: true });
-                    const freshTrack = freshCam.getVideoTracks()[0];
-                    state.cameraTrack = freshTrack;
-
-                    const oldVideo = state.localStream.getVideoTracks()[0];
-                    if (oldVideo) state.localStream.removeTrack(oldVideo);
-                    state.localStream.addTrack(freshTrack);
-
-                    state.isVideoMuted = false;
-
-                    el.localVideo.srcObject = state.localStream;
-                    el.localVideo.classList.remove('opacity-0');
-                    el.localAvatar.classList.add('hidden');
-                    el.localCamOffIcon.classList.add('hidden');
-
-                    el.toggleCamBtn.classList.add('bg-slate-800', 'hover:bg-slate-700');
-                    el.toggleCamBtn.classList.remove('bg-rose-600', 'hover:bg-rose-500');
-                    el.toggleCamBtn.querySelector('i').className = 'fa-solid fa-video text-lg';
-
-                    state.calls.forEach(call => replaceVideoTrack(call, freshTrack));
-
-                    syncFullscreenButtons();
-                    broadcastMediaState();
-                    logSystem('Camera enabled. Hardware re-acquired.');
-                } catch (err) {
-                    logSystem(`Failed to enable camera: ${err.message}`, 'error');
-                    alert('无法打开摄像头，请检查权限。');
-                }
-            } else {
-                const videoTracks = state.localStream.getVideoTracks();
-                if (videoTracks.length === 0) return;
-
-                videoTracks.forEach(t => t.stop());
-
-                state.isVideoMuted = true;
-
-                el.localVideo.classList.add('opacity-0');
-                el.localAvatar.classList.remove('hidden');
-                el.localCamOffIcon.classList.remove('hidden');
-
-                el.toggleCamBtn.classList.remove('bg-slate-800', 'hover:bg-slate-700');
-                el.toggleCamBtn.classList.add('bg-rose-600', 'hover:bg-rose-500');
-                el.toggleCamBtn.querySelector('i').className = 'fa-solid fa-video-slash text-lg';
-
-                syncFullscreenButtons();
-                broadcastMediaState();
-                logSystem('Camera disabled. Hardware released.');
-            }
-        }
-
-        // ==== 举手 ====
-        function toggleHand() {
-            state.isHandRaised = !state.isHandRaised;
-            setLocalHand(state.isHandRaised);
-
-            const payload = { type: 'hand', raised: state.isHandRaised };
-            state.dataConns.forEach(conn => {
-                if (conn.open) conn.send(payload);
-            });
-
-            syncFullscreenButtons();
-            logSystem(`Hand ${state.isHandRaised ? 'raised' : 'lowered'}.`);
-        }
-
-        function setLocalHand(raised) {
-            if (raised) {
-                el.toggleHandBtn.classList.remove('bg-slate-800', 'hover:bg-slate-700');
-                el.toggleHandBtn.classList.add('bg-amber-500', 'hover:bg-amber-400', 'text-white');
-                el.localHandIcon.classList.remove('hidden');
-                el.handPulse.classList.remove('hidden');
-            } else {
-                el.toggleHandBtn.classList.add('bg-slate-800', 'hover:bg-slate-700');
-                el.toggleHandBtn.classList.remove('bg-amber-500', 'hover:bg-amber-400', 'text-white');
-                el.localHandIcon.classList.add('hidden');
-                el.handPulse.classList.add('hidden');
-            }
-            syncFullscreenButtons();
-        }
-
-        function setRemoteHand(raised) {
-            if (raised) {
-                el.remoteHandIcon.classList.remove('hidden');
-                playHandSound();
-            } else {
-                el.remoteHandIcon.classList.add('hidden');
-            }
-        }
-
-        function playHandSound() {
-            try {
-                const ctx = new (window.AudioContext || window.webkitAudioContext)();
-                const osc = ctx.createOscillator();
-                const gain = ctx.createGain();
-                osc.connect(gain);
-                gain.connect(ctx.destination);
-                osc.type = 'sine';
-                osc.frequency.setValueAtTime(880, ctx.currentTime);
-                osc.frequency.setValueAtTime(1175, ctx.currentTime + 0.1);
-                gain.gain.setValueAtTime(0.15, ctx.currentTime);
-                gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 0.3);
-                osc.start(ctx.currentTime);
-                osc.stop(ctx.currentTime + 0.3);
-            } catch (e) {}
-        }
-
-        function broadcastMediaState() {
-            const payload = {
-                type: 'media-state',
-                audio: !state.isAudioMuted,
-                video: !state.isVideoMuted,
-                hand: state.isHandRaised
-            };
-            state.dataConns.forEach(conn => {
-                if (conn.open) conn.send(payload);
-            });
-        }
-
-        // ==== 屏幕共享 ====
-        async function toggleScreenShare() {
-            if (state.isScreenSharing) {
-                stopScreenSharing();
-                return;
-            }
-            try {
-                state.screenStream = await navigator.mediaDevices.getDisplayMedia({ video: true, audio: true });
-                state.isScreenSharing = true;
-
-                const screenTrack = state.screenStream.getVideoTracks()[0];
-                if (!state.isVideoMuted && state.cameraTrack) {
-                    state.cameraTrack.stop();
-                }
-
-                el.localVideo.srcObject = state.screenStream;
-                el.localVideo.classList.remove('mirror', 'opacity-0');
-                el.localAvatar.classList.add('hidden');
-                el.sharingIndicator.classList.remove('hidden');
-
-                state.calls.forEach(call => replaceVideoTrack(call, screenTrack));
-                refreshFullscreenVideo();
-
-                el.toggleScreenBtn.classList.remove('bg-slate-800');
-                el.toggleScreenBtn.classList.add('bg-indigo-600', 'hover:bg-indigo-500');
-                logSystem('Screen sharing started.');
-
-                screenTrack.onended = () => stopScreenSharing();
-            } catch (err) {
-                logSystem(`Screen share error: ${err.message}`, 'warn');
-            }
-        }
-
-        async function stopScreenSharing() {
-            if (!state.isScreenSharing) return;
-
-            if (state.screenStream) {
-                state.screenStream.getTracks().forEach(t => t.stop());
-                state.screenStream = null;
-            }
-            state.isScreenSharing = false;
-
-            if (!state.isVideoMuted) {
-                try {
-                    const freshCam = await navigator.mediaDevices.getUserMedia({ video: true });
-                    const freshTrack = freshCam.getVideoTracks()[0];
-                    state.cameraTrack = freshTrack;
-
-                    const oldVideo = state.localStream.getVideoTracks()[0];
-                    if (oldVideo) state.localStream.removeTrack(oldVideo);
-                    state.localStream.addTrack(freshTrack);
-
-                    el.localVideo.srcObject = state.localStream;
-                    el.localVideo.classList.add('mirror');
-                    el.localVideo.classList.remove('opacity-0');
-                    el.localAvatar.classList.add('hidden');
-
-                    state.calls.forEach(call => replaceVideoTrack(call, freshTrack));
-                } catch (err) {
-                    logSystem(`Failed to restore camera: ${err.message}`, 'error');
-                }
-            } else {
-                el.localVideo.classList.add('opacity-0');
-                el.localAvatar.classList.remove('hidden');
-            }
-
-            refreshFullscreenVideo();
-            el.sharingIndicator.classList.add('hidden');
-            el.toggleScreenBtn.classList.add('bg-slate-800');
-            el.toggleScreenBtn.classList.remove('bg-indigo-600', 'hover:bg-indigo-500');
-            logSystem('Screen sharing stopped.');
-        }
-
-        function replaceVideoTrack(call, newTrack) {
-            try {
-                const pc = call.peerConnection;
-                if (!pc) return;
-                const senders = pc.getSenders();
-                const sender = senders.find(s => s.track && s.track.kind === 'video');
-                if (sender) sender.replaceTrack(newTrack);
-            } catch (e) {
-                logSystem(`replaceTrack failed: ${e.message}`, 'warn');
-            }
-        }
-
-        // ==== 挂断 ====
-        function handleHangup(skipConfirm = false) {
-            if (!skipConfirm) {
-                const msg = state.isHost
-                    ? 'Are you sure you want to leave? The room will be closed for everyone.'
-                    : 'Are you sure you want to leave the room?';
-                if (!confirm(msg)) return;
-            }
-
-            // 先退出全屏
-            if (state.isFullscreen) exitFullscreen();
-
-            if (state.isHost) {
-                const payload = { type: 'host-left' };
-                state.dataConns.forEach(conn => {
-                    if (conn.open) conn.send(payload);
-                });
-                logSystem('Broadcasting room closure to all peers...');
-                setTimeout(() => {
-                    cleanupAllConnections();
-                    resetToLobby();
-                    logSystem('Host left. Room closed.');
-                }, 300);
-            } else {
-                cleanupAllConnections();
-                resetToLobby();
-                logSystem('Left the room call session.');
-            }
-        }
-
-        function cleanupAllConnections() {
-            if (state.isScreenSharing && state.screenStream) {
-                state.screenStream.getTracks().forEach(t => t.stop());
-                state.screenStream = null;
-                state.isScreenSharing = false;
-            }
-
-            state.calls.forEach(call => { try { call.close(); } catch (e) {} });
-            state.calls.clear();
-
-            state.dataConns.forEach(conn => { try { conn.close(); } catch (e) {} });
-            state.dataConns.clear();
-
-            if (state.peer) {
-                try { state.peer.destroy(); } catch (e) {}
-                state.peer = null;
-            }
-
             el.remoteVideo.srcObject = null;
             el.remotePlaceholder.classList.remove('hidden');
-            el.remoteAvatar.classList.add('hidden');
             el.remoteBadge.classList.add('hidden');
-            el.remoteMuteIcon.classList.add('hidden');
-            el.remoteCamOffIcon.classList.add('hidden');
-            el.remoteHandIcon.classList.add('hidden');
-            el.sharingIndicator.classList.add('hidden');
-            el.toggleScreenBtn.classList.add('bg-slate-800');
-            el.toggleScreenBtn.classList.remove('bg-indigo-600', 'hover:bg-indigo-500');
-            el.chatBadge.classList.add('hidden');
-            el.fsChatBadge.classList.add('hidden');
-
-            state.isHandRaised = false;
-            setLocalHand(false);
-
-            if (state.sidebarOpen) closeSidebar();
-            if (state.isFullscreen) exitFullscreen();
+            el.remoteStatusText.textContent = '对方已离开';
         }
 
-        function resetToLobby() {
-            state.roomID = null;
-            state.roomCode = null;
-            state.isHost = false;
-            state.myPeerId = null;
+        function handleHangup() {
+            if (state.remotePeerId) {
+                sendSignal({ type: 'LEAVE', dst: state.remotePeerId });
+            }
+            closeConnection();
 
+            if (state.ws) {
+                try { state.ws.close(); } catch (e) {}
+                state.ws = null;
+            }
+            if (state.heartbeatTimer) clearInterval(state.heartbeatTimer);
+
+            // 回大厅
             el.lobbyContainer.classList.remove('hidden');
             el.roomBadge.classList.add('hidden');
             el.roomBadge.classList.remove('flex');
-            el.currentRoomId.textContent = '--';
-            el.joinRoomInput.value = '';
-            el.chatMessages.innerHTML = '<div class="text-center text-xs text-slate-500 my-2">Chat session started</div>';
-            el.fsChatMessages.innerHTML = '<div class="text-center text-xs text-slate-500">Chat session started</div>';
-
-            updateStatus('Ready', 'green');
+            state.roomCode = null;
+            state.isHost = false;
+            state.remotePeerId = null;
+            state.connected = false;
         }
 
-        function handleRemoteHangup(peerId) {
-            if (state.calls.size === 0) {
-                el.remoteVideo.srcObject = null;
-                el.remotePlaceholder.classList.remove('hidden');
-                el.remoteBadge.classList.add('hidden');
-                el.remoteMuteIcon.classList.add('hidden');
-                el.remoteCamOffIcon.classList.add('hidden');
-                el.remoteHandIcon.classList.add('hidden');
-                el.remoteAvatar.classList.add('hidden');
-                if (state.isFullscreen && state.fullscreenType === 'remote') {
-                    exitFullscreen();
-                }
-            }
-            logSystem(`Peer ${peerId} left.`);
+        // ==================== 麦克风 / 摄像头 ====================
+        function toggleMic() {
+            if (!state.localStream) return;
+            const audioTracks = state.localStream.getAudioTracks();
+            if (audioTracks.length === 0) return;
+            audioTracks[0].enabled = !audioTracks[0].enabled;
+            el.toggleMicBtn.classList.toggle('bg-rose-600', !audioTracks[0].enabled);
+            el.toggleMicBtn.classList.toggle('bg-slate-800', audioTracks[0].enabled);
         }
 
-        // ==== 聊天 ====
-        function handleSendMessage(e, isFullscreen = false) {
-            e.preventDefault();
-            const input = isFullscreen ? el.fsChatInput : el.chatInput;
-            const text = input.value.trim();
-            if (!text) return;
-
-            appendChatMessage('You', text, true);
-
-            let sent = false;
-            state.dataConns.forEach(conn => {
-                if (conn.open) {
-                    conn.send({ type: 'chat', sender: state.username, message: text });
-                    sent = true;
-                }
-            });
-
-            if (!sent) logSystem('No connected peer to receive message.', 'warn');
-            input.value = '';
+        async function toggleCam() {
+            if (!state.localStream) return;
+            const videoTracks = state.localStream.getVideoTracks();
+            if (videoTracks.length === 0) return;
+            const enabled = !videoTracks[0].enabled;
+            videoTracks[0].enabled = enabled;
+            el.toggleCamBtn.classList.toggle('bg-rose-600', !enabled);
+            el.toggleCamBtn.classList.toggle('bg-slate-800', enabled);
         }
 
-        function appendChatMessage(sender, message, isSelf) {
-            const time = new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
-
-            // 主聊天
-            const msgDiv = document.createElement('div');
-            msgDiv.className = `flex flex-col ${isSelf ? 'items-end' : 'items-start'} my-1`;
-
-            const nameTag = document.createElement('span');
-            nameTag.className = 'text-[10px] text-slate-500 mb-0.5 px-1';
-            nameTag.textContent = `${sender} · ${time}`;
-
-            const bubble = document.createElement('div');
-            bubble.className = `max-w-[85%] rounded-2xl px-3 py-2 text-xs ${
-                isSelf
-                    ? 'bg-indigo-600 text-white rounded-br-none'
-                    : 'bg-slate-800 text-slate-200 border border-slate-700/60 rounded-bl-none'
-            }`;
-            bubble.textContent = message;
-
-            msgDiv.appendChild(nameTag);
-            msgDiv.appendChild(bubble);
-            el.chatMessages.appendChild(msgDiv);
-            el.chatMessages.scrollTop = el.chatMessages.scrollHeight;
-
-            // 全屏聊天同步
-            const fsMsg = msgDiv.cloneNode(true);
-            el.fsChatMessages.appendChild(fsMsg);
-            el.fsChatMessages.scrollTop = el.fsChatMessages.scrollHeight;
-        }
-
-        // ==== 侧边栏 ====
-        function openSidebar() {
-            if (window.innerWidth < 768) {
-                el.sidebar.classList.remove('sidebar-hidden');
-                el.sidebar.classList.remove('hidden');
-                el.sidebar.classList.add('flex');
-                el.sidebarBackdrop.classList.remove('hidden');
-                state.sidebarOpen = true;
-                history.pushState({ sidebar: true }, '', window.location.href);
-            } else {
-                el.sidebar.classList.remove('hidden');
-            }
-            el.chatBadge.classList.add('hidden');
-        }
-
-        function closeSidebar() {
-            if (window.innerWidth < 768) {
-                el.sidebar.classList.add('sidebar-hidden');
-                el.sidebarBackdrop.classList.add('hidden');
-                setTimeout(() => {
-                    if (state.sidebarOpen === false) {
-                        el.sidebar.classList.remove('flex');
-                        el.sidebar.classList.add('hidden');
-                    }
-                }, 300);
-                state.sidebarOpen = false;
-            } else {
-                el.sidebar.classList.add('hidden');
-            }
-        }
-
-        function toggleSidebar() {
-            const isOpen = window.innerWidth < 768 ? state.sidebarOpen : !el.sidebar.classList.contains('hidden');
-            if (isOpen) closeSidebar();
-            else openSidebar();
-        }
-
-        // ==== 日志 & 状态 ====
-        function logSystem(message, level = 'info') {
-            const logEntry = document.createElement('div');
-            const time = new Date().toLocaleTimeString();
-            let colorClass = 'text-slate-400';
-            if (level === 'error') colorClass = 'text-rose-400 font-semibold';
-            if (level === 'warn') colorClass = 'text-amber-400';
-            logEntry.className = `${colorClass} text-[11px] leading-relaxed`;
-            logEntry.textContent = `[${time}] ${message}`;
-            el.systemLogs.appendChild(logEntry);
-            el.systemLogs.scrollTop = el.systemLogs.scrollHeight;
-            console.log(`[P2P App] ${message}`);
-        }
-
-        function updateStatus(text, color) {
-            el.statusText.textContent = text;
-            const colorMap = {
-                green:  ['bg-emerald-500', 'bg-emerald-400'],
-                yellow: ['bg-amber-500',   'bg-amber-400'],
-                red:    ['bg-rose-500',    'bg-rose-400']
-            };
-            const c = colorMap[color] || colorMap.green;
-            el.statusDot.className = `relative inline-flex rounded-full h-2.5 w-2.5 ${c[0]}`;
-            el.statusPing.className = `animate-ping absolute inline-flex h-full w-full rounded-full opacity-75 ${c[1]}`;
-        }
-
-        function cleanupBeforeUnload() {
-            try {
-                if (state.isHost) {
-                    const payload = { type: 'host-left' };
-                    state.dataConns.forEach(conn => {
-                        if (conn.open) conn.send(payload);
-                    });
-                }
-                state.calls.forEach(c => c.close());
-                state.dataConns.forEach(d => d.close());
-                if (state.peer) state.peer.destroy();
-                if (state.screenStream) state.screenStream.getTracks().forEach(t => t.stop());
-                if (state.localStream) state.localStream.getTracks().forEach(t => t.stop());
-            } catch (e) {}
-        }
-
-        // ==== 事件绑定 ====
-        function setupEventListeners() {
+        // ==================== 事件绑定 ====================
+        function setupEvents() {
+            el.usernameInput.value = state.username;
             el.createRoomBtn.addEventListener('click', handleCreateRoom);
             el.joinRoomBtn.addEventListener('click', handleJoinRoom);
-
-            el.toggleMicBtn.addEventListener('click', toggleMicrophone);
-            el.toggleCamBtn.addEventListener('click', toggleCamera);
-            el.toggleScreenBtn.addEventListener('click', toggleScreenShare);
-            el.toggleHandBtn.addEventListener('click', toggleHand);
-            el.hangupBtn.addEventListener('click', () => handleHangup());
-
-            el.chatForm.addEventListener('submit', (e) => handleSendMessage(e, false));
+            el.hangupBtn.addEventListener('click', handleHangup);
+            el.toggleMicBtn.addEventListener('click', toggleMic);
+            el.toggleCamBtn.addEventListener('click', toggleCam);
 
             el.copyRoomBtn.addEventListener('click', () => {
                 if (!state.roomCode) return;
-                const shareUrl = `${window.location.origin}${window.location.pathname}?room=${state.roomCode}`;
-                const done = () => alert(`Invite link copied:\n${shareUrl}`);
-                if (navigator.clipboard && navigator.clipboard.writeText) {
-                    navigator.clipboard.writeText(shareUrl).then(done).catch(() => {
-                        prompt('Copy this link:', shareUrl);
-                    });
-                } else {
-                    prompt('Copy this link:', shareUrl);
-                }
+                const url = `${location.origin}${location.pathname}?room=${state.roomCode}`;
+                navigator.clipboard.writeText(url).then(() => alert('邀请链接已复制:\n' + url));
             });
 
             el.joinRoomInput.addEventListener('input', (e) => {
                 let v = e.target.value.toLowerCase();
-                if (v.startsWith(ROOM_PREFIX)) {
-                    e.target.value = v.substring(ROOM_PREFIX.length);
-                }
+                if (v.startsWith(ROOM_PREFIX)) e.target.value = v.substring(ROOM_PREFIX.length);
             });
-
-            el.toggleSidebarBtn.addEventListener('click', toggleSidebar);
-            el.closeSidebarBtn.addEventListener('click', closeSidebar);
-            el.sidebarBackdrop.addEventListener('click', closeSidebar);
-
-            el.tabChatBtn.addEventListener('click', () => {
-                el.tabChat.classList.remove('hidden');
-                el.tabLogs.classList.add('hidden');
-                el.tabChatBtn.className = 'flex-1 py-3 text-xs font-semibold uppercase tracking-wider text-indigo-400 border-b-2 border-indigo-500 focus:outline-none flex items-center justify-center gap-2';
-                el.tabLogsBtn.className = 'flex-1 py-3 text-xs font-semibold uppercase tracking-wider text-slate-400 hover:text-slate-200 focus:outline-none flex items-center justify-center gap-2';
-                el.chatBadge.classList.add('hidden');
-            });
-
-            el.tabLogsBtn.addEventListener('click', () => {
-                el.tabLogs.classList.remove('hidden');
-                el.tabChat.classList.add('hidden');
-                el.tabLogsBtn.className = 'flex-1 py-3 text-xs font-semibold uppercase tracking-wider text-indigo-400 border-b-2 border-indigo-500 focus:outline-none flex items-center justify-center gap-2';
-                el.tabChatBtn.className = 'flex-1 py-3 text-xs font-semibold uppercase tracking-wider text-slate-400 hover:text-slate-200 focus:outline-none flex items-center justify-center gap-2';
-            });
-
-            // ============ 全屏相关事件 ============
-            // 点击视频画面 → 进入全屏
-            el.localVideoWrapper.addEventListener('click', (e) => {
-                // 如果点击的是"共享屏幕"按钮等，不触发全屏
-                if (state.roomID) enterFullscreen('local');
-            });
-            el.remoteVideoWrapper.addEventListener('click', () => {
-                if (state.roomID) enterFullscreen('remote');
-            });
-
-            // 点击全屏画面 → 切换控制栏
-            el.fullscreenVideo.addEventListener('click', (e) => {
-                e.stopPropagation();
-                toggleFullscreenControls();
-            });
-
-            // 顶部退出按钮
-            el.fsCloseTopBtn.addEventListener('click', (e) => {
-                e.stopPropagation();
-                exitFullscreen();
-            });
-
-            // 底部控制栏按钮
-            el.fsMicBtn.addEventListener('click', (e) => {
-                e.stopPropagation();
-                toggleMicrophone();
-                showFullscreenControls();
-            });
-            el.fsCamBtn.addEventListener('click', (e) => {
-                e.stopPropagation();
-                toggleCamera();
-                showFullscreenControls();
-            });
-            el.fsHandBtn.addEventListener('click', (e) => {
-                e.stopPropagation();
-                toggleHand();
-                showFullscreenControls();
-            });
-            el.fsChatBtn.addEventListener('click', (e) => {
-                e.stopPropagation();
-                toggleFullscreenChat();
-            });
-            el.fsExitBtn.addEventListener('click', (e) => {
-                e.stopPropagation();
-                exitFullscreen();
-            });
-            el.fsHangupBtn.addEventListener('click', (e) => {
-                e.stopPropagation();
-                handleHangup();
-            });
-
-            // 全屏聊天关闭
-            el.fsChatCloseBtn.addEventListener('click', (e) => {
-                e.stopPropagation();
-                toggleFullscreenChat();
-            });
-            el.fsChatForm.addEventListener('submit', (e) => handleSendMessage(e, true));
-
-            // 阻止全屏聊天内部点击冒泡（避免触发切换控制栏）
-            el.fullscreenChat.addEventListener('click', (e) => e.stopPropagation());
-
-            // 阻止顶部栏点击冒泡
-            el.fullscreenTopBar.addEventListener('click', (e) => e.stopPropagation());
-
-            // 阻止底部控制栏点击冒泡
-            el.fullscreenControls.addEventListener('click', (e) => e.stopPropagation());
         }
 
-        document.addEventListener('DOMContentLoaded', init);
+        // ==================== 初始化 ====================
+        window.addEventListener('DOMContentLoaded', async () => {
+            setupEvents();
+
+            // 从 URL 读房间码
+            const params = new URLSearchParams(location.search);
+            const room = params.get('room');
+            if (room) {
+                let code = room.toLowerCase();
+                if (code.startsWith(ROOM_PREFIX)) code = code.substring(ROOM_PREFIX.length);
+                el.joinRoomInput.value = code;
+            }
+
+            await initLocalStream();
+        });
     })();
     </script>
 </body>
