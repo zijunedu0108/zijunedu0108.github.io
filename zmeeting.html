@@ -4,7 +4,6 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>P2P Connect</title>
-    <!-- Favicon -->
     <link rel="icon" type="image/png" href="zijunlogo.png">
     <link rel="apple-touch-icon" href="zijunlogo.png">
 
@@ -29,7 +28,6 @@
         ::-webkit-scrollbar-thumb:hover { background: rgba(71, 85, 105, 1); }
         .mirror { transform: scaleX(-1); }
 
-        /* 举手动画 */
         @keyframes handWave {
             0%, 100% { transform: rotate(0deg) scale(1); }
             25% { transform: rotate(-15deg) scale(1.1); }
@@ -44,8 +42,30 @@
             70% { box-shadow: 0 0 0 12px rgba(251, 191, 36, 0); }
             100% { box-shadow: 0 0 0 0 rgba(251, 191, 36, 0); }
         }
-        .pulse-ring {
-            animation: pulseRing 1.5s infinite;
+        .pulse-ring { animation: pulseRing 1.5s infinite; }
+
+        /* 侧边栏手机端滑入动画 */
+        @media (max-width: 767px) {
+            #sidebar {
+                position: fixed;
+                top: 0;
+                right: 0;
+                bottom: 0;
+                width: 85%;
+                max-width: 340px;
+                z-index: 40;
+                transition: transform 0.3s ease-out;
+            }
+            #sidebar.sidebar-hidden {
+                transform: translateX(100%);
+            }
+            #sidebarBackdrop {
+                position: fixed;
+                inset: 0;
+                background: rgba(0,0,0,0.5);
+                z-index: 35;
+                transition: opacity 0.3s;
+            }
         }
     </style>
 </head>
@@ -53,7 +73,6 @@
 
     <header class="glass h-16 px-6 flex items-center justify-between z-20 shrink-0 border-b border-slate-800">
         <div class="flex items-center gap-3">
-            <!-- Logo 用 zijunlogo.png 替代图标 -->
             <div class="w-10 h-10 rounded-xl overflow-hidden bg-slate-900 flex items-center justify-center shadow-lg shadow-indigo-500/20 border border-slate-800">
                 <img src="zijunlogo.png" alt="Logo" class="w-full h-full object-cover">
             </div>
@@ -147,6 +166,7 @@
                     <div class="absolute bottom-3 left-3 bg-slate-950/70 backdrop-blur-md px-3 py-1 rounded-lg text-xs font-medium text-slate-200 border border-slate-800/60 flex items-center gap-2">
                         <span id="localNameTag">You (Host)</span>
                         <i id="localMuteIcon" class="fa-solid fa-microphone-slash text-rose-400 hidden"></i>
+                        <i id="localCamOffIcon" class="fa-solid fa-video-slash text-rose-400 hidden"></i>
                         <i id="localHandIcon" class="fa-solid fa-hand text-amber-400 hand-anim hidden"></i>
                     </div>
                     <div id="sharingIndicator" class="hidden absolute top-3 left-3 bg-indigo-600/90 backdrop-blur-md px-3 py-1 rounded-lg text-xs font-medium text-white border border-indigo-400/50 flex items-center gap-2">
@@ -157,6 +177,12 @@
                 <!-- Remote -->
                 <div id="remoteVideoWrapper" class="relative bg-slate-900/90 rounded-2xl overflow-hidden border border-slate-800 shadow-lg group flex items-center justify-center">
                     <video id="remoteVideo" class="w-full h-full object-cover" autoplay playsinline></video>
+                    <!-- 远端头像遮罩（对端关摄像头时显示） -->
+                    <div id="remoteAvatar" class="hidden absolute inset-0 flex items-center justify-center bg-slate-900">
+                        <div class="w-20 h-20 rounded-full bg-slate-800 flex items-center justify-center border-2 border-slate-700 text-slate-400 text-2xl font-bold">
+                            <span id="remoteAvatarInitial">P</span>
+                        </div>
+                    </div>
                     <div id="remotePlaceholder" class="absolute inset-0 flex flex-col items-center justify-center bg-slate-900/90 gap-3 text-slate-500">
                         <div class="w-16 h-16 rounded-full bg-slate-800/80 flex items-center justify-center border border-slate-700">
                             <i class="fa-solid fa-user-clock text-2xl"></i>
@@ -166,6 +192,7 @@
                     <div id="remoteBadge" class="hidden absolute bottom-3 left-3 bg-slate-950/70 backdrop-blur-md px-3 py-1 rounded-lg text-xs font-medium text-slate-200 border border-slate-800/60 flex items-center gap-2">
                         <span id="remoteNameTag">Peer</span>
                         <i id="remoteMuteIcon" class="fa-solid fa-microphone-slash text-rose-400 hidden"></i>
+                        <i id="remoteCamOffIcon" class="fa-solid fa-video-slash text-rose-400 hidden"></i>
                         <i id="remoteHandIcon" class="fa-solid fa-hand text-amber-400 hand-anim hidden"></i>
                     </div>
                 </div>
@@ -183,20 +210,15 @@
                     <button id="toggleScreenBtn" class="w-12 h-12 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-200 flex items-center justify-center transition-all focus:outline-none" title="Share Screen">
                         <i class="fa-solid fa-desktop text-lg"></i>
                     </button>
-
-                    <!-- Raise Hand Button -->
                     <button id="toggleHandBtn" class="w-12 h-12 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-200 flex items-center justify-center transition-all focus:outline-none relative" title="Raise Hand">
                         <i class="fa-solid fa-hand text-lg"></i>
                         <span id="handPulse" class="hidden absolute inset-0 rounded-xl pulse-ring pointer-events-none"></span>
                     </button>
-
                     <button id="toggleSidebarBtn" class="w-12 h-12 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-200 flex items-center justify-center transition-all focus:outline-none relative" title="Chat & Logs">
                         <i class="fa-solid fa-comments text-lg"></i>
                         <span id="chatBadge" class="hidden absolute top-2 right-2 w-2.5 h-2.5 bg-indigo-500 rounded-full"></span>
                     </button>
-
                     <div class="w-px h-6 bg-slate-800 my-auto"></div>
-
                     <button id="hangupBtn" class="w-12 h-12 rounded-xl bg-rose-600 hover:bg-rose-500 text-white flex items-center justify-center transition-all shadow-lg shadow-rose-600/30 focus:outline-none" title="Leave Call">
                         <i class="fa-solid fa-phone-slash text-lg"></i>
                     </button>
@@ -204,14 +226,20 @@
             </div>
         </div>
 
+        <!-- 手机端侧边栏背景遮罩 -->
+        <div id="sidebarBackdrop" class="hidden md:hidden"></div>
+
         <!-- Sidebar -->
-        <aside id="sidebar" class="w-80 glass border-l border-slate-800 flex flex-col transition-all duration-300 transform translate-x-0 hidden md:flex z-10">
+        <aside id="sidebar" class="w-80 glass border-l border-slate-800 flex flex-col transition-all duration-300 transform translate-x-0 hidden md:flex md:relative sidebar-hidden z-10">
             <div class="flex border-b border-slate-800">
                 <button id="tabChatBtn" class="flex-1 py-3 text-xs font-semibold uppercase tracking-wider text-indigo-400 border-b-2 border-indigo-500 focus:outline-none flex items-center justify-center gap-2">
                     <i class="fa-solid fa-message"></i> Chat
                 </button>
                 <button id="tabLogsBtn" class="flex-1 py-3 text-xs font-semibold uppercase tracking-wider text-slate-400 hover:text-slate-200 focus:outline-none flex items-center justify-center gap-2">
                     <i class="fa-solid fa-list-ul"></i> System Logs
+                </button>
+                <button id="closeSidebarBtn" class="md:hidden px-3 text-slate-400 hover:text-white focus:outline-none" title="Close">
+                    <i class="fa-solid fa-xmark"></i>
                 </button>
             </div>
 
@@ -237,15 +265,13 @@
 
     <script>
     (function() {
-        // ==== Constants ====
         const ROOM_PREFIX = 'room-';
 
-        // ==== App State ====
         const state = {
             peer: null,
             myPeerId: null,
-            roomID: null,          // 完整 ID（room-xxxxxx）
-            roomCode: null,        // 短码（xxxxxx）
+            roomID: null,
+            roomCode: null,
             isHost: false,
             calls: new Map(),
             dataConns: new Map(),
@@ -257,7 +283,8 @@
             isVideoMuted: false,
             isScreenSharing: false,
             isHandRaised: false,
-            activeTab: 'chat'
+            activeTab: 'chat',
+            sidebarOpen: false  // 手机端用于返回键判断
         };
 
         const peerConfig = {
@@ -287,6 +314,8 @@
             localVideo: document.getElementById('localVideo'),
             remoteVideo: document.getElementById('remoteVideo'),
             remotePlaceholder: document.getElementById('remotePlaceholder'),
+            remoteAvatar: document.getElementById('remoteAvatar'),
+            remoteAvatarInitial: document.getElementById('remoteAvatarInitial'),
             localAvatar: document.getElementById('localAvatar'),
             localAvatarInitial: document.getElementById('localAvatarInitial'),
             localNameTag: document.getElementById('localNameTag'),
@@ -296,6 +325,8 @@
             remoteMuteIcon: document.getElementById('remoteMuteIcon'),
             localHandIcon: document.getElementById('localHandIcon'),
             remoteHandIcon: document.getElementById('remoteHandIcon'),
+            localCamOffIcon: document.getElementById('localCamOffIcon'),
+            remoteCamOffIcon: document.getElementById('remoteCamOffIcon'),
             sharingIndicator: document.getElementById('sharingIndicator'),
             toggleMicBtn: document.getElementById('toggleMicBtn'),
             toggleCamBtn: document.getElementById('toggleCamBtn'),
@@ -303,8 +334,10 @@
             toggleHandBtn: document.getElementById('toggleHandBtn'),
             handPulse: document.getElementById('handPulse'),
             toggleSidebarBtn: document.getElementById('toggleSidebarBtn'),
+            closeSidebarBtn: document.getElementById('closeSidebarBtn'),
             hangupBtn: document.getElementById('hangupBtn'),
             sidebar: document.getElementById('sidebar'),
+            sidebarBackdrop: document.getElementById('sidebarBackdrop'),
             tabChatBtn: document.getElementById('tabChatBtn'),
             tabLogsBtn: document.getElementById('tabLogsBtn'),
             tabChat: document.getElementById('tabChat'),
@@ -322,14 +355,43 @@
             setupEventListeners();
             initializeLocalMedia();
             checkUrlRoomCode();
+            setupBackButtonHandler();
             window.addEventListener('beforeunload', cleanupBeforeUnload);
+        }
+
+        // ==== 返回键拦截 ====
+        function setupBackButtonHandler() {
+            // 推一个假的历史状态，这样用户按返回键会触发 popstate 而不是退出
+            history.pushState({ page: 'app' }, '', window.location.href);
+
+            window.addEventListener('popstate', (e) => {
+                // 如果侧边栏打开 → 关掉侧边栏，不退出
+                if (state.sidebarOpen) {
+                    closeSidebar();
+                    // 再推一个状态，防止再次返回时直接退出
+                    history.pushState({ page: 'app' }, '', window.location.href);
+                    return;
+                }
+                // 如果在大厅（未进入房间）→ 允许退出
+                if (!state.roomID) {
+                    return; // 浏览器会自然退出
+                }
+                // 在房间里 → 阻止退出，询问是否离开房间
+                const leave = confirm('要离开房间吗？');
+                if (leave) {
+                    handleHangup(true);
+                    // 不阻止退出，让用户退出
+                } else {
+                    // 用户不想离开，恢复历史状态
+                    history.pushState({ page: 'app' }, '', window.location.href);
+                }
+            });
         }
 
         function checkUrlRoomCode() {
             const params = new URLSearchParams(window.location.search);
             const roomFromUrl = params.get('room');
             if (roomFromUrl) {
-                // URL 里可能是 room-xxxx，也可能是 xxxx，统一去掉前缀
                 const code = stripRoomPrefix(roomFromUrl);
                 el.joinRoomInput.value = code;
                 logSystem(`Found room code in URL: ${code}`);
@@ -346,7 +408,7 @@
             return ROOM_PREFIX + stripRoomPrefix(code);
         }
 
-        // ==== 本地媒体 ====
+        // ==== 本地媒体（关键修复：摄像头真正关闭） ====
         async function initializeLocalMedia() {
             try {
                 state.localStream = await navigator.mediaDevices.getUserMedia({ video: true, audio: true });
@@ -359,6 +421,8 @@
                     state.localStream = await navigator.mediaDevices.getUserMedia({ audio: true });
                     logSystem('Fallback to Microphone-only audio stream.');
                     el.localAvatar.classList.remove('hidden');
+                    state.isVideoMuted = true;
+                    el.localCamOffIcon.classList.remove('hidden');
                 } catch (audioErr) {
                     logSystem('Unable to get audio or video devices.', 'error');
                 }
@@ -405,7 +469,7 @@
             el.localNameTag.textContent = `${state.username} (Host)`;
             el.localAvatarInitial.textContent = state.username.charAt(0).toUpperCase();
 
-            const code = Math.random().toString(36).substring(2, 8); // 6 位短码
+            const code = Math.random().toString(36).substring(2, 8);
             const fullId = toFullRoomId(code);
 
             try {
@@ -414,7 +478,7 @@
                 state.roomCode = code;
                 state.isHost = true;
 
-                el.currentRoomId.textContent = code; // 显示短码
+                el.currentRoomId.textContent = code;
                 el.roomBadge.classList.remove('hidden');
                 el.roomBadge.classList.add('flex');
                 el.lobbyContainer.classList.add('hidden');
@@ -432,7 +496,7 @@
                 return;
             }
 
-            const code = stripRoomPrefix(rawCode); // 用户只输 short code，也兼容 room-xxx
+            const code = stripRoomPrefix(rawCode);
             if (!code) {
                 alert('Invalid Room Code.');
                 return;
@@ -508,13 +572,11 @@
         // ==== 呼叫处理 ====
         function handleIncomingCall(call) {
             logSystem(`Receiving call from: ${call.peer}`);
-
             if (state.calls.has(call.peer)) {
                 logSystem(`Already have a call with ${call.peer}, ignoring duplicate.`, 'warn');
                 call.close();
                 return;
             }
-
             const streamToSend = state.screenStream || state.localStream;
             call.answer(streamToSend);
             setupMediaCall(call);
@@ -530,6 +592,7 @@
 
             if (call.metadata && call.metadata.username) {
                 el.remoteNameTag.textContent = call.metadata.username;
+                el.remoteAvatarInitial.textContent = call.metadata.username.charAt(0).toUpperCase();
             }
 
             call.on('stream', (remoteStream) => {
@@ -577,14 +640,23 @@
 
                 if (data.type === 'chat') {
                     appendChatMessage(data.sender, data.message, false);
-                    if (el.sidebar.classList.contains('hidden')) {
+                    if (!state.sidebarOpen && window.innerWidth < 768) {
+                        el.chatBadge.classList.remove('hidden');
+                    } else if (el.sidebar.classList.contains('hidden')) {
                         el.chatBadge.classList.remove('hidden');
                     }
                 } else if (data.type === 'user-info') {
                     el.remoteNameTag.textContent = data.username;
+                    el.remoteAvatarInitial.textContent = data.username.charAt(0).toUpperCase();
                 } else if (data.type === 'media-state') {
                     if (data.audio !== undefined) {
                         el.remoteMuteIcon.classList.toggle('hidden', data.audio);
+                    }
+                    if (data.video !== undefined) {
+                        // ★ 关键修复：对端关摄像头 → 显示头像
+                        el.remoteCamOffIcon.classList.toggle('hidden', data.video);
+                        el.remoteAvatar.classList.toggle('hidden', data.video);
+                        el.remoteVideo.classList.toggle('opacity-0', !data.video);
                     }
                     if (data.hand !== undefined) {
                         setRemoteHand(data.hand);
@@ -594,13 +666,8 @@
                     if (data.raised) {
                         playHandSound();
                         logSystem(`${el.remoteNameTag.textContent} raised their hand.`, 'warn');
-                        // 侧边栏关闭时也提示
-                        if (el.sidebar.classList.contains('hidden')) {
-                            el.chatBadge.classList.remove('hidden');
-                        }
                     }
                 } else if (data.type === 'host-left') {
-                    // 房主解散房间
                     logSystem('Host has left. Room is now closed.', 'warn');
                     alert('房主已退出，房间已解散。');
                     cleanupAllConnections();
@@ -618,7 +685,7 @@
             });
         }
 
-        // ==== 控制按钮 ====
+        // ==== 麦克风 ====
         function toggleMicrophone() {
             if (!state.localStream) return;
             const audioTracks = state.localStream.getAudioTracks();
@@ -636,30 +703,71 @@
             logSystem(`Microphone ${state.isAudioMuted ? 'muted' : 'unmuted'}.`);
         }
 
-        function toggleCamera() {
+        // ==== 摄像头（★ 关键修复：真正关闭硬件） ====
+        async function toggleCamera() {
             if (!state.localStream) return;
-            const videoTracks = state.localStream.getVideoTracks();
-            if (videoTracks.length === 0) return;
 
-            state.isVideoMuted = !state.isVideoMuted;
-            videoTracks[0].enabled = !state.isVideoMuted;
+            if (state.isVideoMuted) {
+                // ==== 打开摄像头：重新获取硬件 ====
+                try {
+                    const freshCam = await navigator.mediaDevices.getUserMedia({ video: true });
+                    const freshTrack = freshCam.getVideoTracks()[0];
+                    state.cameraTrack = freshTrack;
 
-            el.toggleCamBtn.classList.toggle('bg-slate-800', !state.isVideoMuted);
-            el.toggleCamBtn.classList.toggle('bg-rose-600', state.isVideoMuted);
-            el.toggleCamBtn.classList.toggle('hover:bg-rose-500', state.isVideoMuted);
-            el.localAvatar.classList.toggle('hidden', !state.isVideoMuted);
-            el.localVideo.classList.toggle('opacity-0', state.isVideoMuted);
+                    // 移除旧 track（可能已 stop），加入新 track
+                    const oldVideo = state.localStream.getVideoTracks()[0];
+                    if (oldVideo) state.localStream.removeTrack(oldVideo);
+                    state.localStream.addTrack(freshTrack);
 
-            broadcastMediaState();
-            logSystem(`Camera ${state.isVideoMuted ? 'disabled' : 'enabled'}.`);
+                    state.isVideoMuted = false;
+
+                    // UI 更新
+                    el.localVideo.srcObject = state.localStream;
+                    el.localVideo.classList.remove('opacity-0');
+                    el.localAvatar.classList.add('hidden');
+                    el.localCamOffIcon.classList.add('hidden');
+
+                    el.toggleCamBtn.classList.add('bg-slate-800', 'hover:bg-slate-700');
+                    el.toggleCamBtn.classList.remove('bg-rose-600', 'hover:bg-rose-500');
+                    el.toggleCamBtn.querySelector('i').className = 'fa-solid fa-video text-lg';
+
+                    // 替换所有呼叫中的视频轨道
+                    state.calls.forEach(call => replaceVideoTrack(call, freshTrack));
+
+                    broadcastMediaState();
+                    logSystem('Camera enabled. Hardware re-acquired.');
+                } catch (err) {
+                    logSystem(`Failed to enable camera: ${err.message}`, 'error');
+                    alert('无法打开摄像头，请检查权限。');
+                }
+            } else {
+                // ==== 关闭摄像头：真正 stop 硬件 ====
+                const videoTracks = state.localStream.getVideoTracks();
+                if (videoTracks.length === 0) return;
+
+                videoTracks.forEach(t => t.stop()); // ★ 真正关闭硬件
+
+                state.isVideoMuted = true;
+
+                // UI 更新
+                el.localVideo.classList.add('opacity-0');
+                el.localAvatar.classList.remove('hidden');
+                el.localCamOffIcon.classList.remove('hidden');
+
+                el.toggleCamBtn.classList.remove('bg-slate-800', 'hover:bg-slate-700');
+                el.toggleCamBtn.classList.add('bg-rose-600', 'hover:bg-rose-500');
+                el.toggleCamBtn.querySelector('i').className = 'fa-solid fa-video-slash text-lg';
+
+                broadcastMediaState();
+                logSystem('Camera disabled. Hardware released.');
+            }
         }
 
-        // ==== 举手功能 ====
+        // ==== 举手 ====
         function toggleHand() {
             state.isHandRaised = !state.isHandRaised;
             setLocalHand(state.isHandRaised);
 
-            // 广播
             const payload = { type: 'hand', raised: state.isHandRaised };
             state.dataConns.forEach(conn => {
                 if (conn.open) conn.send(payload);
@@ -691,7 +799,6 @@
             }
         }
 
-        // 举手提示音（Web Audio API，无需外部文件）
         function playHandSound() {
             try {
                 const ctx = new (window.AudioContext || window.webkitAudioContext)();
@@ -733,12 +840,15 @@
                 state.isScreenSharing = true;
 
                 const screenTrack = state.screenStream.getVideoTracks()[0];
-                if (state.cameraTrack) state.cameraTrack.stop();
+
+                // 若摄像头开着，先释放
+                if (!state.isVideoMuted && state.cameraTrack) {
+                    state.cameraTrack.stop();
+                }
 
                 el.localVideo.srcObject = state.screenStream;
-                el.localVideo.classList.remove('mirror');
+                el.localVideo.classList.remove('mirror', 'opacity-0');
                 el.localAvatar.classList.add('hidden');
-                el.localVideo.classList.remove('opacity-0');
                 el.sharingIndicator.classList.remove('hidden');
 
                 state.calls.forEach(call => replaceVideoTrack(call, screenTrack));
@@ -762,26 +872,30 @@
             }
             state.isScreenSharing = false;
 
-            try {
-                const freshCam = await navigator.mediaDevices.getUserMedia({ video: true });
-                const freshTrack = freshCam.getVideoTracks()[0];
-                state.cameraTrack = freshTrack;
+            // 如果摄像头原本开着 → 重新获取
+            if (!state.isVideoMuted) {
+                try {
+                    const freshCam = await navigator.mediaDevices.getUserMedia({ video: true });
+                    const freshTrack = freshCam.getVideoTracks()[0];
+                    state.cameraTrack = freshTrack;
 
-                const oldVideo = state.localStream.getVideoTracks()[0];
-                if (oldVideo) state.localStream.removeTrack(oldVideo);
-                state.localStream.addTrack(freshTrack);
+                    const oldVideo = state.localStream.getVideoTracks()[0];
+                    if (oldVideo) state.localStream.removeTrack(oldVideo);
+                    state.localStream.addTrack(freshTrack);
 
-                freshTrack.enabled = !state.isVideoMuted;
+                    el.localVideo.srcObject = state.localStream;
+                    el.localVideo.classList.add('mirror');
+                    el.localVideo.classList.remove('opacity-0');
+                    el.localAvatar.classList.add('hidden');
 
-                el.localVideo.srcObject = state.localStream;
-                el.localVideo.classList.toggle('mirror', !state.isVideoMuted);
-                el.localVideo.classList.toggle('opacity-0', state.isVideoMuted);
-                if (state.isVideoMuted) el.localAvatar.classList.remove('hidden');
-                else el.localAvatar.classList.add('hidden');
-
-                state.calls.forEach(call => replaceVideoTrack(call, freshTrack));
-            } catch (err) {
-                logSystem(`Failed to restore camera: ${err.message}`, 'error');
+                    state.calls.forEach(call => replaceVideoTrack(call, freshTrack));
+                } catch (err) {
+                    logSystem(`Failed to restore camera: ${err.message}`, 'error');
+                }
+            } else {
+                // 摄像头本来就关着，直接显示头像
+                el.localVideo.classList.add('opacity-0');
+                el.localAvatar.classList.remove('hidden');
             }
 
             el.sharingIndicator.classList.add('hidden');
@@ -803,20 +917,20 @@
         }
 
         // ==== 挂断 ====
-        function handleHangup() {
-            const msg = state.isHost
-                ? 'Are you sure you want to leave? The room will be closed for everyone.'
-                : 'Are you sure you want to leave the room?';
-            if (!confirm(msg)) return;
+        function handleHangup(skipConfirm = false) {
+            if (!skipConfirm) {
+                const msg = state.isHost
+                    ? 'Are you sure you want to leave? The room will be closed for everyone.'
+                    : 'Are you sure you want to leave the room?';
+                if (!confirm(msg)) return;
+            }
 
-            // 房主退出 → 广播解散房间
             if (state.isHost) {
                 const payload = { type: 'host-left' };
                 state.dataConns.forEach(conn => {
                     if (conn.open) conn.send(payload);
                 });
                 logSystem('Broadcasting room closure to all peers...');
-                // 给一点时间让消息发出去
                 setTimeout(() => {
                     cleanupAllConnections();
                     resetToLobby();
@@ -849,17 +963,21 @@
 
             el.remoteVideo.srcObject = null;
             el.remotePlaceholder.classList.remove('hidden');
+            el.remoteAvatar.classList.add('hidden');
             el.remoteBadge.classList.add('hidden');
             el.remoteMuteIcon.classList.add('hidden');
+            el.remoteCamOffIcon.classList.add('hidden');
             el.remoteHandIcon.classList.add('hidden');
             el.sharingIndicator.classList.add('hidden');
             el.toggleScreenBtn.classList.add('bg-slate-800');
             el.toggleScreenBtn.classList.remove('bg-indigo-600', 'hover:bg-indigo-500');
             el.chatBadge.classList.add('hidden');
 
-            // 重置举手状态
             state.isHandRaised = false;
             setLocalHand(false);
+
+            // 手机端关侧边栏
+            if (state.sidebarOpen) closeSidebar();
         }
 
         function resetToLobby() {
@@ -884,7 +1002,9 @@
                 el.remotePlaceholder.classList.remove('hidden');
                 el.remoteBadge.classList.add('hidden');
                 el.remoteMuteIcon.classList.add('hidden');
+                el.remoteCamOffIcon.classList.add('hidden');
                 el.remoteHandIcon.classList.add('hidden');
+                el.remoteAvatar.classList.add('hidden');
             }
             logSystem(`Peer ${peerId} left.`);
         }
@@ -932,6 +1052,48 @@
             el.chatMessages.scrollTop = el.chatMessages.scrollHeight;
         }
 
+        // ==== 侧边栏（手机端滑入/关闭 + 拦截返回键） ====
+        function openSidebar() {
+            if (window.innerWidth < 768) {
+                el.sidebar.classList.remove('sidebar-hidden');
+                el.sidebar.classList.remove('hidden');
+                el.sidebar.classList.add('flex');
+                el.sidebarBackdrop.classList.remove('hidden');
+                state.sidebarOpen = true;
+                // 推一个历史记录，让返回键只关侧边栏
+                history.pushState({ sidebar: true }, '', window.location.href);
+            } else {
+                el.sidebar.classList.remove('hidden');
+            }
+            el.chatBadge.classList.add('hidden');
+        }
+
+        function closeSidebar() {
+            if (window.innerWidth < 768) {
+                el.sidebar.classList.add('sidebar-hidden');
+                el.sidebarBackdrop.classList.add('hidden');
+                // 等动画结束后隐藏
+                setTimeout(() => {
+                    if (state.sidebarOpen === false) {
+                        el.sidebar.classList.remove('flex');
+                        el.sidebar.classList.add('hidden');
+                    }
+                }, 300);
+                state.sidebarOpen = false;
+            } else {
+                el.sidebar.classList.add('hidden');
+            }
+        }
+
+        function toggleSidebar() {
+            const isOpen = window.innerWidth < 768 ? state.sidebarOpen : !el.sidebar.classList.contains('hidden');
+            if (isOpen) {
+                closeSidebar();
+            } else {
+                openSidebar();
+            }
+        }
+
         // ==== 日志 & 状态 ====
         function logSystem(message, level = 'info') {
             const logEntry = document.createElement('div');
@@ -970,6 +1132,8 @@
                 state.dataConns.forEach(d => d.close());
                 if (state.peer) state.peer.destroy();
                 if (state.screenStream) state.screenStream.getTracks().forEach(t => t.stop());
+                // 释放本地摄像头硬件
+                if (state.localStream) state.localStream.getTracks().forEach(t => t.stop());
             } catch (e) {}
         }
 
@@ -982,11 +1146,10 @@
             el.toggleCamBtn.addEventListener('click', toggleCamera);
             el.toggleScreenBtn.addEventListener('click', toggleScreenShare);
             el.toggleHandBtn.addEventListener('click', toggleHand);
-            el.hangupBtn.addEventListener('click', handleHangup);
+            el.hangupBtn.addEventListener('click', () => handleHangup());
 
             el.chatForm.addEventListener('submit', handleSendMessage);
 
-            // 复制邀请链接
             el.copyRoomBtn.addEventListener('click', () => {
                 if (!state.roomCode) return;
                 const shareUrl = `${window.location.origin}${window.location.pathname}?room=${state.roomCode}`;
@@ -1000,7 +1163,6 @@
                 }
             });
 
-            // 输入框自动去掉 room- 前缀
             el.joinRoomInput.addEventListener('input', (e) => {
                 let v = e.target.value.toLowerCase();
                 if (v.startsWith(ROOM_PREFIX)) {
@@ -1008,12 +1170,9 @@
                 }
             });
 
-            el.toggleSidebarBtn.addEventListener('click', () => {
-                el.sidebar.classList.toggle('hidden');
-                if (!el.sidebar.classList.contains('hidden')) {
-                    el.chatBadge.classList.add('hidden');
-                }
-            });
+            el.toggleSidebarBtn.addEventListener('click', toggleSidebar);
+            el.closeSidebarBtn.addEventListener('click', closeSidebar);
+            el.sidebarBackdrop.addEventListener('click', closeSidebar);
 
             el.tabChatBtn.addEventListener('click', () => {
                 el.tabChat.classList.remove('hidden');
