@@ -121,7 +121,7 @@ button{border:none;cursor:pointer;font-family:inherit;font-weight:600;border-rad
 .toggle-switch::after{content:'';position:absolute;top:2px;left:2px;width:18px;height:18px;background:#6b7fa0;border-radius:50%;transition:.2s}
 .toggle-switch.on{background:linear-gradient(135deg,#3d6bff,#5a4dff);border-color:#5a8aff}
 .toggle-switch.on::after{left:24px;background:#fff;box-shadow:0 0 8px rgba(120,160,255,.6)}
-#waiting{background:rgba(18,24,40,.85);backdrop-filter:blur(12px);border-radius:32px;padding:40px 48px;box-shadow:0 30px 60px -10px rgba(0,0,0,.8),inset 0 1px 2px rgba(120,160,255,.15);border:1px solid rgba(90,130,220,.2);text-align:center;min-width:520px;max-width:640px;max-height:92vh;overflow-y:auto}
+#waiting{background:rgba(18,24,40,.85);backdrop-filter:blur(12px);border-radius:32px;padding:40px 48px;box-shadow:0 30px 60px -10px rgba(0,0,0,.8),inset 0 1px 2px rgba(120,160,255,.15);border:1px solid rgba(90,130,220,.2);text-align:center;min-width:540px;max-width:660px;max-height:92vh;overflow-y:auto}
 .room-code-display{background:#0a0f1c;border:1px dashed #3d6bff;border-radius:16px;padding:20px;text-align:center;margin-top:20px}
 .room-code-display .code{font-family:'Consolas',monospace;font-size:2.4rem;font-weight:700;color:#7da2ff;letter-spacing:8px;text-shadow:0 0 24px rgba(125,162,255,.6)}
 .room-code-display .hint{font-size:.78rem;color:#5d7099;margin-top:8px}
@@ -138,8 +138,6 @@ button{border:none;cursor:pointer;font-family:inherit;font-weight:600;border-rad
 .score-swatch{width:12px;height:12px;border-radius:4px}
 .score-red{background:#ff4d6d;box-shadow:0 0 8px #ff4d6d}
 .score-blue{background:#4da6ff;box-shadow:0 0 8px #4da6ff}
-.score-green{background:#4dff8b;box-shadow:0 0 8px #4dff8b}
-.score-yellow{background:#ffd24d;box-shadow:0 0 8px #ffd24d}
 .score-num{font-family:'Consolas',monospace;font-weight:700;font-size:1.1rem;color:#e0eaff;min-width:22px;text-align:center}
 .score-label{font-size:.75rem;color:#6b7fa0}
 canvas#gameCanvas{border-radius:28px;background:#0a0e1a;box-shadow:0 0 0 2px #1a2338,0 30px 50px -20px black;display:block;transition:filter .3s;max-width:100vw}
@@ -219,11 +217,6 @@ kbd{background:#1a2238;border-radius:7px;padding:3px 10px;color:#b8ceff;font-wei
 .maze-progress .mp-red{background:linear-gradient(90deg,#ff4d6d,#ff8aa3)}
 .maze-progress .mp-blue{background:linear-gradient(90deg,#4da6ff,#8fc4ff)}
 .maze-progress .mp-pct{width:36px;text-align:right;color:#cdd9f0;font-family:'Consolas',monospace}
-.team-hud-tip{position:absolute;top:70px;left:50%;transform:translateX(-50%);background:rgba(10,15,28,.85);border:1px solid #253253;border-radius:12px;padding:6px 16px;font-size:.75rem;color:#8fa4cc;z-index:99;display:none}
-.team-hud-tip.visible{display:block}
-.team-hud-tip .team-red{color:#ff6b8a;font-weight:700}
-.team-hud-tip .team-blue{color:#6bb8ff;font-weight:700}
-#waiting.wide{min-width:620px}
 </style>
 </head>
 
@@ -432,7 +425,7 @@ kbd{background:#1a2238;border-radius:7px;padding:3px 10px;color:#b8ceff;font-wei
   <div class="room-players" style="margin-top:20px;">
     <div class="section-title" style="text-align:left;">
       <span id="playersTitle">👥 房间玩家</span>
-      <span id="playersCount" style="color:#7da2ff;font-family:Consolas;">1/4</span>
+      <span id="playersCount" style="color:#7da2ff;font-family:Consolas;">1/2</span>
     </div>
     <div id="playerList" style="display:flex;flex-direction:column;gap:6px;margin-top:8px;"></div>
   </div>
@@ -531,10 +524,6 @@ kbd{background:#1a2238;border-radius:7px;padding:3px 10px;color:#b8ceff;font-wei
     <div class="badge">
       <span class="dot ok" id="gameConnDot"></span>
       <span id="roomLabel">房间</span> <b id="gameRoomCode" style="color:#7da2ff;font-family:Consolas;">------</b>
-    </div>
-
-    <div class="team-hud-tip" id="teamHudTip">
-      <span class="team-red" id="tipRedNames">红队</span> vs <span class="team-blue" id="tipBlueNames">蓝队</span>
     </div>
 
     <div class="badge" id="levelBadge">
@@ -681,7 +670,7 @@ function cls(el,name,add){if(el)el.classList[add?'add':'remove'](name);}
 function escapeHtml(s){return String(s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'})[c]);}
 
 const W=1200,H=700;
-let WORLD_W=W*2,WORLD_H=H*2;   // PvE 时动态改变
+let WORLD_W=W*2,WORLD_H=H*2;
 const PVP_W=900,PVP_H=600;
 const MAZE_COLS=13,MAZE_ROWS=9,MAZE_CELL=110;
 const MAZE_W=MAZE_COLS*MAZE_CELL,MAZE_H=MAZE_ROWS*MAZE_CELL;
@@ -827,8 +816,8 @@ const I18N={
     returnLobby:'返回大厅',
     achUnlocked:'🏅 成就解锁',
     playersTitle:'👥 房间玩家',roomChatTitle:'💬 房间聊天',hostStart:'▶ 开始游戏',waitingHost:'等待房主开始游戏…',
-    roomFull:'房间已满（最多 4 人）',youAreHost:'你是房主',chatSend:'发送',chatPlaceholder:'输入消息...',
-    startGame:'开始游戏'
+    roomFull:'房间已满',youAreHost:'你是房主',chatSend:'发送',chatPlaceholder:'输入消息...',
+    startGame:'开始游戏',needTwoPlayers:'需要至少 2 名玩家才能开始'
   },
   en:{
     brandTitle:'Room Battle',brandTagline:'Create or join a room · Play with friends',loginGoogle:'Google Login',logout:'Logout',loginTip:'Login to save skins to cloud',
@@ -858,8 +847,8 @@ const I18N={
     returnLobby:'Return to Lobby',
     achUnlocked:'🏅 Achievement Unlocked',
     playersTitle:'👥 Room Players',roomChatTitle:'💬 Room Chat',hostStart:'▶ Start Game',waitingHost:'Waiting for host to start…',
-    roomFull:'Room is full (max 4 players)',youAreHost:'You are the host',chatSend:'Send',chatPlaceholder:'Type a message...',
-    startGame:'Start Game'
+    roomFull:'Room is full',youAreHost:'You are the host',chatSend:'Send',chatPlaceholder:'Type a message...',
+    startGame:'Start Game',needTwoPlayers:'Need at least 2 players'
   }
 };
 
@@ -1017,13 +1006,11 @@ const G={
   mazeData:null,mazeEnd:null,mazeStart:null,
   myProgress:0,oppProgress:0,
   upgradeOpen:false,
-  // ===== 多人房间 =====
-  roomPlayers:[],       // [{peerId,nickname,role,isHost,conn}]
+  roomPlayers:[],
   maxPlayers:4,
   roomChatHistory:[],
   mapSize:'medium',
-  weather:'zombie',
-  zIdCounter:0
+  weather:'zombie'
 };
 
 let canvas=null,ctx=null;
@@ -1064,12 +1051,11 @@ function createPlayer(role,myNick,oppNick,skin){
   }else if(G.gameMode==='race'){
     startX=idx===0?100:ws.w-100;startY=ws.h/2;
   }else{
-    // PvE：4 个角/边
     const positions=[
-      {x:180,y:ws.h/2},          // red 左
-      {x:ws.w-180,y:ws.h/2},     // blue 右
-      {x:ws.w/2,y:180},          // green 上
-      {x:ws.w/2,y:ws.h-180}      // yellow 下
+      {x:180,y:ws.h/2},
+      {x:ws.w-180,y:ws.h/2},
+      {x:ws.w/2,y:180},
+      {x:ws.w/2,y:ws.h-180}
     ];
     const pos=positions[idx]||positions[0];
     startX=pos.x;startY=pos.y;
@@ -1182,7 +1168,6 @@ function safeSend(data){
   if(G.conn&&G.conn.open){try{G.conn.send(data);return true;}catch(e){return false;}}
   return false;
 }
-// 房主广播给其他玩家（排除某个 conn）
 function broadcastToOthers(excludeConn,data){
   for(const p of G.roomPlayers){
     if(p.conn&&p.conn.open&&p.conn!==excludeConn){
@@ -1508,7 +1493,7 @@ function updateZombiesAndBosses(){
           owner:'acid',size:10,life:200,damage:8*diff.damageMult,color:'#aaff00'
         };
         G.bullets.push(bullet);
-        safeSend({type:'bulletSpawn',bullet});
+        broadcastToOthers(null,{type:'bulletSpawn',bullet});
       }
     }else{
       moveZombieWithObstacles(z,dx,dy,dist,1);
@@ -1531,8 +1516,7 @@ function updateZombiesAndBosses(){
               p.hp=Math.max(0,p.hp-z.damage);
               p.damagedThisRun=true;
               applyDamageToNetwork(p);
-              const mine=(p===getMyPlayer());
-              if(mine){SFX.hurt();spawnDamageText(p.x,p.y,Math.round(z.damage),'#ff4d4d');}
+              if(p===getMyPlayer()){SFX.hurt();spawnDamageText(p.x,p.y,Math.round(z.damage),'#ff4d4d');}
             }
           }
         }
@@ -1565,7 +1549,7 @@ function updateZombiesAndBosses(){
           owner:'boss',size:10,life:200,damage:12*diff.damageMult,color:'#ff0044'
         };
         G.bullets.push(bullet);
-        safeSend({type:'bulletSpawn',bullet});
+        broadcastToOthers(null,{type:'bulletSpawn',bullet});
       }
       SFX.bossShoot();
     }
@@ -1582,8 +1566,7 @@ function updateZombiesAndBosses(){
           p.hp=Math.max(0,p.hp-BOSS_CONTACT_DAMAGE*diff.damageMult);
           p.damagedThisRun=true;
           applyDamageToNetwork(p);
-          const mine=(p===getMyPlayer());
-          if(mine){SFX.hurt();spawnDamageText(p.x,p.y,Math.round(BOSS_CONTACT_DAMAGE*diff.damageMult),'#ff4d4d');}
+          if(p===getMyPlayer()){SFX.hurt();spawnDamageText(p.x,p.y,Math.round(BOSS_CONTACT_DAMAGE*diff.damageMult),'#ff4d4d');}
           const kdx=p.x-b.x,kdy=p.y-b.y;
           const kd=Math.hypot(kdx,kdy)||1;
           p.x+=(kdx/kd)*30;p.y+=(kdy/kd)*30;
@@ -1592,11 +1575,9 @@ function updateZombiesAndBosses(){
     }
   }
 
-  // 全员阵亡 → PvE 结束
   if(players.length===0)gameOverPvE();
 }
 
-// 玩家受伤时：房主广播 hp 变化，非房主发 hpUpdate 给房主
 function applyDamageToNetwork(p){
   if(G.isSoloMode)return;
   if(G.isHost){
@@ -1706,6 +1687,7 @@ function switchWeapon(idx){
   me.ammo=WEAPONS[key].ammo;
   me.reloadTimer=0;
   SFX.reload();
+  broadcastPlayerState();  // 换枪后立刻广播，让对方看到
 }
 function reloadWeapon(){
   const me=getMyPlayer();
@@ -2157,8 +2139,7 @@ function drawHUD(){
     }
   }
 
-  // PvE 队友 HUD（所有其他玩家）
-  if(!G.isSoloMode&&(G.gameMode==='zombie')){
+  if(!G.isSoloMode&&G.gameMode==='zombie'){
     const others=getAllPlayers().filter(p=>p!==me);
     let py=130;
     for(const ally of others){
@@ -2574,7 +2555,11 @@ function update(){
   }
   if(me.reloadTimer>0){me.reloadTimer--;if(me.reloadTimer===0)reloadWeapon();}
 
-  // 房主（或单人）运行僵尸 AI 与刷怪
+  // 定期广播玩家状态（皮肤/武器同步）
+  if(!G.isSoloMode && G.frameCount % 30 === 0){
+    broadcastPlayerState();
+  }
+
   if((G.gameMode==='zombie'||G.isSoloMode)&&(G.isHost||G.isSoloMode)){
     updateZombiesAndBosses();
     const diff=getDiff();
@@ -2660,18 +2645,7 @@ function handleLocalWin(deadRole){
   SFX.win();
   unlockAchievement('pvpWin');
   awardCoins(50,t('pvpWin'));
-  setTimeout(()=>{stopMusic();if(G.isHost)startNextRound();},3000);
-}
-function startNextRound(){
-  if(!G.isHost||G.gameMode!=='pvp')return;
-  G.roundNumber++;
-  const themeKeys=Object.keys(THEMES).filter(k=>k!=='zombie'&&k!=='maze');
-  G.currentTheme=themeKeys[Math.floor(Math.random()*themeKeys.length)];
-  G.obstacles=generateObstacles(PVP_W,PVP_H,14);
-  safeSend({type:'nextRound',obstacles:G.obstacles,role:'blue',theme:G.currentTheme,round:G.roundNumber});
-  updateThemeBadge();
-  showRoundBanner(G.roundNumber);
-  setTimeout(()=>startRoundLocally('red',false),3000);
+  setTimeout(()=>{stopMusic();if(G.isHost)startNextRound();},2500);
 }
 
 function gameOverPvE(){
@@ -2723,7 +2697,6 @@ function handleMessage(data){
       break;
     case 'roomPlayers':
       if(data.players){
-        // 保留自己的 conn
         const myConn=G.conn;
         G.roomPlayers=data.players.map(p=>({...p,conn:null}));
         if(myConn){
@@ -2843,16 +2816,21 @@ function handleMessage(data){
         G.mazeData=mirrored;
         G.currentTheme='maze';
         updateThemeBadge();
-        startMazeModeLocally(data.role);
+        if(data.round)G.roundNumber=data.round;
+        showRoundBanner(G.roundNumber);
+        setTimeout(()=>startMazeModeLocally(data.role),2500);
         break;
       }
       G.obstacles=data.obstacles||[];
       if(data.theme){G.currentTheme=data.theme;updateThemeBadge();}
       if(data.round)G.roundNumber=data.round;
-      if(G.gameMode==='zombie')startZombieModeLocally(data.role);
-      else if(G.gameMode==='race')startRaceModeLocally(data.role);
-      else if(G.gameMode==='maze')startMazeModeLocally(data.role);
-      else startRoundLocally(data.role,false);
+      showRoundBanner(G.roundNumber);
+      setTimeout(()=>{
+        if(G.gameMode==='zombie')startZombieModeLocally(data.role);
+        else if(G.gameMode==='race')startRaceModeLocally(data.role);
+        else if(G.gameMode==='maze')startMazeModeLocally(data.role);
+        else startRoundLocally(data.role,false);
+      },2500);
       break;
     }
     case 'zombieState':
@@ -2948,14 +2926,12 @@ function handleMessage(data){
   }
 }
 
-// 房主收到连接消息
 function handleHostMessage(data,conn){
   const sender=G.roomPlayers.find(p=>p.conn===conn);
   if(!sender)return;
   switch(data.type){
     case 'playerJoin':
       sender.nickname=data.nickname||'Player';
-      // 分配角色
       if(!sender.role){
         const usedRoles=G.roomPlayers.map(p=>p.role).filter(r=>r);
         const available=ROLE_ORDER.find(r=>!usedRoles.includes(r))||'blue';
@@ -3044,14 +3020,13 @@ function renderRoomPlayers(){
       </div>
     `;
   }).join('');
-  txt($('playersCount'),G.roomPlayers.length+'/'+G.maxPlayers);
+  const maxP=G.gameMode==='zombie'?4:2;
+  txt($('playersCount'),G.roomPlayers.length+'/'+maxP);
   if($('hostStartBtn')){
-    $('hostStartBtn').style.display=G.isHost?'block':'none';
+    const enoughPlayers=G.roomPlayers.length>=2;
+    $('hostStartBtn').style.display=(G.isHost&&enoughPlayers)?'block':'none';
     if(G.isHost)$('hostStartBtn').textContent=t('hostStart');
   }
-  // 非房主隐藏开始按钮
-  const nonHostStart=$('hostStartBtn');
-  if(nonHostStart&&!G.isHost)nonHostStart.style.display='none';
 }
 function renderRoomChat(){
   const el=$('roomChatMessages');
@@ -3102,7 +3077,6 @@ function applyWeatherAndMapSize(){
   G.currentTheme=G.weather||'zombie';
 }
 
-// 单人游戏
 function startSoloGame(myNickname){
   G.isSoloMode=true;
   G.gameMode='zombie';
@@ -3133,7 +3107,6 @@ function startSoloGame(myNickname){
   startGameLoop();
 }
 
-// PvE 多人：房主/客户端启动
 function startPvEGame(isHost){
   G.isSoloMode=false;
   G.gameMode='zombie';
@@ -3142,20 +3115,18 @@ function startPvEGame(isHost){
   resetGameState();
   G.obstacles=generateObstacles(WORLD_W,WORLD_H,getMapSizeConfig().obstacles);
 
-  // 根据 roomPlayers 分配 4 个角色
   for(let i=0;i<4;i++){
     const role=ROLE_ORDER[i];
     let rp=G.roomPlayers.find(p=>p.role===role);
     if(!rp&&i===0)rp=G.roomPlayers.find(p=>p.isHost);
     if(rp){
-      const p=createPlayer(role,rp.nickname,'',role===G.myRole?G.currentSkin:null);
+      const p=createPlayer(role,rp.nickname,'',role===G.myRole?G.currentSkin:SKINS.default);
       p.name=rp.nickname;
       setPlayerByRole(role,p);
     }else{
       setPlayerByRole(role,null);
     }
   }
-  // 保证房主自己一定存在
   const me=getMyPlayer();
   if(!me){
     const p=createPlayer(G.myRole,G.myNickname,'',G.currentSkin);
@@ -3165,7 +3136,6 @@ function startPvEGame(isHost){
   const mm=getMyPlayer();
   if(mm)mm.skin=G.currentSkin;
 
-  // 修正出生点
   for(const p of getAllPlayers()){
     if(p){
       const spot=findFreeSpot(p.x,p.y,G.obstacles);
@@ -3192,13 +3162,11 @@ function startPvEGame(isHost){
 
 function startGame(){
   if(G.gameRunning)return;
-  // 房主选择地图
   const themeKeys=Object.keys(THEMES).filter(k=>k!=='zombie'&&k!=='maze');
   if(G.gameMode==='zombie'){
     applyWeatherAndMapSize();
     G.obstacles=generateObstacles(WORLD_W,WORLD_H,getMapSizeConfig().obstacles);
     safeSend({type:'nextRound',obstacles:G.obstacles,role:'blue',theme:G.currentTheme,round:1});
-    // 广播房主设置
     broadcastSettings();
   }else if(G.gameMode==='maze'){
     const maze=generateMaze(MAZE_COLS,MAZE_ROWS,MAZE_CELL);
@@ -3227,7 +3195,7 @@ function startRoundLocally(role,isFirst=true){
   G.myRole=role;
   G.gameRunning=true;
   G.redPlayer=createPlayer('red',G.myNickname,G.opponentNickname,G.currentSkin);
-  G.bluePlayer=createPlayer('blue',G.myNickname,G.opponentNickname,G.currentSkin);
+  G.bluePlayer=createPlayer('blue',G.myNickname,G.opponentNickname,SKINS.default);
   G.redPlayer.name=G.isHost?G.myNickname:G.opponentNickname;
   G.bluePlayer.name=G.isHost?G.opponentNickname:G.myNickname;
   G.bullets=[];G.damageTexts=[];G.pickups=[];
@@ -3261,7 +3229,7 @@ function startZombieModeLocally(role){
   applyWeatherAndMapSize();
   if(!G.obstacles.length)G.obstacles=generateObstacles(WORLD_W,WORLD_H,getMapSizeConfig().obstacles);
   G.redPlayer=createPlayer('red',G.myNickname,G.opponentNickname,G.currentSkin);
-  G.bluePlayer=createPlayer('blue',G.myNickname,G.opponentNickname,G.currentSkin);
+  G.bluePlayer=createPlayer('blue',G.myNickname,G.opponentNickname,SKINS.default);
   G.redPlayer.name=G.isHost?G.myNickname:G.opponentNickname;
   G.bluePlayer.name=G.isHost?G.opponentNickname:G.myNickname;
   G.bullets=[];G.damageTexts=[];G.zombies=[];G.bosses=[];G.pickups=[];
@@ -3294,7 +3262,7 @@ function startMazeModeLocally(role){
   G.myRole=role;
   G.gameRunning=true;
   G.redPlayer=createPlayer('red',G.myNickname,G.opponentNickname,G.currentSkin);
-  G.bluePlayer=createPlayer('blue',G.myNickname,G.opponentNickname,G.currentSkin);
+  G.bluePlayer=createPlayer('blue',G.myNickname,G.opponentNickname,SKINS.default);
   G.redPlayer.name=G.isHost?G.myNickname:G.opponentNickname;
   G.bluePlayer.name=G.isHost?G.opponentNickname:G.myNickname;
   G.bullets=[];G.damageTexts=[];G.pickups=[];G.zombies=[];G.bosses=[];
@@ -3328,7 +3296,7 @@ function startRaceModeLocally(role){
   G.myRole=role;
   G.gameRunning=true;
   G.redPlayer=createPlayer('red',G.myNickname,G.opponentNickname,G.currentSkin);
-  G.bluePlayer=createPlayer('blue',G.myNickname,G.opponentNickname,G.currentSkin);
+  G.bluePlayer=createPlayer('blue',G.myNickname,G.opponentNickname,SKINS.default);
   G.redPlayer.name=G.isHost?G.myNickname:G.opponentNickname;
   G.bluePlayer.name=G.isHost?G.opponentNickname:G.myNickname;
   G.bullets=[];G.damageTexts=[];G.pickups=[];G.zombies=[];G.bosses=[];
@@ -3367,7 +3335,19 @@ function handleRoundEnd(winner,sRed,sBlue){
   }else SFX.lose();
   const myWin=(winner===G.myRole);
   awardCoins(myWin?50:20,myWin?t('pvpWin'):t('pvpLose'));
-  if(G.isHost&&G.gameMode==='pvp')setTimeout(()=>startNextRound(),3000);
+  if(G.isHost&&G.gameMode==='pvp')setTimeout(()=>startNextRound(),2500);
+}
+
+function startNextRound(){
+  if(!G.isHost||G.gameMode!=='pvp')return;
+  G.roundNumber++;
+  const themeKeys=Object.keys(THEMES).filter(k=>k!=='zombie'&&k!=='maze');
+  G.currentTheme=themeKeys[Math.floor(Math.random()*themeKeys.length)];
+  G.obstacles=generateObstacles(PVP_W,PVP_H,14);
+  safeSend({type:'nextRound',obstacles:G.obstacles,role:'blue',theme:G.currentTheme,round:G.roundNumber});
+  updateThemeBadge();
+  showRoundBanner(G.roundNumber);
+  setTimeout(()=>startRoundLocally('red',false),2500);
 }
 
 /* ============================================================
@@ -3690,7 +3670,8 @@ function bindUI(){
       txt($('statusText'),t('roomCreated'));
       cls($('statusDot'),'ok',true);
       G.peer.on('connection',(incomingConn)=>{
-        if(G.roomPlayers.length>=G.maxPlayers){
+        const maxP=G.gameMode==='zombie'?4:2;
+        if(G.roomPlayers.length>=maxP){
           try{incomingConn.close();}catch(e){}
           return;
         }
@@ -3797,12 +3778,13 @@ function bindUI(){
   on($('setZSpeed'),'click',()=>{if(!G.isHost)return;G.settings.zombieSpeedMult=G.settings.zombieSpeedMult===1?1.5:1;cls($('setZSpeed'),'on',G.settings.zombieSpeedMult===1.5);broadcastSettings();});
   on($('setBossFreq'),'click',()=>{if(!G.isHost)return;G.settings.bossEvery=G.settings.bossEvery===10?5:10;cls($('setBossFreq'),'on',G.settings.bossEvery===5);broadcastSettings();});
 
-  // 房主开始按钮
-  // 房主开始按钮
   on($('hostStartBtn'),'click',()=>{
     if(!G.isHost)return;
+    if(G.roomPlayers.length<2){
+      alert(t('needTwoPlayers'));
+      return;
+    }
     if(G.gameMode==='zombie'){
-      // ===== PvE 多人模式 =====
       startPvEGame(true);
       const list=G.roomPlayers.map(p=>({nickname:p.nickname,role:p.role,isHost:p.isHost}));
       broadcastToOthers(null,{
@@ -3813,11 +3795,7 @@ function bindUI(){
         players:list
       });
     } else {
-      // ===== 1v1 / 迷宫 / 竞速（2 人） =====
-      if(G.roomPlayers.length < 2){
-        alert(currentLang==='zh'?'需要至少 2 名玩家才能开始':'Need at least 2 players');
-        return;
-      }
+      G.gameRunning=false;
       startGame();
       broadcastToOthers(null,{
         type:'hostStart2P',
@@ -3828,11 +3806,9 @@ function bindUI(){
     }
   });
 
-  // 房间聊天
   on($('roomChatSend'),'click',sendRoomChat);
   on($('roomChatInput'),'keydown',e=>{if(e.key==='Enter')sendRoomChat();});
 
-  // 画布鼠标
   on(canvas,'mousedown',e=>{if(!G.gameRunning||G.autoAim)return;if(e.button!==0)return;G.mouseDown=true;e.preventDefault();});
   on(canvas,'mouseup',e=>{if(e.button===0)G.mouseDown=false;});
   on(canvas,'mouseleave',()=>{G.mouseDown=false;});
@@ -3966,7 +3942,6 @@ function gameLoop(){
   requestAnimationFrame(gameLoop);
 }
 
-// roundRect polyfill
 if(!CanvasRenderingContext2D.prototype.roundRect){
   CanvasRenderingContext2D.prototype.roundRect=function(x,y,w,h,r){
     if(w<2*r)r=w/2;
