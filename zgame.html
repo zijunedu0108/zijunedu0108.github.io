@@ -9,40 +9,18 @@
 <style>
   * { box-sizing: border-box; user-select: none; }
 
-  /* ============ 自定义滚动条 ============ */
-  ::-webkit-scrollbar {
-    width: 10px;
-    height: 10px;
-  }
-  ::-webkit-scrollbar-track {
-    background: transparent;
-    border-radius: 10px;
-  }
+  ::-webkit-scrollbar { width: 10px; height: 10px; }
+  ::-webkit-scrollbar-track { background: transparent; border-radius: 10px; }
   ::-webkit-scrollbar-thumb {
     background: linear-gradient(180deg, #2a3650, #1a2238);
-    border-radius: 10px;
-    border: 2px solid transparent;
-    background-clip: padding-box;
-    transition: background 0.2s;
+    border-radius: 10px; border: 2px solid transparent; background-clip: padding-box;
   }
   ::-webkit-scrollbar-thumb:hover {
     background: linear-gradient(180deg, #4d7dff, #3d5bff);
-    background-clip: padding-box;
-    border: 2px solid transparent;
+    background-clip: padding-box; border: 2px solid transparent;
   }
-  ::-webkit-scrollbar-thumb:active {
-    background: linear-gradient(180deg, #5a8aff, #4d6dff);
-    background-clip: padding-box;
-    border: 2px solid transparent;
-  }
-  ::-webkit-scrollbar-corner {
-    background: transparent;
-  }
-  /* Firefox */
-  * {
-    scrollbar-width: thin;
-    scrollbar-color: #2a3650 transparent;
-  }
+  ::-webkit-scrollbar-corner { background: transparent; }
+  * { scrollbar-width: thin; scrollbar-color: #2a3650 transparent; }
 
   body {
     margin: 0; min-height: 100vh;
@@ -175,7 +153,8 @@
   .score-num { font-family: 'Consolas', monospace; font-weight: 700; font-size: 1.15rem; color: #e0eaff; min-width: 22px; text-align: center; }
   .score-label { font-size: 0.75rem; color: #6b7fa0; }
 
-  canvas { border-radius: 32px; background: #0a0e1a; box-shadow: 0 0 0 2px #1a2338, 0 30px 50px -20px black; display: block; }
+  canvas { border-radius: 32px; background: #0a0e1a; box-shadow: 0 0 0 2px #1a2338, 0 30px 50px -20px black; display: block; transition: filter 0.3s; }
+  canvas.slowmo { filter: saturate(1.4) brightness(1.1); }
   .game-footer {
     display: flex; justify-content: space-between; align-items: center;
     width: 900px; margin-top: 12px; font-size: 0.85rem; color: #6b7fa0; gap: 12px;
@@ -212,7 +191,15 @@
   .sound-toggle:hover { background: #131a2c; border-color: #2e3d5e; }
   .sound-toggle .icon { font-size: 1rem; }
 
-  /* 排行榜 */
+  .music-toggle {
+    display: flex; align-items: center; gap: 8px;
+    background: #0a0f1c; padding: 8px 12px; border-radius: 30px;
+    border: 1px solid #1e2a44; font-size: 0.82rem; color: #8fa4cc;
+    cursor: pointer; transition: 0.2s;
+  }
+  .music-toggle:hover { background: #131a2c; border-color: #2e3d5e; }
+  .music-toggle .icon { font-size: 1rem; }
+
   .leaderboard {
     background: #0a0f1c; border: 1px solid #1e2a44; border-radius: 14px;
     padding: 12px 16px; max-height: 140px; overflow-y: auto;
@@ -239,7 +226,6 @@
   .lb-score { font-family: 'Consolas', monospace; font-weight: 700; color: #ffd24d; }
   .lb-empty { color: #3d4d6e; font-size: 0.78rem; text-align: center; padding: 6px 0; }
 
-  /* 技能 HUD */
   .skill-bar {
     display: flex; gap: 10px;
     background: #0a0f1c; padding: 8px 12px; border-radius: 16px;
@@ -290,10 +276,103 @@
   .buff-pill.speed { background: #0e2a3e; color: #4dd4ff; }
   .buff-pill.invisible { background: #2a0e3e; color: #d44dff; }
   .buff-pill.double { background: #3e2a0e; color: #ffd24d; }
+
+  /* 主题徽章 */
+  .theme-badge {
+    display: flex; align-items: center; gap: 6px;
+    background: #0a0f1c; padding: 8px 14px; border-radius: 30px;
+    border: 1px solid #1e2a44; font-size: 0.82rem; color: #8fa4cc;
+  }
+  .theme-badge .t-icon { font-size: 1.1rem; }
+
+  /* 快捷聊天 */
+  .chat-hint {
+    position: fixed; bottom: 90px; left: 50%; transform: translateX(-50%);
+    background: rgba(10, 15, 28, 0.95); border: 1px solid #2e3d5e;
+    border-radius: 12px; padding: 8px 16px; font-size: 0.8rem;
+    color: #8fa4cc; z-index: 200; pointer-events: none;
+    transition: opacity 0.2s;
+  }
+  .chat-panel {
+    position: fixed; bottom: 120px; left: 50%; transform: translateX(-50%);
+    background: rgba(10, 15, 28, 0.98); border: 1px solid #2e3d5e;
+    border-radius: 16px; padding: 12px; z-index: 300;
+    display: none; gap: 8px; flex-direction: column;
+    box-shadow: 0 10px 40px rgba(0,0,0,0.7);
+    min-width: 260px;
+  }
+  .chat-panel.visible { display: flex; }
+  .chat-panel .chat-title {
+    font-size: 0.78rem; color: #7da2ff; font-weight: 600;
+    text-align: center; margin-bottom: 4px;
+  }
+  .chat-option {
+    background: #1a2235; color: #cdd9f0;
+    border: 1px solid #2e3d5e; border-radius: 10px;
+    padding: 8px 14px; cursor: pointer;
+    font-size: 0.85rem; transition: 0.15s;
+    display: flex; justify-content: space-between; align-items: center;
+  }
+  .chat-option:hover { background: #222d47; border-color: #4d7dff; }
+  .chat-option .chat-key {
+    font-family: 'Consolas', monospace; font-size: 0.7rem;
+    color: #7da2ff; padding: 1px 6px; background: #0a0f1c;
+    border-radius: 6px;
+  }
+  .chat-messages {
+    position: fixed; top: 90px; left: 50%; transform: translateX(-50%);
+    display: flex; flex-direction: column; gap: 6px;
+    z-index: 250; pointer-events: none; align-items: center;
+  }
+  .chat-bubble {
+    background: rgba(10, 15, 28, 0.9); border: 1px solid #2e3d5e;
+    border-radius: 20px; padding: 6px 16px; font-size: 0.88rem;
+    color: #cdd9f0; animation: chatPop 0.3s ease-out;
+    max-width: 400px;
+  }
+  .chat-bubble.mine { border-color: #4d7dff; color: #a8c4ff; }
+  .chat-bubble .sender { color: #7da2ff; font-weight: 600; margin-right: 6px; }
+  @keyframes chatPop {
+    0% { transform: translateY(-20px); opacity: 0; }
+    100% { transform: translateY(0); opacity: 1; }
+  }
+
+  /* 慢动作叠加层 */
+  .slowmo-overlay {
+    position: fixed; inset: 0; pointer-events: none;
+    background: radial-gradient(circle at center, transparent 30%, rgba(0,0,0,0.6) 100%);
+    opacity: 0; transition: opacity 0.2s; z-index: 150;
+  }
+  .slowmo-overlay.active { opacity: 1; }
+  .slowmo-text {
+    position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%);
+    font-size: 3rem; font-weight: 900; color: #ff4d6d;
+    text-shadow: 0 0 30px #ff4d6d, 0 0 60px #ff4d6d;
+    z-index: 160; pointer-events: none; opacity: 0;
+    transition: opacity 0.2s;
+    font-family: 'Segoe UI', sans-serif;
+    letter-spacing: 4px;
+  }
+  .slowmo-text.active { opacity: 1; }
 </style>
 </head>
 <body>
 <div class="app">
+  <!-- 慢动作特效 -->
+  <div class="slowmo-overlay" id="slowmoOverlay"></div>
+  <div class="slowmo-text" id="slowmoText">KILL!</div>
+
+  <!-- 快捷聊天 -->
+  <div class="chat-panel" id="chatPanel">
+    <div class="chat-title">💬 快捷聊天 (按 Esc 关闭)</div>
+    <div class="chat-option" data-msg="GG">GG <span class="chat-key">1</span></div>
+    <div class="chat-option" data-msg="打得好！">打得好！ <span class="chat-key">2</span></div>
+    <div class="chat-option" data-msg="小心！">小心！ <span class="chat-key">3</span></div>
+    <div class="chat-option" data-msg="跟我走">跟我走 <span class="chat-key">4</span></div>
+    <div class="chat-option" data-msg="谢谢">谢谢 <span class="chat-key">5</span></div>
+  </div>
+  <div class="chat-messages" id="chatMessages"></div>
+
   <!-- ============ 大厅 ============ -->
   <div id="lobby">
     <div>
@@ -377,6 +456,11 @@
         <span>房间 <b id="gameRoomCode" style="color:#7da2ff; font-family:Consolas;">------</b></span>
       </div>
 
+      <div class="theme-badge" id="themeBadge">
+        <span class="t-icon" id="themeIcon">🌌</span>
+        <span id="themeName">深空</span>
+      </div>
+
       <div class="scoreboard" id="pvpScoreboard">
         <div class="score-item" id="scoreRedItem">
           <span class="score-swatch score-red"></span>
@@ -415,8 +499,13 @@
         你是 <span id="myRoleLabel" class="role-red">红方</span>
       </div>
 
-      <div class="sound-toggle" id="soundToggle">
-        <span class="icon" id="soundIcon">🔊</span>
+      <div style="display:flex; gap:8px;">
+        <div class="music-toggle" id="musicToggle" title="背景音乐">
+          <span class="icon" id="musicIcon">🎵</span>
+        </div>
+        <div class="sound-toggle" id="soundToggle" title="音效">
+          <span class="icon" id="soundIcon">🔊</span>
+        </div>
       </div>
     </div>
 
@@ -468,6 +557,7 @@
         <span><kbd>E</kbd> 护盾</span>
         <span><kbd>R</kbd> 大招</span>
         <span><kbd>1</kbd>~<kbd>4</kbd> 换枪</span>
+        <span><kbd>T</kbd> 聊天</span>
       </div>
     </div>
   </div>
@@ -476,15 +566,17 @@
 <script src="https://unpkg.com/peerjs@1.5.2/dist/peerjs.min.js"></script>
 <script>
 /* ============================================================
-   房间对战 v6
-   - 滚动条美化
-   - 修复命中延迟（双向同步 + bulletId 去重 + hpSeq 防覆盖）
-   - 连击系统（2 秒内连击）
+   房间对战 v7
+   - PvE 队友误伤修复
+   - 每局随机地图主题
+   - 背景音乐
+   - 快捷聊天
+   - 死亡回放（慢动作）
    ============================================================ */
 
 'use strict';
 
-/* ========== DOM 引用 ========== */
+/* ========== DOM ========== */
 const lobbyEl = document.getElementById('lobby');
 const waitingEl = document.getElementById('waiting');
 const gameEl = document.getElementById('game');
@@ -498,6 +590,8 @@ const canvas = document.getElementById('gameCanvas');
 const ctx = canvas.getContext('2d');
 const soundToggleEl = document.getElementById('soundToggle');
 const soundIcon = document.getElementById('soundIcon');
+const musicToggleEl = document.getElementById('musicToggle');
+const musicIcon = document.getElementById('musicIcon');
 const scoreRedEl = document.getElementById('scoreRed');
 const scoreBlueEl = document.getElementById('scoreBlue');
 const scoreRedItem = document.getElementById('scoreRedItem');
@@ -515,8 +609,14 @@ const weaponIconEl = document.getElementById('weaponIcon');
 const weaponNameEl = document.getElementById('weaponName');
 const weaponAmmoEl = document.getElementById('weaponAmmo');
 const buffTimerEl = document.getElementById('buffTimer');
+const themeIconEl = document.getElementById('themeIcon');
+const themeNameEl = document.getElementById('themeName');
+const chatPanelEl = document.getElementById('chatPanel');
+const chatMessagesEl = document.getElementById('chatMessages');
+const slowmoOverlayEl = document.getElementById('slowmoOverlay');
+const slowmoTextEl = document.getElementById('slowmoText');
 
-/* ========== 全局状态 ========== */
+/* ========== 状态 ========== */
 let peer = null;
 let conn = null;
 let isHost = false;
@@ -529,14 +629,57 @@ let gameMode = 'pvp';
 let frameCount = 0;
 
 // 命中同步
-const processedHits = new Set();  // 已处理的 bulletId（被击中方）
-let hpSeq = 0;                     // hpUpdate 序号
+const processedHits = new Set();
+let hpSeq = 0;
 
-// 连击系统
+// 连击
 let comboCount = 0;
-let comboTimer = 0;               // 剩余帧数
-const COMBO_WINDOW = 120;         // 2 秒
+let comboTimer = 0;
+const COMBO_WINDOW = 120;
 const COMBO_MILESTONES = [3, 5, 10, 15, 20, 30];
+let screenShake = 0;
+
+// 死亡回放
+let slowmoTimer = 0;        // 剩余帧数
+const SLOWMO_DURATION = 30; // 0.5 秒
+let timeScale = 1;          // 时间流速（0.3 = 30% 速度）
+
+// 地图主题
+const THEMES = {
+  space: {
+    name: '深空', icon: '🌌',
+    bg: ['#0e1424', '#080b16'],
+    grid: '#141a2a',
+    obstacleFill: '#1e2a44',
+    obstacleStroke: '#3a4d75',
+    obstacleHighlight: 'rgba(120,160,255,0.08)'
+  },
+  snow: {
+    name: '雪地', icon: '❄️',
+    bg: ['#1a2438', '#0d1522'],
+    grid: '#1f2c44',
+    obstacleFill: '#c8d8ec',
+    obstacleStroke: '#e8f0ff',
+    obstacleHighlight: 'rgba(255,255,255,0.3)'
+  },
+  desert: {
+    name: '沙漠', icon: '🏜️',
+    bg: ['#2a2015', '#150e05'],
+    grid: '#2e2418',
+    obstacleFill: '#a8845a',
+    obstacleStroke: '#d4a878',
+    obstacleHighlight: 'rgba(255,220,150,0.15)'
+  },
+  zombie: {
+    name: '末日', icon: '🧟',
+    bg: ['#1a1420', '#0a0710'],
+    grid: '#1e1428',
+    obstacleFill: '#2a1e3a',
+    obstacleStroke: '#4d3670',
+    obstacleHighlight: 'rgba(120,80,180,0.15)'
+  }
+};
+let currentTheme = 'space';
 
 function createPlayer(role) {
   const isRed = role === 'red';
@@ -545,36 +688,26 @@ function createPlayer(role) {
     name: isRed ? myNickname : opponentNickname,
     x: isRed ? 120 : 780,
     y: 275,
-    hp: 100,
-    maxHp: 100,
-    hpSeq: 0,           // 血量变更序号（防止旧包覆盖）
+    hp: 100, maxHp: 100, hpSeq: 0,
     cooldown: 0,
     facing: isRed ? 0 : Math.PI,
     skillCD: { dash: 0, shield: 0, ultimate: 0 },
     shieldActive: 0,
-    dashFrames: 0,
-    dashVx: 0, dashVy: 0,
+    dashFrames: 0, dashVx: 0, dashVy: 0,
     weapon: 'pistol',
     ammo: Infinity,
     reloadTimer: 0,
-    speedTimer: 0,
-    invisibleTimer: 0,
-    doubleTimer: 0,
-    kills: 0,
-    dead: false
+    speedTimer: 0, invisibleTimer: 0, doubleTimer: 0,
+    kills: 0, dead: false
   };
 }
 
 let redPlayer = null;
 let bluePlayer = null;
-let scoreRed = 0;
-let scoreBlue = 0;
+let scoreRed = 0, scoreBlue = 0;
 let zombies = [];
-let zombieKills = 0;
-let zombieWave = 1;
-let waveTimer = 0;
-let spawnTimer = 0;
-let zombieIdCounter = 0;
+let zombieKills = 0, zombieWave = 1;
+let waveTimer = 0, spawnTimer = 0, zombieIdCounter = 0;
 let obstacles = [];
 let bullets = [];
 let damageTexts = [];
@@ -599,9 +732,7 @@ const ZOMBIE_TOUCH_COOLDOWN = 60;
 const ZOMBIE_MAX_COUNT = 30;
 
 const SKILL_COOLDOWN = { dash: 240, shield: 480, ultimate: 900 };
-const DASH_DURATION = 18;
-const DASH_SPEED = 14;
-const SHIELD_DURATION = 180;
+const DASH_DURATION = 18, DASH_SPEED = 14, SHIELD_DURATION = 180;
 
 const WEAPONS = {
   pistol:   { name: '手枪',   icon: '🔫', cooldown: 14, damage: 14, bulletSpeed: 9,  bulletsPerShot: 1, spread: 0,    ammo: Infinity, color: '#ffffff' },
@@ -610,17 +741,13 @@ const WEAPONS = {
   machine:  { name: '机枪',   icon: '⚙️', cooldown: 5,  damage: 6,  bulletSpeed: 10, bulletsPerShot: 1, spread: 0.12, ammo: 60,       color: '#ff6bd2' }
 };
 const WEAPON_ORDER = ['pistol', 'shotgun', 'sniper', 'machine'];
-
-const PICKUP_SIZE = 20;
-const PICKUP_LIFETIME = 900;
-const BUFF_DURATION = 480;
-const BUFF_SPEED_MULT = 1.6;
-const BUFF_DOUBLE_MULT = 2;
+const PICKUP_SIZE = 20, PICKUP_LIFETIME = 900, BUFF_DURATION = 480;
+const BUFF_SPEED_MULT = 1.6, BUFF_DOUBLE_MULT = 2;
 
 /* ========== 键盘 ========== */
 const keysDown = new Set();
 const keyTimers = new Map();
-const GAME_KEYS = ['KeyW','KeyA','KeyS','KeyD','Space','ArrowUp','ArrowDown','ArrowLeft','ArrowRight','KeyQ','KeyE','KeyR','Digit1','Digit2','Digit3','Digit4'];
+const GAME_KEYS = ['KeyW','KeyA','KeyS','KeyD','Space','ArrowUp','ArrowDown','ArrowLeft','ArrowRight','KeyQ','KeyE','KeyR','KeyT','Digit1','Digit2','Digit3','Digit4','Digit5'];
 function clearKey(code) {
   keysDown.delete(code);
   if (keyTimers.has(code)) { clearTimeout(keyTimers.get(code)); keyTimers.delete(code); }
@@ -646,11 +773,31 @@ function consumePress(code) {
   if (justPressed.has(code)) { justPressed.delete(code); return true; }
   return false;
 }
+
+// 聊天面板打开时，不拦截游戏按键
+let chatPanelOpen = false;
+
 window.addEventListener('keydown', (e) => {
-  if (!gameRunning) return;
-  if (!GAME_KEYS.includes(e.code)) return;
+  if (!gameRunning && !chatPanelOpen) return;
+  if (!GAME_KEYS.includes(e.code) && e.code !== 'Escape') return;
   e.preventDefault();
   if (e.repeat) return;
+
+  // 聊天面板打开时的数字键选择
+  if (chatPanelOpen) {
+    const idx = ['Digit1','Digit2','Digit3','Digit4','Digit5'].indexOf(e.code);
+    if (idx !== -1) {
+      const opt = chatPanelEl.querySelectorAll('.chat-option')[idx];
+      if (opt) sendChatMessage(opt.dataset.msg);
+      return;
+    }
+    if (e.code === 'Escape' || e.code === 'KeyT') {
+      closeChatPanel();
+      return;
+    }
+    return;
+  }
+
   keysDown.add(e.code);
   justPressed.add(e.code);
   if (keyTimers.has(e.code)) clearTimeout(keyTimers.get(e.code));
@@ -668,6 +815,8 @@ document.addEventListener('mouseleave', clearAllKeys);
 /* ========== 音效 ========== */
 let audioCtx = null;
 let soundEnabled = true;
+let musicEnabled = true;
+
 function initAudio() {
   if (audioCtx) return;
   try { audioCtx = new (window.AudioContext || window.webkitAudioContext)(); } catch(e) {}
@@ -702,6 +851,7 @@ function playNoise(duration, vol = 0.1, delay = 0) {
   src.connect(filter); filter.connect(gain); gain.connect(audioCtx.destination);
   src.start(t); src.stop(t + duration);
 }
+
 const SFX = {
   shoot() { playTone('square', 880, 220, 0.08, 0.07); },
   shotgun() { playNoise(0.12, 0.12); playTone('sawtooth', 200, 60, 0.15, 0.1); },
@@ -731,12 +881,14 @@ const SFX = {
   pickup() { playTone('sine', 660, 990, 0.12, 0.12); playTone('sine', 990, 1320, 0.1, 0.1, 0.08); },
   reload() { playTone('square', 400, 200, 0.1, 0.08); },
   combo(n) {
-    // 连击音效：音高随连击数上升
     const base = 600 + n * 80;
     playTone('triangle', base, base * 1.5, 0.15, 0.13);
     if (n >= 5) playTone('sine', base * 2, base * 2.5, 0.12, 0.1, 0.08);
-  }
+  },
+  chat() { playTone('sine', 800, 1200, 0.08, 0.08); },
+  slowmo() { playTone('sine', 200, 100, 0.5, 0.1); playNoise(0.3, 0.05); }
 };
+
 if (soundToggleEl) {
   soundToggleEl.addEventListener('click', () => {
     soundEnabled = !soundEnabled;
@@ -745,18 +897,109 @@ if (soundToggleEl) {
   });
 }
 
-/* ========== 连击系统 ========== */
+/* ========== 背景音乐 ========== */
+let musicNodes = [];      // 当前播放的音符
+let musicTimer = null;
+let musicStep = 0;
+let musicGain = null;
+
+// 简单的循环旋律（C 大调）
+const MUSIC_PATTERN = [
+  // 音高（Hz），时长（拍）
+  { f: 261.63, d: 1 },   // C4
+  { f: 329.63, d: 1 },   // E4
+  { f: 392.00, d: 1 },   // G4
+  { f: 329.63, d: 1 },   // E4
+  { f: 293.66, d: 1 },   // D4
+  { f: 349.23, d: 1 },   // F4
+  { f: 440.00, d: 1 },   // A4
+  { f: 349.23, d: 1 },   // F4
+  { f: 261.63, d: 1 },   // C4
+  { f: 329.63, d: 1 },   // E4
+  { f: 392.00, d: 1 },   // G4
+  { f: 523.25, d: 1 },   // C5
+  { f: 440.00, d: 2 },   // A4
+  { f: 392.00, d: 1 },   // G4
+  { f: 329.63, d: 1 },   // E4
+  { f: 293.66, d: 2 },   // D4
+];
+
+function startMusic() {
+  if (!musicEnabled || !audioCtx) return;
+  stopMusic();
+  musicGain = audioCtx.createGain();
+  musicGain.gain.value = 0.04;   // 音量较小
+  musicGain.connect(audioCtx.destination);
+  musicStep = 0;
+  scheduleNextNote();
+}
+
+function scheduleNextNote() {
+  if (!musicEnabled || !audioCtx || !gameRunning) return;
+  const note = MUSIC_PATTERN[musicStep % MUSIC_PATTERN.length];
+  const duration = note.d * 0.5;   // 每拍 0.5 秒
+
+  const t = audioCtx.currentTime;
+  const osc = audioCtx.createOscillator();
+  const g = audioCtx.createGain();
+  osc.type = 'triangle';
+  osc.frequency.value = note.f;
+  g.gain.setValueAtTime(0, t);
+  g.gain.linearRampToValueAtTime(0.8, t + 0.02);
+  g.gain.exponentialRampToValueAtTime(0.001, t + duration * 0.9);
+  osc.connect(g); g.connect(musicGain);
+  osc.start(t);
+  osc.stop(t + duration);
+  musicNodes.push(osc);
+
+  // 低频贝斯
+  if (musicStep % 4 === 0) {
+    const bassOsc = audioCtx.createOscillator();
+    const bassG = audioCtx.createGain();
+    bassOsc.type = 'sine';
+    bassOsc.frequency.value = note.f / 4;
+    bassG.gain.setValueAtTime(0.6, t);
+    bassG.gain.exponentialRampToValueAtTime(0.001, t + duration * 1.8);
+    bassOsc.connect(bassG); bassG.connect(musicGain);
+    bassOsc.start(t);
+    bassOsc.stop(t + duration * 2);
+    musicNodes.push(bassOsc);
+  }
+
+  musicStep++;
+  musicTimer = setTimeout(scheduleNextNote, duration * 1000);
+}
+
+function stopMusic() {
+  if (musicTimer) { clearTimeout(musicTimer); musicTimer = null; }
+  for (const n of musicNodes) { try { n.stop(); } catch(e) {} }
+  musicNodes = [];
+  if (musicGain) { try { musicGain.disconnect(); } catch(e) {} musicGain = null; }
+}
+
+if (musicToggleEl) {
+  musicToggleEl.addEventListener('click', () => {
+    musicEnabled = !musicEnabled;
+    musicIcon.textContent = musicEnabled ? '🎵' : '🔇';
+    if (musicEnabled) {
+      initAudio();
+      if (gameRunning) startMusic();
+    } else {
+      stopMusic();
+    }
+  });
+}
+
+/* ========== 连击 ========== */
 function addCombo() {
   comboCount++;
   comboTimer = COMBO_WINDOW;
   if (comboDisplayEl) comboDisplayEl.textContent = comboCount;
-  // 里程碑
   if (COMBO_MILESTONES.includes(comboCount)) {
     SFX.combo(comboCount);
     const colors = ['#4dd4ff', '#4dff8b', '#ffd24d', '#ff6bd2', '#ff4d6d'];
-    const c = colors[Math.min(comboCount / 5 | 0, colors.length - 1)];
+    const c = colors[Math.min(Math.floor(comboCount / 5), colors.length - 1)];
     spawnDamageText(W/2, H/2 - 100, 0, c, comboCount + ' 连击!', true);
-    // 屏幕震动效果
     screenShake = 12;
   } else {
     SFX.combo(comboCount);
@@ -767,7 +1010,6 @@ function resetCombo() {
   comboTimer = 0;
   if (comboDisplayEl) comboDisplayEl.textContent = 0;
 }
-let screenShake = 0;
 
 /* ========== 伤害飘字 ========== */
 function spawnDamageText(x, y, amount, color, text = null, big = false) {
@@ -805,6 +1047,41 @@ function drawDamageTexts() {
     ctx.restore();
   }
 }
+
+/* ========== 快捷聊天 ========== */
+function openChatPanel() {
+  chatPanelOpen = true;
+  chatPanelEl.classList.add('visible');
+}
+function closeChatPanel() {
+  chatPanelOpen = false;
+  chatPanelEl.classList.remove('visible');
+}
+function sendChatMessage(msg) {
+  if (!msg) return;
+  closeChatPanel();
+  // 本地显示
+  showChatBubble(myNickname, msg, true);
+  SFX.chat();
+  // 广播给对方
+  safeSend({ type: 'chat', msg });
+}
+function showChatBubble(sender, msg, isMine) {
+  const bubble = document.createElement('div');
+  bubble.className = 'chat-bubble' + (isMine ? ' mine' : '');
+  bubble.innerHTML = `<span class="sender">${escapeHtml(sender)}:</span>${escapeHtml(msg)}`;
+  chatMessagesEl.appendChild(bubble);
+  setTimeout(() => {
+    bubble.style.transition = 'opacity 0.4s, transform 0.4s';
+    bubble.style.opacity = '0';
+    bubble.style.transform = 'translateY(-10px)';
+    setTimeout(() => bubble.remove(), 400);
+  }, 2500);
+}
+// 点击聊天选项
+document.querySelectorAll('.chat-option').forEach(opt => {
+  opt.addEventListener('click', () => sendChatMessage(opt.dataset.msg));
+});
 
 /* ========== 排行榜 ========== */
 const LB_KEY = 'arena_leaderboard_v1';
@@ -894,22 +1171,20 @@ function bulletHitsObstacle(bullet, obs) {
   return false;
 }
 
-/* ========== 网格预渲染 ========== */
-let gridCanvasPvP = null, gridCanvasZombie = null;
-function initGridCanvases() {
-  gridCanvasPvP = document.createElement('canvas');
-  gridCanvasPvP.width = W; gridCanvasPvP.height = H;
-  const g1 = gridCanvasPvP.getContext('2d');
-  g1.strokeStyle = '#141a2a'; g1.lineWidth = 1;
-  for (let i = 0; i < W; i += 50) { g1.beginPath(); g1.moveTo(i, 0); g1.lineTo(i, H); g1.stroke(); }
-  for (let i = 0; i < H; i += 50) { g1.beginPath(); g1.moveTo(0, i); g1.lineTo(W, i); g1.stroke(); }
-
-  gridCanvasZombie = document.createElement('canvas');
-  gridCanvasZombie.width = W; gridCanvasZombie.height = H;
-  const g2 = gridCanvasZombie.getContext('2d');
-  g2.strokeStyle = '#1e1428'; g2.lineWidth = 1;
-  for (let i = 0; i < W; i += 50) { g2.beginPath(); g2.moveTo(i, 0); g2.lineTo(i, H); g2.stroke(); }
-  for (let i = 0; i < H; i += 50) { g2.beginPath(); g2.moveTo(0, i); g2.lineTo(W, i); g2.stroke(); }
+/* ========== 网格预渲染（按主题） ========== */
+const gridCache = {};
+function getGridCanvas(themeKey) {
+  if (gridCache[themeKey]) return gridCache[themeKey];
+  const theme = THEMES[themeKey] || THEMES.space;
+  const c = document.createElement('canvas');
+  c.width = W; c.height = H;
+  const g = c.getContext('2d');
+  g.strokeStyle = theme.grid;
+  g.lineWidth = 1;
+  for (let i = 0; i < W; i += 50) { g.beginPath(); g.moveTo(i, 0); g.lineTo(i, H); g.stroke(); }
+  for (let i = 0; i < H; i += 50) { g.beginPath(); g.moveTo(0, i); g.lineTo(W, i); g.stroke(); }
+  gridCache[themeKey] = c;
+  return c;
 }
 
 /* ========== UI ========== */
@@ -956,6 +1231,11 @@ function updateScoreboard() {
 function updateScoreboardVisibility() {
   if (pvpScoreboardEl) pvpScoreboardEl.classList.toggle('hidden', gameMode !== 'pvp');
   if (zombieScoreboardEl) zombieScoreboardEl.classList.toggle('hidden', gameMode !== 'zombie');
+}
+function updateThemeBadge() {
+  const theme = THEMES[currentTheme] || THEMES.space;
+  if (themeIconEl) themeIconEl.textContent = theme.icon;
+  if (themeNameEl) themeNameEl.textContent = theme.name;
 }
 function initPeer(peerId) {
   return new Promise((resolve, reject) => {
@@ -1110,6 +1390,29 @@ function setupConnection() {
   }
 }
 
+/* ========== 死亡回放 ========== */
+function triggerSlowmo() {
+  slowmoTimer = SLOWMO_DURATION;
+  timeScale = 0.25;
+  SFX.slowmo();
+  if (slowmoOverlayEl) slowmoOverlayEl.classList.add('active');
+  if (slowmoTextEl) slowmoTextEl.classList.add('active');
+  if (canvas) canvas.classList.add('slowmo');
+}
+function endSlowmo() {
+  slowmoTimer = 0;
+  timeScale = 1;
+  if (slowmoOverlayEl) slowmoOverlayEl.classList.remove('active');
+  if (slowmoTextEl) slowmoTextEl.classList.remove('active');
+  if (canvas) canvas.classList.remove('slowmo');
+}
+function updateSlowmo() {
+  if (slowmoTimer > 0) {
+    slowmoTimer--;
+    if (slowmoTimer === 0) endSlowmo();
+  }
+}
+
 /* ========== 消息处理 ========== */
 function handleMessage(data) {
   if (!data || !data.type) return;
@@ -1131,6 +1434,12 @@ function handleMessage(data) {
 
     case 'startGame':
       startGame();
+      break;
+
+    case 'theme':
+      // 房主广播本局主题
+      currentTheme = data.theme || 'space';
+      updateThemeBadge();
       break;
 
     case 'playerUpdate':
@@ -1155,29 +1464,21 @@ function handleMessage(data) {
       if (data.bullet && data.bullet.owner !== myRole) bullets.push(data.bullet);
       break;
 
-    // ========== 命中：双向同步 ==========
     case 'hit': {
-      // 我是被击中方
       if (data.targetRole === myRole && gameMode === 'pvp') {
-        // 去重：同一个 bulletId 只处理一次
         if (processedHits.has(data.bulletId)) break;
         processedHits.add(data.bulletId);
-
         const me = myRole === 'red' ? redPlayer : bluePlayer;
-        // 护盾抵挡
         if (me.shieldActive > 0) {
           spawnDamageText(data.hitX, data.hitY, 0, '#4dd4ff', '🛡');
           safeSend({ type: 'hpUpdate', role: myRole, hp: me.hp, seq: ++me.hpSeq });
           break;
         }
-        // 扣血
         me.hp = Math.max(0, me.hp - data.damage);
         SFX.hurt();
         spawnDamageText(data.hitX, data.hitY, data.damage, '#ff4d4d');
-        // 移除我屏幕上的那颗子弹
         const idx = bullets.findIndex(b => b.id === data.bulletId);
         if (idx !== -1) bullets.splice(idx, 1);
-        // 广播血量（带序号）
         safeSend({ type: 'hpUpdate', role: myRole, hp: me.hp, seq: ++me.hpSeq });
         if (me.hp <= 0) me.dead = true;
       }
@@ -1185,7 +1486,6 @@ function handleMessage(data) {
     }
 
     case 'hpUpdate': {
-      // 更新远程玩家血量，用 seq 防止旧包覆盖新值
       const target = data.role === 'red' ? redPlayer : bluePlayer;
       if (target && data.role !== myRole) {
         if (data.seq !== undefined && data.seq > target.hpSeq) {
@@ -1201,9 +1501,13 @@ function handleMessage(data) {
     case 'pickupSpawn':
       pickups.push(data.pickup);
       break;
-
     case 'pickupCollected':
       pickups = pickups.filter(p => p.id !== data.pickupId);
+      break;
+
+    case 'chat':
+      showChatBubble(opponentNickname, data.msg, false);
+      SFX.chat();
       break;
 
     case 'roundEnd':
@@ -1212,10 +1516,10 @@ function handleMessage(data) {
 
     case 'nextRound':
       obstacles = data.obstacles || [];
+      if (data.theme) { currentTheme = data.theme; updateThemeBadge(); }
       startRoundLocally(data.role, false);
       break;
 
-    // 僵尸
     case 'zombieState':
       if (myRole === 'blue') {
         zombies = data.zombies || [];
@@ -1233,7 +1537,6 @@ function handleMessage(data) {
             zombies = zombies.filter(zz => zz.id !== z.id);
             zombieKills++;
             updateScoreboard();
-            addCombo();
             safeSend({ type: 'zombieDied', zombieId: z.id, x: z.x, y: z.y });
             SFX.zombieDie();
             spawnDamageText(z.x, z.y, 0, '#ffaa4d', '💀');
@@ -1262,6 +1565,7 @@ function handleMessage(data) {
       break;
     case 'gameOver':
       gameRunning = false;
+      stopMusic();
       SFX.lose();
       addLeaderboardEntry(myNickname + ' & ' + opponentNickname, zombieKills, 'zombie');
       setTimeout(() => {
@@ -1385,9 +1689,17 @@ function useUltimate() {
 /* ========== 开始游戏 ========== */
 function startGame() {
   if (gameRunning) return;
+  // 房主生成主题和障碍物
+  const themeKeys = Object.keys(THEMES).filter(k => k !== 'zombie');
+  if (gameMode === 'zombie') {
+    currentTheme = 'zombie';
+  } else {
+    currentTheme = themeKeys[Math.floor(Math.random() * themeKeys.length)];
+  }
   const newObstacles = generateObstacles();
-  safeSend({ type: 'nextRound', obstacles: newObstacles, role: 'blue' });
+  safeSend({ type: 'nextRound', obstacles: newObstacles, role: 'blue', theme: currentTheme });
   obstacles = newObstacles;
+  updateThemeBadge();
   if (gameMode === 'pvp') startRoundLocally('red', true);
   else startZombieModeLocally('red');
 }
@@ -1404,11 +1716,13 @@ function startRoundLocally(role, isFirst = true) {
   pickups = [];
   processedHits.clear();
   resetCombo();
+  endSlowmo();
 
   gameRoomCode.textContent = roomCode;
   myRoleLabel.textContent = myRole === 'red' ? '红方' : '蓝方';
   myRoleLabel.className = myRole === 'red' ? 'role-red' : 'role-blue';
   updateScoreboardVisibility();
+  updateThemeBadge();
   switchView('game');
   setStatus('对战中', 'ok');
   updateScoreboard();
@@ -1416,6 +1730,7 @@ function startRoundLocally(role, isFirst = true) {
   clearAllKeys();
 
   SFX.start();
+  if (musicEnabled) { initAudio(); startMusic(); }
   broadcastPlayerState();
   if (!window._gameLoopRunning) { window._gameLoopRunning = true; gameLoop(); }
 }
@@ -1434,6 +1749,7 @@ function startZombieModeLocally(role) {
   pickups = [];
   processedHits.clear();
   resetCombo();
+  endSlowmo();
   zombieKills = 0;
   zombieWave = 1;
   waveTimer = 0;
@@ -1444,6 +1760,7 @@ function startZombieModeLocally(role) {
   myRoleLabel.textContent = myRole === 'red' ? '红方' : '蓝方';
   myRoleLabel.className = myRole === 'red' ? 'role-red' : 'role-blue';
   updateScoreboardVisibility();
+  updateThemeBadge();
   switchView('game');
   setStatus('僵尸模式', 'ok');
   updateScoreboard();
@@ -1451,6 +1768,7 @@ function startZombieModeLocally(role) {
   clearAllKeys();
 
   SFX.start();
+  if (musicEnabled) { initAudio(); startMusic(); }
   broadcastPlayerState();
   if (!window._gameLoopRunning) { window._gameLoopRunning = true; gameLoop(); }
 }
@@ -1458,12 +1776,12 @@ function startZombieModeLocally(role) {
 /* ========== 回合结束 ========== */
 function handleRoundEnd(winner, sRed, sBlue) {
   gameRunning = false;
+  stopMusic();
   scoreRed = sRed;
   scoreBlue = sBlue;
   updateScoreboard();
   if (winner === myRole) {
     SFX.win();
-    // 记录排行榜
     const me = myRole === 'red' ? redPlayer : bluePlayer;
     if (me) addLeaderboardEntry(me.name, me.kills || 1, 'pvp');
   } else {
@@ -1474,13 +1792,18 @@ function handleRoundEnd(winner, sRed, sBlue) {
 
 function startNextRound() {
   if (!isHost || gameMode !== 'pvp') return;
+  const themeKeys = Object.keys(THEMES).filter(k => k !== 'zombie');
+  currentTheme = themeKeys[Math.floor(Math.random() * themeKeys.length)];
   const newObstacles = generateObstacles();
-  safeSend({ type: 'nextRound', obstacles: newObstacles, role: 'blue' });
+  safeSend({ type: 'nextRound', obstacles: newObstacles, role: 'blue', theme: currentTheme });
   obstacles = newObstacles;
+  updateThemeBadge();
   startRoundLocally('red', false);
 }
 
 function handleLocalWin(deadRole) {
+  // 触发死亡回放
+  triggerSlowmo();
   gameRunning = false;
   if (deadRole === 'red') scoreBlue++;
   else scoreRed++;
@@ -1490,7 +1813,11 @@ function handleLocalWin(deadRole) {
   safeSend({ type: 'roundEnd', winner: myRole, scoreRed: scoreRed, scoreBlue: scoreBlue });
   SFX.win();
   if (me) addLeaderboardEntry(me.name, me.kills, 'pvp');
-  if (isHost) setTimeout(() => startNextRound(), 2000);
+  // 慢动作结束后再开下一局
+  setTimeout(() => {
+    stopMusic();
+    if (isHost) startNextRound();
+  }, 2000);
 }
 
 /* ========== 广播 ========== */
@@ -1594,6 +1921,7 @@ function updateZombies() {
   if (redPlayer.hp <= 0 && bluePlayer.hp <= 0) {
     safeSend({ type: 'gameOver', kills: zombieKills, wave: zombieWave });
     gameRunning = false;
+    stopMusic();
     SFX.lose();
     addLeaderboardEntry(myNickname + ' & ' + opponentNickname, zombieKills, 'zombie');
     setTimeout(() => {
@@ -1606,21 +1934,28 @@ function updateZombies() {
 /* ========== 更新 ========== */
 function update() {
   if (!gameRunning) return;
+
+  // 死亡回放期间时间减速
+  if (slowmoTimer > 0) {
+    updateSlowmo();
+    // 仍然更新视觉状态（伤害飘字、屏幕震动），但不推进游戏逻辑
+    updateDamageTexts();
+    if (screenShake > 0) screenShake *= 0.85;
+    return;
+  }
+
   frameCount++;
+
   const me = myRole === 'red' ? redPlayer : bluePlayer;
   const opponent = myRole === 'red' ? bluePlayer : redPlayer;
   if (!me || !opponent) return;
 
-  // 连击计时
   if (comboTimer > 0) {
     comboTimer--;
     if (comboTimer === 0) resetCombo();
   }
-
-  // 屏幕震动衰减
   if (screenShake > 0) screenShake *= 0.85;
 
-  // 冷却
   for (const k of ['dash', 'shield', 'ultimate']) {
     if (me.skillCD[k] > 0) me.skillCD[k]--;
   }
@@ -1629,14 +1964,22 @@ function update() {
   if (me.invisibleTimer > 0) me.invisibleTimer--;
   if (me.doubleTimer > 0) me.doubleTimer--;
 
-  // 技能
-  if (consumePress('KeyQ')) useDash();
-  if (consumePress('KeyE')) useShield();
-  if (consumePress('KeyR')) useUltimate();
-  if (consumePress('Digit1')) switchWeapon(1);
-  if (consumePress('Digit2')) switchWeapon(2);
-  if (consumePress('Digit3')) switchWeapon(3);
-  if (consumePress('Digit4')) switchWeapon(4);
+  // 聊天面板
+  if (consumePress('KeyT')) {
+    if (chatPanelOpen) closeChatPanel();
+    else openChatPanel();
+  }
+
+  // 技能（聊天面板打开时不响应）
+  if (!chatPanelOpen) {
+    if (consumePress('KeyQ')) useDash();
+    if (consumePress('KeyE')) useShield();
+    if (consumePress('KeyR')) useUltimate();
+    if (consumePress('Digit1')) switchWeapon(1);
+    if (consumePress('Digit2')) switchWeapon(2);
+    if (consumePress('Digit3')) switchWeapon(3);
+    if (consumePress('Digit4')) switchWeapon(4);
+  }
 
   // 移动
   if (me.dashFrames > 0) {
@@ -1673,7 +2016,7 @@ function update() {
   // 射击
   const w = WEAPONS[me.weapon];
   if (me.cooldown > 0) me.cooldown--;
-  if (keyDown('space') && me.cooldown <= 0 && me.hp > 0) {
+  if (keyDown('space') && me.cooldown <= 0 && me.hp > 0 && !chatPanelOpen) {
     if (me.ammo !== Infinity && me.ammo <= 0) {
       if (me.reloadTimer <= 0) me.reloadTimer = 60;
     } else {
@@ -1708,7 +2051,7 @@ function update() {
     if (me.reloadTimer === 0) reloadWeapon();
   }
 
-  // 僵尸更新
+  // 僵尸
   if (gameMode === 'zombie' && isHost) {
     updateZombies();
     if (frameCount % 3 === 0) {
@@ -1735,24 +2078,20 @@ function update() {
     }
     if (b.owner === myRole) {
       if (gameMode === 'pvp') {
+        // PvP: 子弹打到对方
         const targetRole = myRole === 'red' ? 'blue' : 'red';
         const target = targetRole === 'red' ? redPlayer : bluePlayer;
         if (segmentHitsPlayer(prevX, prevY, b.x, b.y, target)) {
-          // 护盾
           if (target.shieldActive > 0) {
             spawnDamageText(b.x, b.y, 0, '#4dd4ff', '🛡');
             bullets.splice(i, 1);
             safeSend({ type: 'hit', bulletId: b.id, targetRole, damage: 0, hitX: b.x, hitY: b.y });
             continue;
           }
-          // 命中！
           const dmg = b.damage || DAMAGE_AMOUNT;
-          // 1) 本地立即扣血（乐观更新）
           target.hp = Math.max(0, target.hp - dmg);
           target.hpSeq++;
-          // 2) 广播 hit 给对方
           safeSend({ type: 'hit', bulletId: b.id, targetRole, damage: dmg, hitX: b.x, hitY: b.y });
-          // 3) 本地效果
           SFX.hit();
           spawnDamageText(b.x, b.y, dmg, targetRole === 'red' ? '#ff6b8a' : '#6bb8ff', null, dmg > 20);
           addCombo();
@@ -1760,7 +2099,8 @@ function update() {
           if (target.hp <= 0) handleLocalWin(targetRole);
         }
       } else {
-        // 僵尸
+        // PvE: 子弹只对僵尸生效！
+        // ❌ 完全不做玩家碰撞检测，子弹穿过队友/自己
         let hitZombie = null;
         for (const z of zombies) {
           if (segmentHitsZombie(prevX, prevY, b.x, b.y, z)) { hitZombie = z; break; }
@@ -1793,6 +2133,7 @@ function update() {
           }
           bullets.splice(i, 1);
         }
+        // 注意：PvE 模式下子弹不会打到队友，继续飞行
       }
     }
   }
@@ -1829,29 +2170,35 @@ function segmentHitsZombie(x1, y1, x2, y2, z) {
 
 /* ========== 绘制 ========== */
 function draw() {
+  const theme = THEMES[currentTheme] || THEMES.space;
+
   ctx.save();
-  // 屏幕震动
   if (screenShake > 0.5) {
     ctx.translate((Math.random() - 0.5) * screenShake, (Math.random() - 0.5) * screenShake);
   }
 
   ctx.clearRect(0, 0, W, H);
   const grad = ctx.createRadialGradient(W/2, H/2, 100, W/2, H/2, 700);
-  if (gameMode === 'zombie') { grad.addColorStop(0, '#1a1420'); grad.addColorStop(1, '#0a0710'); }
-  else { grad.addColorStop(0, '#0e1424'); grad.addColorStop(1, '#080b16'); }
+  grad.addColorStop(0, theme.bg[0]);
+  grad.addColorStop(1, theme.bg[1]);
   ctx.fillStyle = grad;
   ctx.fillRect(0, 0, W, H);
 
-  if (gameMode === 'zombie' && gridCanvasZombie) ctx.drawImage(gridCanvasZombie, 0, 0);
-  else if (gridCanvasPvP) ctx.drawImage(gridCanvasPvP, 0, 0);
+  // 网格
+  const grid = getGridCanvas(currentTheme);
+  if (grid) ctx.drawImage(grid, 0, 0);
 
+  // 障碍物
   for (const o of obstacles) {
     ctx.shadowColor = 'rgba(0,0,0,0.5)'; ctx.shadowBlur = 12; ctx.shadowOffsetY = 4;
-    ctx.fillStyle = gameMode === 'zombie' ? '#2a1e3a' : '#1e2a44';
+    ctx.fillStyle = theme.obstacleFill;
     ctx.beginPath(); ctx.roundRect(o.x, o.y, o.w, o.h, 8); ctx.fill();
     ctx.shadowBlur = 0; ctx.shadowOffsetY = 0;
-    ctx.strokeStyle = gameMode === 'zombie' ? '#4d3670' : '#3a4d75';
+    ctx.strokeStyle = theme.obstacleStroke;
     ctx.lineWidth = 2; ctx.stroke();
+    // 高光
+    ctx.fillStyle = theme.obstacleHighlight;
+    ctx.beginPath(); ctx.roundRect(o.x + 3, o.y + 3, o.w - 6, 6, 4); ctx.fill();
   }
 
   // 掉落物
@@ -1986,6 +2333,14 @@ function drawPlayer(p) {
     ctx.shadowBlur = 0;
   }
 
+  // PvE 模式：队友头顶加个小标记
+  if (gameMode === 'zombie' && p.role !== myRole) {
+    ctx.font = 'bold 12px "Segoe UI"';
+    ctx.fillStyle = '#4dd4ff';
+    ctx.textAlign = 'center';
+    ctx.fillText('🛡 队友', p.x, p.y - PLAYER_SIZE/2 - 42);
+  }
+
   ctx.fillStyle = bgColor;
   ctx.fillRect(p.x - 28, p.y - PLAYER_SIZE/2 - 20, 56, 8);
   ctx.fillStyle = color;
@@ -2050,6 +2405,9 @@ if (!CanvasRenderingContext2D.prototype.roundRect) {
 function cleanupAndReturnToLobby() {
   gameRunning = false;
   clearAllKeys();
+  closeChatPanel();
+  endSlowmo();
+  stopMusic();
   if (conn && conn.open) {
     safeSend({ type: 'leave' });
     try { conn.close(); } catch(e) {}
@@ -2099,10 +2457,10 @@ document.addEventListener('fullscreenchange', () => {
 });
 
 /* ========== 启动 ========== */
-initGridCanvases();
 setStatus('准备就绪，创建或加入房间', '');
 updateScoreboard();
 updateScoreboardVisibility();
+updateThemeBadge();
 renderLeaderboard();
 </script>
 </body>
