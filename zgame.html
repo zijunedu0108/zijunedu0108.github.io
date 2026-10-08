@@ -94,6 +94,28 @@ button{border:none;cursor:pointer;font-family:inherit;font-weight:600;border-rad
 .skin-name{font-size:.85rem;color:#cdd9f0;font-weight:600}
 .skin-price{font-size:.75rem;color:#ffd24d;font-family:'Consolas',monospace;margin-top:4px}
 .skin-card.equipped .skin-price{color:#4eff8b}
+/* 成就卡片 */
+.achievement-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.achievement-card{background:#0a0f1c;border:2px solid #1e2a44;border-radius:12px;padding:10px;text-align:center;transition:.2s}
+.achievement-card.unlocked{border-color:#ffd24d;background:linear-gradient(135deg,#1a2a5e,#0f1830);box-shadow:0 0 16px rgba(255,210,77,.25)}
+.achievement-card.locked{opacity:.5}
+.achievement-card .ach-icon{font-size:1.6rem;margin-bottom:4px}
+.achievement-card .ach-name{font-size:.8rem;color:#cdd9f0;font-weight:600}
+.achievement-card .ach-desc{font-size:.68rem;color:#6b7fa0;margin-top:2px;line-height:1.3}
+/* 成就 toast */
+.achievement-toast{position:fixed;top:20px;right:20px;z-index:700;display:flex;gap:14px;align-items:center;background:linear-gradient(135deg,#1a2a5e,#0f1830);border:2px solid #ffd24d;border-radius:16px;padding:14px 20px;min-width:280px;box-shadow:0 10px 40px rgba(255,210,77,.4);transform:translateX(400px);opacity:0;transition:all .5s cubic-bezier(.34,1.56,.64,1)}
+.achievement-toast.show{transform:translateX(0);opacity:1}
+.achievement-toast .ach-icon{font-size:2.4rem;filter:drop-shadow(0 0 12px #ffd24d)}
+.achievement-toast .ach-body{flex:1}
+.achievement-toast .ach-title{font-size:.7rem;color:#ffd24d;font-weight:700;letter-spacing:1px}
+.achievement-toast .ach-name{font-size:1rem;color:#e8eeff;font-weight:700;margin:2px 0}
+.achievement-toast .ach-desc{font-size:.75rem;color:#8fa4cc}
+/* 结算面板 */
+.gameover-panel{position:fixed;inset:0;z-index:600;display:none;flex-direction:column;align-items:center;justify-content:center;background:rgba(5,8,16,.88);backdrop-filter:blur(12px);gap:20px}
+.gameover-panel.visible{display:flex}
+.go-title{font-size:2.6rem;font-weight:900;color:#ff4d6d;text-shadow:0 0 40px #ff4d6d;letter-spacing:4px;text-align:center}
+.go-stats{display:flex;flex-direction:column;gap:10px;font-size:1.2rem;color:#cdd9f0;text-align:center}
+.go-coins{color:#ffd24d;font-family:'Consolas',monospace;font-weight:700;font-size:1.4rem}
 .setting-item{display:flex;align-items:center;justify-content:space-between;padding:14px 16px;background:#0a0f1c;border:1px solid #1e2a44;border-radius:12px;margin-bottom:8px}
 .setting-info{display:flex;flex-direction:column;gap:2px;flex:1}
 .setting-title{font-size:.88rem;color:#cdd9f0;font-weight:600}
@@ -124,7 +146,7 @@ button{border:none;cursor:pointer;font-family:inherit;font-weight:600;border-rad
 canvas#gameCanvas{border-radius:28px;background:#0a0e1a;box-shadow:0 0 0 2px #1a2338,0 30px 50px -20px black;display:block;transition:filter .3s;max-width:100vw}
 canvas#gameCanvas.slowmo{filter:saturate(1.4) brightness(1.1)}
 canvas#gameCanvas.aim-mode{cursor:crosshair}
-canvas#minimap{position:absolute;top:130px;right:20px;background:rgba(10,15,28,.85);border:1px solid #253253;border-radius:12px;box-shadow:0 8px 24px rgba(0,0,0,.6);z-index:100;display:none}
+canvas#minimap{position:absolute;top:230px;right:20px;background:rgba(10,15,28,.85);border:1px solid #253253;border-radius:12px;box-shadow:0 8px 24px rgba(0,0,0,.6);z-index:100;display:none}
 canvas#minimap.visible{display:block}
 .game-footer{display:flex;justify-content:space-between;align-items:center;width:1104px;max-width:100vw;margin-top:10px;font-size:.85rem;color:#6b7fa0;gap:12px;flex-wrap:wrap}
 kbd{background:#1a2238;border-radius:7px;padding:3px 10px;color:#b8ceff;font-weight:600;border:1px solid #33436b;box-shadow:0 2px 0 #0a0e16;font-family:inherit}
@@ -207,6 +229,16 @@ kbd{background:#1a2238;border-radius:7px;padding:3px 10px;color:#b8ceff;font-wei
 <div class="round-banner" id="roundBanner"></div>
 <div class="low-hp-vignette" id="lowHpVignette"></div>
 
+<div class="gameover-panel" id="gameOverPanel">
+  <div class="go-title" id="goTitle">💀 被僵尸击败！</div>
+  <div class="go-stats">
+    <div><span id="goKillLabel">击杀</span>: <b id="goKills">0</b></div>
+    <div><span id="goWaveLabel">波次</span>: <b id="goWave">1</b></div>
+    <div class="go-coins" id="goCoins">💰 +0</div>
+  </div>
+  <button class="btn-primary" id="goReturnBtn" style="margin-top:20px;width:220px;">返回大厅</button>
+</div>
+
 <div class="chat-panel" id="chatPanel">
   <div class="chat-title" id="chatTitle">💬 快捷聊天 (按 Esc 关闭)</div>
   <div class="chat-option" data-msg="GG">GG <span class="chat-key">1</span></div>
@@ -286,6 +318,7 @@ kbd{background:#1a2238;border-radius:7px;padding:3px 10px;color:#b8ceff;font-wei
       <div class="tab active" data-tab="mode" id="tabMode">🎮 模式</div>
       <div class="tab" data-tab="rank" id="tabRank">🏆 排行</div>
       <div class="tab" data-tab="skin" id="tabSkin">🎨 皮肤</div>
+      <div class="tab" data-tab="achievements" id="tabAchievements">🏅 成就</div>
       <div class="tab" data-tab="settings" id="tabSettings">⚙️ 设置</div>
     </div>
 
@@ -343,6 +376,14 @@ kbd{background:#1a2238;border-radius:7px;padding:3px 10px;color:#b8ceff;font-wei
         <div class="skin-grid" id="skinGrid"></div>
       </div>
 
+      <div class="tab-pane" data-pane="achievements">
+        <div class="section-title">
+          <span id="achTitle">🏅 成就</span>
+          <span style="color:#ffd24d;font-family:Consolas;font-weight:700;" id="achProgress">0/12</span>
+        </div>
+        <div class="achievement-grid" id="achievementGrid"></div>
+      </div>
+
       <div class="tab-pane" data-pane="settings">
         <div class="section-title" id="languageTitle">🌐 语言 / Language</div>
         <div class="setting-item">
@@ -355,7 +396,6 @@ kbd{background:#1a2238;border-radius:7px;padding:3px 10px;color:#b8ceff;font-wei
             <option value="en">English</option>
           </select>
         </div>
-
         <div class="section-title" style="margin-top:20px;" id="audioTitle">🔊 音效</div>
         <div class="setting-item">
           <div class="setting-info">
@@ -563,8 +603,7 @@ if (typeof Peer === 'undefined') {
   document.write('<script src="https://cdn.jsdelivr.net/npm/peerjs@1.5.2/dist/peerjs.min.js"><\/script>');
 }
 </script>
-
-  <script>
+<script>
 window.addEventListener('error', (e) => {
   const el = document.getElementById('statusText');
   if (el) el.textContent = '❌ ' + (e.message || '未知错误');
@@ -675,15 +714,31 @@ const SKINS={
   ice:{name:'冰霜',nameEn:'Ice',price:2500,color:'#4dd4ff',trail:'#a8e8ff',glow:32}
 };
 
+const ACHIEVEMENTS={
+  firstBlood:{icon:'🩸',name:'首次击杀',nameEn:'First Blood',desc:'击杀第一个敌人',descEn:'Kill your first enemy'},
+  combo10:{icon:'🔥',name:'十连击',nameEn:'Combo 10',desc:'达成 10 连击',descEn:'Reach 10 combo'},
+  combo20:{icon:'💥',name:'二十连击',nameEn:'Combo 20',desc:'达成 20 连击',descEn:'Reach 20 combo'},
+  firstBoss:{icon:'👑',name:'屠龙者',nameEn:'Boss Slayer',desc:'首次击杀 Boss',descEn:'Kill your first Boss'},
+  wave10:{icon:'🌊',name:'十波生存',nameEn:'Wave 10',desc:'存活到第 10 波',descEn:'Survive to wave 10'},
+  wave20:{icon:'🌊',name:'二十波',nameEn:'Wave 20',desc:'存活到第 20 波',descEn:'Survive to wave 20'},
+  noHitPvE:{icon:'🛡',name:'无伤通关',nameEn:'Flawless',desc:'PvE 中全程无伤（≥5 波）',descEn:'PvE without damage (≥5 waves)'},
+  pvpWin:{icon:'⚔️',name:'首胜',nameEn:'First Win',desc:'PvP 首次获胜',descEn:'Win your first PvP'},
+  pvpWin10:{icon:'🏆',name:'十胜',nameEn:'10 Wins',desc:'PvP 累计 10 胜',descEn:'Win 10 PvP matches'},
+  mazeWin:{icon:'🌀',name:'迷宫之王',nameEn:'Maze Master',desc:'迷宫模式获胜',descEn:'Win a maze match'},
+  rich:{icon:'💰',name:'小富翁',nameEn:'Rich',desc:'持有 5000 金币',descEn:'Hold 5000 coins'},
+  skinCollector:{icon:'🎨',name:'收藏家',nameEn:'Collector',desc:'解锁全部皮肤',descEn:'Unlock all skins'}
+};
+
 const I18N={
   zh:{
     brandTitle:'房间对战',brandTagline:'创建或加入房间 · 与好友实时连线',loginGoogle:'Google 登录',logout:'退出',loginTip:'登录后可保存皮肤到云端',
     nicknameLabel:'你的昵称',soloLabel:'单人模式（离线）',soloBtn:'单人打僵尸',multiDivider:'多人房间',createRoomLabel:'创建新房间',createRoomBtn:'创建房间',roomCodeLabel:'房间号',joinBtn:'加入',
     statusReady:'✅ 准备就绪',statusInit:'正在初始化…',
-    tabMode:'🎮 模式',tabRank:'🏆 排行',tabSkin:'🎨 皮肤',tabSettings:'⚙️ 设置',
+    tabMode:'🎮 模式',tabRank:'🏆 排行',tabSkin:'🎨 皮肤',tabAch:'🏅 成就',tabSettings:'⚙️ 设置',
     chooseMode:'选择游戏模式',modePvp:'1v1 竞技',modePvpDesc:'红蓝对决',modeZombie:'合作打僵尸',modeZombieDesc:'两人组队生存',modeMaze:'迷宫竞速',modeMazeDesc:'谁先到达终点',modeRace:'直线竞速',modeRaceDesc:'绕过障碍先到终点',
     shootStyle:'射击方式',autoAim:'🎯 自动瞄准',manualAim:'🖱️ 手动瞄准',autoAimDesc:'按空格朝向敌人自动射击',manualAimDesc:'鼠标瞄准，左键射击',
     rankTitle:'🏆 历史战绩 Top 10',clear:'清空',noRecord:'暂无记录，快去战斗吧！',skinShop:'🎨 皮肤商店',
+    achTitle:'🏅 成就',
     languageTitle:'🌐 语言 / Language',languageLabel:'界面语言',languageDesc:'切换后立即生效并保存',audioTitle:'🔊 音效',sfxTitle:'游戏音效',sfxDesc:'射击 / 命中 / 技能音效',bgmTitle:'背景音乐',bgmDesc:'循环 BGM',
     waitingTitle:'等待对手加入…',waitingHint:'把房间号发给好友，他输入即可加入',roomSettings:'房间设置（仅房主可改）',
     diffTitle:'🎚️ PvE 难度',diffDesc:'影响僵尸血量 / 速度 / 伤害',
@@ -698,16 +753,18 @@ const I18N={
     firebaseLoading:'Firebase 还在加载，请稍等',pvpWin:'PvP 胜利',pvpLose:'PvP 参与',soloZombie:'单人僵尸',coopZombie:'合作僵尸',mazeWin:'迷宫胜利',mazeLose:'迷宫失败',
     system:'系统',round:'ROUND',creatingRoom:'正在创建房间…',joiningRoom:'正在加入房间…',roomCreated:'✅ 房间已创建，等待加入',connectedWaiting:'✅ 已连接，等待开始…',oppConnected:'对手已连接，开始游戏',
     peerNotLoaded:'❌ PeerJS 未加载！请检查网络，或刷新页面',joinTimeout:'连接超时',cannotConnect:'无法连接到房间',createFailed:'创建失败',joinFailed:'加入失败',enterCode:'请输入 6 位房间号',redirectingLogin:'正在打开登录窗口…',
-    mazeFindExit:'找到出口！',mazeReachGoal:'到达终点'
+    returnLobby:'返回大厅',
+    achUnlocked:'🏅 成就解锁'
   },
   en:{
     brandTitle:'Room Battle',brandTagline:'Create or join a room · Play with friends',loginGoogle:'Google Login',logout:'Logout',loginTip:'Login to save skins to cloud',
     nicknameLabel:'Your Nickname',soloLabel:'Single Player (Offline)',soloBtn:'Solo Zombies',multiDivider:'Multiplayer',createRoomLabel:'Create New Room',createRoomBtn:'Create Room',roomCodeLabel:'Room Code',joinBtn:'Join',
     statusReady:'✅ Ready',statusInit:'Initializing…',
-    tabMode:'🎮 Mode',tabRank:'🏆 Rank',tabSkin:'🎨 Skins',tabSettings:'⚙️ Settings',
+    tabMode:'🎮 Mode',tabRank:'🏆 Rank',tabSkin:'🎨 Skins',tabAch:'🏅 Achievements',tabSettings:'⚙️ Settings',
     chooseMode:'Choose Game Mode',modePvp:'1v1 Arena',modePvpDesc:'Red vs Blue',modeZombie:'Co-op Zombies',modeZombieDesc:'Two-player survival',modeMaze:'Maze Race',modeMazeDesc:'First to the exit',modeRace:'Straight Race',modeRaceDesc:'Dodge obstacles to the goal',
     shootStyle:'Shooting Style',autoAim:'🎯 Auto Aim',manualAim:'🖱️ Manual Aim',autoAimDesc:'Press Space to auto-shoot',manualAimDesc:'Mouse aim, LMB shoot',
     rankTitle:'🏆 Top 10 Records',clear:'Clear',noRecord:'No records yet. Go fight!',skinShop:'🎨 Skin Shop',
+    achTitle:'🏅 Achievements',
     languageTitle:'🌐 Language / 语言',languageLabel:'Interface Language',languageDesc:'Takes effect immediately and saved',audioTitle:'🔊 Audio',sfxTitle:'Sound Effects',sfxDesc:'Shoot / Hit / Skill sounds',bgmTitle:'Background Music',bgmDesc:'Looping BGM',
     waitingTitle:'Waiting for opponent…',waitingHint:'Send the room code to your friend',roomSettings:'Room Settings (Host only)',
     diffTitle:'🎚️ PvE Difficulty',diffDesc:'Affects zombie HP / speed / damage',
@@ -722,7 +779,8 @@ const I18N={
     firebaseLoading:'Firebase still loading, please wait',pvpWin:'PvP Victory',pvpLose:'PvP Participation',soloZombie:'Solo Zombies',coopZombie:'Co-op Zombies',mazeWin:'Maze Victory',mazeLose:'Maze Defeat',
     system:'System',round:'ROUND',creatingRoom:'Creating room…',joiningRoom:'Joining room…',roomCreated:'✅ Room created, waiting',connectedWaiting:'✅ Connected, waiting to start…',oppConnected:'Opponent connected, starting',
     peerNotLoaded:'❌ PeerJS not loaded! Check network or refresh',joinTimeout:'Connection timeout',cannotConnect:'Cannot connect to room',createFailed:'Create failed',joinFailed:'Join failed',enterCode:'Enter 6-digit room code',redirectingLogin:'Opening login window…',
-    mazeFindExit:'Find the exit!',mazeReachGoal:'Reach the goal'
+    returnLobby:'Return to Lobby',
+    achUnlocked:'🏅 Achievement Unlocked'
   }
 };
 
@@ -735,15 +793,16 @@ function applyLanguage(lang){
   document.documentElement.lang=lang==='zh'?'zh-CN':'en';
   const map={brandTitle:'brandTitle',brandTagline:'brandTagline',loginBtnText:'loginGoogle',logoutBtnText:'logout',loginTip:'loginTip',
     nicknameLabel:'nicknameLabel',soloLabel:'soloLabel',soloBtnText:'soloBtn',multiDivider:'multiDivider',createRoomLabel:'createRoomLabel',createRoomBtnText:'createRoomBtn',roomCodeLabel:'roomCodeLabel',joinBtnText:'joinBtn',
-    tabMode:'tabMode',tabRank:'tabRank',tabSkin:'tabSkin',tabSettings:'tabSettings',
-    chooseMode:'chooseMode',modePvp:'modePvp',modePvpDesc:'modePvpDesc',modeZombie:'modeZombie',modeZombieDesc:'modeZombieDesc',modeMaze:'modeMaze',modeMazeDesc:'modeMazeDesc',modeRace:'modeRace',modeRaceDesc:'modeRaceDesc',
-    shootStyle:'shootStyle',rankTitle:'rankTitle',noRecord:'noRecord',skinShop:'skinShop',
+    tabMode:'tabMode',tabRank:'tabRank',tabSkin:'tabSkin',tabAchievements:'tabAch',tabSettings:'tabSettings',
+    chooseMode:'chooseMode',
+    shootStyle:'shootStyle',rankTitle:'rankTitle',noRecord:'noRecord',skinShop:'skinShop',achTitle:'achTitle',
     languageTitle:'languageTitle',languageLabel:'languageLabel',languageDesc:'languageDesc',audioTitle:'audioTitle',sfxTitle:'sfxTitle',sfxDesc:'sfxDesc',bgmTitle:'bgmTitle',bgmDesc:'bgmDesc',
     waitingTitle:'waitingTitle',waitingHint:'waitingHint',roomSettings:'roomSettings',
     diffTitle:'diffTitle',diffDesc:'diffDesc',
     setFFTitle:'setFFTitle',setFFDesc:'setFFDesc',setAmmoTitle:'setAmmoTitle',setAmmoDesc:'setAmmoDesc',setZSpeedTitle:'setZSpeedTitle',setZSpeedDesc:'setZSpeedDesc',setBossFreqTitle:'setBossFreqTitle',setBossFreqDesc:'setBossFreqDesc',
     copyCodeText:'copyCode',cancelText:'cancel',roomLabel:'roomLabel',youAreLabel:'youAre',spectateText:'spectate',fullscreenText:'fullscreen',leaveText:'leave',
-    killLabel:'killLabel',waveLabel:'waveLabel',comboLabel:'comboLabel',moveHint:'moveHint',dashHint:'dashHint',shieldHint:'shieldHint',ultHint:'ultHint',switchHint:'switchHint',chatHint:'chatHint'
+    killLabel:'killLabel',waveLabel:'waveLabel',comboLabel:'comboLabel',moveHint:'moveHint',dashHint:'dashHint',shieldHint:'shieldHint',ultHint:'ultHint',switchHint:'switchHint',chatHint:'chatHint',
+    goReturnBtn:'returnLobby'
   };
   for(const [id,k] of Object.entries(map)){const el=$(id);if(el)el.textContent=t(k);}
   const cb=$('clearLeaderboard');if(cb)cb.textContent=t('clear');
@@ -751,17 +810,16 @@ function applyLanguage(lang){
   const joinEl=$('joinCode');if(joinEl)joinEl.placeholder=lang==='zh'?'6 位房间号':'6-digit code';
   updateAimUI();updateWeaponHUD();
   if($('langSelect'))$('langSelect').value=lang;
-  renderLeaderboard();renderSkinShop();updateScoreboard();updateThemeBadge();
+  renderLeaderboard();renderSkinShop();renderAchievements();updateScoreboard();updateThemeBadge();
   updateModeCardText();
 }
 function updateModeCardText(){
+  const modes={pvp:['modePvp','modePvpDesc'],zombie:['modeZombie','modeZombieDesc'],maze:['modeMaze','modeMazeDesc'],race:['modeRace','modeRaceDesc']};
   document.querySelectorAll('.mode-card').forEach(c=>{
-    const mode=c.dataset.mode;
+    const m=c.dataset.mode;if(!modes[m])return;
     const n=c.querySelector('.name'),d=c.querySelector('.desc');
-    if(!n||!d)return;
-    const k=(mode==='pvp'?'modePvp':mode==='zombie'?'modeZombie':mode==='maze'?'modeMaze':'modeRace');
-    const dk=k+'Desc';
-    n.textContent=t(k);d.textContent=t(dk);
+    if(n)n.textContent=t(modes[m][0]);
+    if(d)d.textContent=t(modes[m][1]);
   });
 }
 function initLanguage(){
@@ -815,7 +873,8 @@ const SFX={
   combo(n){const b=600+n*80;playTone('triangle',b,b*1.5,.15,.13);},
   chat(){playTone('sine',800,1200,.08,.08);},
   slowmo(){playTone('sine',200,100,.5,.1);playNoise(.3,.05);},
-  levelUp(){[523,659,784,1047].forEach((f,i)=>playTone('sine',f,f*1.5,.2,.13,i*.08));}
+  levelUp(){[523,659,784,1047].forEach((f,i)=>playTone('sine',f,f*1.5,.2,.13,i*.08));},
+  ach(){[659,784,988,1319].forEach((f,i)=>playTone('sine',f,f*1.4,.25,.14,i*.1));}
 };
 
 let musicNodes=[],musicTimer=null,musicStep=0,musicGain=null;
@@ -835,7 +894,7 @@ function scheduleNextNote(){
 function stopMusic(){if(musicTimer){clearTimeout(musicTimer);musicTimer=null;}for(const n of musicNodes){try{n.stop();}catch(e){}}musicNodes=[];if(musicGain){try{musicGain.disconnect();}catch(e){}musicGain=null;}}
 
 const particles=[];
-const MAX_PARTICLES=400;
+const MAX_PARTICLES=500;
 function spawnParticles(x,y,options={}){
   const{count=12,color='#ffaa4d',speed=4,size=3,life=40,gravity=.05,spread=Math.PI*2,angle=0,fade=true,shape='circle'}=options;
   for(let i=0;i<count;i++){const a=angle+(Math.random()-.5)*spread;const s=speed*(.5+Math.random()*.8);
@@ -897,7 +956,9 @@ function createPlayer(role,myNick,oppNick,skin){
     extraBullets:0,explosive:0,regen:0,vampire:0,thorns:0,dodge:0,luck:0,bounce:0,freeze:0,
     stats:{shotsFired:0,shotsHit:0,maxCombo:0,startTime:Date.now()},
     skin:skin||null,
-    muzzleFlash:0
+    muzzleFlash:0,
+    invincible:false,
+    damagedThisRun:false
   };
 }
 
@@ -970,6 +1031,8 @@ function addCombo(){
   G.comboCount++;G.comboTimer=COMBO_WINDOW;txt($('comboDisplay'),G.comboCount);
   const me=G.myRole==='red'?G.redPlayer:G.bluePlayer;
   if(me&&G.comboCount>(me.stats.maxCombo||0))me.stats.maxCombo=G.comboCount;
+  if(G.comboCount===10)unlockAchievement('combo10');
+  if(G.comboCount===20)unlockAchievement('combo20');
   if(COMBO_MILESTONES.includes(G.comboCount)){SFX.combo(G.comboCount);
     const c=['#4dd4ff','#4dff8b','#ffd24d','#ff6bd2','#ff4d6d'][Math.min(Math.floor(G.comboCount/5),4)];
     if(me)spawnDamageText(me.x,me.y-100,0,c,G.comboCount+'x',true);G.screenShake=12;
@@ -1056,7 +1119,6 @@ function findFreeSpot(px,py,obstacles,maxRadius=400){
   return{x:px,y:py};
 }
 
-/* 迷宫生成 - 递归回溯 */
 function generateMaze(cols,rows,cellSize){
   const grid=Array.from({length:rows},()=>Array.from({length:cols},()=>({walls:[true,true,true,true],visited:false})));
   const stack=[{x:0,y:0}];grid[0][0].visited=true;
@@ -1085,15 +1147,12 @@ function generateMaze(cols,rows,cellSize){
       if(c.walls[3])obstacles.push({x:px-4,y:py,w:8,h:cellSize});
     }
   }
-  // 打开起点(0,0)左墙和终点右下墙
   grid[0][0].walls[3]=false;
   grid[rows-1][cols-1].walls[1]=false;
   return {grid,obstacles,cols,rows,cellSize};
 }
 function mirrorMazeData(maze){
-  // 左右镜像：把 grid 每行 reverse
   const newGrid=maze.grid.map(row=>[...row].reverse().map(c=>({walls:[c.walls[0],c.walls[3],c.walls[2],c.walls[1]],visited:true})));
-  // 重新生成 obstacles
   const obstacles=[];
   const cols=maze.cols,rows=maze.rows,cs=maze.cellSize;
   for(let y=0;y<rows;y++){
@@ -1122,8 +1181,6 @@ function getMapH(){
   if(isRaceMap())return RACE_H;
   return WORLD_H;
 }
-
-/* ====== 迷宫进度计算 ====== */
 function computeMazeProgress(player){
   if(!G.mazeData)return 0;
   const cs=MAZE_CELL;
@@ -1134,13 +1191,8 @@ function computeMazeProgress(player){
   const remain=Math.hypot(endX-player.x,endY-player.y);
   return Math.max(0,Math.min(100,Math.round((1-remain/totalDist)*100)));
 }
+function getRaceGoal(){return {x:RACE_W-80,y:RACE_H/2,w:60,h:200};}
 
-/* ====== 竞速模式终点 ====== */
-function getRaceGoal(){
-  return {x:RACE_W-80,y:RACE_H/2,w:60,h:200};
-}
-
-/* 僵尸生成 */
 let zombieIdCounter=0,bossIdCounter=0;
 function getDiff(){return DIFFICULTY[G.settings.difficulty]||DIFFICULTY.normal;}
 function spawnZombie(zombies,wave,forceType=null,x=null,y=null){
@@ -1193,6 +1245,28 @@ function spawnBoss(bosses,wave){
 function spawnSplitterChildren(z,zombies){
   for(let i=0;i<3;i++){const a=(i/3)*Math.PI*2;const child=spawnZombie(zombies,1,'runner',z.x+Math.cos(a)*30,z.y+Math.sin(a)*30);
     if(child){child.hp=2;child.maxHp=2;child.speed*=1.3;child.isSplitChild=true;}}
+}
+
+/* ====== 皮肤特效 ====== */
+function playSkinKillEffect(player,x,y){
+  const id=getSkinId(player.skin||SKINS.default);
+  switch(id){
+    case 'neon':spawnParticles(x,y,{count:30,color:'#ff00ff',speed:10,life:60,size:4});break;
+    case 'gold':spawnParticles(x,y,{count:40,color:'#ffd24d',speed:12,life:70,size:5,gravity:.2});break;
+    case 'fire':
+      spawnParticles(x,y,{count:35,color:'#ff4d1a',speed:8,life:50,size:6,gravity:-.1});
+      spawnParticles(x,y,{count:20,color:'#ffd24d',speed:6,life:40,size:4});break;
+    case 'ice':spawnParticles(x,y,{count:30,color:'#4dd4ff',speed:8,life:60,size:4,gravity:.1});break;
+    case 'shadow':spawnParticles(x,y,{count:25,color:'#4d4dff',speed:6,life:50,size:3});break;
+    default:spawnParticles(x,y,{count:15,color:'#ffaa4d',speed:6,life:40,size:3});
+  }
+}
+function playSkinDeathEffect(player){
+  const id=getSkinId(player.skin||SKINS.default);
+  const colors={neon:'#ff00ff',gold:'#ffd24d',fire:'#ff4d1a',ice:'#4dd4ff',shadow:'#4d4dff',default:'#ff4d6d'};
+  const c=colors[id]||colors.default;
+  spawnParticles(player.x,player.y,{count:50,color:c,speed:12,life:80,size:5,spread:Math.PI*2});
+  SFX.bossDie();
 }
 
 /* ============================================================
@@ -1261,17 +1335,18 @@ function updateZombiesAndBosses() {
       else moveZombieWithObstacles(z, dx, dy, dist, 1);
       if (z.fuse <= 0) {
         for (const p of players) {
+          if (p.invincible) continue;
           if (Math.hypot(p.x - z.x, p.y - z.y) < 100) {
             if (p.shieldActive > 0) continue;
             if (Math.random() < p.dodge) { spawnDamageText(p.x, p.y, 0, '#4dff8b', 'DODGE'); continue; }
             const dmg = 25 * diff.damageMult;
             p.hp = Math.max(0, p.hp - dmg);
+            p.damagedThisRun = true;
             if (!G.isSoloMode) safeSend({ type: 'hpUpdate', role: p.role, hp: p.hp, seq: ++p.hpSeq });
           }
         }
         spawnParticles(z.x, z.y, { count: 30, color: '#ff5020', speed: 8, life: 40, size: 4 });
-        SFX.bossDie();
-        G.screenShake = 20;
+        SFX.bossDie(); G.screenShake = 20;
         const idx = G.zombies.indexOf(z);
         if (idx !== -1) G.zombies.splice(idx, 1);
         continue;
@@ -1298,6 +1373,7 @@ function updateZombiesAndBosses() {
 
     if (z.type !== 'bomber' && z.type !== 'thrower') {
       for (const p of players) {
+        if (p.invincible) continue;
         const zr = z.size / 2 + PLAYER_SIZE / 2;
         if (Math.hypot(p.x - z.x, p.y - z.y) < zr) {
           const key = p === G.redPlayer ? 'red' : 'blue';
@@ -1308,9 +1384,9 @@ function updateZombiesAndBosses() {
             } else if (Math.random() < p.dodge) {
               if ((G.isSoloMode ? 'red' : G.myRole) === key) spawnDamageText(p.x, p.y, 0, '#4dff8b', 'DODGE');
             } else {
-              // 荆棘反弹
-              if (p.thorns > 0) { z.hp -= p.thorns; if (z.hp <= 0) { /* 稍后处理 */ } }
+              if (p.thorns > 0) z.hp -= p.thorns;
               p.hp = Math.max(0, p.hp - z.damage);
+              p.damagedThisRun = true;
               if (!G.isSoloMode) safeSend({ type: 'hpUpdate', role: key, hp: p.hp, seq: ++p.hpSeq });
               const mine = (G.isSoloMode ? 'red' : G.myRole) === key;
               if (mine) { SFX.hurt(); spawnDamageText(p.x, p.y, Math.round(z.damage), '#ff4d4d'); }
@@ -1352,6 +1428,7 @@ function updateZombiesAndBosses() {
     }
 
     for (const p of players) {
+      if (p.invincible) continue;
       const rr = b.size / 2 + PLAYER_SIZE / 2;
       if (Math.hypot(p.x - b.x, p.y - b.y) < rr) {
         const key = p === G.redPlayer ? 'red' : 'blue';
@@ -1361,6 +1438,7 @@ function updateZombiesAndBosses() {
           if ((G.isSoloMode ? 'red' : G.myRole) === key) spawnDamageText(p.x, p.y, 0, '#4dff8b', 'DODGE');
         } else {
           p.hp = Math.max(0, p.hp - BOSS_CONTACT_DAMAGE * diff.damageMult);
+          p.damagedThisRun = true;
           if (!G.isSoloMode) safeSend({ type: 'hpUpdate', role: key, hp: p.hp, seq: ++p.hpSeq });
           const mine = (G.isSoloMode ? 'red' : G.myRole) === key;
           if (mine) { SFX.hurt(); spawnDamageText(p.x, p.y, Math.round(BOSS_CONTACT_DAMAGE * diff.damageMult), '#ff4d4d'); }
@@ -1492,7 +1570,6 @@ function checkLevelUp(player, onPause, onResume) {
   }
 }
 function showUpgradeChoice(player, onResume) {
-  // 从池中排除已满的（简化：随机 3 个）
   const pool = [...UPGRADES].sort(() => Math.random() - 0.5).slice(0, 3);
   const panel = $('upgradePanel');
   const box = $('upgradeOptions');
@@ -1507,16 +1584,16 @@ function showUpgradeChoice(player, onResume) {
     </div>
   `).join('');
   G.upgradeOpen = true;
+  player.invincible = true; // 无敌
   box.querySelectorAll('.upgrade-card').forEach(card => {
     card.addEventListener('click', () => {
       const u = UPGRADES.find(x => x.id === card.dataset.id);
       if (u) u.apply(player);
       panel.classList.remove('visible');
       G.upgradeOpen = false;
+      player.invincible = false;
       SFX.levelUp();
-      if (player.xp >= XP_PER_LEVEL) {
-        setTimeout(() => checkLevelUp(player, () => {}, onResume), 300);
-      }
+      if (player.xp >= XP_PER_LEVEL) setTimeout(() => checkLevelUp(player, () => {}, onResume), 300);
     }, { once: true });
   });
   panel.classList.add('visible');
@@ -1527,10 +1604,7 @@ function showUpgradeChoice(player, onResume) {
    ============================================================ */
 function mixColor(c1, c2, t0) {
   const p = h => {
-    if (h.startsWith('#')) {
-      const n = parseInt(h.slice(1), 16);
-      return [(n >> 16) & 255, (n >> 8) & 255, n & 255];
-    }
+    if (h.startsWith('#')) { const n = parseInt(h.slice(1), 16); return [(n >> 16) & 255, (n >> 8) & 255, n & 255]; }
     return [0, 0, 0];
   };
   const a = p(c1), b = p(c2);
@@ -1555,10 +1629,8 @@ function draw() {
   const grid = getGridCanvas(G.currentTheme, worldW, worldH);
   if (grid) ctx.drawImage(grid, G.camera.x, G.camera.y, W, H, G.camera.x, G.camera.y, W, H);
 
-  // 障碍
   for (const o of G.obstacles) {
-    if (o.x + o.w < G.camera.x - 50 || o.x > G.camera.x + W + 50 ||
-        o.y + o.h < G.camera.y - 50 || o.y > G.camera.y + H + 50) continue;
+    if (o.x + o.w < G.camera.x - 50 || o.x > G.camera.x + W + 50 || o.y + o.h < G.camera.y - 50 || o.y > G.camera.y + H + 50) continue;
     ctx.shadowColor = 'rgba(0,0,0,0.5)'; ctx.shadowBlur = 12; ctx.shadowOffsetY = 4;
     ctx.fillStyle = theme.obstacleFill;
     ctx.beginPath(); ctx.roundRect(o.x, o.y, o.w, o.h, 8); ctx.fill();
@@ -1569,7 +1641,6 @@ function draw() {
     ctx.beginPath(); ctx.roundRect(o.x + 3, o.y + 3, o.w - 6, 6, 4); ctx.fill();
   }
 
-  // 迷宫终点旗帜
   if (isMazeMap()) {
     const endX = (MAZE_COLS - 1) * MAZE_CELL + MAZE_CELL / 2;
     const endY = (MAZE_ROWS - 1) * MAZE_CELL + MAZE_CELL / 2;
@@ -1577,7 +1648,6 @@ function draw() {
     ctx.fillText('🚩', endX, endY);
     ctx.textAlign = 'left';
   }
-  // 竞速终点
   if (isRaceMap()) {
     const goal = getRaceGoal();
     ctx.fillStyle = 'rgba(78,255,139,0.25)';
@@ -1590,25 +1660,21 @@ function draw() {
   }
 
   for (const p of G.pickups) {
-    if (p.x < G.camera.x - 50 || p.x > G.camera.x + W + 50 ||
-        p.y < G.camera.y - 50 || p.y > G.camera.y + H + 50) continue;
+    if (p.x < G.camera.x - 50 || p.x > G.camera.x + W + 50 || p.y < G.camera.y - 50 || p.y > G.camera.y + H + 50) continue;
     drawPickup(p);
   }
   if (G.gameMode === 'zombie' || G.isSoloMode) {
     for (const z of G.zombies) {
-      if (z.x < G.camera.x - 80 || z.x > G.camera.x + W + 80 ||
-          z.y < G.camera.y - 80 || z.y > G.camera.y + H + 80) continue;
+      if (z.x < G.camera.x - 80 || z.x > G.camera.x + W + 80 || z.y < G.camera.y - 80 || z.y > G.camera.y + H + 80) continue;
       drawZombie(z);
     }
     for (const b of G.bosses) {
-      if (b.x < G.camera.x - 120 || b.x > G.camera.x + W + 120 ||
-          b.y < G.camera.y - 120 || b.y > G.camera.y + H + 120) continue;
+      if (b.x < G.camera.x - 120 || b.x > G.camera.x + W + 120 || b.y < G.camera.y - 120 || b.y > G.camera.y + H + 120) continue;
       drawBoss(b);
     }
   }
   for (const b of G.bullets) {
-    if (b.x < G.camera.x - 30 || b.x > G.camera.x + W + 30 ||
-        b.y < G.camera.y - 30 || b.y > G.camera.y + H + 30) continue;
+    if (b.x < G.camera.x - 30 || b.x > G.camera.x + W + 30 || b.y < G.camera.y - 30 || b.y > G.camera.y + H + 30) continue;
     const c = b.color || (b.owner === 'red' ? '#ff4d6d' : b.owner === 'blue' ? '#4da6ff' : '#ff0044');
     ctx.beginPath();
     ctx.arc(b.x, b.y, (b.size || BULLET_SIZE) * 0.7, 0, Math.PI * 2);
@@ -1621,6 +1687,51 @@ function draw() {
   drawDamageTexts();
   ctx.restore();
   drawHUD();
+  ctx.restore();
+}
+
+function drawWeapon(p, color, alpha) {
+  const w = p.weapon;
+  ctx.save();
+  ctx.translate(p.x, p.y);
+  ctx.rotate(p.facing);
+  ctx.fillStyle = color;
+  ctx.globalAlpha = alpha * 0.95;
+  ctx.fillRect(PLAYER_SIZE/2 - 2, -3, 10, 6);
+  ctx.globalAlpha = alpha;
+  switch (w) {
+    case 'pistol':
+      ctx.fillStyle = '#2a2a3a'; ctx.fillRect(PLAYER_SIZE/2 + 6, -3, 14, 6);
+      ctx.fillStyle = '#1a1a2a'; ctx.fillRect(PLAYER_SIZE/2 + 20, -1.5, 8, 3);
+      ctx.fillRect(PLAYER_SIZE/2 + 10, 3, 4, 5);
+      break;
+    case 'shotgun':
+      ctx.fillStyle = '#8a4a2a'; ctx.fillRect(PLAYER_SIZE/2 + 4, -4, 20, 8);
+      ctx.fillStyle = '#2a2a3a'; ctx.fillRect(PLAYER_SIZE/2 + 24, -5, 12, 10);
+      ctx.fillStyle = '#1a1a2a'; ctx.fillRect(PLAYER_SIZE/2 + 36, -3, 6, 6);
+      break;
+    case 'sniper':
+      ctx.fillStyle = '#1a2a3a'; ctx.fillRect(PLAYER_SIZE/2 + 4, -2, 36, 4);
+      ctx.fillStyle = '#2a3a4a'; ctx.fillRect(PLAYER_SIZE/2 + 14, -6, 10, 4);
+      ctx.fillStyle = '#4dffd2'; ctx.fillRect(PLAYER_SIZE/2 + 16, -5, 4, 2);
+      ctx.fillStyle = '#1a1a2a'; ctx.fillRect(PLAYER_SIZE/2 + 40, -2, 8, 4);
+      break;
+    case 'machine':
+      ctx.fillStyle = '#2a1a2a'; ctx.fillRect(PLAYER_SIZE/2 + 4, -4, 24, 8);
+      ctx.fillStyle = '#ff6bd2'; ctx.fillRect(PLAYER_SIZE/2 + 8, 2, 6, 8);
+      ctx.fillStyle = '#1a1a2a'; ctx.fillRect(PLAYER_SIZE/2 + 28, -3, 14, 6);
+      break;
+  }
+  if (p.muzzleFlash > 0) {
+    ctx.fillStyle = '#ffd24d';
+    ctx.shadowColor = '#ffd24d'; ctx.shadowBlur = 20;
+    ctx.beginPath();
+    const bx = w === 'sniper' ? 50 : w === 'shotgun' ? 44 : w === 'machine' ? 44 : 30;
+    ctx.arc(PLAYER_SIZE/2 + bx, 0, 6, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.shadowBlur = 0;
+    p.muzzleFlash--;
+  }
   ctx.restore();
 }
 
@@ -1637,6 +1748,17 @@ function drawPlayer(p) {
   if (p.invisibleTimer > 0 && !isMe) alpha = 0.35;
   if (p.invisibleTimer > 0 && isMe) alpha = 0.6;
   if (p.hp <= 0) alpha = 0.4;
+  if (p.invincible) {
+    // 无敌光环
+    ctx.save();
+    ctx.globalAlpha = 0.6;
+    ctx.strokeStyle = '#ffd24d';
+    ctx.lineWidth = 3;
+    ctx.shadowColor = '#ffd24d'; ctx.shadowBlur = 20;
+    const r = PLAYER_SIZE * 0.9 + Math.sin(G.frameCount * 0.15) * 4;
+    ctx.beginPath(); ctx.arc(p.x, p.y, r, 0, Math.PI * 2); ctx.stroke();
+    ctx.restore();
+  }
   ctx.globalAlpha = alpha;
   if (p.dashFrames > 0) {
     for (let i = 1; i <= 3; i++) {
@@ -1648,12 +1770,9 @@ function drawPlayer(p) {
     }
     ctx.globalAlpha = alpha;
   }
-  // 身体
   ctx.shadowColor = color; ctx.shadowBlur = glow;
   ctx.fillStyle = color;
-  ctx.beginPath();
-  ctx.roundRect(p.x - PLAYER_SIZE/2, p.y - PLAYER_SIZE/2, PLAYER_SIZE, PLAYER_SIZE, 8);
-  ctx.fill();
+  ctx.beginPath(); ctx.roundRect(p.x - PLAYER_SIZE/2, p.y - PLAYER_SIZE/2, PLAYER_SIZE, PLAYER_SIZE, 8); ctx.fill();
   ctx.shadowBlur = 0;
   if (p.shieldActive > 0) {
     ctx.strokeStyle = '#4dd4ff'; ctx.lineWidth = 3;
@@ -1661,40 +1780,12 @@ function drawPlayer(p) {
     ctx.beginPath(); ctx.arc(p.x, p.y, PLAYER_SIZE * 0.85, 0, Math.PI * 2); ctx.stroke();
     ctx.shadowBlur = 0;
   }
-  // 手持枪械
-  ctx.save();
-  ctx.translate(p.x, p.y);
-  ctx.rotate(p.facing);
-  // 手臂
-  ctx.fillStyle = color;
-  ctx.globalAlpha = alpha * 0.95;
-  ctx.fillRect(PLAYER_SIZE/2 - 2, -3, 10, 6);
-  // 枪身
-  ctx.fillStyle = '#2a2a3a';
-  ctx.fillRect(PLAYER_SIZE/2 + 6, -3, 16, 6);
-  // 枪管
-  ctx.fillStyle = '#1a1a2a';
-  ctx.fillRect(PLAYER_SIZE/2 + 22, -1.5, 10, 3);
-  // 弹夹
-  ctx.fillStyle = '#1a1a2a';
-  ctx.fillRect(PLAYER_SIZE/2 + 10, 3, 4, 5);
-  // 枪口闪光
-  if (p.muzzleFlash > 0) {
-    ctx.fillStyle = '#ffd24d';
-    ctx.shadowColor = '#ffd24d'; ctx.shadowBlur = 20;
-    ctx.beginPath(); ctx.arc(PLAYER_SIZE/2 + 34, 0, 6, 0, Math.PI*2); ctx.fill();
-    ctx.shadowBlur = 0;
-    p.muzzleFlash--;
-  }
-  ctx.globalAlpha = alpha;
-  ctx.restore();
-
+  drawWeapon(p, color, alpha);
   if (!isMe && !G.isSoloMode && G.gameMode === 'zombie' && p.hp > 0) {
     ctx.font = 'bold 12px "Segoe UI"'; ctx.fillStyle = '#4dd4ff';
     ctx.textAlign = 'center';
     ctx.fillText(currentLang === 'zh' ? '🛡 队友' : '🛡 Ally', p.x, p.y - PLAYER_SIZE/2 - 42);
   }
-  // 血条
   ctx.fillStyle = bgColor;
   ctx.fillRect(p.x - 28, p.y - PLAYER_SIZE/2 - 20, 56, 8);
   ctx.fillStyle = color;
@@ -1709,26 +1800,23 @@ function drawZombie(z) {
   const half = (z.size || ZOMBIE_SIZE) / 2;
   const wob = Math.sin(z.wobble) * 2;
   if (z.slowTimer > 0) {
-    ctx.save(); ctx.globalAlpha = 0.4;
-    ctx.fillStyle = '#4dd4ff';
+    ctx.save(); ctx.globalAlpha = 0.4; ctx.fillStyle = '#4dd4ff';
     ctx.beginPath(); ctx.arc(z.x, z.y, half * 1.3, 0, Math.PI*2); ctx.fill();
     ctx.restore();
   }
   switch (z.type) {
-    case 'runner':   drawRunner(z, half); break;
-    case 'tank':     drawTank(z, half, wob); break;
-    case 'bomber':   drawBomber(z, half); break;
-    case 'thrower':  drawThrower(z, half); break;
-    case 'ghost':    drawGhost(z, half); break;
+    case 'runner': drawRunner(z, half); break;
+    case 'tank': drawTank(z, half, wob); break;
+    case 'bomber': drawBomber(z, half); break;
+    case 'thrower': drawThrower(z, half); break;
+    case 'ghost': drawGhost(z, half); break;
     case 'splitter': drawSplitter(z, half); break;
-    default:         drawNormalZombie(z, half, wob); break;
+    default: drawNormalZombie(z, half, wob); break;
   }
   if (z.hp < z.maxHp) {
     const bw = (z.size || ZOMBIE_SIZE);
-    ctx.fillStyle = '#2e1a1f';
-    ctx.fillRect(z.x - bw/2, z.y - half - 10, bw, 4);
-    ctx.fillStyle = '#8ac05a';
-    ctx.fillRect(z.x - bw/2, z.y - half - 10, bw * (z.hp / z.maxHp), 4);
+    ctx.fillStyle = '#2e1a1f'; ctx.fillRect(z.x - bw/2, z.y - half - 10, bw, 4);
+    ctx.fillStyle = '#8ac05a'; ctx.fillRect(z.x - bw/2, z.y - half - 10, bw * (z.hp / z.maxHp), 4);
   }
 }
 function drawNormalZombie(z, half, wob) {
@@ -1757,8 +1845,7 @@ function drawRunner(z, half) {
 }
 function drawTank(z, half, wob) {
   const s = half;
-  ctx.fillStyle = '#4a3a2a';
-  ctx.shadowColor = '#8a6a3a'; ctx.shadowBlur = 20;
+  ctx.fillStyle = '#4a3a2a'; ctx.shadowColor = '#8a6a3a'; ctx.shadowBlur = 20;
   ctx.beginPath(); ctx.roundRect(z.x - s + wob, z.y - s, s*2, s*2, 10); ctx.fill();
   ctx.shadowBlur = 0;
   ctx.strokeStyle = '#8a6a3a'; ctx.lineWidth = 3;
@@ -1773,8 +1860,7 @@ function drawBomber(z, half) {
   const pulse = fuse * (1 + Math.sin(G.frameCount * 0.3) * 0.15);
   ctx.fillStyle = 'rgba(255,80,0,0.25)';
   ctx.beginPath(); ctx.arc(z.x, z.y, half * 2 * pulse, 0, Math.PI*2); ctx.fill();
-  ctx.fillStyle = '#c03a1a';
-  ctx.shadowColor = '#ff5020'; ctx.shadowBlur = 24;
+  ctx.fillStyle = '#c03a1a'; ctx.shadowColor = '#ff5020'; ctx.shadowBlur = 24;
   ctx.beginPath(); ctx.arc(z.x, z.y, half * pulse, 0, Math.PI*2); ctx.fill();
   ctx.shadowBlur = 0;
   ctx.fillStyle = '#fff';
@@ -1783,8 +1869,7 @@ function drawBomber(z, half) {
 }
 function drawThrower(z, half) {
   ctx.save(); ctx.translate(z.x, z.y); ctx.rotate(z.angle);
-  ctx.fillStyle = '#5a3a8a';
-  ctx.shadowColor = '#9a5aff'; ctx.shadowBlur = 18;
+  ctx.fillStyle = '#5a3a8a'; ctx.shadowColor = '#9a5aff'; ctx.shadowBlur = 18;
   ctx.beginPath();
   for (let i = 0; i < 6; i++) { const a = i / 6 * Math.PI * 2; ctx[i === 0 ? 'moveTo' : 'lineTo'](Math.cos(a) * half, Math.sin(a) * half); }
   ctx.closePath(); ctx.fill();
@@ -1889,6 +1974,7 @@ function drawDamageTexts() {
     ctx.restore();
   }
 }
+
 function drawHUD() {
   const me = G.myRole === 'red' ? G.redPlayer : G.bluePlayer;
   ctx.font = '14px "Segoe UI"';
@@ -1912,9 +1998,36 @@ function drawHUD() {
       ctx.shadowBlur = 0;
     }
   }
+
+  // 队友 HUD
+  if (!G.isSoloMode && G.bluePlayer && G.redPlayer && G.gameMode === 'zombie') {
+    const ally = G.myRole === 'red' ? G.bluePlayer : G.redPlayer;
+    if (ally) {
+      const px = W - 250, py = 130, pw = 230, ph = 76;
+      ctx.fillStyle = 'rgba(10,15,28,0.9)';
+      ctx.strokeStyle = '#4d7dff';
+      ctx.lineWidth = 1;
+      ctx.beginPath(); ctx.roundRect(px, py, pw, ph, 12); ctx.fill(); ctx.stroke();
+      ctx.font = 'bold 14px "Segoe UI"'; ctx.textAlign = 'left';
+      ctx.fillStyle = '#4dd4ff';
+      ctx.fillText(ally.name, px + 14, py + 24);
+      ctx.fillStyle = '#1a2238';
+      ctx.fillRect(px + 14, py + 34, pw - 28, 10);
+      ctx.fillStyle = ally.hp > ally.maxHp * 0.3 ? '#4dff8b' : '#ff4d6d';
+      ctx.fillRect(px + 14, py + 34, (pw - 28) * Math.max(0, ally.hp / ally.maxHp), 10);
+      ctx.font = '12px "Segoe UI"';
+      ctx.fillStyle = '#8fa4cc';
+      const wp = WEAPONS[ally.weapon];
+      ctx.fillText(`${wp.icon} ${currentLang === 'zh' ? wp.name : wp.nameEn}`, px + 14, py + 62);
+      if (ally.shieldActive > 0) { ctx.fillStyle = '#4dd4ff'; ctx.fillText('🛡', px + pw - 32, py + 62); }
+      if (ally.invincible) { ctx.fillStyle = '#ffd24d'; ctx.fillText('⭐', px + pw - 52, py + 62); }
+    }
+  }
+
   if (G.gameMode === 'pvp' && G.redPlayer && G.bluePlayer) {
-    if (G.redPlayer.hp <= 0) { ctx.font = 'bold 42px "Segoe UI"'; ctx.fillStyle = '#ff4d6daa'; ctx.fillText(G.redPlayer.name + ' DOWN', W/2-180, H/2); }
-    if (G.bluePlayer.hp <= 0) { ctx.font = 'bold 42px "Segoe UI"'; ctx.fillStyle = '#4da6ffaa'; ctx.fillText(G.bluePlayer.name + ' DOWN', W/2-180, H/2 + 50); }
+    if (G.redPlayer.hp <= 0) { ctx.font = 'bold 42px "Segoe UI"'; ctx.fillStyle = '#ff4d6daa'; ctx.textAlign = 'center'; ctx.fillText(G.redPlayer.name + ' DOWN', W/2, H/2); }
+    if (G.bluePlayer.hp <= 0) { ctx.font = 'bold 42px "Segoe UI"'; ctx.fillStyle = '#4da6ffaa'; ctx.textAlign = 'center'; ctx.fillText(G.bluePlayer.name + ' DOWN', W/2, H/2 + 50); }
+    ctx.textAlign = 'left';
   }
 }
 
@@ -2010,7 +2123,6 @@ function updateBullets(worldW, worldH, me) {
     if (bulletHitsObstacle(b, G.obstacles)) {
       if (b.bounce > 0) {
         b.bounce--;
-        // 简单反射：反转速度方向（哪个方向撞就反哪个）
         const testX = { x: b.x + b.vx * 2, y: b.y, size: b.size };
         if (bulletHitsObstacle(testX, G.obstacles)) b.vx = -b.vx;
         const testY = { x: b.x, y: b.y + b.vy * 2, size: b.size };
@@ -2028,6 +2140,7 @@ function updateBullets(worldW, worldH, me) {
         const targetRole = G.myRole === 'red' ? 'blue' : 'red';
         const target = targetRole === 'red' ? G.redPlayer : G.bluePlayer;
         if (!target) continue;
+        if (target.invincible) { G.bullets.splice(i, 1); continue; }
         if (segmentHitsPlayer(prevX, prevY, b.x, b.y, target)) {
           if (target.shieldActive > 0) {
             spawnDamageText(b.x, b.y, 0, '#4dd4ff', '🛡');
@@ -2041,6 +2154,7 @@ function updateBullets(worldW, worldH, me) {
           }
           const dmg = b.damage || DAMAGE_AMOUNT;
           target.hp = Math.max(0, target.hp - dmg);
+          target.damagedThisRun = true;
           if (me && me.vampire > 0) me.hp = Math.min(me.maxHp, me.hp + dmg * me.vampire);
           safeSend({ type: 'hit', bulletId: b.id, targetRole, damage: dmg, hitX: b.x, hitY: b.y });
           SFX.hit();
@@ -2078,8 +2192,9 @@ function updateBullets(worldW, worldH, me) {
                 me.xp += xp;
                 if (me.lifesteal > 0) me.hp = Math.min(me.maxHp, me.hp + me.lifesteal);
                 SFX.zombieDie();
-                spawnParticles(hitZ.x, hitZ.y, { count: 18, color: '#8ac05a', speed: 6, life: 45, gravity: 0.1 });
+                playSkinKillEffect(me, hitZ.x, hitZ.y);
                 spawnDamageText(hitZ.x, hitZ.y, 0, '#ffaa4d', '💀');
+                unlockAchievement('firstBlood');
                 if (!G.isSoloMode) safeSend({ type: 'zombieDied', zombieId: hitZ.id, x: hitZ.x, y: hitZ.y, killerRole: G.myRole, xp });
                 const dropMult = 1 + (me.luck || 0);
                 if (Math.random() < 0.25 * dropMult) spawnPickup(hitZ.x, hitZ.y, 'health');
@@ -2093,8 +2208,10 @@ function updateBullets(worldW, worldH, me) {
                 G.zombieKills += 10; me.xp += 10;
                 updateScoreboard();
                 SFX.bossDie(); G.screenShake = 25;
+                playSkinKillEffect(me, hitB.x, hitB.y);
                 spawnParticles(hitB.x, hitB.y, { count: 60, color: '#ff4d6d', speed: 12, life: 80, size: 5 });
                 spawnDamageText(hitB.x, hitB.y, 0, '#ff4d6d', 'BOSS!', true);
+                unlockAchievement('firstBoss');
                 if (!G.isSoloMode) safeSend({ type: 'zombieDied', zombieId: hitB.id, x: hitB.x, y: hitB.y, isBoss: true, killerRole: G.myRole, xp: 10 });
                 spawnPickup(hitB.x, hitB.y, 'health');
                 spawnPickup(hitB.x + 40, hitB.y, 'double');
@@ -2116,6 +2233,7 @@ function updateBullets(worldW, worldH, me) {
       }
     } else if (b.owner === 'boss' || b.owner === 'acid') {
       for (const p of [G.redPlayer, G.bluePlayer].filter(pp => pp && pp.hp > 0)) {
+        if (p.invincible) continue;
         if (segmentHitsPlayer(prevX, prevY, b.x, b.y, p)) {
           const key = p === G.redPlayer ? 'red' : 'blue';
           if (p.shieldActive > 0) {
@@ -2127,6 +2245,7 @@ function updateBullets(worldW, worldH, me) {
             G.bullets.splice(i, 1); break;
           }
           p.hp = Math.max(0, p.hp - b.damage);
+          p.damagedThisRun = true;
           if (!G.isSoloMode) safeSend({ type: 'hpUpdate', role: key, hp: p.hp, seq: ++p.hpSeq });
           if ((G.isSoloMode ? 'red' : G.myRole) === key) { SFX.hurt(); spawnDamageText(b.x, b.y, Math.round(b.damage), '#ff4d4d'); }
           G.bullets.splice(i, 1); break;
@@ -2150,10 +2269,9 @@ function update() {
   if (me.speedTimer > 0) me.speedTimer--;
   if (me.invisibleTimer > 0) me.invisibleTimer--;
   if (me.doubleTimer > 0) me.doubleTimer--;
-  // 生命恢复
   if (me.regen > 0 && G.frameCount % 60 === 0) me.hp = Math.min(me.maxHp, me.hp + me.regen);
   if (consumePress('KeyT')) { if (G.chatPanelOpen) closeChatPanel(); else openChatPanel(); }
-  if (!G.chatPanelOpen && !G.upgradeOpen) {
+  if (!G.chatPanelOpen && !G.upgradeOpen && !me.invincible) {
     if (consumePress('KeyQ')) useDash();
     if (consumePress('KeyE')) useShield();
     if (consumePress('KeyR')) useUltimate();
@@ -2171,7 +2289,7 @@ function update() {
     me.dashFrames--;
     broadcastPlayerState();
     spawnParticles(me.x, me.y, { count: 2, color: '#4dd4ff', speed: 1, life: 20, size: 3 });
-  } else {
+  } else if (!me.invincible) {
     let dx = 0, dy = 0;
     if (keyDown('w')) dy -= 1;
     if (keyDown('s')) dy += 1;
@@ -2186,13 +2304,15 @@ function update() {
       const cy = Math.min(Math.max(me.y + dy, PLAYER_SIZE/2 + 4), worldH - PLAYER_SIZE/2 - 4);
       if (!playerHitsObstacle(me.x, cy, G.obstacles)) me.y = cy;
       broadcastPlayerState();
-      if (me.skin && me.skin.trail && G.frameCount % 3 === 0) spawnParticles(me.x, me.y, { count: 1, color: me.skin.trail, speed: 0.5, life: 20, size: 3 });
+      if (me.skin && me.skin.trail && G.frameCount % 2 === 0) {
+        const id = getSkinId(me.skin);
+        const shape = (id === 'neon' || id === 'ice') ? 'circle' : 'square';
+        spawnParticles(me.x, me.y, { count: 1, color: me.skin.trail, speed: 0.5, life: 25, size: 3, shape });
+      }
     }
   }
-  // 迷宫/竞速进度
   if (G.gameMode === 'maze') {
     G.myProgress = computeMazeProgress(me);
-    // 到达终点？
     const endX = (MAZE_COLS - 1) * MAZE_CELL + MAZE_CELL / 2;
     const endY = (MAZE_ROWS - 1) * MAZE_CELL + MAZE_CELL / 2;
     if (Math.hypot(me.x - endX, me.y - endY) < 40 && !me.raceFinished) {
@@ -2202,7 +2322,6 @@ function update() {
     if (!G.isSoloMode) safeSend({ type: 'progress', role: G.myRole, progress: G.myProgress });
   } else if (G.gameMode === 'race') {
     const goal = getRaceGoal();
-    const total = RACE_W;
     G.myProgress = Math.round(Math.min(100, (me.x / (goal.x + goal.w/2)) * 100));
     if (me.x > goal.x && me.y > goal.y && me.y < goal.y + goal.h && !me.raceFinished) {
       me.raceFinished = true;
@@ -2226,7 +2345,7 @@ function update() {
   const w = WEAPONS[me.weapon];
   if (me.cooldown > 0) me.cooldown--;
   const wantShoot = G.autoAim ? keyDown('space') : G.mouseDown;
-  if (wantShoot && me.cooldown <= 0 && me.hp > 0 && !G.chatPanelOpen && !G.upgradeOpen) {
+  if (wantShoot && me.cooldown <= 0 && me.hp > 0 && !G.chatPanelOpen && !G.upgradeOpen && !me.invincible) {
     const infinite = G.settings.infiniteAmmo;
     if (me.ammo !== Infinity && me.ammo <= 0 && !infinite) {
       if (me.reloadTimer <= 0) me.reloadTimer = 60 * me.reloadMult;
@@ -2270,15 +2389,15 @@ function update() {
       G.waveTimer = 0; G.zombieWave++;
       updateScoreboard();
       spawnDamageText(G.redPlayer.x, G.redPlayer.y - 100, 0, '#ffaa4d', (currentLang === 'zh' ? '🌊 第 ' : '🌊 Wave ') + G.zombieWave, true);
+      if (G.zombieWave >= 10) unlockAchievement('wave10');
+      if (G.zombieWave >= 20) unlockAchievement('wave20');
       const bossEvery = G.settings.bossEvery || 10;
       if (G.zombieWave % bossEvery === 0) spawnBoss(G.bosses, G.zombieWave);
     }
     G.spawnTimer++;
     const spawnInterval = Math.max(12, Math.round((80 - G.zombieWave * 5) * diff.spawnMult));
     if (G.spawnTimer >= spawnInterval) { G.spawnTimer = 0; spawnZombie(G.zombies, G.zombieWave); }
-    // 一次可能生成多个（高难度）
     if (diff.spawnMult < 1 && G.zombieWave > 3 && Math.random() < 0.5) spawnZombie(G.zombies, G.zombieWave);
-
     if (!G.isSoloMode && G.frameCount % 3 === 0) {
       safeSend({
         type: 'zombieState',
@@ -2292,10 +2411,12 @@ function update() {
   updateDamageTexts();
   updateParticles();
   updatePickups();
-  if (me.hp <= 0) me.dead = true;
+  if (me.hp <= 0) {
+    me.dead = true;
+    if (!me._deathFxPlayed) { me._deathFxPlayed = true; playSkinDeathEffect(me); }
+  }
   const lowHpEl = $('lowHpVignette');
   if (lowHpEl) cls(lowHpEl, 'active', me.hp / me.maxHp < 0.25 && me.hp > 0);
-
   updateMazeProgressUI();
 }
 
@@ -2321,6 +2442,7 @@ function handleRaceWin(winnerRole) {
   if (winnerRole === G.myRole) {
     SFX.win();
     awardCoins(60, G.gameMode === 'maze' ? t('mazeWin') : t('pvpWin'));
+    if (G.gameMode === 'maze') unlockAchievement('mazeWin');
     alert(currentLang === 'zh' ? '🎉 你赢了！' : '🎉 You win!');
   } else {
     SFX.lose();
@@ -2339,7 +2461,8 @@ function broadcastPlayerState() {
     type: 'playerUpdate', role: G.myRole,
     x: me.x, y: me.y, hp: me.hp, facing: me.facing,
     shieldActive: me.shieldActive, invisible: me.invisibleTimer > 0,
-    name: G.myNickname, skinId: getSkinId(G.currentSkin)
+    name: G.myNickname, skinId: getSkinId(G.currentSkin),
+    weapon: me.weapon, invincible: me.invincible
   });
 }
 function broadcastBullet(bullet) { safeSend({ type: 'bulletSpawn', bullet }); }
@@ -2352,21 +2475,6 @@ function getSkinId(skin) {
 /* ============================================================
    开始游戏
    ============================================================ */
-function setupMazeForMode(mode) {
-  if (mode === 'maze') {
-    const maze = generateMaze(MAZE_COLS, MAZE_ROWS, MAZE_CELL);
-    G.obstacles = maze.obstacles;
-    G.currentTheme = 'maze';
-    G.mazeData = maze;
-    if (!G.isHost && !G.isSoloMode) {
-      // 蓝方镜像
-      const mirrored = mirrorMazeData(maze);
-      G.obstacles = mirrored.obstacles;
-      G.mazeData = mirrored;
-    }
-  }
-}
-
 function startSoloGame(myNickname) {
   G.isSoloMode = true;
   G.gameMode = 'zombie';
@@ -2410,7 +2518,6 @@ function startGame() {
     G.obstacles = maze.obstacles;
     G.currentTheme = 'maze';
     G.mazeData = maze;
-    // 广播原始迷宫，让蓝方镜像
     safeSend({ type: 'nextRound', mazeGrid: maze.grid, role: 'blue', theme: 'maze', round: 1, isMaze: true });
   } else if (G.gameMode === 'race') {
     G.currentTheme = themeKeys[Math.floor(Math.random() * themeKeys.length)];
@@ -2562,7 +2669,13 @@ function handleRoundEnd(winner, sRed, sBlue) {
   stopMusic();
   G.scoreRed = sRed; G.scoreBlue = sBlue;
   updateScoreboard();
-  if (winner === G.myRole) SFX.win(); else SFX.lose();
+  if (winner === G.myRole) {
+    SFX.win();
+    unlockAchievement('pvpWin');
+    profile.achievementStats = profile.achievementStats || { totalWins: 0 };
+    profile.achievementStats.totalWins = (profile.achievementStats.totalWins || 0) + 1;
+    if (profile.achievementStats.totalWins >= 10) unlockAchievement('pvpWin10');
+  } else SFX.lose();
   const myWin = (winner === G.myRole);
   awardCoins(myWin ? 50 : 20, myWin ? t('pvpWin') : t('pvpLose'));
   if (G.isHost && G.gameMode === 'pvp') setTimeout(() => startNextRound(), 3000);
@@ -2589,6 +2702,7 @@ function handleLocalWin(deadRole) {
   safeSend({ type: 'roundEnd', winner: G.myRole, scoreRed: G.scoreRed, scoreBlue: G.scoreBlue });
   if (me && opponent) addKillFeed(me.name, opponent.name, WEAPONS[me.weapon].icon);
   SFX.win();
+  unlockAchievement('pvpWin');
   awardCoins(50, t('pvpWin'));
   setTimeout(() => { stopMusic(); if (G.isHost) startNextRound(); }, 3000);
 }
@@ -2599,10 +2713,26 @@ function gameOverPvE() {
   const coins = G.zombieKills * 2 + G.zombieWave * 10;
   awardCoins(coins, G.isSoloMode ? t('soloZombie') : t('coopZombie'));
   addLeaderboardEntry(G.myNickname, G.zombieKills, G.isSoloMode ? 'solo' : 'zombie');
-  setTimeout(() => {
-    alert(`${t('zombieDefeat')}\n${t('killCount')}: ${G.zombieKills}  ${t('waveCount')}: ${G.zombieWave}\n💰 +${coins} ${t('coinsGained')}`);
-    cleanupAndReturnToLobby();
-  }, 200);
+  // 无伤通关检查
+  const me = G.myRole === 'red' ? G.redPlayer : G.bluePlayer;
+  if (me && !me.damagedThisRun && G.zombieWave >= 5) unlockAchievement('noHitPvE');
+  if (!G.isSoloMode) {
+    safeSend({ type: 'gameOver', kills: G.zombieKills, wave: G.zombieWave });
+  }
+  showGameOverPanel(G.zombieKills, G.zombieWave, coins);
+  if (G.isSoloMode) setTimeout(() => cleanupAndReturnToLobby(), 3000);
+}
+function showGameOverPanel(kills, wave, coins) {
+  const panel = $('gameOverPanel');
+  if (!panel) return;
+  txt($('goTitle'), t('zombieDefeat'));
+  txt($('goKillLabel'), t('killCount'));
+  txt($('goWaveLabel'), t('waveCount'));
+  txt($('goKills'), kills);
+  txt($('goWave'), wave);
+  txt($('goCoins'), `💰 +${coins} ${t('coinsGained')}`);
+  txt($('goReturnBtn'), t('returnLobby'));
+  panel.classList.add('visible');
 }
 
 /* ============================================================
@@ -2638,6 +2768,8 @@ function handleMessage(data) {
         if (data.shieldActive !== undefined) target.shieldActive = data.shieldActive;
         if (data.invisible !== undefined) target.invisibleTimer = data.invisible ? 30 : 0;
         if (data.name) target.name = data.name;
+        if (data.weapon) target.weapon = data.weapon;
+        if (data.invincible !== undefined) target.invincible = data.invincible;
         if (data.skinId && SKINS[data.skinId]) G.opponentSkin = SKINS[data.skinId];
       }
       break;
@@ -2650,7 +2782,7 @@ function handleMessage(data) {
         if (G.processedHits.has(data.bulletId)) break;
         G.processedHits.add(data.bulletId);
         const me = G.myRole === 'red' ? G.redPlayer : G.bluePlayer;
-        if (!me) break;
+        if (!me || me.invincible) break;
         if (me.shieldActive > 0) {
           spawnDamageText(data.hitX, data.hitY, 0, '#4dd4ff', '🛡');
           const idx = G.bullets.findIndex(b => b.id === data.bulletId);
@@ -2664,6 +2796,7 @@ function handleMessage(data) {
           break;
         }
         me.hp = Math.max(0, me.hp - data.damage);
+        me.damagedThisRun = true;
         SFX.hurt();
         spawnDamageText(data.hitX, data.hitY, data.damage, '#ff4d4d');
         safeSend({ type: 'hpUpdate', role: G.myRole, hp: me.hp, seq: ++me.hpSeq });
@@ -2699,9 +2832,7 @@ function handleMessage(data) {
       break;
     }
     case 'nextRound': {
-      // 迷宫模式
       if (data.isMaze && data.mazeGrid) {
-        // 从 grid 重建 maze 并镜像
         const maze = { grid: data.mazeGrid, obstacles: [], cols: MAZE_COLS, rows: MAZE_ROWS, cellSize: MAZE_CELL };
         const mirrored = mirrorMazeData(maze);
         G.obstacles = mirrored.obstacles;
@@ -2764,7 +2895,6 @@ function handleMessage(data) {
       if (G.myRole !== 'red' || G.isSoloMode) {
         spawnDamageText(data.x, data.y, data.damage, '#ffaa4d');
         SFX.zombieHit(); addCombo();
-        // 蓝方自己累积 XP
         if (G.myRole === 'blue' && data.killerRole === 'blue' && G.bluePlayer) {
           G.bluePlayer.xp += 1;
           checkLevelUp(G.bluePlayer, () => {}, () => {});
@@ -2786,7 +2916,6 @@ function handleMessage(data) {
           SFX.zombieDie();
           if (deadZ && deadZ.type === 'splitter') spawnSplitterChildren(deadZ, G.zombies);
         }
-        // 蓝方 XP
         if (G.myRole === 'blue' && data.killerRole === 'blue' && G.bluePlayer) {
           const xp = data.isBoss ? 10 : (data.xp || 1);
           G.bluePlayer.xp += xp;
@@ -2794,15 +2923,18 @@ function handleMessage(data) {
         }
       }
       break;
-    case 'gameOver':
+    case 'gameOver': {
       G.gameRunning = false;
       stopMusic();
       SFX.lose();
-      setTimeout(() => {
-        alert(`${t('zombieDefeat')}\n${t('killCount')}: ${data.kills}  ${t('waveCount')}: ${data.wave}`);
-        cleanupAndReturnToLobby();
-      }, 200);
+      const coins = (data.kills || 0) * 2 + (data.wave || 1) * 10;
+      awardCoins(coins, t('coopZombie'));
+      addLeaderboardEntry(G.myNickname, data.kills || 0, 'zombie');
+      const me = G.myRole === 'red' ? G.redPlayer : G.bluePlayer;
+      if (me && !me.damagedThisRun && (data.wave || 0) >= 5) unlockAchievement('noHitPvE');
+      showGameOverPanel(data.kills || 0, data.wave || 1, coins);
       break;
+    }
     case 'leave':
       if (G.gameRunning) { alert(t('oppLeft')); cleanupAndReturnToLobby(); }
       break;
@@ -2845,6 +2977,7 @@ function cleanupAndReturnToLobby() {
   if (lowHpEl) cls(lowHpEl, 'active', false);
   const mp = $('mazeProgress');
   if (mp) cls(mp, 'visible', false);
+  cls($('gameOverPanel'), 'visible', false);
 }
 
 /* ============================================================
@@ -2873,10 +3006,62 @@ function renderLeaderboard() {
 }
 
 /* ============================================================
+   成就
+   ============================================================ */
+function unlockAchievement(id) {
+  if (!profile.achievements) profile.achievements = [];
+  if (profile.achievements.includes(id)) return;
+  profile.achievements.push(id);
+  showAchievementToast(id);
+  saveProfile();
+  SFX.ach();
+  renderAchievements();
+}
+function showAchievementToast(id) {
+  const a = ACHIEVEMENTS[id];
+  if (!a) return;
+  const el = document.createElement('div');
+  el.className = 'achievement-toast';
+  el.innerHTML = `
+    <div class="ach-icon">${a.icon}</div>
+    <div class="ach-body">
+      <div class="ach-title">${t('achUnlocked')}</div>
+      <div class="ach-name">${currentLang === 'zh' ? a.name : a.nameEn}</div>
+      <div class="ach-desc">${currentLang === 'zh' ? a.desc : a.descEn}</div>
+    </div>
+  `;
+  document.body.appendChild(el);
+  setTimeout(() => el.classList.add('show'), 50);
+  setTimeout(() => { el.classList.remove('show'); setTimeout(() => el.remove(), 500); }, 4000);
+}
+function renderAchievements() {
+  const grid = $('achievementGrid');
+  if (!grid) return;
+  const ach = profile.achievements || [];
+  grid.innerHTML = Object.entries(ACHIEVEMENTS).map(([id, a]) => {
+    const unlocked = ach.includes(id);
+    return `<div class="achievement-card ${unlocked ? 'unlocked' : 'locked'}">
+      <div class="ach-icon">${unlocked ? a.icon : '🔒'}</div>
+      <div class="ach-name">${currentLang === 'zh' ? a.name : a.nameEn}</div>
+      <div class="ach-desc">${currentLang === 'zh' ? a.desc : a.descEn}</div>
+    </div>`;
+  }).join('');
+  const total = Object.keys(ACHIEVEMENTS).length;
+  txt($('achProgress'), `${ach.length}/${total}`);
+}
+async function saveProfile() {
+  if (currentUser && firebaseDb && fbModules) {
+    try { await fbModules.setDoc(fbModules.doc(firebaseDb, 'players', currentUser.uid), profile); } catch(e) {}
+  } else {
+    try { localStorage.setItem('arena_local_profile', JSON.stringify(profile)); } catch(e) {}
+  }
+}
+
+/* ============================================================
    Firebase
    ============================================================ */
 let firebaseAuth = null, firebaseDb = null, currentUser = null;
-let profile = { uid: null, name: '玩家', coins: 500, unlockedSkins: ['default'], equippedSkin: 'default', stats: { totalKills: 0, totalWins: 0, maxCombo: 0, gamesPlayed: 0 } };
+let profile = { uid: null, name: '玩家', coins: 500, unlockedSkins: ['default'], equippedSkin: 'default', achievements: [], achievementStats: { totalKills: 0, totalWins: 0, maxCombo: 0, bossKills: 0, maxWave: 0, flawlessPvE: 0 }, stats: { totalKills: 0, totalWins: 0, maxCombo: 0, gamesPlayed: 0 } };
 let fbModules = null;
 const firebaseConfig = {
   apiKey: "AIzaSyBhc2JVAoxfk3wEsLee-Gr4I1StgqsPkBU",
@@ -2916,7 +3101,7 @@ async function initFirebase() {
         cls($('loginBtn'), 'hidden', false);
         if ($('loginTip')) $('loginTip').style.display = 'block';
         try { const local = JSON.parse(localStorage.getItem('arena_local_profile') || 'null'); if (local) profile = { ...profile, ...local }; } catch(e) {}
-        updateCoinUI(); renderSkinShop(); applySkin(profile.equippedSkin);
+        updateCoinUI(); renderSkinShop(); renderAchievements(); applySkin(profile.equippedSkin);
       }
     });
     try { await getRedirectResult(firebaseAuth); } catch(e) {}
@@ -2939,17 +3124,25 @@ async function loadUserProfile(user) {
   try {
     const ref = fbModules.doc(firebaseDb, 'players', user.uid);
     const snap = await fbModules.getDoc(ref);
-    if (snap.exists()) profile = { ...profile, ...snap.data(), uid: user.uid };
-    else { profile.uid = user.uid; profile.name = user.displayName || '玩家'; await fbModules.setDoc(ref, profile); }
-    updateCoinUI(); renderSkinShop(); applySkin(profile.equippedSkin);
+    if (snap.exists()) {
+      const d = snap.data();
+      profile = { ...profile, ...d, uid: user.uid };
+      if (!profile.achievements) profile.achievements = [];
+      if (!profile.achievementStats) profile.achievementStats = { totalKills: 0, totalWins: 0, maxCombo: 0, bossKills: 0, maxWave: 0, flawlessPvE: 0 };
+    } else {
+      profile.uid = user.uid;
+      profile.name = user.displayName || '玩家';
+      await fbModules.setDoc(ref, profile);
+    }
+    updateCoinUI(); renderSkinShop(); renderAchievements(); applySkin(profile.equippedSkin);
   } catch (e) { console.error('加载档案失败', e); }
 }
 function updateCoinUI() { txt($('userCoins'), `💰 ${profile.coins}`); txt($('skinCoins'), `💰 ${profile.coins}`); }
 async function awardCoins(amount, reason) {
   if (amount <= 0) return;
   profile.coins = (profile.coins || 0) + amount;
-  if (currentUser && firebaseDb && fbModules) { try { await fbModules.setDoc(fbModules.doc(firebaseDb, 'players', currentUser.uid), profile); } catch(e) {} }
-  else { try { localStorage.setItem('arena_local_profile', JSON.stringify(profile)); } catch(e) {} }
+  if (profile.coins >= 5000) unlockAchievement('rich');
+  await saveProfile();
   updateCoinUI();
   showChatBubble(t('system'), `💰 +${amount} (${reason})`, false);
 }
@@ -2975,10 +3168,10 @@ async function handleSkinClick(id) {
     if (!confirm(t('confirmBuy').replace('{price}', s.price).replace('{name}', name))) return;
     profile.coins -= s.price;
     profile.unlockedSkins.push(id);
+    if (profile.unlockedSkins.length === Object.keys(SKINS).length) unlockAchievement('skinCollector');
   }
   profile.equippedSkin = id;
-  if (currentUser && firebaseDb && fbModules) { try { await fbModules.setDoc(fbModules.doc(firebaseDb, 'players', currentUser.uid), profile); } catch(e) {} }
-  else { try { localStorage.setItem('arena_local_profile', JSON.stringify(profile)); } catch(e) {} }
+  await saveProfile();
   updateCoinUI(); renderSkinShop(); applySkin(id);
 }
 function applySkin(id) {
@@ -3016,6 +3209,7 @@ function bindUI() {
     G.settings.difficulty = e.target.value;
     if (!G.isSoloMode) safeSend({ type: 'roomSettings', settings: G.settings });
   });
+  on($('goReturnBtn'), 'click', cleanupAndReturnToLobby);
 
   on($('soloBtn'), 'click', () => {
     initAudio();
@@ -3120,7 +3314,6 @@ function bindUI() {
   on($('setAmmo'), 'click', () => { if (!G.isHost) return; G.settings.infiniteAmmo = !G.settings.infiniteAmmo; cls($('setAmmo'), 'on', G.settings.infiniteAmmo); if (!G.isSoloMode) safeSend({ type: 'roomSettings', settings: G.settings }); });
   on($('setZSpeed'), 'click', () => { if (!G.isHost) return; G.settings.zombieSpeedMult = G.settings.zombieSpeedMult === 1 ? 1.5 : 1; cls($('setZSpeed'), 'on', G.settings.zombieSpeedMult === 1.5); if (!G.isSoloMode) safeSend({ type: 'roomSettings', settings: G.settings }); });
   on($('setBossFreq'), 'click', () => { if (!G.isHost) return; G.settings.bossEvery = G.settings.bossEvery === 10 ? 5 : 10; cls($('setBossFreq'), 'on', G.settings.bossEvery === 5); if (!G.isSoloMode) safeSend({ type: 'roomSettings', settings: G.settings }); });
-
   on(canvas, 'mousedown', e => { if (!G.gameRunning || G.autoAim) return; if (e.button !== 0) return; G.mouseDown = true; e.preventDefault(); });
   on(canvas, 'mouseup', e => { if (e.button === 0) G.mouseDown = false; });
   on(canvas, 'mouseleave', () => { G.mouseDown = false; });
@@ -3158,8 +3351,7 @@ let lastMinimapDraw = 0, gameLoopRunning = false;
 function startGameLoop() { if (gameLoopRunning) return; gameLoopRunning = true; requestAnimationFrame(gameLoop); }
 function gameLoop() {
   if (G.gameRunning) {
-    update();
-    draw();
+    update(); draw();
     updateSkillHUD(); updateWeaponHUD(); updateBuffTimer(); updateLevelHUD();
     const now = performance.now();
     if (now - lastMinimapDraw > 100) { lastMinimapDraw = now; drawMinimap(); }
@@ -3183,7 +3375,13 @@ function updateSlot(id, cd, max) {
 function updateWeaponHUD() {
   const me = G.myRole === 'red' ? G.redPlayer : G.bluePlayer; if (!me) return;
   const w = WEAPONS[me.weapon];
-  txt($('weaponIcon'), w.icon);
+  let stars = '';
+  if (me.dmgMult > 1.4) stars += '⭐';
+  if (me.fireRateMult < 0.85) stars += '⭐';
+  if (me.extraBullets > 0) stars += '⭐';
+  if (me.pierce > 0) stars += '⭐';
+  if (me.critChance > 0) stars += '⭐';
+  txt($('weaponIcon'), w.icon + stars);
   txt($('weaponName'), currentLang === 'zh' ? w.name : w.nameEn);
   const ammoEl = $('weaponAmmo');
   if (ammoEl) { ammoEl.textContent = me.ammo === Infinity ? '∞' : me.ammo; ammoEl.style.color = (me.ammo !== Infinity && me.ammo <= 2) ? '#ff6b8a' : '#ffd24d'; }
@@ -3271,6 +3469,7 @@ function showRoundBanner(n) {
     bindUI();
     renderLeaderboard();
     renderSkinShop();
+    renderAchievements();
     updateScoreboard();
     updateScoreboardVisibility();
     updateThemeBadge();
@@ -3288,4 +3487,3 @@ function showRoundBanner(n) {
 </script>
 </body>
 </html>
-  
