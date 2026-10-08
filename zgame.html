@@ -8,6 +8,42 @@
 <link rel="apple-touch-icon" href="zijunlogo.png">
 <style>
   * { box-sizing: border-box; user-select: none; }
+
+  /* ============ 自定义滚动条 ============ */
+  ::-webkit-scrollbar {
+    width: 10px;
+    height: 10px;
+  }
+  ::-webkit-scrollbar-track {
+    background: transparent;
+    border-radius: 10px;
+  }
+  ::-webkit-scrollbar-thumb {
+    background: linear-gradient(180deg, #2a3650, #1a2238);
+    border-radius: 10px;
+    border: 2px solid transparent;
+    background-clip: padding-box;
+    transition: background 0.2s;
+  }
+  ::-webkit-scrollbar-thumb:hover {
+    background: linear-gradient(180deg, #4d7dff, #3d5bff);
+    background-clip: padding-box;
+    border: 2px solid transparent;
+  }
+  ::-webkit-scrollbar-thumb:active {
+    background: linear-gradient(180deg, #5a8aff, #4d6dff);
+    background-clip: padding-box;
+    border: 2px solid transparent;
+  }
+  ::-webkit-scrollbar-corner {
+    background: transparent;
+  }
+  /* Firefox */
+  * {
+    scrollbar-width: thin;
+    scrollbar-color: #2a3650 transparent;
+  }
+
   body {
     margin: 0; min-height: 100vh;
     background: radial-gradient(circle at 20% 20%, #1a1f35, #080b14);
@@ -31,6 +67,7 @@
     border-radius: 0; width: 100vw; height: 100vh; padding: 20px;
     display: flex; flex-direction: column; justify-content: center; align-items: center;
     background: rgba(10, 14, 26, 0.98);
+    overflow: hidden;
   }
 
   h1 { margin: 0 0 6px; font-size: 1.5rem; font-weight: 600; color: #a8c4ff; }
@@ -224,13 +261,11 @@
     font-size: 0.6rem; color: #7da2ff; font-family: 'Consolas', monospace;
   }
   .skill-slot.ready { border-color: #4d7dff; box-shadow: 0 0 12px rgba(77,125,255,0.3); }
-  .skill-slot.ready .sk-icon { filter: brightness(1.3); }
   .skill-slot.cooling { opacity: 0.5; }
   .skill-slot .cd-overlay {
     position: absolute; bottom: 0; left: 0; right: 0;
     background: rgba(0,0,0,0.6);
     height: 0%;
-    transition: height 0.1s linear;
   }
   .skill-slot .cd-text {
     position: absolute; bottom: 2px;
@@ -238,7 +273,6 @@
     font-family: 'Consolas', monospace;
   }
 
-  /* 武器显示 */
   .weapon-badge {
     display: flex; align-items: center; gap: 6px;
     background: #0a0f1c; padding: 8px 14px; border-radius: 30px;
@@ -247,16 +281,11 @@
   .weapon-badge .w-icon { font-size: 1.1rem; }
   .weapon-badge .w-ammo { color: #ffd24d; font-family: 'Consolas', monospace; font-weight: 700; }
 
-  /* 道具计时 */
-  .buff-timer {
-    display: flex; gap: 6px;
-    font-size: 0.75rem;
-  }
+  .buff-timer { display: flex; gap: 6px; font-size: 0.75rem; }
   .buff-pill {
     padding: 3px 10px; border-radius: 12px;
     background: #1a2a5e; color: #a8c4ff;
-    font-family: 'Consolas', monospace;
-    font-weight: 700;
+    font-family: 'Consolas', monospace; font-weight: 700;
   }
   .buff-pill.speed { background: #0e2a3e; color: #4dd4ff; }
   .buff-pill.invisible { background: #2a0e3e; color: #d44dff; }
@@ -315,7 +344,6 @@
       <span id="statusText">正在初始化网络…</span>
     </div>
 
-    <!-- 排行榜 -->
     <div class="leaderboard">
       <h3>
         🏆 历史战绩排行
@@ -375,6 +403,12 @@
           <span class="score-label">波次</span>
           <span class="score-num" id="zombieWave">1</span>
         </div>
+        <span style="color:#3d4d6e; font-weight:700;">|</span>
+        <div class="score-item">
+          <span style="font-size:1.1rem;">🔥</span>
+          <span class="score-label">连击</span>
+          <span class="score-num" id="comboDisplay">0</span>
+        </div>
       </div>
 
       <div class="badge">
@@ -388,10 +422,8 @@
 
     <canvas id="gameCanvas" width="900" height="550"></canvas>
 
-    <!-- 技能 + 武器 HUD -->
     <div style="display:flex; gap:16px; align-items:center; margin-top:12px; width:900px; justify-content:space-between;">
       <div style="display:flex; gap:16px; align-items:center;">
-        <!-- 技能槽 -->
         <div class="skill-bar">
           <div class="skill-slot" id="skillDash" title="冲刺">
             <span class="sk-key">Q</span>
@@ -413,14 +445,12 @@
           </div>
         </div>
 
-        <!-- 武器显示 -->
         <div class="weapon-badge">
           <span class="w-icon" id="weaponIcon">🔫</span>
           <span id="weaponName">手枪</span>
           <span class="w-ammo" id="weaponAmmo">∞</span>
         </div>
 
-        <!-- 道具计时 -->
         <div class="buff-timer" id="buffTimer"></div>
       </div>
 
@@ -446,13 +476,10 @@
 <script src="https://unpkg.com/peerjs@1.5.2/dist/peerjs.min.js"></script>
 <script>
 /* ============================================================
-   房间对战 v5
-   - 技能系统（冲刺/护盾/大招）
-   - 排行榜（localStorage）
-   - 武器系统（手枪/散弹/狙击/机枪）
-   - 血包掉落（僵尸模式）
-   - 道具（加速/隐身/双倍伤害）
-   - 显示玩家昵称
+   房间对战 v6
+   - 滚动条美化
+   - 修复命中延迟（双向同步 + bulletId 去重 + hpSeq 防覆盖）
+   - 连击系统（2 秒内连击）
    ============================================================ */
 
 'use strict';
@@ -481,6 +508,7 @@ const pvpScoreboardEl = document.getElementById('pvpScoreboard');
 const zombieScoreboardEl = document.getElementById('zombieScoreboard');
 const zombieKillsEl = document.getElementById('zombieKills');
 const zombieWaveEl = document.getElementById('zombieWave');
+const comboDisplayEl = document.getElementById('comboDisplay');
 const waitingModeHintEl = document.getElementById('waitingModeHint');
 const leaderboardListEl = document.getElementById('leaderboardList');
 const weaponIconEl = document.getElementById('weaponIcon');
@@ -500,7 +528,16 @@ let opponentNickname = '对手';
 let gameMode = 'pvp';
 let frameCount = 0;
 
-// 玩家对象（带技能/武器/道具状态）
+// 命中同步
+const processedHits = new Set();  // 已处理的 bulletId（被击中方）
+let hpSeq = 0;                     // hpUpdate 序号
+
+// 连击系统
+let comboCount = 0;
+let comboTimer = 0;               // 剩余帧数
+const COMBO_WINDOW = 120;         // 2 秒
+const COMBO_MILESTONES = [3, 5, 10, 15, 20, 30];
+
 function createPlayer(role) {
   const isRed = role === 'red';
   return {
@@ -510,54 +547,40 @@ function createPlayer(role) {
     y: 275,
     hp: 100,
     maxHp: 100,
+    hpSeq: 0,           // 血量变更序号（防止旧包覆盖）
     cooldown: 0,
     facing: isRed ? 0 : Math.PI,
-    // 技能冷却（帧）
     skillCD: { dash: 0, shield: 0, ultimate: 0 },
-    // 技能状态
-    shieldActive: 0,        // 剩余帧数
-    dashFrames: 0,          // 冲刺剩余帧数
+    shieldActive: 0,
+    dashFrames: 0,
     dashVx: 0, dashVy: 0,
-    // 武器
     weapon: 'pistol',
     ammo: Infinity,
     reloadTimer: 0,
-    // 道具
     speedTimer: 0,
     invisibleTimer: 0,
     doubleTimer: 0,
-    // 击杀数
     kills: 0,
-    // 死亡标记
     dead: false
   };
 }
 
 let redPlayer = null;
 let bluePlayer = null;
-
-// PvP 计分
 let scoreRed = 0;
 let scoreBlue = 0;
-
-// 僵尸模式
 let zombies = [];
 let zombieKills = 0;
 let zombieWave = 1;
 let waveTimer = 0;
 let spawnTimer = 0;
 let zombieIdCounter = 0;
-
-// 障碍物
 let obstacles = [];
-
-// 子弹 & 飘字 & 掉落物
 let bullets = [];
 let damageTexts = [];
-let pickups = [];       // { id, x, y, type, life }
+let pickups = [];
 let pickupIdCounter = 0;
 
-// 常量
 const W = 900, H = 550;
 const PLAYER_SIZE = 28;
 const BULLET_SIZE = 8;
@@ -568,7 +591,6 @@ const DAMAGE_AMOUNT = 14;
 const RED_START = { x: 120, y: H / 2 };
 const BLUE_START = { x: W - 120, y: H / 2 };
 
-// 僵尸参数
 const ZOMBIE_SIZE = 26;
 const ZOMBIE_SPEED_BASE = 1.0;
 const ZOMBIE_HP = 3;
@@ -576,17 +598,11 @@ const ZOMBIE_DAMAGE = 8;
 const ZOMBIE_TOUCH_COOLDOWN = 60;
 const ZOMBIE_MAX_COUNT = 30;
 
-// 技能参数
-const SKILL_COOLDOWN = {
-  dash: 240,       // 4 秒（60fps × 4）
-  shield: 480,     // 8 秒
-  ultimate: 900    // 15 秒
-};
-const DASH_DURATION = 18;         // 冲刺持续帧数
-const DASH_SPEED = 14;            // 冲刺速度
-const SHIELD_DURATION = 180;      // 护盾 3 秒
+const SKILL_COOLDOWN = { dash: 240, shield: 480, ultimate: 900 };
+const DASH_DURATION = 18;
+const DASH_SPEED = 14;
+const SHIELD_DURATION = 180;
 
-// 武器配置
 const WEAPONS = {
   pistol:   { name: '手枪',   icon: '🔫', cooldown: 14, damage: 14, bulletSpeed: 9,  bulletsPerShot: 1, spread: 0,    ammo: Infinity, color: '#ffffff' },
   shotgun:  { name: '散弹',   icon: '💥', cooldown: 36, damage: 8,  bulletSpeed: 8,  bulletsPerShot: 5, spread: 0.35, ammo: 8,        color: '#ffaa4d' },
@@ -595,10 +611,9 @@ const WEAPONS = {
 };
 const WEAPON_ORDER = ['pistol', 'shotgun', 'sniper', 'machine'];
 
-// 道具参数
 const PICKUP_SIZE = 20;
-const PICKUP_LIFETIME = 900;      // 15 秒
-const BUFF_DURATION = 480;        // 8 秒
+const PICKUP_LIFETIME = 900;
+const BUFF_DURATION = 480;
 const BUFF_SPEED_MULT = 1.6;
 const BUFF_DOUBLE_MULT = 2;
 
@@ -606,7 +621,6 @@ const BUFF_DOUBLE_MULT = 2;
 const keysDown = new Set();
 const keyTimers = new Map();
 const GAME_KEYS = ['KeyW','KeyA','KeyS','KeyD','Space','ArrowUp','ArrowDown','ArrowLeft','ArrowRight','KeyQ','KeyE','KeyR','Digit1','Digit2','Digit3','Digit4'];
-
 function clearKey(code) {
   keysDown.delete(code);
   if (keyTimers.has(code)) { clearTimeout(keyTimers.get(code)); keyTimers.delete(code); }
@@ -624,20 +638,14 @@ function keyDown(logical) {
     case 's': return isKeyDown('KeyS') || isKeyDown('ArrowDown');
     case 'd': return isKeyDown('KeyD') || isKeyDown('ArrowRight');
     case 'space': return isKeyDown('Space');
-    case 'q': return isKeyDown('KeyQ');
-    case 'e': return isKeyDown('KeyE');
-    case 'r': return isKeyDown('KeyR');
     default: return false;
   }
 }
-
-// 技能/换枪 触发（边缘检测）
 const justPressed = new Set();
 function consumePress(code) {
   if (justPressed.has(code)) { justPressed.delete(code); return true; }
   return false;
 }
-
 window.addEventListener('keydown', (e) => {
   if (!gameRunning) return;
   if (!GAME_KEYS.includes(e.code)) return;
@@ -694,7 +702,6 @@ function playNoise(duration, vol = 0.1, delay = 0) {
   src.connect(filter); filter.connect(gain); gain.connect(audioCtx.destination);
   src.start(t); src.stop(t + duration);
 }
-
 const SFX = {
   shoot() { playTone('square', 880, 220, 0.08, 0.07); },
   shotgun() { playNoise(0.12, 0.12); playTone('sawtooth', 200, 60, 0.15, 0.1); },
@@ -722,9 +729,14 @@ const SFX = {
   shield() { playTone('triangle', 300, 900, 0.3, 0.12); },
   ultimate() { playTone('sawtooth', 100, 800, 0.4, 0.15); playNoise(0.3, 0.12); },
   pickup() { playTone('sine', 660, 990, 0.12, 0.12); playTone('sine', 990, 1320, 0.1, 0.1, 0.08); },
-  reload() { playTone('square', 400, 200, 0.1, 0.08); }
+  reload() { playTone('square', 400, 200, 0.1, 0.08); },
+  combo(n) {
+    // 连击音效：音高随连击数上升
+    const base = 600 + n * 80;
+    playTone('triangle', base, base * 1.5, 0.15, 0.13);
+    if (n >= 5) playTone('sine', base * 2, base * 2.5, 0.12, 0.1, 0.08);
+  }
 };
-
 if (soundToggleEl) {
   soundToggleEl.addEventListener('click', () => {
     soundEnabled = !soundEnabled;
@@ -733,6 +745,30 @@ if (soundToggleEl) {
   });
 }
 
+/* ========== 连击系统 ========== */
+function addCombo() {
+  comboCount++;
+  comboTimer = COMBO_WINDOW;
+  if (comboDisplayEl) comboDisplayEl.textContent = comboCount;
+  // 里程碑
+  if (COMBO_MILESTONES.includes(comboCount)) {
+    SFX.combo(comboCount);
+    const colors = ['#4dd4ff', '#4dff8b', '#ffd24d', '#ff6bd2', '#ff4d6d'];
+    const c = colors[Math.min(comboCount / 5 | 0, colors.length - 1)];
+    spawnDamageText(W/2, H/2 - 100, 0, c, comboCount + ' 连击!', true);
+    // 屏幕震动效果
+    screenShake = 12;
+  } else {
+    SFX.combo(comboCount);
+  }
+}
+function resetCombo() {
+  comboCount = 0;
+  comboTimer = 0;
+  if (comboDisplayEl) comboDisplayEl.textContent = 0;
+}
+let screenShake = 0;
+
 /* ========== 伤害飘字 ========== */
 function spawnDamageText(x, y, amount, color, text = null, big = false) {
   damageTexts.push({
@@ -740,10 +776,10 @@ function spawnDamageText(x, y, amount, color, text = null, big = false) {
     y: y - 10,
     text: text || ('-' + amount),
     color,
-    life: big ? 80 : 60, maxLife: big ? 80 : 60,
+    life: big ? 100 : 60, maxLife: big ? 100 : 60,
     vy: big ? -2.2 : -1.6,
     vx: (Math.random() * 0.8 - 0.4),
-    size: big ? 28 : 18
+    size: big ? 32 : 18
   });
 }
 function updateDamageTexts() {
@@ -914,6 +950,7 @@ function updateScoreboard() {
   } else {
     if (zombieKillsEl) zombieKillsEl.textContent = zombieKills;
     if (zombieWaveEl) zombieWaveEl.textContent = zombieWave;
+    if (comboDisplayEl) comboDisplayEl.textContent = comboCount;
   }
 }
 function updateScoreboardVisibility() {
@@ -930,7 +967,7 @@ function initPeer(peerId) {
   });
 }
 
-/* ========== HUD 更新 ========== */
+/* ========== HUD ========== */
 function updateSkillHUD() {
   const me = myRole === 'red' ? redPlayer : bluePlayer;
   if (!me) return;
@@ -991,12 +1028,10 @@ createRoomBtn.addEventListener('click', async () => {
   myNickname = document.getElementById('nickname').value.trim() || '玩家';
   createRoomBtn.disabled = true;
   setStatus('正在创建房间…');
-
   roomCode = generateRoomCode();
   isHost = true;
   myRole = 'red';
   const peerId = 'arena-' + roomCode;
-
   try {
     await initPeer(peerId);
     peer.on('connection', (incomingConn) => {
@@ -1032,14 +1067,12 @@ joinRoomBtn.addEventListener('click', async () => {
   const input = document.getElementById('joinCode');
   const code = input.value.trim().toUpperCase();
   if (code.length !== 6) { showError('请输入 6 位房间号'); return; }
-
   joinRoomBtn.disabled = true;
   setStatus('正在加入房间…');
   roomCode = code;
   isHost = false;
   myRole = 'blue';
   const peerId = 'arena-' + roomCode;
-
   try {
     const myId = 'join-' + Math.random().toString(36).substr(2, 9);
     await initPeer(myId);
@@ -1068,7 +1101,6 @@ joinRoomBtn.addEventListener('click', async () => {
   }
   joinRoomBtn.disabled = false;
 });
-
 function setupConnection() {
   if (!isHost && conn) {
     conn.on('data', (data) => handleMessage(data));
@@ -1123,28 +1155,48 @@ function handleMessage(data) {
       if (data.bullet && data.bullet.owner !== myRole) bullets.push(data.bullet);
       break;
 
-    case 'hit':
+    // ========== 命中：双向同步 ==========
+    case 'hit': {
+      // 我是被击中方
       if (data.targetRole === myRole && gameMode === 'pvp') {
+        // 去重：同一个 bulletId 只处理一次
+        if (processedHits.has(data.bulletId)) break;
+        processedHits.add(data.bulletId);
+
         const me = myRole === 'red' ? redPlayer : bluePlayer;
+        // 护盾抵挡
         if (me.shieldActive > 0) {
-          // 护盾抵挡
           spawnDamageText(data.hitX, data.hitY, 0, '#4dd4ff', '🛡');
+          safeSend({ type: 'hpUpdate', role: myRole, hp: me.hp, seq: ++me.hpSeq });
           break;
         }
+        // 扣血
         me.hp = Math.max(0, me.hp - data.damage);
         SFX.hurt();
         spawnDamageText(data.hitX, data.hitY, data.damage, '#ff4d4d');
+        // 移除我屏幕上的那颗子弹
         const idx = bullets.findIndex(b => b.id === data.bulletId);
         if (idx !== -1) bullets.splice(idx, 1);
-        safeSend({ type: 'hpUpdate', role: myRole, hp: me.hp });
+        // 广播血量（带序号）
+        safeSend({ type: 'hpUpdate', role: myRole, hp: me.hp, seq: ++me.hpSeq });
         if (me.hp <= 0) me.dead = true;
       }
       break;
+    }
 
-    case 'hpUpdate':
-      if (data.role === 'red' && myRole !== 'red') redPlayer.hp = data.hp;
-      else if (data.role === 'blue' && myRole !== 'blue') bluePlayer.hp = data.hp;
+    case 'hpUpdate': {
+      // 更新远程玩家血量，用 seq 防止旧包覆盖新值
+      const target = data.role === 'red' ? redPlayer : bluePlayer;
+      if (target && data.role !== myRole) {
+        if (data.seq !== undefined && data.seq > target.hpSeq) {
+          target.hp = data.hp;
+          target.hpSeq = data.seq;
+        } else if (data.seq === undefined) {
+          target.hp = data.hp;
+        }
+      }
       break;
+    }
 
     case 'pickupSpawn':
       pickups.push(data.pickup);
@@ -1181,11 +1233,14 @@ function handleMessage(data) {
             zombies = zombies.filter(zz => zz.id !== z.id);
             zombieKills++;
             updateScoreboard();
+            addCombo();
             safeSend({ type: 'zombieDied', zombieId: z.id, x: z.x, y: z.y });
             SFX.zombieDie();
             spawnDamageText(z.x, z.y, 0, '#ffaa4d', '💀');
-            // 掉落血包
             if (Math.random() < 0.25) spawnPickup(z.x, z.y, 'health');
+            if (Math.random() < 0.08) spawnPickup(z.x, z.y, 'speed');
+            if (Math.random() < 0.08) spawnPickup(z.x, z.y, 'invisible');
+            if (Math.random() < 0.08) spawnPickup(z.x, z.y, 'double');
           } else {
             safeSend({ type: 'zombieDamaged', zombieId: z.id, x: z.x, y: z.y, damage: data.damage });
           }
@@ -1193,7 +1248,7 @@ function handleMessage(data) {
       }
       break;
     case 'zombieDamaged':
-      if (myRole !== 'red') { spawnDamageText(data.x, data.y, data.damage, '#ffaa4d'); SFX.zombieHit(); }
+      if (myRole !== 'red') { spawnDamageText(data.x, data.y, data.damage, '#ffaa4d'); SFX.zombieHit(); addCombo(); }
       break;
     case 'zombieDied':
       if (myRole !== 'red') {
@@ -1238,8 +1293,6 @@ function updatePickups() {
     p.life--;
     p.bob += 0.1;
     if (p.life <= 0) { pickups.splice(i, 1); continue; }
-
-    // 拾取检测
     const me = myRole === 'red' ? redPlayer : bluePlayer;
     if (!me || me.dead) continue;
     if (Math.hypot(me.x - p.x, me.y - p.y) < PLAYER_SIZE/2 + PICKUP_SIZE/2) {
@@ -1267,15 +1320,13 @@ function switchWeapon(idx) {
   const me = myRole === 'red' ? redPlayer : bluePlayer;
   if (!me) return;
   const key = WEAPON_ORDER[idx - 1];
-  if (!key) return;
-  if (me.weapon === key) return;
+  if (!key || me.weapon === key) return;
   me.weapon = key;
   me.ammo = WEAPONS[key].ammo;
   me.reloadTimer = 0;
   SFX.reload();
   updateWeaponHUD();
 }
-
 function reloadWeapon() {
   const me = myRole === 'red' ? redPlayer : bluePlayer;
   const w = WEAPONS[me.weapon];
@@ -1298,9 +1349,7 @@ function useDash() {
   me.skillCD.dash = SKILL_COOLDOWN.dash;
   SFX.dash();
   spawnDamageText(me.x, me.y - 20, 0, '#4dd4ff', '💨');
-  safeSend({ type: 'skillUsed', skill: 'dash' });
 }
-
 function useShield() {
   const me = myRole === 'red' ? redPlayer : bluePlayer;
   if (me.skillCD.shield > 0) return;
@@ -1309,13 +1358,11 @@ function useShield() {
   SFX.shield();
   spawnDamageText(me.x, me.y - 20, 0, '#4dd4ff', '🛡', true);
 }
-
 function useUltimate() {
   const me = myRole === 'red' ? redPlayer : bluePlayer;
   if (me.skillCD.ultimate > 0) return;
   me.skillCD.ultimate = SKILL_COOLDOWN.ultimate;
   SFX.ultimate();
-  // 大招：向四面八方发射 16 发子弹
   for (let i = 0; i < 16; i++) {
     const angle = (i / 16) * Math.PI * 2;
     const bullet = {
@@ -1345,43 +1392,18 @@ function startGame() {
   else startZombieModeLocally('red');
 }
 
-function resetPlayerState(player, role) {
-  player.hp = player.maxHp;
-  player.cooldown = 0;
-  player.weapon = 'pistol';
-  player.ammo = Infinity;
-  player.reloadTimer = 0;
-  player.skillCD = { dash: 0, shield: 0, ultimate: 0 };
-  player.shieldActive = 0;
-  player.dashFrames = 0;
-  player.dashVx = 0; player.dashVy = 0;
-  player.speedTimer = 0;
-  player.invisibleTimer = 0;
-  player.doubleTimer = 0;
-  player.dead = false;
-  player.kills = 0;
-  player.x = role === 'red' ? RED_START.x : BLUE_START.x;
-  player.y = H / 2;
-  player.facing = role === 'red' ? 0 : Math.PI;
-}
-
 function startRoundLocally(role, isFirst = true) {
   myRole = role;
   gameRunning = true;
-
-  const p1 = createPlayer('red');
-  const p2 = createPlayer('blue');
-  p1.name = role === 'red' ? myNickname : opponentNickname;
-  p2.name = role === 'blue' ? myNickname : opponentNickname;
-  // 红方总是房主，蓝方是加入者
-  p1.name = isHost ? myNickname : opponentNickname;
-  p2.name = isHost ? opponentNickname : myNickname;
-  redPlayer = p1;
-  bluePlayer = p2;
-
+  redPlayer = createPlayer('red');
+  bluePlayer = createPlayer('blue');
+  redPlayer.name = isHost ? myNickname : opponentNickname;
+  bluePlayer.name = isHost ? opponentNickname : myNickname;
   bullets = [];
   damageTexts = [];
   pickups = [];
+  processedHits.clear();
+  resetCombo();
 
   gameRoomCode.textContent = roomCode;
   myRoleLabel.textContent = myRole === 'red' ? '红方' : '蓝方';
@@ -1401,7 +1423,6 @@ function startRoundLocally(role, isFirst = true) {
 function startZombieModeLocally(role) {
   myRole = role;
   gameRunning = true;
-
   redPlayer = createPlayer('red');
   bluePlayer = createPlayer('blue');
   redPlayer.name = isHost ? myNickname : opponentNickname;
@@ -1411,6 +1432,8 @@ function startZombieModeLocally(role) {
   damageTexts = [];
   zombies = [];
   pickups = [];
+  processedHits.clear();
+  resetCombo();
   zombieKills = 0;
   zombieWave = 1;
   waveTimer = 0;
@@ -1438,7 +1461,14 @@ function handleRoundEnd(winner, sRed, sBlue) {
   scoreRed = sRed;
   scoreBlue = sBlue;
   updateScoreboard();
-  if (winner === myRole) SFX.win(); else SFX.lose();
+  if (winner === myRole) {
+    SFX.win();
+    // 记录排行榜
+    const me = myRole === 'red' ? redPlayer : bluePlayer;
+    if (me) addLeaderboardEntry(me.name, me.kills || 1, 'pvp');
+  } else {
+    SFX.lose();
+  }
   if (isHost && gameMode === 'pvp') setTimeout(() => startNextRound(), 2000);
 }
 
@@ -1455,8 +1485,11 @@ function handleLocalWin(deadRole) {
   if (deadRole === 'red') scoreBlue++;
   else scoreRed++;
   updateScoreboard();
+  const me = myRole === 'red' ? redPlayer : bluePlayer;
+  if (me) me.kills++;
   safeSend({ type: 'roundEnd', winner: myRole, scoreRed: scoreRed, scoreBlue: scoreBlue });
   SFX.win();
+  if (me) addLeaderboardEntry(me.name, me.kills, 'pvp');
   if (isHost) setTimeout(() => startNextRound(), 2000);
 }
 
@@ -1547,11 +1580,10 @@ function updateZombies() {
         if (frameCount - z.lastTouch[key] > ZOMBIE_TOUCH_COOLDOWN) {
           z.lastTouch[key] = frameCount;
           if (p.shieldActive > 0) {
-            // 护盾抵挡
             if (myRole === key) spawnDamageText(p.x, p.y, 0, '#4dd4ff', '🛡');
           } else {
             p.hp = Math.max(0, p.hp - ZOMBIE_DAMAGE);
-            safeSend({ type: 'hpUpdate', role: key, hp: p.hp });
+            safeSend({ type: 'hpUpdate', role: key, hp: p.hp, seq: ++p.hpSeq });
             safeSend({ type: 'zombieAttack', role: key, damage: ZOMBIE_DAMAGE, x: p.x, y: p.y });
             if (myRole === key) { SFX.hurt(); spawnDamageText(p.x, p.y, ZOMBIE_DAMAGE, '#ff4d4d'); }
           }
@@ -1579,7 +1611,16 @@ function update() {
   const opponent = myRole === 'red' ? bluePlayer : redPlayer;
   if (!me || !opponent) return;
 
-  // 技能冷却
+  // 连击计时
+  if (comboTimer > 0) {
+    comboTimer--;
+    if (comboTimer === 0) resetCombo();
+  }
+
+  // 屏幕震动衰减
+  if (screenShake > 0) screenShake *= 0.85;
+
+  // 冷却
   for (const k of ['dash', 'shield', 'ultimate']) {
     if (me.skillCD[k] > 0) me.skillCD[k]--;
   }
@@ -1588,7 +1629,7 @@ function update() {
   if (me.invisibleTimer > 0) me.invisibleTimer--;
   if (me.doubleTimer > 0) me.doubleTimer--;
 
-  // 技能按键
+  // 技能
   if (consumePress('KeyQ')) useDash();
   if (consumePress('KeyE')) useShield();
   if (consumePress('KeyR')) useUltimate();
@@ -1599,7 +1640,6 @@ function update() {
 
   // 移动
   if (me.dashFrames > 0) {
-    // 冲刺中
     const tryX = me.x + me.dashVx;
     const tryY = me.y + me.dashVy;
     const cx = Math.min(Math.max(tryX, PLAYER_SIZE/2 + 4), W - PLAYER_SIZE/2 - 4);
@@ -1628,7 +1668,6 @@ function update() {
     }
   }
 
-  // 朝向
   me.facing = Math.atan2(opponent.y - me.y, opponent.x - me.x);
 
   // 射击
@@ -1636,12 +1675,8 @@ function update() {
   if (me.cooldown > 0) me.cooldown--;
   if (keyDown('space') && me.cooldown <= 0 && me.hp > 0) {
     if (me.ammo !== Infinity && me.ammo <= 0) {
-      // 需要换弹
-      if (me.reloadTimer <= 0) {
-        me.reloadTimer = 60;
-      }
+      if (me.reloadTimer <= 0) me.reloadTimer = 60;
     } else {
-      // 发射
       for (let i = 0; i < w.bulletsPerShot; i++) {
         const spread = (Math.random() - 0.5) * w.spread * 2;
         const angle = me.facing + spread;
@@ -1662,20 +1697,18 @@ function update() {
       }
       if (me.ammo !== Infinity) me.ammo--;
       me.cooldown = w.cooldown;
-      // 音效
       if (me.weapon === 'shotgun') SFX.shotgun();
       else if (me.weapon === 'sniper') SFX.sniper();
       else if (me.weapon === 'machine') SFX.machine();
       else SFX.shoot();
     }
   }
-  // 换弹
   if (me.reloadTimer > 0) {
     me.reloadTimer--;
     if (me.reloadTimer === 0) reloadWeapon();
   }
 
-  // 僵尸更新（房主）
+  // 僵尸更新
   if (gameMode === 'zombie' && isHost) {
     updateZombies();
     if (frameCount % 3 === 0) {
@@ -1705,23 +1738,29 @@ function update() {
         const targetRole = myRole === 'red' ? 'blue' : 'red';
         const target = targetRole === 'red' ? redPlayer : bluePlayer;
         if (segmentHitsPlayer(prevX, prevY, b.x, b.y, target)) {
+          // 护盾
           if (target.shieldActive > 0) {
             spawnDamageText(b.x, b.y, 0, '#4dd4ff', '🛡');
             bullets.splice(i, 1);
             safeSend({ type: 'hit', bulletId: b.id, targetRole, damage: 0, hitX: b.x, hitY: b.y });
             continue;
           }
-          safeSend({ type: 'hit', bulletId: b.id, targetRole, damage: b.damage || DAMAGE_AMOUNT, hitX: b.x, hitY: b.y });
-          SFX.hit();
+          // 命中！
           const dmg = b.damage || DAMAGE_AMOUNT;
-          spawnDamageText(b.x, b.y, dmg, targetRole === 'red' ? '#ff6b8a' : '#6bb8ff', null, dmg > 20);
+          // 1) 本地立即扣血（乐观更新）
           target.hp = Math.max(0, target.hp - dmg);
+          target.hpSeq++;
+          // 2) 广播 hit 给对方
+          safeSend({ type: 'hit', bulletId: b.id, targetRole, damage: dmg, hitX: b.x, hitY: b.y });
+          // 3) 本地效果
+          SFX.hit();
+          spawnDamageText(b.x, b.y, dmg, targetRole === 'red' ? '#ff6b8a' : '#6bb8ff', null, dmg > 20);
+          addCombo();
           bullets.splice(i, 1);
-          if (target.hp <= 0) {
-            handleLocalWin(targetRole);
-          }
+          if (target.hp <= 0) handleLocalWin(targetRole);
         }
       } else {
+        // 僵尸
         let hitZombie = null;
         for (const z of zombies) {
           if (segmentHitsZombie(prevX, prevY, b.x, b.y, z)) { hitZombie = z; break; }
@@ -1734,12 +1773,11 @@ function update() {
               zombies = zombies.filter(zz => zz.id !== hitZombie.id);
               zombieKills++;
               updateScoreboard();
+              addCombo();
               SFX.zombieDie();
               spawnDamageText(hitZombie.x, hitZombie.y, 0, '#ffaa4d', '💀');
               safeSend({ type: 'zombieDied', zombieId: hitZombie.id, x: hitZombie.x, y: hitZombie.y });
-              // 掉落血包
               if (Math.random() < 0.25) spawnPickup(hitZombie.x, hitZombie.y, 'health');
-              // 其他道具
               if (Math.random() < 0.08) spawnPickup(hitZombie.x, hitZombie.y, 'speed');
               if (Math.random() < 0.08) spawnPickup(hitZombie.x, hitZombie.y, 'invisible');
               if (Math.random() < 0.08) spawnPickup(hitZombie.x, hitZombie.y, 'double');
@@ -1761,8 +1799,6 @@ function update() {
 
   updateDamageTexts();
   updatePickups();
-
-  // 检查死亡（僵尸模式）
   if (me.hp <= 0) me.dead = true;
 }
 
@@ -1793,6 +1829,12 @@ function segmentHitsZombie(x1, y1, x2, y2, z) {
 
 /* ========== 绘制 ========== */
 function draw() {
+  ctx.save();
+  // 屏幕震动
+  if (screenShake > 0.5) {
+    ctx.translate((Math.random() - 0.5) * screenShake, (Math.random() - 0.5) * screenShake);
+  }
+
   ctx.clearRect(0, 0, W, H);
   const grad = ctx.createRadialGradient(W/2, H/2, 100, W/2, H/2, 700);
   if (gameMode === 'zombie') { grad.addColorStop(0, '#1a1420'); grad.addColorStop(1, '#0a0710'); }
@@ -1800,11 +1842,9 @@ function draw() {
   ctx.fillStyle = grad;
   ctx.fillRect(0, 0, W, H);
 
-  // 网格
   if (gameMode === 'zombie' && gridCanvasZombie) ctx.drawImage(gridCanvasZombie, 0, 0);
   else if (gridCanvasPvP) ctx.drawImage(gridCanvasPvP, 0, 0);
 
-  // 障碍物
   for (const o of obstacles) {
     ctx.shadowColor = 'rgba(0,0,0,0.5)'; ctx.shadowBlur = 12; ctx.shadowOffsetY = 4;
     ctx.fillStyle = gameMode === 'zombie' ? '#2a1e3a' : '#1e2a44';
@@ -1825,7 +1865,6 @@ function draw() {
       ctx.shadowColor = '#4dff8b'; ctx.shadowBlur = 16;
       ctx.beginPath(); ctx.arc(p.x, p.y + bob, PICKUP_SIZE/2, 0, Math.PI*2); ctx.fill();
       ctx.shadowBlur = 0;
-      // 十字
       ctx.fillStyle = '#0a1a10';
       ctx.fillRect(p.x - 2, p.y + bob - 7, 4, 14);
       ctx.fillRect(p.x - 7, p.y + bob - 2, 14, 4);
@@ -1857,10 +1896,8 @@ function draw() {
     ctx.restore();
   }
 
-  // 僵尸
   if (gameMode === 'zombie') for (const z of zombies) drawZombie(z);
 
-  // 子弹
   for (const b of bullets) {
     const c = b.color || (b.owner === 'red' ? '#ff4d6d' : '#4da6ff');
     ctx.beginPath();
@@ -1869,13 +1906,11 @@ function draw() {
     ctx.shadowColor = c; ctx.shadowBlur = 16; ctx.fill(); ctx.shadowBlur = 0;
   }
 
-  // 玩家
   if (redPlayer) drawPlayer(redPlayer);
   if (bluePlayer) drawPlayer(bluePlayer);
 
   drawDamageTexts();
 
-  // HUD
   ctx.font = '14px "Segoe UI"';
   ctx.fillStyle = '#6b7fa0';
   const me = myRole === 'red' ? redPlayer : bluePlayer;
@@ -1885,6 +1920,13 @@ function draw() {
       ctx.fillText(`比分 ${redPlayer.name} ${scoreRed} : ${scoreBlue} ${bluePlayer.name}`, 30, 62);
     } else {
       ctx.fillText(`🧟 击杀 ${zombieKills}   波次 ${zombieWave}`, 30, 62);
+    }
+    if (comboCount >= 2) {
+      ctx.font = 'bold 20px "Segoe UI"';
+      ctx.fillStyle = '#ffd24d';
+      ctx.shadowColor = '#ffd24d'; ctx.shadowBlur = 12;
+      ctx.fillText(`🔥 ${comboCount} 连击`, 30, 90);
+      ctx.shadowBlur = 0;
     }
   }
 
@@ -1898,6 +1940,8 @@ function draw() {
       ctx.fillText(bluePlayer.name + ' DOWN', W/2-180, H/2 + 50);
     }
   }
+
+  ctx.restore();
 }
 
 function drawPlayer(p) {
@@ -1906,7 +1950,6 @@ function drawPlayer(p) {
   const color = isRed ? '#ff4d6d' : '#4da6ff';
   const bgColor = isRed ? '#2e1a1f' : '#1a2a3a';
 
-  // 隐身
   let alpha = 1;
   if (p.invisibleTimer > 0 && p.role !== myRole) alpha = 0.35;
   if (p.invisibleTimer > 0 && p.role === myRole) alpha = 0.6;
@@ -1914,7 +1957,6 @@ function drawPlayer(p) {
 
   ctx.globalAlpha = alpha;
 
-  // 冲刺拖尾
   if (p.dashFrames > 0) {
     for (let i = 1; i <= 3; i++) {
       ctx.globalAlpha = alpha * (0.3 / i);
@@ -1934,7 +1976,6 @@ function drawPlayer(p) {
   ctx.fill();
   ctx.shadowBlur = 0;
 
-  // 护盾
   if (p.shieldActive > 0) {
     ctx.strokeStyle = '#4dd4ff';
     ctx.lineWidth = 3;
@@ -1945,13 +1986,11 @@ function drawPlayer(p) {
     ctx.shadowBlur = 0;
   }
 
-  // 血条
   ctx.fillStyle = bgColor;
   ctx.fillRect(p.x - 28, p.y - PLAYER_SIZE/2 - 20, 56, 8);
   ctx.fillStyle = color;
   ctx.fillRect(p.x - 28, p.y - PLAYER_SIZE/2 - 20, 56 * (p.hp / p.maxHp), 8);
 
-  // 名字
   ctx.font = 'bold 12px "Segoe UI"';
   ctx.textAlign = 'center';
   ctx.fillStyle = color;
@@ -2020,6 +2059,8 @@ function cleanupAndReturnToLobby() {
   peer = null;
   bullets = []; damageTexts = []; obstacles = []; zombies = []; pickups = [];
   redPlayer = null; bluePlayer = null;
+  processedHits.clear();
+  resetCombo();
   isHost = false;
   roomCode = '';
   switchView('lobby');
