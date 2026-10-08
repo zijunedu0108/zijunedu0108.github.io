@@ -3,6 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
+<link rel="icon" type="image/png" href="zijunlogo.png">
 <title>多人连线 · 房间对战</title>
 <style>
 * { box-sizing: border-box; user-select: none; }
@@ -1173,14 +1174,27 @@ function getGridCanvas(key, worldW, worldH) {
    ============================================================ */
 function generateObstacles(worldW, worldH, count = 12) {
   const newObs = [];
+  // 出生安全区：红方 200,H/2；蓝方 W-200,H/2
+  const safeZones = [
+    { x: 60,  y: worldH/2 - 120, w: 280, h: 240 },
+    { x: worldW - 340, y: worldH/2 - 120, w: 280, h: 240 }
+  ];
   let att = 0;
-  while (newObs.length < count && att < count * 30) {
+  while (newObs.length < count && att < count * 40) {
     att++;
     const w = 60 + Math.random() * 120;
     const h = 60 + Math.random() * 120;
     const x = 100 + Math.random() * (worldW - 200 - w);
     const y = 100 + Math.random() * (worldH - 200 - h);
     const rect = { x, y, w, h };
+    // 避开出生区
+    let inSafe = false;
+    for (const sz of safeZones) {
+      if (rect.x < sz.x + sz.w && rect.x + rect.w > sz.x &&
+          rect.y < sz.y + sz.h && rect.y + rect.h > sz.y) { inSafe = true; break; }
+    }
+    if (inSafe) continue;
+    // 避开已有障碍
     let ov = false;
     for (const o of newObs) {
       if (rect.x < o.x + o.w + 40 && rect.x + rect.w + 40 > o.x &&
@@ -1205,6 +1219,20 @@ function bulletHitsObstacle(b, obs) {
   const bR = { x: b.x - r, y: b.y - r, w: BULLET_SIZE, h: BULLET_SIZE };
   for (const o of obs) if (rectsOverlap(bR, o)) return true;
   return false;
+}
+// 兜底：出生点若卡在障碍里，向外找最近空位
+function findFreeSpot(px, py, obstacles, maxRadius = 400) {
+  if (!playerHitsObstacle(px, py, obstacles)) return { x: px, y: py };
+  for (let r = 20; r <= maxRadius; r += 20) {
+    for (let a = 0; a < Math.PI * 2; a += Math.PI / 12) {
+      const nx = px + Math.cos(a) * r;
+      const ny = py + Math.sin(a) * r;
+      if (nx < PLAYER_SIZE || nx > WORLD_W - PLAYER_SIZE) continue;
+      if (ny < PLAYER_SIZE || ny > WORLD_H - PLAYER_SIZE) continue;
+      if (!playerHitsObstacle(nx, ny, obstacles)) return { x: nx, y: ny };
+    }
+  }
+  return { x: px, y: py };
 }
 
 /* ============================================================
@@ -2132,6 +2160,17 @@ function updateCamera() {
     G.camera.y = 0;
   }
 }
+// 直接对齐相机（避免开局第一帧还在旧位置）
+function snapCameraToMe() {
+  const me = G.myRole === 'red' ? G.redPlayer : G.bluePlayer;
+  if (!me) return;
+  if (G.gameMode === 'zombie' || G.isSoloMode) {
+    G.camera.x = Math.max(0, Math.min(WORLD_W - W, me.x - W / 2));
+    G.camera.y = Math.max(0, Math.min(WORLD_H - H, me.y - H / 2));
+  } else {
+    G.camera.x = 0; G.camera.y = 0;
+  }
+}
 
 /* ============================================================
    子弹更新
@@ -2424,6 +2463,11 @@ function update() {
    ============================================================ */
 let lastMinimapDraw = 0;
 let gameLoopRunning = false;
+function startGameLoop() {
+  if (gameLoopRunning) return;
+  gameLoopRunning = true;
+  requestAnimationFrame(gameLoop);
+}
 function gameLoop() {
   if (G.gameRunning) {
     update();
@@ -2496,7 +2540,6 @@ function updateLevelHUD() {
   txt($('levelNum'), me.level);
   const fill = $('xpFill');
   if (fill) {
-    // 显示距离下一个"10 级倍数"的进度
     const levelsIntoBlock = me.level % LEVELS_PER_UPGRADE;
     const xpInBlock = levelsIntoBlock * XP_PER_LEVEL + me.xp;
     const xpNeeded = LEVELS_PER_UPGRADE * XP_PER_LEVEL;
@@ -2596,6 +2639,9 @@ function startSoloGame(myNickname) {
   resetCombo(); endSlowmo();
   G.zombieKills = 0; G.zombieWave = 1; G.waveTimer = 0; G.spawnTimer = 0;
   G.obstacles = generateObstacles(WORLD_W, WORLD_H, 15);
+  // 出生点兜底
+  const spot = findFreeSpot(G.redPlayer.x, G.redPlayer.y, G.obstacles);
+  G.redPlayer.x = spot.x; G.redPlayer.y = spot.y;
   txt($('gameRoomCode'), '单机');
   txt($('myRoleLabel'), '单人');
   if ($('myRoleLabel')) $('myRoleLabel').className = 'role-red';
@@ -2609,7 +2655,8 @@ function startSoloGame(myNickname) {
   SFX.start();
   if (musicEnabled) { initAudio(); startMusic(); }
   showRoundBanner(1);
-  if (!gameLoopRunning) { gameLoopRunning = true; gameLoop(); }
+  snapCameraToMe();
+  startGameLoop();
 }
 function startGame() {
   if (G.gameRunning) return;
@@ -2638,6 +2685,11 @@ function startRoundLocally(role, isFirst = true) {
   G.bullets = []; G.damageTexts = []; G.pickups = [];
   G.processedHits.clear();
   resetCombo(); endSlowmo();
+  // 出生点兜底
+  const spotR = findFreeSpot(G.redPlayer.x, G.redPlayer.y, G.obstacles);
+  G.redPlayer.x = spotR.x; G.redPlayer.y = spotR.y;
+  const spotB = findFreeSpot(G.bluePlayer.x, G.bluePlayer.y, G.obstacles);
+  G.bluePlayer.x = spotB.x; G.bluePlayer.y = spotB.y;
   txt($('gameRoomCode'), G.roomCode);
   txt($('myRoleLabel'), G.myRole === 'red' ? '红方' : '蓝方');
   if ($('myRoleLabel')) $('myRoleLabel').className = G.myRole === 'red' ? 'role-red' : 'role-blue';
@@ -2651,7 +2703,8 @@ function startRoundLocally(role, isFirst = true) {
   SFX.start();
   if (musicEnabled) { initAudio(); startMusic(); }
   broadcastPlayerState();
-  if (!gameLoopRunning) { gameLoopRunning = true; gameLoop(); }
+  snapCameraToMe();
+  startGameLoop();
 }
 function startZombieModeLocally(role) {
   G.isSoloMode = false;
@@ -2665,6 +2718,11 @@ function startZombieModeLocally(role) {
   G.processedHits.clear();
   resetCombo(); endSlowmo();
   G.zombieKills = 0; G.zombieWave = 1; G.waveTimer = 0; G.spawnTimer = 0;
+  // 出生点兜底
+  const spotR = findFreeSpot(G.redPlayer.x, G.redPlayer.y, G.obstacles);
+  G.redPlayer.x = spotR.x; G.redPlayer.y = spotR.y;
+  const spotB = findFreeSpot(G.bluePlayer.x, G.bluePlayer.y, G.obstacles);
+  G.bluePlayer.x = spotB.x; G.bluePlayer.y = spotB.y;
   txt($('gameRoomCode'), G.roomCode);
   txt($('myRoleLabel'), G.myRole === 'red' ? '红方' : '蓝方');
   if ($('myRoleLabel')) $('myRoleLabel').className = G.myRole === 'red' ? 'role-red' : 'role-blue';
@@ -2678,7 +2736,8 @@ function startZombieModeLocally(role) {
   SFX.start();
   if (musicEnabled) { initAudio(); startMusic(); }
   broadcastPlayerState();
-  if (!gameLoopRunning) { gameLoopRunning = true; gameLoop(); }
+  snapCameraToMe();
+  startGameLoop();
 }
 
 /* ============================================================
@@ -2690,6 +2749,9 @@ function handleRoundEnd(winner, sRed, sBlue) {
   G.scoreRed = sRed; G.scoreBlue = sBlue;
   updateScoreboard();
   if (winner === G.myRole) SFX.win(); else SFX.lose();
+  // 金币奖励
+  const myWin = (winner === G.myRole);
+  awardCoins(myWin ? 50 : 20, myWin ? 'PvP 胜利' : 'PvP 参与');
   if (G.isHost && G.gameMode === 'pvp') setTimeout(() => startNextRound(), 3000);
 }
 function startNextRound() {
@@ -2715,6 +2777,8 @@ function handleLocalWin(deadRole) {
   safeSend({ type: 'roundEnd', winner: G.myRole, scoreRed: G.scoreRed, scoreBlue: G.scoreBlue });
   if (me && opponent) addKillFeed(me.name, opponent.name, WEAPONS[me.weapon].icon);
   SFX.win();
+  // 金币奖励
+  awardCoins(50, 'PvP 胜利');
   setTimeout(() => {
     stopMusic();
     if (G.isHost) startNextRound();
@@ -2724,15 +2788,18 @@ function gameOverPvE() {
   G.gameRunning = false;
   stopMusic();
   SFX.lose();
+  const coins = G.zombieKills * 2 + G.zombieWave * 10;
+  awardCoins(coins, '僵尸模式');
+  addLeaderboardEntry(G.myNickname, G.zombieKills, G.isSoloMode ? 'solo' : 'zombie');
   if (G.isSoloMode) {
     setTimeout(() => {
-      alert('💀 被僵尸击败！\n击杀数：' + G.zombieKills + '  波次：' + G.zombieWave);
+      alert('💀 被僵尸击败！\n击杀数：' + G.zombieKills + '  波次：' + G.zombieWave + '\n💰 +' + coins + ' 金币');
       cleanupAndReturnToLobby();
     }, 200);
   } else {
     safeSend({ type: 'gameOver', kills: G.zombieKills, wave: G.zombieWave });
     setTimeout(() => {
-      alert('💀 被僵尸击败！\n击杀数：' + G.zombieKills + '  波次：' + G.zombieWave);
+      alert('💀 被僵尸击败！\n击杀数：' + G.zombieKills + '  波次：' + G.zombieWave + '\n💰 +' + coins + ' 金币');
       cleanupAndReturnToLobby();
     }, 200);
   }
@@ -2977,7 +3044,7 @@ function renderLeaderboard() {
 }
 
 /* ============================================================
-   Firebase（redirect 登录 + 皮肤存档）
+   Firebase（redirect 登录 + 皮肤存档 + 金币）
    ============================================================ */
 let firebaseAuth = null;
 let firebaseDb = null;
@@ -3011,7 +3078,8 @@ async function initFirebase() {
       import("https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js")
     ]);
 
-    const { getAuth, signInWithRedirect, getRedirectResult, GoogleAuthProvider, onAuthStateChanged, signOut } = authMod;
+    const { getAuth, signInWithRedirect, getRedirectResult, GoogleAuthProvider,
+            onAuthStateChanged, signOut, setPersistence, browserLocalPersistence } = authMod;
     const { getFirestore, doc, getDoc, setDoc } = firestoreMod;
 
     const app = initializeApp(firebaseConfig);
@@ -3019,7 +3087,43 @@ async function initFirebase() {
     firebaseDb = getFirestore(app);
     fbModules = { doc, getDoc, setDoc };
 
-    // 处理 redirect 登录返回
+    // 保证登录状态持久化（刷新后仍登录）
+    try {
+      await setPersistence(firebaseAuth, browserLocalPersistence);
+    } catch (e) {
+      console.warn('[Firebase] setPersistence 失败:', e);
+    }
+
+    // 先注册 onAuthStateChanged，保证 redirect 回来后 UI 立即更新
+    onAuthStateChanged(firebaseAuth, async (user) => {
+      console.log('[Auth] 状态变化:', user ? (user.displayName || user.email) : '未登录');
+      currentUser = user;
+      if (user) {
+        txt($('userName'), user.displayName || '玩家');
+        if ($('userAvatar')) $('userAvatar').src = user.photoURL || '';
+        cls($('userInfo'), 'hidden', false);
+        cls($('loginBtn'), 'hidden', true);
+        if ($('loginTip')) $('loginTip').style.display = 'none';
+        if (user.displayName && $('nickname') && !$('nickname').value) {
+          $('nickname').value = user.displayName.slice(0, 10);
+        }
+        await loadUserProfile(user);
+      } else {
+        cls($('userInfo'), 'hidden', true);
+        cls($('loginBtn'), 'hidden', false);
+        if ($('loginTip')) $('loginTip').style.display = 'block';
+        // 未登录时尝试读取本地 profile（金币/皮肤）
+        try {
+          const local = JSON.parse(localStorage.getItem('arena_local_profile') || 'null');
+          if (local) profile = { ...profile, ...local };
+        } catch(e) {}
+        updateCoinUI();
+        renderSkinShop();
+        applySkin(profile.equippedSkin);
+      }
+    });
+
+    // 处理 redirect 返回（即便上面 onAuthStateChanged 已经处理，这里只是补日志）
     try {
       const result = await getRedirectResult(firebaseAuth);
       if (result && result.user) {
@@ -3034,7 +3138,7 @@ async function initFirebase() {
       const provider = new GoogleAuthProvider();
       provider.setCustomParameters({ prompt: 'select_account' });
       try {
-        console.log('[登录] 开始重定向登录...');
+        txt($('statusText'), '正在跳转 Google 登录…');
         await signInWithRedirect(firebaseAuth, provider);
       } catch (e) {
         console.error('[登录] 失败', e);
@@ -3046,50 +3150,56 @@ async function initFirebase() {
       try { await signOut(firebaseAuth); location.reload(); } catch(e) {}
     });
 
-    onAuthStateChanged(firebaseAuth, async (user) => {
-      currentUser = user;
-      if (user) {
-        txt($('userName'), user.displayName || '玩家');
-        if ($('userAvatar')) $('userAvatar').src = user.photoURL || '';
-        cls($('userInfo'), 'hidden', false);
-        cls($('loginBtn'), 'hidden', true);
-        if ($('loginTip')) $('loginTip').style.display = 'none';
-        // 自动把昵称填入
-        if (user.displayName && $('nickname') && !$('nickname').value) {
-          $('nickname').value = user.displayName.slice(0, 10);
-        }
-        try {
-          const ref = doc(firebaseDb, 'players', user.uid);
-          const snap = await getDoc(ref);
-          if (snap.exists()) {
-            profile = { ...profile, ...snap.data(), uid: user.uid };
-          } else {
-            profile.uid = user.uid;
-            profile.name = user.displayName || '玩家';
-            await setDoc(ref, profile);
-          }
-          updateCoinUI();
-          renderSkinShop();
-          applySkin(profile.equippedSkin);
-        } catch (e) {
-          console.error('[Firebase] 加载档案失败:', e);
-        }
-      } else {
-        cls($('userInfo'), 'hidden', true);
-        cls($('loginBtn'), 'hidden', false);
-        if ($('loginTip')) $('loginTip').style.display = 'block';
-        renderSkinShop();
-      }
-    });
   } catch (e) {
     console.warn('[Firebase] 初始化失败（不影响游戏）:', e.message);
-    if ($('loginTip')) $('loginTip').textContent = '⚠️ Firebase 加载失败，皮肤仅保存在本地';
+    if ($('loginTip')) $('loginTip').textContent = '⚠️ Firebase 加载失败，皮肤/金币仅保存在本地';
+  }
+}
+
+async function loadUserProfile(user) {
+  try {
+    const ref = fbModules.doc(firebaseDb, 'players', user.uid);
+    const snap = await fbModules.getDoc(ref);
+    if (snap.exists()) {
+      profile = { ...profile, ...snap.data(), uid: user.uid };
+    } else {
+      profile.uid = user.uid;
+      profile.name = user.displayName || '玩家';
+      await fbModules.setDoc(ref, profile);
+    }
+    updateCoinUI();
+    renderSkinShop();
+    applySkin(profile.equippedSkin);
+    if (profile.name && $('nickname') && !$('nickname').value) {
+      $('nickname').value = profile.name.slice(0, 10);
+    }
+  } catch (e) {
+    console.error('[Firebase] 加载档案失败:', e);
   }
 }
 
 function updateCoinUI() {
   txt($('userCoins'), `💰 ${profile.coins}`);
 }
+
+// 发放金币（自动保存到 Firebase 或 localStorage）
+async function awardCoins(amount, reason) {
+  if (amount <= 0) return;
+  profile.coins = (profile.coins || 0) + amount;
+  profile.stats = profile.stats || { totalKills: 0, totalWins: 0, maxCombo: 0, gamesPlayed: 0 };
+  profile.stats.gamesPlayed = (profile.stats.gamesPlayed || 0) + 1;
+  console.log(`[金币] +${amount} (${reason})，当前 ${profile.coins}`);
+  if (currentUser && firebaseDb && fbModules) {
+    try {
+      await fbModules.setDoc(fbModules.doc(firebaseDb, 'players', currentUser.uid), profile);
+    } catch(e) { console.error('保存金币失败', e); }
+  } else {
+    try { localStorage.setItem('arena_local_profile', JSON.stringify(profile)); } catch(e) {}
+  }
+  updateCoinUI();
+  showChatBubble('系统', `💰 +${amount} 金币 (${reason})`, false);
+}
+
 function renderSkinShop() {
   const grid = $('skinGrid');
   if (!grid) return;
@@ -3125,13 +3235,11 @@ async function handleSkinClick(id) {
     profile.unlockedSkins.push(id);
   }
   profile.equippedSkin = id;
-  // 保存到 Firebase
   if (currentUser && firebaseDb && fbModules) {
     try {
       await fbModules.setDoc(fbModules.doc(firebaseDb, 'players', currentUser.uid), profile);
     } catch (e) { console.error('保存失败', e); }
   } else {
-    // 未登录也保存到 localStorage
     try { localStorage.setItem('arena_local_profile', JSON.stringify(profile)); } catch(e) {}
   }
   updateCoinUI();
@@ -3149,7 +3257,6 @@ function applySkin(id) {
    ============================================================ */
 function bindUI() {
   console.log('[bindUI] 开始绑定事件');
-  // Tab
   document.querySelectorAll('.tab').forEach(tab => {
     tab.addEventListener('click', () => {
       document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
@@ -3160,7 +3267,6 @@ function bindUI() {
     });
   });
 
-  // 模式
   document.querySelectorAll('.mode-card').forEach(card => {
     card.addEventListener('click', () => {
       document.querySelectorAll('.mode-card').forEach(c => c.classList.remove('selected'));
@@ -3170,14 +3276,12 @@ function bindUI() {
     });
   });
 
-  // 瞄准
   on($('aimToggle'), 'click', () => {
     G.autoAim = !G.autoAim;
     updateAimUI();
     if (G.gameRunning && !G.isSoloMode) safeSend({ type: 'autoAimUpdate', autoAim: G.autoAim });
   });
 
-  // 音效开关
   on($('soundToggleSwitch'), 'click', () => {
     soundEnabled = !soundEnabled;
     cls($('soundToggleSwitch'), 'on', soundEnabled);
@@ -3190,7 +3294,6 @@ function bindUI() {
     else stopMusic();
   });
 
-  // 单人
   on($('soloBtn'), 'click', () => {
     console.log('[单人] 点击');
     initAudio();
@@ -3199,7 +3302,6 @@ function bindUI() {
     startSoloGame(nick);
   });
 
-  // 创建房间
   on($('createRoomBtn'), 'click', async () => {
     console.log('[创建房间] 开始');
     initAudio();
@@ -3257,7 +3359,6 @@ function bindUI() {
     $('createRoomBtn').disabled = false;
   });
 
-  // 加入房间
   on($('joinRoomBtn'), 'click', async () => {
     console.log('[加入房间] 开始');
     initAudio();
@@ -3311,7 +3412,6 @@ function bindUI() {
     $('joinRoomBtn').disabled = false;
   });
 
-  // 复制
   on($('copyCodeBtn'), 'click', () => {
     if (navigator.clipboard) {
       navigator.clipboard.writeText(G.roomCode).then(() => {
@@ -3324,7 +3424,6 @@ function bindUI() {
   on($('cancelWaitBtn'), 'click', cleanupAndReturnToLobby);
   on($('leaveBtn'), 'click', cleanupAndReturnToLobby);
 
-  // 全屏
   on($('fullscreenBtn'), 'click', () => {
     const docEl = document.documentElement;
     if (!document.fullscreenElement) {
@@ -3336,12 +3435,10 @@ function bindUI() {
     }
   });
 
-  // 聊天
   document.querySelectorAll('.chat-option').forEach(opt => {
     opt.addEventListener('click', () => sendChatMessage(opt.dataset.msg));
   });
 
-  // 观战
   on($('spectateBtn'), 'click', () => {
     G.spectating = !G.spectating;
     if (G.spectating) {
@@ -3354,7 +3451,6 @@ function bindUI() {
     }
   });
 
-  // 清除排行榜
   on($('clearLeaderboard'), 'click', () => {
     if (confirm('确定清空所有历史战绩吗？')) {
       localStorage.removeItem(LB_KEY);
@@ -3362,7 +3458,6 @@ function bindUI() {
     }
   });
 
-  // 房间设置
   on($('setFF'), 'click', () => {
     if (!G.isHost) return;
     G.settings.friendlyFire = !G.settings.friendlyFire;
@@ -3388,7 +3483,6 @@ function bindUI() {
     if (!G.isSoloMode) safeSend({ type: 'roomSettings', settings: G.settings });
   });
 
-  // 鼠标
   on(canvas, 'mousedown', (e) => {
     if (!G.gameRunning || G.autoAim) return;
     if (e.button !== 0) return;
@@ -3445,7 +3539,6 @@ if (!CanvasRenderingContext2D.prototype.roundRect) {
     updateAimUI();
     txt($('statusText'), '✅ 准备就绪');
     cls($('statusDot'), 'ok', true);
-    // 异步加载 Firebase（不阻塞）
     initFirebase();
     console.log('[游戏] 全部加载完成');
   } catch (e) {
