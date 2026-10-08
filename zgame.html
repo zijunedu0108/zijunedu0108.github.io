@@ -9,25 +9,14 @@
 <style>
   * { box-sizing: border-box; user-select: none; }
 
-  /* ============ 精致滚动条 ============ */
   ::-webkit-scrollbar { width: 8px; height: 8px; }
   ::-webkit-scrollbar-track { background: transparent; margin: 6px 0; }
   ::-webkit-scrollbar-thumb {
     background: rgba(90, 130, 220, 0.35);
-    border-radius: 10px;
-    border: 2px solid transparent;
-    background-clip: padding-box;
-    transition: background 0.2s;
+    border-radius: 10px; border: 2px solid transparent; background-clip: padding-box;
   }
   ::-webkit-scrollbar-thumb:hover {
-    background: rgba(120, 160, 255, 0.7);
-    background-clip: padding-box;
-    border: 2px solid transparent;
-  }
-  ::-webkit-scrollbar-thumb:active {
-    background: rgba(140, 180, 255, 0.9);
-    background-clip: padding-box;
-    border: 2px solid transparent;
+    background: rgba(120, 160, 255, 0.7); background-clip: padding-box; border: 2px solid transparent;
   }
   ::-webkit-scrollbar-corner { background: transparent; }
   * { scrollbar-width: thin; scrollbar-color: rgba(90, 130, 220, 0.35) transparent; }
@@ -37,11 +26,10 @@
     background: radial-gradient(circle at 20% 20%, #1a1f35, #080b14);
     font-family: 'Segoe UI', Roboto, system-ui, sans-serif;
     display: flex; justify-content: center; align-items: center;
-    padding: 16px; color: #cdd9f0;
+    padding: 8px; color: #cdd9f0;
     overflow: hidden;
   }
 
-  /* ============ 大厅：左右两栏 ============ */
   .lobby-shell {
     background: rgba(18, 24, 40, 0.85);
     backdrop-filter: blur(12px);
@@ -56,13 +44,12 @@
     position: relative;
   }
 
-  /* 左栏 */
   .lobby-left {
     flex: 1.1;
     padding: 40px 36px;
     display: flex;
     flex-direction: column;
-    gap: 22px;
+    gap: 20px;
     background: linear-gradient(160deg, rgba(30, 40, 70, 0.5), rgba(12, 18, 32, 0.2));
     border-right: 1px solid rgba(90, 130, 220, 0.15);
     position: relative;
@@ -75,10 +62,7 @@
     pointer-events: none;
   }
 
-  .brand {
-    display: flex; align-items: center; gap: 14px;
-    position: relative; z-index: 1;
-  }
+  .brand { display: flex; align-items: center; gap: 14px; position: relative; z-index: 1; }
   .brand-logo {
     width: 52px; height: 52px; border-radius: 14px;
     background: linear-gradient(135deg, #3d6bff, #5a4dff);
@@ -88,24 +72,15 @@
   }
   .brand-text h1 {
     margin: 0; font-size: 1.5rem; font-weight: 700;
-    color: #e8eeff; letter-spacing: 0.5px;
+    letter-spacing: 0.5px;
     background: linear-gradient(90deg, #a8c4ff, #7da2ff);
     -webkit-background-clip: text; -webkit-text-fill-color: transparent;
     background-clip: text;
   }
-  .brand-text .tagline {
-    font-size: 0.78rem; color: #6b7fa0; margin-top: 2px;
-    letter-spacing: 0.3px;
-  }
+  .brand-text .tagline { font-size: 0.78rem; color: #6b7fa0; margin-top: 2px; }
 
-  .field {
-    display: flex; flex-direction: column; gap: 8px;
-    position: relative; z-index: 1;
-  }
-  .field label {
-    font-size: 0.82rem; color: #8fa4cc; font-weight: 500;
-    letter-spacing: 0.3px;
-  }
+  .field { display: flex; flex-direction: column; gap: 8px; position: relative; z-index: 1; }
+  .field label { font-size: 0.82rem; color: #8fa4cc; font-weight: 500; }
   input {
     background: #0d1220; border: 1px solid #2a3650;
     border-radius: 14px; padding: 14px 18px; color: #e0eaff;
@@ -113,7 +88,7 @@
     outline: none; transition: 0.2s; width: 100%;
   }
   input:focus { border-color: #4d7dff; box-shadow: 0 0 0 3px rgba(77,125,255,0.15); }
-  input::placeholder { color: #4a5a78; letter-spacing: 0.5px; }
+  input::placeholder { color: #4a5a78; }
 
   button {
     border: none; cursor: pointer; font-family: inherit; font-weight: 600;
@@ -134,6 +109,13 @@
   }
   .btn-secondary:hover { background: #222d47; transform: translateY(-2px); box-shadow: 0 6px 0 #0d1220; }
   .btn-secondary:active { transform: translateY(2px); box-shadow: 0 2px 0 #0d1220; }
+  .btn-solo {
+    background: linear-gradient(135deg, #4da65a, #3a8a4a);
+    color: white; box-shadow: 0 6px 0 #1e4a2a, 0 8px 20px rgba(77,166,90,0.35);
+    width: 100%;
+  }
+  .btn-solo:hover { transform: translateY(-2px); box-shadow: 0 8px 0 #1e4a2a, 0 12px 24px rgba(77,166,90,0.45); }
+  .btn-solo:active { transform: translateY(4px); box-shadow: 0 2px 0 #1e4a2a; }
 
   .divider {
     display: flex; align-items: center; gap: 12px;
@@ -158,7 +140,6 @@
 
   .error-msg { color: #ff6b8a; font-size: 0.82rem; min-height: 1.2em; }
 
-  /* 右栏 Tab 面板 */
   .lobby-right {
     flex: 1;
     padding: 40px 32px 32px;
@@ -166,26 +147,15 @@
     flex-direction: column;
     gap: 20px;
   }
-
   .tabs {
-    display: flex;
-    gap: 4px;
-    background: #0a0f1c;
-    border-radius: 14px;
-    padding: 4px;
-    border: 1px solid #1e2a44;
+    display: flex; gap: 4px;
+    background: #0a0f1c; border-radius: 14px;
+    padding: 4px; border: 1px solid #1e2a44;
   }
   .tab {
-    flex: 1;
-    text-align: center;
-    padding: 10px 8px;
-    font-size: 0.85rem;
-    color: #6b7fa0;
-    font-weight: 600;
-    border-radius: 10px;
-    cursor: pointer;
-    transition: 0.2s;
-    letter-spacing: 0.3px;
+    flex: 1; text-align: center; padding: 10px 8px;
+    font-size: 0.85rem; color: #6b7fa0; font-weight: 600;
+    border-radius: 10px; cursor: pointer; transition: 0.2s;
   }
   .tab:hover { color: #a8c4ff; background: rgba(77,125,255,0.06); }
   .tab.active {
@@ -193,21 +163,11 @@
     background: linear-gradient(135deg, #2a3e6e, #1d2b52);
     box-shadow: 0 2px 8px rgba(61,107,255,0.3);
   }
-
-  .tab-content {
-    flex: 1;
-    overflow-y: auto;
-    padding-right: 4px;
-  }
+  .tab-content { flex: 1; overflow-y: auto; padding-right: 4px; }
   .tab-pane { display: none; }
   .tab-pane.active { display: block; }
 
-  /* 模式卡片 */
-  .mode-grid {
-    display: grid;
-    grid-template-columns: 1fr 1fr;
-    gap: 10px;
-  }
+  .mode-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
   .mode-card {
     background: #0d1220; border: 2px solid #2a3650;
     border-radius: 16px; padding: 18px 12px; cursor: pointer;
@@ -225,7 +185,6 @@
   .mode-card .name { font-weight: 700; color: #cdd9f0; font-size: 0.92rem; }
   .mode-card .desc { font-size: 0.72rem; color: #6b7fa0; }
 
-  /* 瞄准切换 */
   .aim-toggle {
     display: flex; align-items: center; gap: 12px;
     background: #0d1220; border: 1px solid #2a3650;
@@ -254,14 +213,9 @@
   .aim-desc { font-size: 0.72rem; color: #6b7fa0; }
 
   .section-title {
-    font-size: 0.78rem;
-    color: #7da2ff;
-    font-weight: 600;
-    letter-spacing: 0.5px;
-    margin-bottom: 10px;
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
+    font-size: 0.78rem; color: #7da2ff; font-weight: 600;
+    letter-spacing: 0.5px; margin-bottom: 10px;
+    display: flex; justify-content: space-between; align-items: center;
   }
 
   .leaderboard { display: flex; flex-direction: column; gap: 4px; }
@@ -273,87 +227,51 @@
   .clear-btn:hover { color: #ff6b8a; background: #1a0f15; }
   .lb-row {
     display: flex; justify-content: space-between; align-items: center;
-    padding: 8px 12px; font-size: 0.82rem; color: #8fa4cc;
+    padding: 8px 12px; font-size: 0.82rem;
     background: #0a0f1c;
     border-radius: 10px;
     border: 1px solid #141a2a;
-    transition: 0.2s;
   }
-  .lb-row:hover { border-color: #2a3650; }
-  .lb-rank {
-    color: #5d7099; font-family: 'Consolas', monospace;
-    width: 28px; font-weight: 700;
-  }
-  .lb-rank.top1 { color: #ffd24d; }
-  .lb-rank.top2 { color: #c8d8ec; }
-  .lb-rank.top3 { color: #d4944d; }
+  .lb-rank { color: #5d7099; font-family: 'Consolas', monospace; width: 30px; font-weight: 700; }
   .lb-name { flex: 1; margin-left: 8px; color: #cdd9f0; font-weight: 500; }
   .lb-score {
-    font-family: 'Consolas', monospace; font-weight: 700;
-    color: #ffd24d;
-    background: rgba(255,210,77,0.08);
-    padding: 2px 10px;
-    border-radius: 10px;
+    font-family: 'Consolas', monospace; font-weight: 700; color: #ffd24d;
+    background: rgba(255,210,77,0.08); padding: 2px 10px; border-radius: 10px;
   }
-  .lb-empty {
-    color: #3d4d6e; font-size: 0.8rem; text-align: center;
-    padding: 30px 0;
-  }
+  .lb-empty { color: #3d4d6e; font-size: 0.8rem; text-align: center; padding: 30px 0; }
 
-  /* 设置卡片 */
   .setting-item {
     display: flex; align-items: center; justify-content: space-between;
-    padding: 14px 16px;
-    background: #0a0f1c;
-    border: 1px solid #1e2a44;
-    border-radius: 12px;
-    margin-bottom: 8px;
-    transition: 0.2s;
+    padding: 14px 16px; background: #0a0f1c;
+    border: 1px solid #1e2a44; border-radius: 12px; margin-bottom: 8px;
   }
-  .setting-item:hover { border-color: #2a3650; }
   .setting-info { display: flex; flex-direction: column; gap: 2px; }
   .setting-title { font-size: 0.88rem; color: #cdd9f0; font-weight: 600; }
   .setting-desc { font-size: 0.72rem; color: #6b7fa0; }
   .toggle-switch {
-    width: 46px; height: 26px;
-    background: #1a2238;
-    border-radius: 14px;
-    position: relative;
-    cursor: pointer;
-    transition: 0.2s;
-    border: 1px solid #2e3d5e;
-    flex-shrink: 0;
+    width: 46px; height: 26px; background: #1a2238;
+    border-radius: 14px; position: relative; cursor: pointer;
+    transition: 0.2s; border: 1px solid #2e3d5e; flex-shrink: 0;
   }
   .toggle-switch::after {
-    content: '';
-    position: absolute;
-    top: 2px; left: 2px;
-    width: 18px; height: 18px;
-    background: #6b7fa0;
-    border-radius: 50%;
-    transition: 0.2s;
+    content: ''; position: absolute; top: 2px; left: 2px;
+    width: 18px; height: 18px; background: #6b7fa0;
+    border-radius: 50%; transition: 0.2s;
   }
   .toggle-switch.on {
     background: linear-gradient(135deg, #3d6bff, #5a4dff);
     border-color: #5a8aff;
   }
-  .toggle-switch.on::after {
-    left: 24px;
-    background: #fff;
-    box-shadow: 0 0 8px rgba(120,160,255,0.6);
-  }
+  .toggle-switch.on::after { left: 24px; background: #fff; box-shadow: 0 0 8px rgba(120,160,255,0.6); }
 
-  /* ============ 等待界面 ============ */
   #waiting {
     background: rgba(18, 24, 40, 0.85);
     backdrop-filter: blur(12px);
-    border-radius: 32px;
-    padding: 40px 48px;
+    border-radius: 32px; padding: 40px 48px;
     box-shadow: 0 30px 60px -10px rgba(0,0,0,0.8),
                 inset 0 1px 2px rgba(120,160,255,0.15);
     border: 1px solid rgba(90, 130, 220, 0.2);
-    text-align: center;
-    min-width: 480px;
+    text-align: center; min-width: 480px;
   }
   .room-code-display {
     background: #0a0f1c; border: 1px dashed #3d6bff; border-radius: 16px;
@@ -365,16 +283,15 @@
   }
   .room-code-display .hint { font-size: 0.78rem; color: #5d7099; margin-top: 8px; }
 
-  /* ============ 游戏界面 ============ */
   #game { display: none; flex-direction: column; align-items: center; }
   .game-header {
     display: flex; justify-content: space-between; align-items: center;
-    width: 900px; margin-bottom: 12px; gap: 10px;
+    width: 1200px; margin-bottom: 10px; gap: 10px;
   }
   .badge {
     display: flex; align-items: center; gap: 10px;
-    background: #0d1424; padding: 10px 18px; border-radius: 30px;
-    border: 1px solid #253253; font-size: 0.88rem; white-space: nowrap;
+    background: #0d1424; padding: 8px 16px; border-radius: 30px;
+    border: 1px solid #253253; font-size: 0.85rem; white-space: nowrap;
   }
   .badge .role-red { color: #ff6b8a; font-weight: 700; }
   .badge .role-blue { color: #6bb8ff; font-weight: 700; }
@@ -383,8 +300,7 @@
     display: flex; align-items: center; gap: 8px;
     background: linear-gradient(135deg, #0f1524, #161d2f);
     padding: 8px 20px; border-radius: 30px;
-    border: 1px solid #253253;
-    font-size: 0.9rem;
+    border: 1px solid #253253; font-size: 0.88rem;
     box-shadow: inset 0 1px 3px rgba(0,0,0,0.4);
   }
   .score-item { display: flex; align-items: center; gap: 8px; padding: 4px 10px; border-radius: 20px; transition: all 0.3s; }
@@ -392,16 +308,22 @@
   .score-swatch { width: 12px; height: 12px; border-radius: 4px; }
   .score-red { background: #ff4d6d; box-shadow: 0 0 8px #ff4d6d; }
   .score-blue { background: #4da6ff; box-shadow: 0 0 8px #4da6ff; }
-  .score-num { font-family: 'Consolas', monospace; font-weight: 700; font-size: 1.15rem; color: #e0eaff; min-width: 22px; text-align: center; }
+  .score-num { font-family: 'Consolas', monospace; font-weight: 700; font-size: 1.1rem; color: #e0eaff; min-width: 22px; text-align: center; }
   .score-label { font-size: 0.75rem; color: #6b7fa0; }
 
-  canvas { border-radius: 32px; background: #0a0e1a; box-shadow: 0 0 0 2px #1a2338, 0 30px 50px -20px black; display: block; transition: filter 0.3s; }
+  canvas {
+    border-radius: 28px;
+    background: #0a0e1a;
+    box-shadow: 0 0 0 2px #1a2338, 0 30px 50px -20px black;
+    display: block;
+    transition: filter 0.3s;
+  }
   canvas.slowmo { filter: saturate(1.4) brightness(1.1); }
   canvas.aim-mode { cursor: crosshair; }
 
   .game-footer {
     display: flex; justify-content: space-between; align-items: center;
-    width: 900px; margin-top: 12px; font-size: 0.85rem; color: #6b7fa0; gap: 12px;
+    width: 1200px; margin-top: 10px; font-size: 0.85rem; color: #6b7fa0; gap: 12px;
   }
   kbd {
     background: #1a2238; border-radius: 7px; padding: 3px 10px; color: #b8ceff;
@@ -425,32 +347,21 @@
 
   .hidden { display: none !important; }
 
-  .sound-toggle, .music-toggle {
-    display: flex; align-items: center; gap: 8px;
-    background: #0a0f1c; padding: 8px 12px; border-radius: 30px;
-    border: 1px solid #1e2a44; font-size: 0.82rem; color: #8fa4cc;
-    cursor: pointer; transition: 0.2s;
-  }
-  .sound-toggle { padding: 8px 16px; }
-  .sound-toggle:hover, .music-toggle:hover { background: #131a2c; border-color: #2e3d5e; }
-  .sound-toggle.off, .music-toggle.off { opacity: 0.45; }
-
   .skill-bar {
-    display: flex; gap: 10px;
-    background: #0a0f1c; padding: 8px 12px; border-radius: 16px;
+    display: flex; gap: 8px;
+    background: #0a0f1c; padding: 6px 10px; border-radius: 16px;
     border: 1px solid #1e2a44;
   }
   .skill-slot {
-    width: 54px; height: 54px;
+    width: 48px; height: 48px;
     background: #131a2c; border-radius: 12px;
     border: 2px solid #2a3650;
     display: flex; flex-direction: column;
     align-items: center; justify-content: center;
     font-size: 0.6rem; color: #6b7fa0;
     position: relative; overflow: hidden;
-    transition: all 0.15s;
   }
-  .skill-slot .sk-icon { font-size: 1.3rem; }
+  .skill-slot .sk-icon { font-size: 1.2rem; }
   .skill-slot .sk-key {
     position: absolute; top: 2px; right: 4px;
     font-size: 0.6rem; color: #7da2ff; font-family: 'Consolas', monospace;
@@ -459,8 +370,7 @@
   .skill-slot.cooling { opacity: 0.5; }
   .skill-slot .cd-overlay {
     position: absolute; bottom: 0; left: 0; right: 0;
-    background: rgba(0,0,0,0.6);
-    height: 0%;
+    background: rgba(0,0,0,0.6); height: 0%;
   }
   .skill-slot .cd-text {
     position: absolute; bottom: 2px;
@@ -506,8 +416,7 @@
     background: rgba(10, 15, 28, 0.98); border: 1px solid #2e3d5e;
     border-radius: 16px; padding: 12px; z-index: 300;
     display: none; gap: 8px; flex-direction: column;
-    box-shadow: 0 10px 40px rgba(0,0,0,0.7);
-    min-width: 260px;
+    box-shadow: 0 10px 40px rgba(0,0,0,0.7); min-width: 260px;
   }
   .chat-panel.visible { display: flex; }
   .chat-panel .chat-title {
@@ -524,8 +433,7 @@
   .chat-option:hover { background: #222d47; border-color: #4d7dff; }
   .chat-option .chat-key {
     font-family: 'Consolas', monospace; font-size: 0.7rem;
-    color: #7da2ff; padding: 1px 6px; background: #0a0f1c;
-    border-radius: 6px;
+    color: #7da2ff; padding: 1px 6px; background: #0a0f1c; border-radius: 6px;
   }
   .chat-messages {
     position: fixed; top: 90px; left: 50%; transform: translateX(-50%);
@@ -535,8 +443,7 @@
   .chat-bubble {
     background: rgba(10, 15, 28, 0.9); border: 1px solid #2e3d5e;
     border-radius: 20px; padding: 6px 16px; font-size: 0.88rem;
-    color: #cdd9f0; animation: chatPop 0.3s ease-out;
-    max-width: 400px;
+    color: #cdd9f0; animation: chatPop 0.3s ease-out; max-width: 400px;
   }
   .chat-bubble.mine { border-color: #4d7dff; color: #a8c4ff; }
   .chat-bubble .sender { color: #7da2ff; font-weight: 600; margin-right: 6px; }
@@ -557,18 +464,15 @@
     text-shadow: 0 0 30px #ff4d6d, 0 0 60px #ff4d6d;
     z-index: 160; pointer-events: none; opacity: 0;
     transition: opacity 0.2s;
-    font-family: 'Segoe UI', sans-serif;
-    letter-spacing: 4px;
+    font-family: 'Segoe UI', sans-serif; letter-spacing: 4px;
   }
   .slowmo-text.active { opacity: 1; }
 </style>
 </head>
 <body>
-<!-- 慢动作特效 -->
 <div class="slowmo-overlay" id="slowmoOverlay"></div>
 <div class="slowmo-text" id="slowmoText">KILL!</div>
 
-<!-- 快捷聊天 -->
 <div class="chat-panel" id="chatPanel">
   <div class="chat-title">💬 快捷聊天 (按 Esc 关闭)</div>
   <div class="chat-option" data-msg="GG">GG <span class="chat-key">1</span></div>
@@ -579,9 +483,8 @@
 </div>
 <div class="chat-messages" id="chatMessages"></div>
 
-<!-- ============ 大厅（左右两栏） ============ -->
+<!-- ============ 大厅 ============ -->
 <div id="lobby" class="lobby-shell">
-  <!-- 左栏：品牌 + 昵称 + 主按钮 -->
   <div class="lobby-left">
     <div class="brand">
       <div class="brand-logo">⚔️</div>
@@ -597,11 +500,16 @@
     </div>
 
     <div class="field">
+      <label>单人模式（离线）</label>
+      <button class="btn-solo" id="soloBtn">🎯 单人打僵尸</button>
+    </div>
+
+    <div class="divider">多人房间</div>
+
+    <div class="field">
       <label>创建新房间</label>
       <button class="btn-primary" id="createRoomBtn">🏠 创建房间</button>
     </div>
-
-    <div class="divider">或加入现有房间</div>
 
     <div class="field">
       <label>房间号</label>
@@ -619,7 +527,6 @@
     </div>
   </div>
 
-  <!-- 右栏：Tab 面板 -->
   <div class="lobby-right">
     <div class="tabs" id="lobbyTabs">
       <div class="tab active" data-tab="mode">🎮 模式</div>
@@ -628,7 +535,6 @@
     </div>
 
     <div class="tab-content">
-      <!-- 模式 Tab -->
       <div class="tab-pane active" data-pane="mode">
         <div class="section-title">选择游戏模式</div>
         <div class="mode-grid" id="modePicker">
@@ -654,7 +560,6 @@
         </div>
       </div>
 
-      <!-- 排行榜 Tab -->
       <div class="tab-pane" data-pane="rank">
         <div class="section-title">
           🏆 历史战绩 Top 10
@@ -665,7 +570,6 @@
         </div>
       </div>
 
-      <!-- 设置 Tab -->
       <div class="tab-pane" data-pane="settings">
         <div class="section-title">音效</div>
         <div class="setting-item">
@@ -687,7 +591,6 @@
   </div>
 </div>
 
-<!-- ============ 等待对手 ============ -->
 <div id="waiting" class="hidden">
   <h1 style="margin:0 0 8px; font-size:1.6rem; color:#a8c4ff;">等待对手加入…</h1>
   <div style="font-size:0.85rem; color:#6b7fa0;">把房间号发给好友，他输入即可加入</div>
@@ -701,7 +604,7 @@
   </div>
 </div>
 
-<!-- ============ 游戏界面 ============ -->
+<!-- ============ 游戏界面（更大画布） ============ -->
 <div id="game">
   <div class="game-header">
     <div class="badge">
@@ -735,19 +638,19 @@
 
     <div class="scoreboard hidden" id="zombieScoreboard">
       <div class="score-item">
-        <span style="font-size:1.1rem;">🧟</span>
+        <span style="font-size:1rem;">🧟</span>
         <span class="score-label">击杀</span>
         <span class="score-num" id="zombieKills">0</span>
       </div>
       <span style="color:#3d4d6e; font-weight:700;">|</span>
       <div class="score-item">
-        <span style="font-size:1.1rem;">🌊</span>
+        <span style="font-size:1rem;">🌊</span>
         <span class="score-label">波次</span>
         <span class="score-num" id="zombieWave">1</span>
       </div>
       <span style="color:#3d4d6e; font-weight:700;">|</span>
       <div class="score-item">
-        <span style="font-size:1.1rem;">🔥</span>
+        <span style="font-size:1rem;">🔥</span>
         <span class="score-label">连击</span>
         <span class="score-num" id="comboDisplay">0</span>
       </div>
@@ -758,43 +661,35 @@
     </div>
   </div>
 
-  <canvas id="gameCanvas" width="900" height="550"></canvas>
+  <canvas id="gameCanvas" width="1200" height="700"></canvas>
 
-  <div style="display:flex; gap:16px; align-items:center; margin-top:12px; width:900px; justify-content:space-between;">
-    <div style="display:flex; gap:16px; align-items:center;">
+  <div style="display:flex; gap:16px; align-items:center; margin-top:10px; width:1200px; justify-content:space-between;">
+    <div style="display:flex; gap:14px; align-items:center;">
       <div class="skill-bar">
         <div class="skill-slot" id="skillDash" title="冲刺">
-          <span class="sk-key">Q</span>
-          <span class="sk-icon">💨</span>
-          <div class="cd-overlay"></div>
-          <div class="cd-text"></div>
+          <span class="sk-key">Q</span><span class="sk-icon">💨</span>
+          <div class="cd-overlay"></div><div class="cd-text"></div>
         </div>
         <div class="skill-slot" id="skillShield" title="护盾">
-          <span class="sk-key">E</span>
-          <span class="sk-icon">🛡️</span>
-          <div class="cd-overlay"></div>
-          <div class="cd-text"></div>
+          <span class="sk-key">E</span><span class="sk-icon">🛡️</span>
+          <div class="cd-overlay"></div><div class="cd-text"></div>
         </div>
         <div class="skill-slot" id="skillUltimate" title="大招">
-          <span class="sk-key">R</span>
-          <span class="sk-icon">💥</span>
-          <div class="cd-overlay"></div>
-          <div class="cd-text"></div>
+          <span class="sk-key">R</span><span class="sk-icon">💥</span>
+          <div class="cd-overlay"></div><div class="cd-text"></div>
         </div>
       </div>
-
       <div class="weapon-badge">
         <span class="w-icon" id="weaponIcon">🔫</span>
         <span id="weaponName">手枪</span>
         <span class="w-ammo" id="weaponAmmo">∞</span>
       </div>
-
       <div class="buff-timer" id="buffTimer"></div>
     </div>
 
     <div style="display:flex; gap:8px;">
       <button class="footer-btn" id="fullscreenBtn">⛶ 全屏</button>
-      <button class="leave-btn" id="leaveBtn">离开房间</button>
+      <button class="leave-btn" id="leaveBtn">离开</button>
     </div>
   </div>
 
@@ -813,22 +708,15 @@
 
 <script src="https://unpkg.com/peerjs@1.5.2/dist/peerjs.min.js"></script>
 <script>
-/* ============================================================
-   房间对战 v9
-   - 全新大厅 UI（左右两栏 + Tab）
-   - 防御性编程：所有 DOM 访问安全
-   - 修复 const 重复声明导致的语法错误
-   ============================================================ */
-
 'use strict';
 
-/* ========== 安全 DOM 工具 ========== */
+/* ========== 安全 DOM ========== */
 function $(id) { return document.getElementById(id); }
-function on(el, event, fn) { if (el && el.addEventListener) el.addEventListener(event, fn); }
+function on(el, ev, fn) { if (el && el.addEventListener) el.addEventListener(ev, fn); }
 function txt(el, s) { if (el) el.textContent = s; }
 function cls(el, name, add) { if (el) el.classList[add ? 'add' : 'remove'](name); }
 
-/* ========== DOM 引用（全部用 $ 保护） ========== */
+/* ========== DOM 引用 ========== */
 const lobbyEl = $('lobby');
 const waitingEl = $('waiting');
 const gameEl = $('game');
@@ -874,6 +762,7 @@ const aimModeTextEl = $('aimModeText');
 const shootHintEl = $('shootHint');
 const createRoomBtn = $('createRoomBtn');
 const joinRoomBtn = $('joinRoomBtn');
+const soloBtn = $('soloBtn');
 const fullscreenBtn = $('fullscreenBtn');
 const leaveBtn = $('leaveBtn');
 const copyCodeBtn = $('copyCodeBtn');
@@ -887,39 +776,42 @@ let isHost = false;
 let roomCode = '';
 let myRole = 'red';
 let gameRunning = false;
+let isSoloMode = false;      // 单人模式标记
 let myNickname = '玩家';
 let opponentNickname = '对手';
 let gameMode = 'pvp';
 let frameCount = 0;
 
-// 自动瞄准
 let autoAim = true;
-
-// 命中同步
 const processedHits = new Set();
 let hpSeq = 0;
 let remoteHpSeq = 0;
 
-// 连击
 let comboCount = 0;
 let comboTimer = 0;
 const COMBO_WINDOW = 120;
 const COMBO_MILESTONES = [3, 5, 10, 15, 20, 30];
 let screenShake = 0;
 
-// 死亡回放
 let slowmoTimer = 0;
 const SLOWMO_DURATION = 30;
 
-// 鼠标
-let mouseX = 450, mouseY = 275;
+let mouseX = 600, mouseY = 350;
 let mouseDown = false;
-
-// 音效/音乐开关
 let soundEnabled = true;
 let musicEnabled = true;
 
-// 主题
+/* ========== 大画布尺寸 ========== */
+const W = 1200, H = 700;
+
+/* ========== PvE 大地图（2倍画布尺寸） ========== */
+const WORLD_W = W * 2;     // 2400
+const WORLD_H = H * 2;     // 1400
+
+/* 相机 */
+let camera = { x: 0, y: 0 };
+
+/* ========== 主题 ========== */
 const THEMES = {
   space: {
     name: '深空', icon: '🌌',
@@ -948,14 +840,13 @@ const THEMES = {
 };
 let currentTheme = 'space';
 
-// 玩家
 function createPlayer(role) {
   const isRed = role === 'red';
   return {
     role,
     name: isRed ? myNickname : opponentNickname,
-    x: isRed ? 120 : 780,
-    y: 275,
+    x: isRed ? 200 : WORLD_W - 200,
+    y: WORLD_H / 2,
     hp: 100, maxHp: 100, hpSeq: 0,
     cooldown: 0,
     facing: isRed ? 0 : Math.PI,
@@ -973,31 +864,40 @@ function createPlayer(role) {
 let redPlayer = null;
 let bluePlayer = null;
 let scoreRed = 0, scoreBlue = 0;
+
+// 僵尸模式
 let zombies = [];
+let bosses = [];             // Boss 数组
 let zombieKills = 0, zombieWave = 1;
-let waveTimer = 0, spawnTimer = 0, zombieIdCounter = 0;
+let waveTimer = 0, spawnTimer = 0;
+let zombieIdCounter = 0;
+let bossIdCounter = 0;
+
 let obstacles = [];
 let bullets = [];
 let damageTexts = [];
 let pickups = [];
 let pickupIdCounter = 0;
 
-const W = 900, H = 550;
 const PLAYER_SIZE = 28;
 const BULLET_SIZE = 8;
 const PLAYER_SPEED = 4.8;
 const BULLET_SPEED = 9;
 const SHOOT_COOLDOWN = 12;
 const DAMAGE_AMOUNT = 14;
-const RED_START = { x: 120, y: H / 2 };
-const BLUE_START = { x: W - 120, y: H / 2 };
 
 const ZOMBIE_SIZE = 26;
 const ZOMBIE_SPEED_BASE = 1.0;
 const ZOMBIE_HP = 3;
 const ZOMBIE_DAMAGE = 8;
 const ZOMBIE_TOUCH_COOLDOWN = 60;
-const ZOMBIE_MAX_COUNT = 30;
+const ZOMBIE_MAX_COUNT = 40;
+
+// Boss 参数
+const BOSS_SIZE = 80;
+const BOSS_BASE_HP = 100;
+const BOSS_CONTACT_DAMAGE = 25;
+const BOSS_SHOOT_COOLDOWN = 90;   // 每 1.5 秒射一发
 
 const SKILL_COOLDOWN = { dash: 240, shield: 480, ultimate: 900 };
 const DASH_DURATION = 18, DASH_SPEED = 14, SHIELD_DURATION = 180;
@@ -1016,16 +916,16 @@ const BUFF_SPEED_MULT = 1.6, BUFF_DOUBLE_MULT = 2;
 const keysDown = new Set();
 const keyTimers = new Map();
 const GAME_KEYS = ['KeyW','KeyA','KeyS','KeyD','Space','ArrowUp','ArrowDown','ArrowLeft','ArrowRight','KeyQ','KeyE','KeyR','KeyT','Digit1','Digit2','Digit3','Digit4','Digit5'];
-function clearKey(code) {
-  keysDown.delete(code);
-  if (keyTimers.has(code)) { clearTimeout(keyTimers.get(code)); keyTimers.delete(code); }
+function clearKey(c) {
+  keysDown.delete(c);
+  if (keyTimers.has(c)) { clearTimeout(keyTimers.get(c)); keyTimers.delete(c); }
 }
 function clearAllKeys() {
   keysDown.clear();
   for (const t of keyTimers.values()) clearTimeout(t);
   keyTimers.clear();
 }
-function isKeyDown(code) { return keysDown.has(code); }
+function isKeyDown(c) { return keysDown.has(c); }
 function keyDown(logical) {
   switch (logical) {
     case 'w': return isKeyDown('KeyW') || isKeyDown('ArrowUp');
@@ -1037,11 +937,10 @@ function keyDown(logical) {
   }
 }
 const justPressed = new Set();
-function consumePress(code) {
-  if (justPressed.has(code)) { justPressed.delete(code); return true; }
+function consumePress(c) {
+  if (justPressed.has(c)) { justPressed.delete(c); return true; }
   return false;
 }
-
 let chatPanelOpen = false;
 
 window.addEventListener('keydown', (e) => {
@@ -1075,10 +974,14 @@ document.addEventListener('mouseleave', clearAllKeys);
 
 /* ========== 鼠标 ========== */
 function getCanvasMouse(e) {
+  if (!canvas) return { x: 0, y: 0 };
   const rect = canvas.getBoundingClientRect();
   const sx = canvas.width / rect.width;
   const sy = canvas.height / rect.height;
-  return { x: (e.clientX - rect.left) * sx, y: (e.clientY - rect.top) * sy };
+  return {
+    x: (e.clientX - rect.left) * sx + camera.x,
+    y: (e.clientY - rect.top) * sy + camera.y
+  };
 }
 on(canvas, 'mousemove', (e) => {
   if (!gameRunning || autoAim) return;
@@ -1153,6 +1056,17 @@ const SFX = {
   zombieDie() { playTone('sawtooth', 300, 60, 0.25, 0.1); playNoise(0.15, 0.08, 0.05); },
   zombieSpawn() { playTone('sawtooth', 120, 80, 0.3, 0.08); },
   zombieHit() { playTone('square', 400, 100, 0.08, 0.07); },
+  bossSpawn() {
+    playTone('sawtooth', 80, 40, 0.8, 0.2);
+    playTone('square', 200, 100, 0.6, 0.15, 0.2);
+    playNoise(0.5, 0.15);
+  },
+  bossShoot() { playTone('square', 300, 100, 0.15, 0.12); playNoise(0.1, 0.1); },
+  bossDie() {
+    playTone('sawtooth', 200, 30, 1.0, 0.25);
+    playNoise(0.8, 0.2);
+    playTone('triangle', 500, 100, 0.6, 0.15, 0.3);
+  },
   dash() { playTone('sine', 600, 1400, 0.2, 0.12); },
   shield() { playTone('triangle', 300, 900, 0.3, 0.12); },
   ultimate() { playTone('sawtooth', 100, 800, 0.4, 0.15); playNoise(0.3, 0.12); },
@@ -1231,7 +1145,7 @@ function addCombo() {
     SFX.combo(comboCount);
     const colors = ['#4dd4ff', '#4dff8b', '#ffd24d', '#ff6bd2', '#ff4d6d'];
     const c = colors[Math.min(Math.floor(comboCount / 5), colors.length - 1)];
-    spawnDamageText(W/2, H/2 - 100, 0, c, comboCount + ' 连击!', true);
+    spawnDamageText(redPlayer.x, redPlayer.y - 100, 0, c, comboCount + ' 连击!', true);
     screenShake = 12;
   } else SFX.combo(comboCount);
 }
@@ -1246,10 +1160,8 @@ function spawnDamageText(x, y, amount, color, text = null, big = false) {
     x: x + (Math.random() * 20 - 10),
     y: y - 10,
     text: text || ('-' + amount),
-    color,
-    life: big ? 100 : 60, maxLife: big ? 100 : 60,
-    vy: big ? -2.2 : -1.6,
-    vx: (Math.random() * 0.8 - 0.4),
+    color, life: big ? 100 : 60, maxLife: big ? 100 : 60,
+    vy: big ? -2.2 : -1.6, vx: (Math.random() * 0.8 - 0.4),
     size: big ? 32 : 18
   });
 }
@@ -1270,28 +1182,21 @@ function drawDamageTexts() {
     ctx.font = `bold ${Math.round(dt.size * scale)}px "Segoe UI", sans-serif`;
     ctx.textAlign = 'center';
     ctx.fillStyle = dt.color;
-    ctx.shadowColor = dt.color;
-    ctx.shadowBlur = 12;
+    ctx.shadowColor = dt.color; ctx.shadowBlur = 12;
     ctx.fillText(dt.text, dt.x, dt.y);
     ctx.restore();
   }
 }
 
 /* ========== 聊天 ========== */
-function openChatPanel() {
-  chatPanelOpen = true;
-  cls(chatPanelEl, 'visible', true);
-}
-function closeChatPanel() {
-  chatPanelOpen = false;
-  cls(chatPanelEl, 'visible', false);
-}
+function openChatPanel() { chatPanelOpen = true; cls(chatPanelEl, 'visible', true); }
+function closeChatPanel() { chatPanelOpen = false; cls(chatPanelEl, 'visible', false); }
 function sendChatMessage(msg) {
   if (!msg) return;
   closeChatPanel();
   showChatBubble(myNickname, msg, true);
   SFX.chat();
-  safeSend({ type: 'chat', msg });
+  if (!isSoloMode) safeSend({ type: 'chat', msg });
 }
 function showChatBubble(sender, msg, isMine) {
   if (!chatMessagesEl) return;
@@ -1308,7 +1213,7 @@ function showChatBubble(sender, msg, isMine) {
 }
 
 /* ========== 排行榜 ========== */
-const LB_KEY = 'arena_leaderboard_v2';
+const LB_KEY = 'arena_leaderboard_v3';
 function loadLeaderboard() {
   try { return JSON.parse(localStorage.getItem(LB_KEY) || '[]'); } catch(e) { return []; }
 }
@@ -1331,13 +1236,12 @@ function renderLeaderboard() {
     return;
   }
   leaderboardListEl.innerHTML = list.slice(0, 10).map((e, i) => {
-    const rankCls = i === 0 ? 'top1' : i === 1 ? 'top2' : i === 2 ? 'top3' : '';
     const medal = i === 0 ? '🥇' : i === 1 ? '🥈' : i === 2 ? '🥉' : `#${i+1}`;
     return `
       <div class="lb-row">
-        <span class="lb-rank ${rankCls}">${medal}</span>
+        <span class="lb-rank">${medal}</span>
         <span class="lb-name">${escapeHtml(e.name)}</span>
-        <span class="lb-score">${e.score}${e.mode === 'zombie' ? ' 🧟' : ' ⚔️'}</span>
+        <span class="lb-score">${e.score}${e.mode === 'zombie' ? ' 🧟' : e.mode === 'solo' ? ' 🎯' : ' ⚔️'}</span>
       </div>
     `;
   }).join('');
@@ -1346,32 +1250,23 @@ function escapeHtml(s) {
   return String(s).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'})[c]);
 }
 
-/* ========== 障碍物 ========== */
-function generateObstacles() {
+/* ========== 障碍物（世界大小） ========== */
+function generateObstacles(worldW, worldH, count = 12) {
   const newObs = [];
-  const count = 5 + Math.floor(Math.random() * 4);
   let att = 0;
-  while (newObs.length < count && att < count * 20) {
+  while (newObs.length < count && att < count * 30) {
     att++;
-    const w = 40 + Math.random() * 80;
-    const h = 40 + Math.random() * 80;
-    const x = 100 + Math.random() * (W - 200 - w);
-    const y = 60 + Math.random() * (H - 120 - h);
+    const w = 60 + Math.random() * 120;
+    const h = 60 + Math.random() * 120;
+    const x = 100 + Math.random() * (worldW - 200 - w);
+    const y = 100 + Math.random() * (worldH - 200 - h);
     const rect = { x, y, w, h };
     let ov = false;
     for (const o of newObs) {
-      if (rect.x < o.x + o.w + 30 && rect.x + rect.w + 30 > o.x &&
-          rect.y < o.y + o.h + 30 && rect.y + rect.h + 30 > o.y) { ov = true; break; }
+      if (rect.x < o.x + o.w + 40 && rect.x + rect.w + 40 > o.x &&
+          rect.y < o.y + o.h + 40 && rect.y + rect.h + 40 > o.y) { ov = true; break; }
     }
     if (ov) continue;
-    const safe = [{ x: RED_START.x - 80, y: RED_START.y - 80, w: 160, h: 160 },
-                  { x: BLUE_START.x - 80, y: BLUE_START.y - 80, w: 160, h: 160 }];
-    let cov = false;
-    for (const s of safe) {
-      if (rect.x < s.x + s.w && rect.x + rect.w > s.x &&
-          rect.y < s.y + s.h && rect.y + rect.h > s.y) { cov = true; break; }
-    }
-    if (cov) continue;
     newObs.push(rect);
   }
   return newObs;
@@ -1394,17 +1289,18 @@ function bulletHitsObstacle(b, obs) {
 
 /* ========== 网格 ========== */
 const gridCache = {};
-function getGridCanvas(key) {
-  if (gridCache[key]) return gridCache[key];
+function getGridCanvas(key, worldW, worldH) {
+  const ck = key + '_' + worldW + '_' + worldH;
+  if (gridCache[ck]) return gridCache[ck];
   const theme = THEMES[key] || THEMES.space;
   const c = document.createElement('canvas');
-  c.width = W; c.height = H;
+  c.width = worldW; c.height = worldH;
   const g = c.getContext('2d');
   g.strokeStyle = theme.grid;
   g.lineWidth = 1;
-  for (let i = 0; i < W; i += 50) { g.beginPath(); g.moveTo(i, 0); g.lineTo(i, H); g.stroke(); }
-  for (let i = 0; i < H; i += 50) { g.beginPath(); g.moveTo(0, i); g.lineTo(W, i); g.stroke(); }
-  gridCache[key] = c;
+  for (let i = 0; i < worldW; i += 100) { g.beginPath(); g.moveTo(i, 0); g.lineTo(i, worldH); g.stroke(); }
+  for (let i = 0; i < worldH; i += 100) { g.beginPath(); g.moveTo(0, i); g.lineTo(worldW, i); g.stroke(); }
+  gridCache[ck] = c;
   return c;
 }
 
@@ -1430,6 +1326,7 @@ function switchView(view) {
   else if (view === 'game' && gameEl) gameEl.style.display = 'flex';
 }
 function safeSend(data) {
+  if (isSoloMode) return false;   // 单人模式不发送
   if (conn && conn.open) {
     try { conn.send(data); return true; } catch(e) { return false; }
   }
@@ -1451,7 +1348,7 @@ function updateScoreboard() {
 }
 function updateScoreboardVisibility() {
   cls(pvpScoreboardEl, 'hidden', gameMode !== 'pvp');
-  cls(zombieScoreboardEl, 'hidden', gameMode !== 'zombie');
+  cls(zombieScoreboardEl, 'hidden', gameMode !== 'zombie' && !isSoloMode);
 }
 function updateThemeBadge() {
   const theme = THEMES[currentTheme] || THEMES.space;
@@ -1545,13 +1442,13 @@ document.querySelectorAll('.mode-card').forEach(card => {
 
 /* ========== 瞄准切换 ========== */
 on(aimToggleEl, 'click', () => {
-  if (gameRunning && !isHost) {
-    spawnDamageText(W/2, H/2, 0, '#ffaa4d', '只有房主能改', true);
+  if (gameRunning && !isHost && !isSoloMode) {
+    spawnDamageText(redPlayer.x, redPlayer.y, 0, '#ffaa4d', '只有房主能改', true);
     return;
   }
   autoAim = !autoAim;
   updateAimUI();
-  if (gameRunning) safeSend({ type: 'autoAimUpdate', autoAim });
+  if (gameRunning && !isSoloMode) safeSend({ type: 'autoAimUpdate', autoAim });
 });
 
 /* ========== 设置开关 ========== */
@@ -1563,10 +1460,21 @@ on(soundToggleSwitch, 'click', () => {
 on(musicToggleSwitch, 'click', () => {
   musicEnabled = !musicEnabled;
   cls(musicToggleSwitch, 'on', musicEnabled);
-  if (musicEnabled) {
-    initAudio();
-    if (gameRunning) startMusic();
-  } else stopMusic();
+  if (musicEnabled) { initAudio(); if (gameRunning) startMusic(); }
+  else stopMusic();
+});
+
+/* ========== 单人模式 ========== */
+on(soloBtn, 'click', () => {
+  initAudio();
+  clearError();
+  myNickname = ($('nickname') ? $('nickname').value.trim() : '') || '玩家';
+  isSoloMode = true;
+  isHost = true;
+  myRole = 'red';
+  gameMode = 'zombie';
+  roomCode = '单机';
+  startSoloGame();
 });
 
 /* ========== 创建房间 ========== */
@@ -1578,6 +1486,7 @@ on(createRoomBtn, 'click', async () => {
   setStatus('正在创建房间…');
   roomCode = generateRoomCode();
   isHost = true;
+  isSoloMode = false;
   myRole = 'red';
   const peerId = 'arena-' + roomCode;
   try {
@@ -1618,6 +1527,7 @@ on(joinRoomBtn, 'click', async () => {
   setStatus('正在加入房间…');
   roomCode = code;
   isHost = false;
+  isSoloMode = false;
   myRole = 'blue';
   const peerId = 'arena-' + roomCode;
   try {
@@ -1703,10 +1613,6 @@ function handleMessage(data) {
       autoAim = data.autoAim;
       updateAimUI();
       break;
-    case 'theme':
-      currentTheme = data.theme || 'space';
-      updateThemeBadge();
-      break;
     case 'playerUpdate':
       if (data.role === 'red' && myRole !== 'red' && redPlayer) {
         redPlayer.x = data.x; redPlayer.y = data.y;
@@ -1740,11 +1646,11 @@ function handleMessage(data) {
           safeSend({ type: 'hpUpdate', role: myRole, hp: me.hp, seq: ++me.hpSeq });
           break;
         }
-        const bulletIdx = bullets.findIndex(b => b.id === data.bulletId);
-        if (bulletIdx !== -1) {
-          bullets[bulletIdx].x = data.hitX;
-          bullets[bulletIdx].y = data.hitY;
-          bullets[bulletIdx].hitmark = 3;
+        const bi = bullets.findIndex(b => b.id === data.bulletId);
+        if (bi !== -1) {
+          bullets[bi].x = data.hitX;
+          bullets[bi].y = data.hitY;
+          bullets[bi].hitmark = 3;
         }
         me.hp = Math.max(0, me.hp - data.damage);
         SFX.hurt();
@@ -1778,6 +1684,7 @@ function handleMessage(data) {
     case 'zombieState':
       if (myRole === 'blue') {
         zombies = data.zombies || [];
+        bosses = data.bosses || [];
         zombieKills = data.kills || 0;
         zombieWave = data.wave || 1;
         updateScoreboard();
@@ -1786,33 +1693,59 @@ function handleMessage(data) {
     case 'zombieHit':
       if (isHost) {
         const z = zombies.find(zz => zz.id === data.zombieId);
-        if (z && z.hp > 0) {
-          z.hp -= data.damage;
-          if (z.hp <= 0) {
-            zombies = zombies.filter(zz => zz.id !== z.id);
-            zombieKills++;
-            updateScoreboard();
-            safeSend({ type: 'zombieDied', zombieId: z.id, x: z.x, y: z.y });
-            SFX.zombieDie();
-            spawnDamageText(z.x, z.y, 0, '#ffaa4d', '💀');
-            if (Math.random() < 0.25) spawnPickup(z.x, z.y, 'health');
-            if (Math.random() < 0.08) spawnPickup(z.x, z.y, 'speed');
-            if (Math.random() < 0.08) spawnPickup(z.x, z.y, 'invisible');
-            if (Math.random() < 0.08) spawnPickup(z.x, z.y, 'double');
+        const b = bosses.find(bb => bb.id === data.zombieId);
+        const target = z || b;
+        if (target && target.hp > 0) {
+          target.hp -= data.damage;
+          if (target.hp <= 0) {
+            if (z) {
+              zombies = zombies.filter(zz => zz.id !== z.id);
+              zombieKills++;
+              updateScoreboard();
+              SFX.zombieDie();
+              spawnDamageText(z.x, z.y, 0, '#ffaa4d', '💀');
+              safeSend({ type: 'zombieDied', zombieId: z.id, x: z.x, y: z.y });
+              if (Math.random() < 0.25) spawnPickup(z.x, z.y, 'health');
+              if (Math.random() < 0.08) spawnPickup(z.x, z.y, 'speed');
+              if (Math.random() < 0.08) spawnPickup(z.x, z.y, 'invisible');
+              if (Math.random() < 0.08) spawnPickup(z.x, z.y, 'double');
+            } else if (b) {
+              bosses = bosses.filter(bb => bb.id !== b.id);
+              zombieKills += 10;
+              updateScoreboard();
+              SFX.bossDie();
+              screenShake = 25;
+              spawnDamageText(b.x, b.y, 0, '#ff4d6d', 'BOSS 击杀!', true);
+              safeSend({ type: 'zombieDied', zombieId: b.id, x: b.x, y: b.y, isBoss: true });
+              // Boss 必掉血包
+              spawnPickup(b.x, b.y, 'health');
+              spawnPickup(b.x + 40, b.y, 'double');
+            }
           } else {
-            safeSend({ type: 'zombieDamaged', zombieId: z.id, x: z.x, y: z.y, damage: data.damage });
+            if (z) { SFX.zombieHit(); safeSend({ type: 'zombieDamaged', zombieId: z.id, x: z.x, y: z.y, damage: data.damage }); }
+            else { SFX.hit(); safeSend({ type: 'zombieDamaged', zombieId: b.id, x: b.x, y: b.y, damage: data.damage }); }
           }
         }
       }
       break;
     case 'zombieDamaged':
-      if (myRole !== 'red') { spawnDamageText(data.x, data.y, data.damage, '#ffaa4d'); SFX.zombieHit(); addCombo(); }
+      if (myRole !== 'red' || isSoloMode) {
+        spawnDamageText(data.x, data.y, data.damage, '#ffaa4d');
+        SFX.zombieHit(); addCombo();
+      }
       break;
     case 'zombieDied':
-      if (myRole !== 'red') {
+      if (myRole !== 'red' || isSoloMode) {
         zombies = zombies.filter(zz => zz.id !== data.zombieId);
-        spawnDamageText(data.x, data.y, 0, '#ffaa4d', '💀');
-        SFX.zombieDie();
+        bosses = bosses.filter(bb => bb.id !== data.zombieId);
+        if (data.isBoss) {
+          SFX.bossDie();
+          screenShake = 25;
+          spawnDamageText(data.x, data.y, 0, '#ff4d6d', 'BOSS 击杀!', true);
+        } else {
+          spawnDamageText(data.x, data.y, 0, '#ffaa4d', '💀');
+          SFX.zombieDie();
+        }
       }
       break;
     case 'zombieAttack':
@@ -1893,8 +1826,21 @@ function useDash() {
   const me = myRole === 'red' ? redPlayer : bluePlayer;
   if (!me || me.skillCD.dash > 0 || me.dashFrames > 0) return;
   const opponent = myRole === 'red' ? bluePlayer : redPlayer;
-  if (!opponent) return;
-  const dx = opponent.x - me.x, dy = opponent.y - me.y;
+  let targetX, targetY;
+  if (gameMode === 'pvp' && opponent) {
+    targetX = opponent.x; targetY = opponent.y;
+  } else {
+    // 僵尸模式：朝鼠标方向或最近僵尸
+    let nearest = null, minD = Infinity;
+    const allZ = [...zombies, ...bosses];
+    for (const z of allZ) {
+      const d = Math.hypot(z.x - me.x, z.y - me.y);
+      if (d < minD) { minD = d; nearest = z; }
+    }
+    if (nearest) { targetX = nearest.x; targetY = nearest.y; }
+    else { targetX = me.x + Math.cos(me.facing) * 100; targetY = me.y + Math.sin(me.facing) * 100; }
+  }
+  const dx = targetX - me.x, dy = targetY - me.y;
   const d = Math.hypot(dx, dy) || 1;
   me.dashVx = (dx / d) * DASH_SPEED;
   me.dashVy = (dy / d) * DASH_SPEED;
@@ -1916,8 +1862,8 @@ function useUltimate() {
   if (!me || me.skillCD.ultimate > 0) return;
   me.skillCD.ultimate = SKILL_COOLDOWN.ultimate;
   SFX.ultimate();
-  for (let i = 0; i < 16; i++) {
-    const angle = (i / 16) * Math.PI * 2;
+  for (let i = 0; i < 24; i++) {
+    const angle = (i / 24) * Math.PI * 2;
     const bullet = {
       id: Date.now() + '-' + i + '-' + Math.random().toString(36).substr(2, 4),
       x: me.x, y: me.y,
@@ -1931,20 +1877,60 @@ function useUltimate() {
   spawnDamageText(me.x, me.y - 20, 0, '#ff4dff', '💥', true);
 }
 
-/* ========== 开始游戏 ========== */
+/* ========== 单人模式 ========== */
+function startSoloGame() {
+  isSoloMode = true;
+  gameMode = 'zombie';
+  currentTheme = 'zombie';
+  gameRunning = true;
+  redPlayer = createPlayer('red');
+  redPlayer.name = myNickname;
+  bluePlayer = null;      // 单人模式没有蓝方
+  bullets = []; damageTexts = []; zombies = []; bosses = []; pickups = [];
+  processedHits.clear();
+  remoteHpSeq = 0;
+  resetCombo();
+  endSlowmo();
+  zombieKills = 0; zombieWave = 1; waveTimer = 0; spawnTimer = 0;
+  zombieIdCounter = 0; bossIdCounter = 0;
+  // 单人模式：大地图
+  obstacles = generateObstacles(WORLD_W, WORLD_H, 15);
+  txt(gameRoomCode, '单机');
+  txt(myRoleLabel, '单人');
+  if (myRoleLabel) myRoleLabel.className = 'role-red';
+  updateScoreboardVisibility();
+  updateThemeBadge();
+  updateAimUI();
+  switchView('game');
+  setStatus('单人模式', 'ok');
+  updateScoreboard();
+  updateWeaponHUD();
+  clearAllKeys();
+  SFX.start();
+  if (musicEnabled) { initAudio(); startMusic(); }
+  if (!window._gameLoopRunning) { window._gameLoopRunning = true; gameLoop(); }
+}
+
+/* ========== 多人游戏开始 ========== */
 function startGame() {
   if (gameRunning) return;
   const themeKeys = Object.keys(THEMES).filter(k => k !== 'zombie');
-  if (gameMode === 'zombie') currentTheme = 'zombie';
-  else currentTheme = themeKeys[Math.floor(Math.random() * themeKeys.length)];
-  const newObs = generateObstacles();
-  safeSend({ type: 'nextRound', obstacles: newObs, role: 'blue', theme: currentTheme });
-  obstacles = newObs;
+  if (gameMode === 'zombie') {
+    currentTheme = 'zombie';
+    obstacles = generateObstacles(WORLD_W, WORLD_H, 15);
+    safeSend({ type: 'nextRound', obstacles, role: 'blue', theme: currentTheme });
+  } else {
+    currentTheme = themeKeys[Math.floor(Math.random() * themeKeys.length)];
+    obstacles = generateObstacles(WORLD_W, WORLD_H, 15);
+    safeSend({ type: 'nextRound', obstacles, role: 'blue', theme: currentTheme });
+  }
   updateThemeBadge();
   if (gameMode === 'pvp') startRoundLocally('red', true);
   else startZombieModeLocally('red');
 }
+
 function startRoundLocally(role, isFirst = true) {
+  isSoloMode = false;
   myRole = role;
   gameRunning = true;
   redPlayer = createPlayer('red');
@@ -1972,19 +1958,22 @@ function startRoundLocally(role, isFirst = true) {
   broadcastPlayerState();
   if (!window._gameLoopRunning) { window._gameLoopRunning = true; gameLoop(); }
 }
+
 function startZombieModeLocally(role) {
+  isSoloMode = false;
   myRole = role;
   gameRunning = true;
   redPlayer = createPlayer('red');
   bluePlayer = createPlayer('blue');
   redPlayer.name = isHost ? myNickname : opponentNickname;
   bluePlayer.name = isHost ? opponentNickname : myNickname;
-  bullets = []; damageTexts = []; zombies = []; pickups = [];
+  bullets = []; damageTexts = []; zombies = []; bosses = []; pickups = [];
   processedHits.clear();
   remoteHpSeq = 0;
   resetCombo();
   endSlowmo();
-  zombieKills = 0; zombieWave = 1; waveTimer = 0; spawnTimer = 0; zombieIdCounter = 0;
+  zombieKills = 0; zombieWave = 1; waveTimer = 0; spawnTimer = 0;
+  zombieIdCounter = 0; bossIdCounter = 0;
   txt(gameRoomCode, roomCode);
   txt(myRoleLabel, myRole === 'red' ? '红方' : '蓝方');
   if (myRoleLabel) myRoleLabel.className = myRole === 'red' ? 'role-red' : 'role-blue';
@@ -2019,9 +2008,8 @@ function startNextRound() {
   if (!isHost || gameMode !== 'pvp') return;
   const themeKeys = Object.keys(THEMES).filter(k => k !== 'zombie');
   currentTheme = themeKeys[Math.floor(Math.random() * themeKeys.length)];
-  const newObs = generateObstacles();
-  safeSend({ type: 'nextRound', obstacles: newObs, role: 'blue', theme: currentTheme });
-  obstacles = newObs;
+  obstacles = generateObstacles(WORLD_W, WORLD_H, 15);
+  safeSend({ type: 'nextRound', obstacles, role: 'blue', theme: currentTheme });
   updateThemeBadge();
   startRoundLocally('red', false);
 }
@@ -2044,6 +2032,7 @@ function handleLocalWin(deadRole) {
 
 /* ========== 广播 ========== */
 function broadcastPlayerState() {
+  if (isSoloMode) return;
   const me = myRole === 'red' ? redPlayer : bluePlayer;
   if (!me) return;
   safeSend({
@@ -2055,18 +2044,18 @@ function broadcastPlayerState() {
 }
 function broadcastBullet(bullet) { safeSend({ type: 'bulletSpawn', bullet }); }
 
-/* ========== 僵尸 AI ========== */
+/* ========== 僵尸 & Boss AI ========== */
 function spawnZombie() {
   if (zombies.length >= ZOMBIE_MAX_COUNT) return;
   const side = Math.floor(Math.random() * 4);
   let x, y;
   switch (side) {
-    case 0: x = -20; y = Math.random() * H; break;
-    case 1: x = W + 20; y = Math.random() * H; break;
-    case 2: x = Math.random() * W; y = -20; break;
-    default: x = Math.random() * W; y = H + 20; break;
+    case 0: x = -40; y = Math.random() * WORLD_H; break;
+    case 1: x = WORLD_W + 40; y = Math.random() * WORLD_H; break;
+    case 2: x = Math.random() * WORLD_W; y = -40; break;
+    default: x = Math.random() * WORLD_W; y = WORLD_H + 40; break;
   }
-  const speedBonus = Math.min(1.5, zombieWave * 0.1);
+  const speedBonus = Math.min(1.8, zombieWave * 0.08);
   const hp = ZOMBIE_HP + Math.floor(zombieWave / 3);
   zombies.push({
     id: 'z-' + (zombieIdCounter++),
@@ -2076,22 +2065,72 @@ function spawnZombie() {
     angle: 0, wobble: Math.random() * Math.PI * 2
   });
 }
-function updateZombies() {
-  if (!isHost || gameMode !== 'zombie') return;
-  waveTimer++;
-  if (waveTimer >= 1200) {
-    waveTimer = 0; zombieWave++;
-    updateScoreboard();
-    spawnDamageText(W/2, H/2 - 60, 0, '#ffaa4d', '🌊 第 ' + zombieWave + ' 波', true);
+
+function spawnBoss() {
+  // Boss 从地图中心附近随机位置出现
+  const side = Math.floor(Math.random() * 4);
+  let x, y;
+  const margin = 200;
+  switch (side) {
+    case 0: x = margin; y = WORLD_H / 2; break;
+    case 1: x = WORLD_W - margin; y = WORLD_H / 2; break;
+    case 2: x = WORLD_W / 2; y = margin; break;
+    default: x = WORLD_W / 2; y = WORLD_H - margin; break;
   }
+  const bossNum = bosses.length + 1 + Math.floor((zombieWave - 1) / 10);
+  const hp = BOSS_BASE_HP + (bossNum - 1) * 80;
+  const speed = 0.6 + (bossNum - 1) * 0.15;
+  const shootCD = Math.max(40, BOSS_SHOOT_COOLDOWN - (bossNum - 1) * 8);
+
+  bosses.push({
+    id: 'boss-' + (bossIdCounter++),
+    x, y,
+    hp, maxHp: hp,
+    size: BOSS_SIZE,
+    speed,
+    shootCD,
+    shootTimer: 60,
+    angle: 0,
+    wobble: 0,
+    phase: 0,
+    isBoss: true
+  });
+  SFX.bossSpawn();
+  screenShake = 20;
+  spawnDamageText(WORLD_W / 2, WORLD_H / 2 - 100, 0, '#ff4d6d', '⚡ BOSS 出现 ⚡', true);
+}
+
+function updateZombiesAndBosses() {
+  if (!isHost || gameMode !== 'zombie') return;
+
+  waveTimer++;
+  // 每 20 秒（1200 帧）提升一波
+  if (waveTimer >= 1200) {
+    waveTimer = 0;
+    zombieWave++;
+    updateScoreboard();
+    spawnDamageText(redPlayer.x, redPlayer.y - 100, 0, '#ffaa4d', '🌊 第 ' + zombieWave + ' 波', true);
+    // 每 10 波刷 Boss
+    if (zombieWave % 10 === 0) {
+      spawnBoss();
+    }
+  }
+
+  // 刷普通僵尸
   spawnTimer++;
-  const spawnInterval = Math.max(20, 90 - zombieWave * 6);
-  if (spawnTimer >= spawnInterval) { spawnTimer = 0; spawnZombie(); }
-  const players = [redPlayer, bluePlayer].filter(p => p);
+  const spawnInterval = Math.max(18, 80 - zombieWave * 5);
+  if (spawnTimer >= spawnInterval) {
+    spawnTimer = 0;
+    spawnZombie();
+  }
+
+  // 玩家列表（存活的）
+  const players = [redPlayer, bluePlayer].filter(p => p && p.hp > 0);
+
+  // 更新普通僵尸
   for (const z of zombies) {
     let target = null, minD = Infinity;
     for (const p of players) {
-      if (p.hp <= 0) continue;
       const d = Math.hypot(p.x - z.x, p.y - z.y);
       if (d < minD) { minD = d; target = p; }
     }
@@ -2102,6 +2141,8 @@ function updateZombies() {
     z.y += (dy / dist) * z.speed;
     z.angle = Math.atan2(dy, dx);
     z.wobble += 0.15;
+
+    // 障碍物推开
     const zHalf = ZOMBIE_SIZE / 2;
     const zRect = { x: z.x - zHalf, y: z.y - zHalf, w: ZOMBIE_SIZE, h: ZOMBIE_SIZE };
     for (const o of obstacles) {
@@ -2113,35 +2154,141 @@ function updateZombies() {
         else if (min === oT) z.y -= oT; else z.y += oB;
       }
     }
+
+    // 攻击玩家
     for (const p of players) {
-      if (p.hp <= 0) continue;
       const zr = ZOMBIE_SIZE / 2 + PLAYER_SIZE / 2;
       if (Math.hypot(p.x - z.x, p.y - z.y) < zr) {
         const key = p === redPlayer ? 'red' : 'blue';
         if (frameCount - z.lastTouch[key] > ZOMBIE_TOUCH_COOLDOWN) {
           z.lastTouch[key] = frameCount;
           if (p.shieldActive > 0) {
-            if (myRole === key) spawnDamageText(p.x, p.y, 0, '#4dd4ff', '🛡');
+            if ((isSoloMode ? 'red' : myRole) === key) spawnDamageText(p.x, p.y, 0, '#4dd4ff', '🛡');
           } else {
             p.hp = Math.max(0, p.hp - ZOMBIE_DAMAGE);
-            safeSend({ type: 'hpUpdate', role: key, hp: p.hp, seq: ++p.hpSeq });
-            safeSend({ type: 'zombieAttack', role: key, damage: ZOMBIE_DAMAGE, x: p.x, y: p.y });
-            if (myRole === key) { SFX.hurt(); spawnDamageText(p.x, p.y, ZOMBIE_DAMAGE, '#ff4d4d'); }
+            if (!isSoloMode) safeSend({ type: 'hpUpdate', role: key, hp: p.hp, seq: ++p.hpSeq });
+            if (!isSoloMode) safeSend({ type: 'zombieAttack', role: key, damage: ZOMBIE_DAMAGE, x: p.x, y: p.y });
+            if ((isSoloMode ? 'red' : myRole) === key) { SFX.hurt(); spawnDamageText(p.x, p.y, ZOMBIE_DAMAGE, '#ff4d4d'); }
           }
         }
       }
     }
   }
-  if (redPlayer.hp <= 0 && bluePlayer.hp <= 0) {
-    safeSend({ type: 'gameOver', kills: zombieKills, wave: zombieWave });
+
+  // 更新 Boss
+  for (const b of bosses) {
+    let target = null, minD = Infinity;
+    for (const p of players) {
+      const d = Math.hypot(p.x - b.x, p.y - b.y);
+      if (d < minD) { minD = d; target = p; }
+    }
+    if (!target) continue;
+    const dx = target.x - b.x, dy = target.y - b.y;
+    const dist = Math.hypot(dx, dy) || 1;
+    b.x += (dx / dist) * b.speed;
+    b.y += (dy / dist) * b.speed;
+    b.angle = Math.atan2(dy, dx);
+    b.wobble += 0.08;
+
+    // 障碍物推开
+    const bHalf = b.size / 2;
+    const bRect = { x: b.x - bHalf, y: b.y - bHalf, w: b.size, h: b.size };
+    for (const o of obstacles) {
+      if (rectsOverlap(bRect, o)) {
+        const oL = (bRect.x + bRect.w) - o.x, oR = (o.x + o.w) - bRect.x;
+        const oT = (bRect.y + bRect.h) - o.y, oB = (o.y + o.h) - bRect.y;
+        const min = Math.min(oL, oR, oT, oB);
+        if (min === oL) b.x -= oL; else if (min === oR) b.x += oR;
+        else if (min === oT) b.y -= oT; else b.y += oB;
+      }
+    }
+
+    // Boss 射击
+    if (b.shootTimer > 0) b.shootTimer--;
+    if (b.shootTimer <= 0 && target) {
+      b.shootTimer = b.shootCD;
+      // 朝目标发射 3 发扇形子弹
+      for (let i = -1; i <= 1; i++) {
+        const ang = b.angle + i * 0.25;
+        const bullet = {
+          id: 'boss-' + Date.now() + '-' + i + '-' + Math.random().toString(36).substr(2, 4),
+          x: b.x, y: b.y,
+          vx: Math.cos(ang) * 6,
+          vy: Math.sin(ang) * 6,
+          owner: 'boss',
+          size: 10,
+          life: 200,
+          damage: 12,
+          color: '#ff0044'
+        };
+        bullets.push(bullet);
+        if (!isSoloMode) safeSend({ type: 'bulletSpawn', bullet });
+      }
+      SFX.bossShoot();
+    }
+
+    // 接触伤害
+    for (const p of players) {
+      const rr = b.size / 2 + PLAYER_SIZE / 2;
+      if (Math.hypot(p.x - b.x, p.y - b.y) < rr) {
+        const key = p === redPlayer ? 'red' : 'blue';
+        if (p.shieldActive > 0) {
+          if ((isSoloMode ? 'red' : myRole) === key) spawnDamageText(p.x, p.y, 0, '#4dd4ff', '🛡');
+        } else {
+          p.hp = Math.max(0, p.hp - BOSS_CONTACT_DAMAGE);
+          if (!isSoloMode) safeSend({ type: 'hpUpdate', role: key, hp: p.hp, seq: ++p.hpSeq });
+          if (!isSoloMode) safeSend({ type: 'zombieAttack', role: key, damage: BOSS_CONTACT_DAMAGE, x: p.x, y: p.y });
+          if ((isSoloMode ? 'red' : myRole) === key) { SFX.hurt(); spawnDamageText(p.x, p.y, BOSS_CONTACT_DAMAGE, '#ff4d4d'); }
+          // 玩家被撞退
+          const kdx = p.x - b.x, kdy = p.y - b.y;
+          const kd = Math.hypot(kdx, kdy) || 1;
+          p.x += (kdx / kd) * 30;
+          p.y += (kdy / kd) * 30;
+        }
+      }
+    }
+  }
+
+  // 检查死亡
+  const anyAlive = players.length > 0;
+  if (!anyAlive) {
     gameRunning = false;
     stopMusic();
     SFX.lose();
-    addLeaderboardEntry(myNickname + ' & ' + opponentNickname, zombieKills, 'zombie');
-    setTimeout(() => {
-      alert('💀 被僵尸击败！\n击杀数：' + zombieKills + '  波次：' + zombieWave);
-      cleanupAndReturnToLobby();
-    }, 200);
+    addLeaderboardEntry(myNickname, zombieKills, isSoloMode ? 'solo' : 'zombie');
+    if (isSoloMode) {
+      setTimeout(() => {
+        alert('💀 被僵尸击败！\n击杀数：' + zombieKills + '  波次：' + zombieWave);
+        cleanupAndReturnToLobby();
+      }, 200);
+    } else {
+      safeSend({ type: 'gameOver', kills: zombieKills, wave: zombieWave });
+      setTimeout(() => {
+        alert('💀 被僵尸击败！\n击杀数：' + zombieKills + '  波次：' + zombieWave);
+        cleanupAndReturnToLobby();
+      }, 200);
+    }
+  }
+}
+
+/* ========== 相机跟随 ========== */
+function updateCamera() {
+  const me = myRole === 'red' ? redPlayer : bluePlayer;
+  if (!me) return;
+
+  // 僵尸模式 + 大地图：相机跟随
+  if (gameMode === 'zombie' || isSoloMode) {
+    // 相机平滑跟随玩家
+    const targetX = me.x - W / 2;
+    const targetY = me.y - H / 2;
+    camera.x += (targetX - camera.x) * 0.15;
+    camera.y += (targetY - camera.y) * 0.15;
+    // 边界限制
+    camera.x = Math.max(0, Math.min(WORLD_W - W, camera.x));
+    camera.y = Math.max(0, Math.min(WORLD_H - H, camera.y));
+  } else {
+    camera.x = 0;
+    camera.y = 0;
   }
 }
 
@@ -2155,9 +2302,12 @@ function update() {
     return;
   }
   frameCount++;
+
   const me = myRole === 'red' ? redPlayer : bluePlayer;
   const opponent = myRole === 'red' ? bluePlayer : redPlayer;
-  if (!me || !opponent) return;
+  if (!me) return;
+
+  updateCamera();
 
   if (comboTimer > 0) { comboTimer--; if (comboTimer === 0) resetCombo(); }
   if (screenShake > 0) screenShake *= 0.85;
@@ -2185,10 +2335,13 @@ function update() {
   }
 
   // 移动
+  const worldW = (gameMode === 'zombie' || isSoloMode) ? WORLD_W : W;
+  const worldH = (gameMode === 'zombie' || isSoloMode) ? WORLD_H : H;
+
   if (me.dashFrames > 0) {
-    const cx = Math.min(Math.max(me.x + me.dashVx, PLAYER_SIZE/2 + 4), W - PLAYER_SIZE/2 - 4);
+    const cx = Math.min(Math.max(me.x + me.dashVx, PLAYER_SIZE/2 + 4), worldW - PLAYER_SIZE/2 - 4);
     if (!playerHitsObstacle(cx, me.y, obstacles)) me.x = cx;
-    const cy = Math.min(Math.max(me.y + me.dashVy, PLAYER_SIZE/2 + 4), H - PLAYER_SIZE/2 - 4);
+    const cy = Math.min(Math.max(me.y + me.dashVy, PLAYER_SIZE/2 + 4), worldH - PLAYER_SIZE/2 - 4);
     if (!playerHitsObstacle(me.x, cy, obstacles)) me.y = cy;
     me.dashFrames--;
     broadcastPlayerState();
@@ -2203,16 +2356,32 @@ function update() {
       const len = Math.hypot(dx, dy);
       dx = dx / len * speed;
       dy = dy / len * speed;
-      const cx = Math.min(Math.max(me.x + dx, PLAYER_SIZE/2 + 4), W - PLAYER_SIZE/2 - 4);
+      const cx = Math.min(Math.max(me.x + dx, PLAYER_SIZE/2 + 4), worldW - PLAYER_SIZE/2 - 4);
       if (!playerHitsObstacle(cx, me.y, obstacles)) me.x = cx;
-      const cy = Math.min(Math.max(me.y + dy, PLAYER_SIZE/2 + 4), H - PLAYER_SIZE/2 - 4);
+      const cy = Math.min(Math.max(me.y + dy, PLAYER_SIZE/2 + 4), worldH - PLAYER_SIZE/2 - 4);
       if (!playerHitsObstacle(me.x, cy, obstacles)) me.y = cy;
       broadcastPlayerState();
     }
   }
 
-  if (autoAim) me.facing = Math.atan2(opponent.y - me.y, opponent.x - me.x);
-  else me.facing = Math.atan2(mouseY - me.y, mouseX - me.x);
+  // 朝向
+  if (autoAim) {
+    if (gameMode === 'pvp' && opponent) {
+      me.facing = Math.atan2(opponent.y - me.y, opponent.x - me.x);
+    } else {
+      // 僵尸模式：朝最近的敌人
+      let nearest = null, minD = Infinity;
+      const allE = [...zombies, ...bosses];
+      for (const e of allE) {
+        const d = Math.hypot(e.x - me.x, e.y - me.y);
+        if (d < minD) { minD = d; nearest = e; }
+      }
+      if (nearest) me.facing = Math.atan2(nearest.y - me.y, nearest.x - me.x);
+      else me.facing = 0;
+    }
+  } else {
+    me.facing = Math.atan2(mouseY - me.y, mouseX - me.x);
+  }
 
   // 射击
   const w = WEAPONS[me.weapon];
@@ -2249,12 +2418,14 @@ function update() {
     if (me.reloadTimer === 0) reloadWeapon();
   }
 
-  if (gameMode === 'zombie' && isHost) {
-    updateZombies();
-    if (frameCount % 3 === 0) {
+  // 僵尸/Boss AI
+  if (gameMode === 'zombie' && (isHost || isSoloMode)) {
+    updateZombiesAndBosses();
+    if (!isSoloMode && frameCount % 3 === 0) {
       safeSend({
         type: 'zombieState',
         zombies: zombies.map(z => ({ id: z.id, x: z.x, y: z.y, hp: z.hp, maxHp: z.maxHp, angle: z.angle, wobble: z.wobble })),
+        bosses: bosses.map(b => ({ id: b.id, x: b.x, y: b.y, hp: b.hp, maxHp: b.maxHp, angle: b.angle, wobble: b.wobble, size: b.size, isBoss: true })),
         kills: zombieKills, wave: zombieWave
       });
     }
@@ -2270,7 +2441,7 @@ function update() {
     }
     const prevX = b.x, prevY = b.y;
     b.x += b.vx; b.y += b.vy; b.life--;
-    if (b.x < -30 || b.x > W + 30 || b.y < -30 || b.y > H + 30 || b.life <= 0) {
+    if (b.x < -50 || b.x > worldW + 50 || b.y < -50 || b.y > worldH + 50 || b.life <= 0) {
       bullets.splice(i, 1); continue;
     }
     if (bulletHitsObstacle(b, obstacles)) {
@@ -2278,6 +2449,8 @@ function update() {
       SFX.obstacle();
       bullets.splice(i, 1); continue;
     }
+
+    // 玩家子弹
     if (b.owner === myRole) {
       if (gameMode === 'pvp') {
         const targetRole = myRole === 'red' ? 'blue' : 'red';
@@ -2300,37 +2473,76 @@ function update() {
           if (target.hp <= 0) handleLocalWin(targetRole);
         }
       } else {
-        let hitZ = null;
+        // 僵尸模式
+        let hitZ = null, hitB = null;
         for (const z of zombies) {
           if (segmentHitsZombie(prevX, prevY, b.x, b.y, z)) { hitZ = z; break; }
         }
-        if (hitZ) {
+        if (!hitZ) {
+          for (const boss of bosses) {
+            if (segmentHitsBoss(prevX, prevY, b.x, b.y, boss)) { hitB = boss; break; }
+          }
+        }
+        if (hitZ || hitB) {
+          const target = hitZ || hitB;
           const dmg = b.damage || 1;
-          if (isHost) {
-            hitZ.hp -= dmg;
-            if (hitZ.hp <= 0) {
-              zombies = zombies.filter(zz => zz.id !== hitZ.id);
-              zombieKills++;
-              updateScoreboard();
-              addCombo();
-              SFX.zombieDie();
-              spawnDamageText(hitZ.x, hitZ.y, 0, '#ffaa4d', '💀');
-              safeSend({ type: 'zombieDied', zombieId: hitZ.id, x: hitZ.x, y: hitZ.y });
-              if (Math.random() < 0.25) spawnPickup(hitZ.x, hitZ.y, 'health');
-              if (Math.random() < 0.08) spawnPickup(hitZ.x, hitZ.y, 'speed');
-              if (Math.random() < 0.08) spawnPickup(hitZ.x, hitZ.y, 'invisible');
-              if (Math.random() < 0.08) spawnPickup(hitZ.x, hitZ.y, 'double');
+          if (isHost || isSoloMode) {
+            target.hp -= dmg;
+            if (target.hp <= 0) {
+              if (hitZ) {
+                zombies = zombies.filter(zz => zz.id !== hitZ.id);
+                zombieKills++;
+                updateScoreboard();
+                addCombo();
+                SFX.zombieDie();
+                spawnDamageText(hitZ.x, hitZ.y, 0, '#ffaa4d', '💀');
+                if (!isSoloMode) safeSend({ type: 'zombieDied', zombieId: hitZ.id, x: hitZ.x, y: hitZ.y });
+                if (Math.random() < 0.25) spawnPickup(hitZ.x, hitZ.y, 'health');
+                if (Math.random() < 0.08) spawnPickup(hitZ.x, hitZ.y, 'speed');
+                if (Math.random() < 0.08) spawnPickup(hitZ.x, hitZ.y, 'invisible');
+                if (Math.random() < 0.08) spawnPickup(hitZ.x, hitZ.y, 'double');
+              } else {
+                bosses = bosses.filter(bb => bb.id !== hitB.id);
+                zombieKills += 10;
+                updateScoreboard();
+                SFX.bossDie();
+                screenShake = 25;
+                spawnDamageText(hitB.x, hitB.y, 0, '#ff4d6d', 'BOSS 击杀!', true);
+                if (!isSoloMode) safeSend({ type: 'zombieDied', zombieId: hitB.id, x: hitB.x, y: hitB.y, isBoss: true });
+                spawnPickup(hitB.x, hitB.y, 'health');
+                spawnPickup(hitB.x + 40, hitB.y, 'double');
+              }
             } else {
-              SFX.zombieHit();
-              spawnDamageText(hitZ.x, hitZ.y, dmg, '#ffaa4d');
-              safeSend({ type: 'zombieDamaged', zombieId: hitZ.id, x: hitZ.x, y: hitZ.y, damage: dmg });
+              if (hitZ) { SFX.zombieHit(); if (!isSoloMode) safeSend({ type: 'zombieDamaged', zombieId: hitZ.id, x: hitZ.x, y: hitZ.y, damage: dmg }); }
+              else { SFX.hit(); if (!isSoloMode) safeSend({ type: 'zombieDamaged', zombieId: hitB.id, x: hitB.x, y: hitB.y, damage: dmg }); }
+              spawnDamageText(target.x, target.y, dmg, '#ffaa4d');
             }
           } else {
-            safeSend({ type: 'zombieHit', zombieId: hitZ.id, damage: dmg });
+            if (!isSoloMode) safeSend({ type: 'zombieHit', zombieId: target.id, damage: dmg });
             SFX.zombieHit();
-            spawnDamageText(hitZ.x, hitZ.y, dmg, '#ffaa4d');
+            spawnDamageText(target.x, target.y, dmg, '#ffaa4d');
           }
           bullets.splice(i, 1);
+        }
+      }
+    } else if (b.owner === 'boss') {
+      // Boss 子弹 → 打到玩家
+      for (const p of [redPlayer, bluePlayer].filter(pp => pp && pp.hp > 0)) {
+        if (segmentHitsPlayer(prevX, prevY, b.x, b.y, p)) {
+          const key = p === redPlayer ? 'red' : 'blue';
+          if (p.shieldActive > 0) {
+            if ((isSoloMode ? 'red' : myRole) === key) spawnDamageText(b.x, b.y, 0, '#4dd4ff', '🛡');
+            bullets.splice(i, 1);
+            break;
+          }
+          p.hp = Math.max(0, p.hp - b.damage);
+          if (!isSoloMode) safeSend({ type: 'hpUpdate', role: key, hp: p.hp, seq: ++p.hpSeq });
+          if ((isSoloMode ? 'red' : myRole) === key) {
+            SFX.hurt();
+            spawnDamageText(b.x, b.y, b.damage, '#ff4d4d');
+          }
+          bullets.splice(i, 1);
+          break;
         }
       }
     }
@@ -2365,8 +2577,20 @@ function segmentHitsZombie(x1, y1, x2, y2, z) {
   }
   return false;
 }
+function segmentHitsBoss(x1, y1, x2, y2, b) {
+  const half = b.size / 2, r = BULLET_SIZE / 2;
+  const rect = { x1: b.x - half - r, x2: b.x + half + r, y1: b.y - half - r, y2: b.y + half + r };
+  const dist = Math.hypot(x2 - x1, y2 - y1);
+  const steps = Math.max(2, Math.ceil(dist / 3));
+  for (let i = 0; i <= steps; i++) {
+    const t = i / steps;
+    const px = x1 + (x2 - x1) * t, py = y1 + (y2 - y1) * t;
+    if (px > rect.x1 && px < rect.x2 && py > rect.y1 && py < rect.y2) return true;
+  }
+  return false;
+}
 
-/* ========== 绘制 ========== */
+/* ========== 绘制（带相机偏移） ========== */
 function draw() {
   if (!ctx) return;
   const theme = THEMES[currentTheme] || THEMES.space;
@@ -2375,16 +2599,31 @@ function draw() {
     ctx.translate((Math.random() - 0.5) * screenShake, (Math.random() - 0.5) * screenShake);
   }
   ctx.clearRect(0, 0, W, H);
-  const grad = ctx.createRadialGradient(W/2, H/2, 100, W/2, H/2, 700);
+
+  // 背景
+  const grad = ctx.createRadialGradient(W/2, H/2, 100, W/2, H/2, 900);
   grad.addColorStop(0, theme.bg[0]);
   grad.addColorStop(1, theme.bg[1]);
   ctx.fillStyle = grad;
   ctx.fillRect(0, 0, W, H);
 
-  const grid = getGridCanvas(currentTheme);
-  if (grid) ctx.drawImage(grid, 0, 0);
+  // 相机偏移
+  ctx.save();
+  ctx.translate(-camera.x, -camera.y);
 
+  // 网格
+  const worldW = (gameMode === 'zombie' || isSoloMode) ? WORLD_W : W;
+  const worldH = (gameMode === 'zombie' || isSoloMode) ? WORLD_H : H;
+  const grid = getGridCanvas(currentTheme, worldW, worldH);
+  if (grid) {
+    // 只绘制相机范围内的网格
+    ctx.drawImage(grid, camera.x, camera.y, W, H, camera.x, camera.y, W, H);
+  }
+
+  // 障碍物（只画视野内的）
   for (const o of obstacles) {
+    if (o.x + o.w < camera.x - 50 || o.x > camera.x + W + 50 ||
+        o.y + o.h < camera.y - 50 || o.y > camera.y + H + 50) continue;
     ctx.shadowColor = 'rgba(0,0,0,0.5)'; ctx.shadowBlur = 12; ctx.shadowOffsetY = 4;
     ctx.fillStyle = theme.obstacleFill;
     ctx.beginPath(); ctx.roundRect(o.x, o.y, o.w, o.h, 8); ctx.fill();
@@ -2395,21 +2634,10 @@ function draw() {
     ctx.beginPath(); ctx.roundRect(o.x + 3, o.y + 3, o.w - 6, 6, 4); ctx.fill();
   }
 
-  if (!autoAim && gameRunning) {
-    ctx.save();
-    ctx.strokeStyle = 'rgba(255, 200, 100, 0.7)';
-    ctx.lineWidth = 2;
-    ctx.beginPath(); ctx.arc(mouseX, mouseY, 12, 0, Math.PI * 2); ctx.stroke();
-    ctx.beginPath();
-    ctx.moveTo(mouseX - 18, mouseY); ctx.lineTo(mouseX - 6, mouseY);
-    ctx.moveTo(mouseX + 6, mouseY); ctx.lineTo(mouseX + 18, mouseY);
-    ctx.moveTo(mouseX, mouseY - 18); ctx.lineTo(mouseX, mouseY - 6);
-    ctx.moveTo(mouseX, mouseY + 6); ctx.lineTo(mouseX, mouseY + 18);
-    ctx.stroke();
-    ctx.restore();
-  }
-
+  // 掉落物
   for (const p of pickups) {
+    if (p.x < camera.x - 50 || p.x > camera.x + W + 50 ||
+        p.y < camera.y - 50 || p.y > camera.y + H + 50) continue;
     const bob = Math.sin(p.bob) * 3;
     const alpha = p.life < 120 ? (0.4 + 0.6 * Math.abs(Math.sin(p.life * 0.3))) : 1;
     ctx.save();
@@ -2436,30 +2664,52 @@ function draw() {
     ctx.restore();
   }
 
-  if (gameMode === 'zombie') for (const z of zombies) drawZombie(z);
+  // 僵尸
+  if (gameMode === 'zombie' || isSoloMode) {
+    for (const z of zombies) {
+      if (z.x < camera.x - 60 || z.x > camera.x + W + 60 ||
+          z.y < camera.y - 60 || z.y > camera.y + H + 60) continue;
+      drawZombie(z);
+    }
+    // Boss
+    for (const b of bosses) {
+      if (b.x < camera.x - 100 || b.x > camera.x + W + 100 ||
+          b.y < camera.y - 100 || b.y > camera.y + H + 100) continue;
+      drawBoss(b);
+    }
+  }
 
+  // 子弹
   for (const b of bullets) {
-    const c = b.color || (b.owner === 'red' ? '#ff4d6d' : '#4da6ff');
+    if (b.x < camera.x - 30 || b.x > camera.x + W + 30 ||
+        b.y < camera.y - 30 || b.y > camera.y + H + 30) continue;
+    const c = b.color || (b.owner === 'red' ? '#ff4d6d' : b.owner === 'blue' ? '#4da6ff' : '#ff0044');
     ctx.beginPath();
-    ctx.arc(b.x, b.y, BULLET_SIZE * 0.7, 0, Math.PI * 2);
+    ctx.arc(b.x, b.y, (b.size || BULLET_SIZE) * 0.7, 0, Math.PI * 2);
     ctx.fillStyle = c;
     ctx.shadowColor = c; ctx.shadowBlur = 16; ctx.fill(); ctx.shadowBlur = 0;
   }
 
+  // 玩家
   if (redPlayer) drawPlayer(redPlayer);
   if (bluePlayer) drawPlayer(bluePlayer);
 
+  // 伤害飘字
   drawDamageTexts();
 
+  ctx.restore(); // 恢复相机
+
+  // HUD（不受相机影响）
   ctx.font = '14px "Segoe UI"';
   ctx.fillStyle = '#6b7fa0';
   const me = myRole === 'red' ? redPlayer : bluePlayer;
   if (me) {
-    ctx.fillText(`你是: ${me.name} (${myRole === 'red' ? '红' : '蓝'})`, 30, 40);
-    if (gameMode === 'pvp') {
+    const roleLabel = isSoloMode ? '单人' : (myRole === 'red' ? '红' : '蓝');
+    ctx.fillText(`你是: ${me.name} (${roleLabel})`, 30, 40);
+    if (gameMode === 'pvp' && redPlayer && bluePlayer) {
       ctx.fillText(`比分 ${redPlayer.name} ${scoreRed} : ${scoreBlue} ${bluePlayer.name}`, 30, 62);
     } else {
-      ctx.fillText(`🧟 击杀 ${zombieKills}   波次 ${zombieWave}`, 30, 62);
+      ctx.fillText(`🧟 击杀 ${zombieKills}   波次 ${zombieWave}   BOSS ${bosses.length}`, 30, 62);
     }
     if (comboCount >= 2) {
       ctx.font = 'bold 20px "Segoe UI"';
@@ -2468,7 +2718,14 @@ function draw() {
       ctx.fillText(`🔥 ${comboCount} 连击`, 30, 90);
       ctx.shadowBlur = 0;
     }
+    // 显示相机位置（僵尸模式）
+    if (gameMode === 'zombie' || isSoloMode) {
+      ctx.font = '12px "Consolas", monospace';
+      ctx.fillStyle = '#3d4d6e';
+      ctx.fillText(`地图: ${WORLD_W}×${WORLD_H}  位置: ${Math.round(me.x)},${Math.round(me.y)}`, 30, H - 20);
+    }
   }
+
   if (gameMode === 'pvp' && redPlayer && bluePlayer) {
     if (redPlayer.hp <= 0) {
       ctx.font = 'bold 42px "Segoe UI"'; ctx.fillStyle = '#ff4d6daa';
@@ -2514,7 +2771,7 @@ function drawPlayer(p) {
     ctx.beginPath(); ctx.arc(p.x, p.y, PLAYER_SIZE * 0.85, 0, Math.PI * 2); ctx.stroke();
     ctx.shadowBlur = 0;
   }
-  if (p.role === myRole && gameRunning) {
+  if ((p.role === myRole || isSoloMode) && gameRunning) {
     ctx.save();
     ctx.translate(p.x, p.y); ctx.rotate(p.facing);
     ctx.fillStyle = color; ctx.globalAlpha = alpha * 0.6;
@@ -2525,7 +2782,7 @@ function drawPlayer(p) {
     ctx.closePath(); ctx.fill();
     ctx.restore();
   }
-  if (gameMode === 'zombie' && p.role !== myRole) {
+  if (gameMode === 'zombie' && p.role !== myRole && !isSoloMode) {
     ctx.font = 'bold 12px "Segoe UI"'; ctx.fillStyle = '#4dd4ff';
     ctx.textAlign = 'center';
     ctx.fillText('🛡 队友', p.x, p.y - PLAYER_SIZE/2 - 42);
@@ -2563,6 +2820,53 @@ function drawZombie(z) {
   }
 }
 
+function drawBoss(b) {
+  const half = b.size / 2;
+  const wob = Math.sin(b.wobble) * 4;
+
+  // Boss 光晕
+  ctx.shadowColor = '#ff0044'; ctx.shadowBlur = 40;
+  ctx.fillStyle = '#8a1a3a';
+  ctx.beginPath();
+  ctx.roundRect(b.x - half + wob, b.y - half, b.size, b.size, 12);
+  ctx.fill();
+  ctx.shadowBlur = 0;
+
+  // 边框
+  ctx.strokeStyle = '#ff4d6d';
+  ctx.lineWidth = 4;
+  ctx.stroke();
+
+  // 内层
+  ctx.fillStyle = '#a82a4a';
+  ctx.beginPath();
+  ctx.roundRect(b.x - half + 8 + wob, b.y - half + 8, b.size - 16, b.size - 16, 8);
+  ctx.fill();
+
+  // 眼睛
+  const eoX = Math.cos(b.angle) * 8, eoY = Math.sin(b.angle) * 8;
+  ctx.fillStyle = '#ff0000';
+  ctx.shadowColor = '#ff0000'; ctx.shadowBlur = 20;
+  ctx.beginPath(); ctx.arc(b.x - 12 + wob + eoX, b.y - 6 + eoY, 6, 0, Math.PI*2); ctx.fill();
+  ctx.beginPath(); ctx.arc(b.x + 12 + wob + eoX, b.y - 6 + eoY, 6, 0, Math.PI*2); ctx.fill();
+  ctx.shadowBlur = 0;
+
+  // 血条（大）
+  const bw = b.size + 20;
+  ctx.fillStyle = '#2e1a1f';
+  ctx.fillRect(b.x - bw/2, b.y - half - 20, bw, 10);
+  ctx.fillStyle = '#ff4d6d';
+  ctx.fillRect(b.x - bw/2, b.y - half - 20, bw * (b.hp / b.maxHp), 10);
+
+  // BOSS 标签
+  ctx.font = 'bold 14px "Segoe UI"'; ctx.textAlign = 'center';
+  ctx.fillStyle = '#ff4d6d';
+  ctx.shadowColor = '#ff4d6d'; ctx.shadowBlur = 12;
+  ctx.fillText('⚡ BOSS ⚡', b.x, b.y - half - 28);
+  ctx.shadowBlur = 0;
+  ctx.textAlign = 'left';
+}
+
 function gameLoop() {
   if (gameRunning) { update(); draw(); updateSkillHUD(); updateWeaponHUD(); updateBuffTimer(); }
   else draw();
@@ -2593,24 +2897,27 @@ function cleanupAndReturnToLobby() {
   closeChatPanel();
   endSlowmo();
   stopMusic();
-  if (conn && conn.open) {
+  if (!isSoloMode && conn && conn.open) {
     safeSend({ type: 'leave' });
     try { conn.close(); } catch(e) {}
   }
   conn = null;
   if (peer && !peer.destroyed) { try { peer.destroy(); } catch(e) {} }
   peer = null;
-  bullets = []; damageTexts = []; obstacles = []; zombies = []; pickups = [];
+  bullets = []; damageTexts = []; obstacles = []; zombies = []; bosses = []; pickups = [];
   redPlayer = null; bluePlayer = null;
   processedHits.clear();
   remoteHpSeq = 0;
   resetCombo();
   isHost = false;
+  isSoloMode = false;
   roomCode = '';
+  camera.x = 0; camera.y = 0;
   switchView('lobby');
   setStatus('已返回大厅', '');
   if (createRoomBtn) createRoomBtn.disabled = false;
   if (joinRoomBtn) joinRoomBtn.disabled = false;
+  if (soloBtn) soloBtn.disabled = false;
   clearError();
 }
 
