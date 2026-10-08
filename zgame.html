@@ -14,6 +14,7 @@
     font-family: 'Segoe UI', Roboto, system-ui, sans-serif;
     display: flex; justify-content: center; align-items: center;
     padding: 16px; color: #cdd9f0;
+    overflow: hidden;
   }
   .app {
     background: rgba(18, 24, 40, 0.85);
@@ -23,7 +24,26 @@
     box-shadow: 0 30px 60px -10px rgba(0,0,0,0.8), inset 0 1px 2px rgba(120,160,255,0.15);
     border: 1px solid rgba(90, 130, 220, 0.2);
     width: fit-content;
+    transition: all 0.3s ease;
   }
+  /* 全屏时铺满 */
+  body:fullscreen .app,
+  body:-webkit-full-screen .app {
+    border-radius: 0;
+    width: 100vw;
+    height: 100vh;
+    padding: 20px;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    background: rgba(10, 14, 26, 0.98);
+  }
+  body:fullscreen #game,
+  body:-webkit-full-screen #game {
+    transform: scale(1);
+  }
+
   h1 { margin: 0 0 6px; font-size: 1.5rem; font-weight: 600; color: #a8c4ff; letter-spacing: 0.5px; }
   .subtitle { font-size: 0.85rem; color: #6b7fa0; margin-bottom: 22px; }
 
@@ -94,24 +114,67 @@
   #game { display: none; flex-direction: column; align-items: center; }
   .game-header {
     display: flex; justify-content: space-between; align-items: center;
-    width: 900px; margin-bottom: 14px;
+    width: 900px; margin-bottom: 12px;
+    gap: 10px;
   }
   .badge {
     display: flex; align-items: center; gap: 10px;
-    background: #0d1424; padding: 10px 20px; border-radius: 30px;
-    border: 1px solid #253253; font-size: 0.9rem;
+    background: #0d1424; padding: 10px 18px; border-radius: 30px;
+    border: 1px solid #253253; font-size: 0.88rem;
+    white-space: nowrap;
   }
   .badge .role-red { color: #ff6b8a; font-weight: 700; }
   .badge .role-blue { color: #6bb8ff; font-weight: 700; }
+
+  /* 计分板 */
+  .scoreboard {
+    display: flex; align-items: center; gap: 8px;
+    background: linear-gradient(135deg, #0f1524, #161d2f);
+    padding: 8px 20px; border-radius: 30px;
+    border: 1px solid #253253;
+    font-size: 0.9rem;
+    box-shadow: inset 0 1px 3px rgba(0,0,0,0.4);
+  }
+  .score-item {
+    display: flex; align-items: center; gap: 8px;
+    padding: 4px 10px; border-radius: 20px;
+    transition: all 0.3s;
+  }
+  .score-item.winner { background: rgba(78, 255, 139, 0.12); box-shadow: 0 0 12px rgba(78,255,139,0.2); }
+  .score-swatch {
+    width: 12px; height: 12px; border-radius: 4px;
+  }
+  .score-red { background: #ff4d6d; box-shadow: 0 0 8px #ff4d6d; }
+  .score-blue { background: #4da6ff; box-shadow: 0 0 8px #4da6ff; }
+  .score-num {
+    font-family: 'Consolas', monospace; font-weight: 700;
+    font-size: 1.15rem; color: #e0eaff;
+    min-width: 22px; text-align: center;
+  }
+  .score-label { font-size: 0.75rem; color: #6b7fa0; }
+
   canvas { border-radius: 32px; background: #0a0e1a; box-shadow: 0 0 0 2px #1a2338, 0 30px 50px -20px black; display: block; }
   .game-footer {
     display: flex; justify-content: space-between; align-items: center;
-    width: 900px; margin-top: 14px; font-size: 0.85rem; color: #6b7fa0;
+    width: 900px; margin-top: 12px; font-size: 0.85rem; color: #6b7fa0;
+    gap: 12px;
   }
   kbd {
     background: #1a2238; border-radius: 7px; padding: 3px 10px; color: #b8ceff;
     font-weight: 600; border: 1px solid #33436b; box-shadow: 0 2px 0 #0a0e16; font-family: inherit;
   }
+
+  .footer-btn {
+    background: #1a2235; color: #a8c4ff;
+    border: 1px solid #2e3d5e; padding: 8px 16px;
+    font-size: 0.82rem; border-radius: 12px;
+    box-shadow: 0 3px 0 #0d1220;
+    cursor: pointer;
+    transition: 0.15s;
+  }
+  .footer-btn:hover { background: #222d47; transform: translateY(-1px); }
+  .footer-btn:active { transform: translateY(2px); box-shadow: 0 1px 0 #0d1220; }
+
   .leave-btn {
     background: #2a1a24; color: #ff8aa3; border: 1px solid #5e2e40;
     padding: 8px 20px; font-size: 0.85rem; border-radius: 12px; box-shadow: 0 3px 0 #150a10;
@@ -122,7 +185,6 @@
   .hidden { display: none !important; }
   .error-msg { color: #ff6b8a; font-size: 0.82rem; min-height: 1.2em; }
 
-  /* 音效开关 */
   .sound-toggle {
     display: flex; align-items: center; gap: 8px;
     background: #0a0f1c; padding: 8px 16px; border-radius: 30px;
@@ -195,9 +257,26 @@
         <span class="dot ok" id="gameConnDot"></span>
         <span>房间 <b id="gameRoomCode" style="color:#7da2ff; font-family:Consolas;">------</b></span>
       </div>
+
+      <!-- 计分板 -->
+      <div class="scoreboard" id="scoreboard">
+        <div class="score-item" id="scoreRedItem">
+          <span class="score-swatch score-red"></span>
+          <span class="score-label">红</span>
+          <span class="score-num" id="scoreRed">0</span>
+        </div>
+        <span style="color:#3d4d6e; font-weight:700;">:</span>
+        <div class="score-item" id="scoreBlueItem">
+          <span class="score-num" id="scoreBlue">0</span>
+          <span class="score-label">蓝</span>
+          <span class="score-swatch score-blue"></span>
+        </div>
+      </div>
+
       <div class="badge">
         你是 <span id="myRoleLabel" class="role-red">红方</span>
       </div>
+
       <div class="sound-toggle" id="soundToggle">
         <span class="icon" id="soundIcon">🔊</span>
         <span id="soundLabel">音效开</span>
@@ -207,11 +286,14 @@
     <canvas id="gameCanvas" width="900" height="550"></canvas>
 
     <div class="game-footer">
-      <div style="display:flex; gap:16px;">
+      <div style="display:flex; gap:14px; align-items:center;">
         <span><kbd>W</kbd> <kbd>A</kbd> <kbd>S</kbd> <kbd>D</kbd> 移动</span>
         <span><kbd>空格</kbd> 射击</span>
       </div>
-      <button class="leave-btn" id="leaveBtn">离开房间</button>
+      <div style="display:flex; gap:8px;">
+        <button class="footer-btn" id="fullscreenBtn">⛶ 全屏</button>
+        <button class="leave-btn" id="leaveBtn">离开房间</button>
+      </div>
     </div>
   </div>
 </div>
@@ -219,7 +301,14 @@
 <script src="https://unpkg.com/peerjs@1.5.2/dist/peerjs.min.js"></script>
 <script>
 /* ============================================================
-   房间对战 —— 音效 + 伤害飘字 + 输入修复 + favicon
+   房间对战 —— 完整版
+   功能：
+   - 房间系统（PeerJS）
+   - 矩形碰撞 + 发射者判定
+   - 随机障碍物场景（每局不同）
+   - 计分板（胜利次数）
+   - 音效 + 伤害飘字
+   - 全屏
    ============================================================ */
 
 let peer = null;
@@ -229,23 +318,37 @@ let roomCode = '';
 let myRole = 'red';
 let gameRunning = false;
 let myNickname = '玩家';
+let matchStarting = false;
 
+// 玩家状态
 let redPlayer = { x: 0, y: 0, hp: 100, cooldown: 0 };
 let bluePlayer = { x: 0, y: 0, hp: 100, cooldown: 0 };
+
+// 计分
+let scoreRed = 0;
+let scoreBlue = 0;
+
+// 障碍物（每局随机）
+let obstacles = [];
+
+// 子弹 & 飘字
 let bullets = [];
-let damageTexts = [];   // 伤害飘字数组
+let damageTexts = [];
+
+// 常量
 const W = 900, H = 550;
 const PLAYER_SIZE = 28;
-const BULLET_SIZE = 7;
+const BULLET_SIZE = 8;
 const PLAYER_SPEED = 4.8;
-const BULLET_SPEED = 8.5;
+const BULLET_SPEED = 9;
 const SHOOT_COOLDOWN = 12;
 const DAMAGE_AMOUNT = 14;
-const RED_START = { x: 200, y: H / 2 };
-const BLUE_START = { x: W - 200, y: H / 2 };
+const RED_START = { x: 120, y: H / 2 };
+const BLUE_START = { x: W - 120, y: H / 2 };
 
 const keys = { w: false, a: false, s: false, d: false, space: false };
 
+// DOM
 const lobbyEl = document.getElementById('lobby');
 const waitingEl = document.getElementById('waiting');
 const gameEl = document.getElementById('game');
@@ -260,104 +363,75 @@ const ctx = canvas.getContext('2d');
 const soundToggle = document.getElementById('soundToggle');
 const soundIcon = document.getElementById('soundIcon');
 const soundLabel = document.getElementById('soundLabel');
+const scoreRedEl = document.getElementById('scoreRed');
+const scoreBlueEl = document.getElementById('scoreBlue');
+const scoreRedItem = document.getElementById('scoreRedItem');
+const scoreBlueItem = document.getElementById('scoreBlueItem');
 
 /* ============================================================
-   🎵 音效系统 —— 使用 Web Audio API 合成音效（无需外部文件）
+   🎵 音效
    ============================================================ */
 let audioCtx = null;
 let soundEnabled = true;
 
 function initAudio() {
   if (audioCtx) return;
-  try {
-    audioCtx = new (window.AudioContext || window.webkitAudioContext)();
-  } catch (e) {
-    console.warn('Web Audio 不可用', e);
-  }
+  try { audioCtx = new (window.AudioContext || window.webkitAudioContext)(); } catch(e) {}
 }
 
-// 生成一段音效：type 波形，freq 起始频率，freqEnd 结束频率，duration 时长(秒)，vol 音量
 function playTone(type, freq, freqEnd, duration, vol = 0.15, delay = 0) {
   if (!soundEnabled || !audioCtx) return;
-  const startTime = audioCtx.currentTime + delay;
+  const t = audioCtx.currentTime + delay;
   const osc = audioCtx.createOscillator();
   const gain = audioCtx.createGain();
   osc.type = type;
-  osc.frequency.setValueAtTime(freq, startTime);
-  if (freqEnd && freqEnd !== freq) {
-    osc.frequency.exponentialRampToValueAtTime(freqEnd, startTime + duration);
-  }
-  gain.gain.setValueAtTime(vol, startTime);
-  gain.gain.exponentialRampToValueAtTime(0.0001, startTime + duration);
-  osc.connect(gain);
-  gain.connect(audioCtx.destination);
-  osc.start(startTime);
-  osc.stop(startTime + duration);
+  osc.frequency.setValueAtTime(freq, t);
+  if (freqEnd && freqEnd !== freq) osc.frequency.exponentialRampToValueAtTime(freqEnd, t + duration);
+  gain.gain.setValueAtTime(vol, t);
+  gain.gain.exponentialRampToValueAtTime(0.0001, t + duration);
+  osc.connect(gain); gain.connect(audioCtx.destination);
+  osc.start(t); osc.stop(t + duration);
 }
 
-// 噪声爆破（用于命中/爆炸）
 function playNoise(duration, vol = 0.1, delay = 0) {
   if (!soundEnabled || !audioCtx) return;
-  const startTime = audioCtx.currentTime + delay;
-  const bufferSize = audioCtx.sampleRate * duration;
-  const buffer = audioCtx.createBuffer(1, bufferSize, audioCtx.sampleRate);
-  const data = buffer.getChannelData(0);
-  for (let i = 0; i < bufferSize; i++) {
-    data[i] = (Math.random() * 2 - 1) * (1 - i / bufferSize);
-  }
-  const source = audioCtx.createBufferSource();
-  source.buffer = buffer;
+  const t = audioCtx.currentTime + delay;
+  const size = audioCtx.sampleRate * duration;
+  const buf = audioCtx.createBuffer(1, size, audioCtx.sampleRate);
+  const d = buf.getChannelData(0);
+  for (let i = 0; i < size; i++) d[i] = (Math.random() * 2 - 1) * (1 - i / size);
+  const src = audioCtx.createBufferSource();
+  src.buffer = buf;
   const gain = audioCtx.createGain();
-  gain.gain.setValueAtTime(vol, startTime);
-  gain.gain.exponentialRampToValueAtTime(0.0001, startTime + duration);
+  gain.gain.setValueAtTime(vol, t);
+  gain.gain.exponentialRampToValueAtTime(0.0001, t + duration);
   const filter = audioCtx.createBiquadFilter();
   filter.type = 'lowpass';
   filter.frequency.value = 1200;
-  source.connect(filter);
-  filter.connect(gain);
-  gain.connect(audioCtx.destination);
-  source.start(startTime);
-  source.stop(startTime + duration);
+  src.connect(filter); filter.connect(gain); gain.connect(audioCtx.destination);
+  src.start(t); src.stop(t + duration);
 }
 
-// 音效集合
 const SFX = {
-  shoot() {
-    playTone('square', 880, 220, 0.08, 0.08);
-    playTone('sawtooth', 1200, 400, 0.06, 0.05);
-  },
-  hit() {
-    playTone('square', 200, 60, 0.12, 0.12);
-    playNoise(0.08, 0.08);
-  },
-  hurt() {
-    playTone('sawtooth', 400, 100, 0.18, 0.12);
-    playTone('square', 150, 60, 0.15, 0.08, 0.02);
-  },
+  shoot() { playTone('square', 880, 220, 0.08, 0.07); playTone('sawtooth', 1200, 400, 0.06, 0.04); },
+  hit() { playTone('square', 200, 60, 0.12, 0.11); playNoise(0.08, 0.07); },
+  hurt() { playTone('sawtooth', 400, 100, 0.18, 0.11); playTone('square', 150, 60, 0.15, 0.07, 0.02); },
   win() {
-    // 胜利：上行琶音
-    playTone('triangle', 523, 523, 0.15, 0.12, 0);
-    playTone('triangle', 659, 659, 0.15, 0.12, 0.12);
-    playTone('triangle', 784, 784, 0.15, 0.12, 0.24);
-    playTone('triangle', 1047, 1047, 0.3, 0.14, 0.36);
+    playTone('triangle', 523, 523, 0.15, 0.11, 0);
+    playTone('triangle', 659, 659, 0.15, 0.11, 0.12);
+    playTone('triangle', 784, 784, 0.15, 0.11, 0.24);
+    playTone('triangle', 1047, 1047, 0.3, 0.13, 0.36);
   },
   lose() {
-    // 失败：下行
-    playTone('triangle', 400, 400, 0.2, 0.12, 0);
-    playTone('triangle', 300, 300, 0.2, 0.12, 0.2);
-    playTone('triangle', 200, 200, 0.4, 0.14, 0.4);
+    playTone('triangle', 400, 400, 0.2, 0.11, 0);
+    playTone('triangle', 300, 300, 0.2, 0.11, 0.2);
+    playTone('triangle', 200, 200, 0.4, 0.13, 0.4);
   },
-  start() {
-    // 游戏开始：上行
-    playTone('sine', 440, 880, 0.2, 0.12, 0);
-    playTone('sine', 660, 1320, 0.25, 0.1, 0.15);
-  },
-  reset() {
-    playTone('sine', 600, 300, 0.2, 0.1);
-  }
+  start() { playTone('sine', 440, 880, 0.2, 0.11, 0); playTone('sine', 660, 1320, 0.25, 0.09, 0.15); },
+  reset() { playTone('sine', 600, 300, 0.2, 0.09); },
+  obstacle() { playTone('triangle', 300, 150, 0.1, 0.06); }
 };
 
-// 音效开关
 soundToggle.addEventListener('click', () => {
   soundEnabled = !soundEnabled;
   soundIcon.textContent = soundEnabled ? '🔊' : '🔇';
@@ -374,10 +448,8 @@ function spawnDamageText(x, y, amount, color) {
     y: y - 10,
     text: '-' + amount,
     color: color,
-    life: 60,        // 帧数
-    maxLife: 60,
-    vy: -1.6,
-    vx: (Math.random() * 0.8 - 0.4)
+    life: 60, maxLife: 60,
+    vy: -1.6, vx: (Math.random() * 0.8 - 0.4)
   });
 }
 
@@ -386,7 +458,7 @@ function updateDamageTexts() {
     const dt = damageTexts[i];
     dt.x += dt.vx;
     dt.y += dt.vy;
-    dt.vy *= 0.96;   // 减速
+    dt.vy *= 0.96;
     dt.life--;
     if (dt.life <= 0) damageTexts.splice(i, 1);
   }
@@ -406,6 +478,91 @@ function drawDamageTexts() {
     ctx.fillText(dt.text, dt.x, dt.y);
     ctx.restore();
   }
+}
+
+/* ============================================================
+   🧱 障碍物生成（每局随机）
+   ============================================================ */
+function generateObstacles() {
+  const newObstacles = [];
+  // 尝试生成 5~8 个障碍物
+  const count = 5 + Math.floor(Math.random() * 4);
+  let attempts = 0;
+  const maxAttempts = count * 20;
+
+  // 中间区域留出空隙，避免完全堵死
+  while (newObstacles.length < count && attempts < maxAttempts) {
+    attempts++;
+    const w = 40 + Math.random() * 80;
+    const h = 40 + Math.random() * 80;
+    const x = 100 + Math.random() * (W - 200 - w);
+    const y = 60 + Math.random() * (H - 120 - h);
+
+    const rect = { x, y, w, h };
+
+    // 1. 不与其他障碍物重叠（留 30px 间距）
+    let overlaps = false;
+    for (const o of newObstacles) {
+      if (rect.x < o.x + o.w + 30 && rect.x + rect.w + 30 > o.x &&
+          rect.y < o.y + o.h + 30 && rect.y + rect.h + 30 > o.y) {
+        overlaps = true; break;
+      }
+    }
+    if (overlaps) continue;
+
+    // 2. 不覆盖玩家出生点（留 80px 安全距离）
+    const redStartSafe = { x: RED_START.x - 80, y: RED_START.y - 80, w: 160, h: 160 };
+    const blueStartSafe = { x: BLUE_START.x - 80, y: BLUE_START.y - 80, w: 160, h: 160 };
+    const safeRects = [redStartSafe, blueStartSafe];
+    let coversStart = false;
+    for (const s of safeRects) {
+      if (rect.x < s.x + s.w && rect.x + rect.w > s.x &&
+          rect.y < s.y + s.h && rect.y + rect.h > s.y) {
+        coversStart = true; break;
+      }
+    }
+    if (coversStart) continue;
+
+    // 3. 不阻挡两个出生点之间的直线（简化：中间水平走廊）
+    // 出生点 y 都是 H/2，检查是否完全覆盖水平中线
+    // 如果障碍物横向跨过整个中线并且覆盖 y=H/2 附近，就跳过
+    // 简化处理：检查障碍物是否横跨 x∈[RED_START.x, BLUE_START.x] 且覆盖 y=H/2
+    if (rect.y < H/2 + 20 && rect.y + rect.h > H/2 - 20 &&
+        rect.x < BLUE_START.x && rect.x + rect.w > RED_START.x) {
+      // 允许部分遮挡，但不要完全堵住，检查障碍物高度小于 60 才允许
+      if (rect.h > 60) continue;
+    }
+
+    newObstacles.push(rect);
+  }
+
+  return newObstacles;
+}
+
+// 矩形 - 矩形碰撞
+function rectsOverlap(a, b) {
+  return a.x < b.x + b.w && a.x + a.w > b.x &&
+         a.y < b.y + b.h && a.y + a.h > b.y;
+}
+
+// 玩家（方块）与障碍物碰撞
+function playerHitsObstacle(px, py, obstacles) {
+  const half = PLAYER_SIZE / 2;
+  const pRect = { x: px - half, y: py - half, w: PLAYER_SIZE, h: PLAYER_SIZE };
+  for (const o of obstacles) {
+    if (rectsOverlap(pRect, o)) return true;
+  }
+  return false;
+}
+
+// 子弹与障碍物碰撞（子弹当小方块）
+function bulletHitsObstacle(bullet, obstacles) {
+  const r = BULLET_SIZE / 2;
+  const bRect = { x: bullet.x - r, y: bullet.y - r, w: BULLET_SIZE, h: BULLET_SIZE };
+  for (const o of obstacles) {
+    if (rectsOverlap(bRect, o)) return true;
+  }
+  return false;
 }
 
 /* ============================================================
@@ -442,12 +599,19 @@ function safeSend(data) {
   return false;
 }
 
+function updateScoreboard() {
+  scoreRedEl.textContent = scoreRed;
+  scoreBlueEl.textContent = scoreBlue;
+  scoreRedItem.classList.toggle('winner', scoreRed > scoreBlue);
+  scoreBlueItem.classList.toggle('winner', scoreBlue > scoreRed);
+}
+
 function initPeer(peerId) {
   return new Promise((resolve, reject) => {
     if (peer && !peer.destroyed) { try { peer.destroy(); } catch(e) {} }
     peer = new Peer(peerId, { debug: 1 });
-    const timeout = setTimeout(() => reject(new Error('连接信令服务器超时，请检查网络')), 12000);
-    peer.on('open', (id) => { clearTimeout(timeout); resolve(peer); });
+    const timeout = setTimeout(() => reject(new Error('连接信令服务器超时')), 12000);
+    peer.on('open', () => { clearTimeout(timeout); resolve(peer); });
     peer.on('error', (err) => { clearTimeout(timeout); reject(err); });
   });
 }
@@ -456,7 +620,7 @@ function initPeer(peerId) {
    创建房间
    ============================================================ */
 document.getElementById('createRoomBtn').addEventListener('click', async () => {
-  initAudio();  // 用户手势后初始化音频
+  initAudio();
   clearError();
   myNickname = document.getElementById('nickname').value.trim() || '玩家';
   const btn = document.getElementById('createRoomBtn');
@@ -577,13 +741,15 @@ function handleMessage(data) {
 
     case 'playerReady':
       if (isHost) {
-        safeSend({ type: 'startGame' });
-        startGame();
+        // 房主生成场景，然后发送给加入者
+        startNewRound(true);
       }
       break;
 
-    case 'startGame':
-      startGame();
+    case 'startRound':
+      // 加入者收到本局场景与开始信号
+      obstacles = data.obstacles || [];
+      startRoundLocally(data.role);
       break;
 
     case 'playerUpdate':
@@ -602,25 +768,42 @@ function handleMessage(data) {
       }
       break;
 
+    case 'hit':
+      // 我被打中（对方发射者判定命中，通知我）
+      if (data.targetRole === myRole) {
+        const me = myRole === 'red' ? redPlayer : bluePlayer;
+        me.hp = Math.max(0, me.hp - data.damage);
+        SFX.hurt();
+        spawnDamageText(data.hitX, data.hitY, data.damage, '#ff4d4d');
+
+        // 移除对方那颗子弹（按 id）
+        const idx = bullets.findIndex(b => b.id === data.bulletId);
+        if (idx !== -1) bullets.splice(idx, 1);
+
+        // 血量变化同步给对方
+        safeSend({ type: 'hpUpdate', role: myRole, hp: me.hp });
+
+        if (me.hp <= 0) {
+          // 我死了，等待房主广播回合结束
+          gameRunning = false;
+        }
+      }
+      break;
+
     case 'hpUpdate':
       if (data.role === 'red' && myRole !== 'red') redPlayer.hp = data.hp;
       else if (data.role === 'blue' && myRole !== 'blue') bluePlayer.hp = data.hp;
       break;
 
-    case 'damage':
-      // 对方受伤，播放音效并显示飘字（在对方位置）
-      if (data.role !== myRole) {
-        // 我打中了对方 —— 播放命中音效
-        SFX.hit();
-        // 在对方位置显示飘字
-        const target = data.role === 'red' ? redPlayer : bluePlayer;
-        spawnDamageText(target.x, target.y, DAMAGE_AMOUNT, data.role === 'red' ? '#ff6b8a' : '#6bb8ff');
-      }
+    case 'roundEnd':
+      // 房主广播本局结束
+      handleRoundEnd(data.winner, data.scoreRed, data.scoreBlue);
       break;
 
-    case 'resetGame':
-      SFX.reset();
-      resetGameLocally(false);
+    case 'nextRound':
+      // 房主广播下一局开始（携带新场景）
+      obstacles = data.obstacles || [];
+      startRoundLocally(data.role, false);
       break;
 
     case 'leave':
@@ -630,10 +813,34 @@ function handleMessage(data) {
 }
 
 /* ============================================================
-   开始游戏
+   开始一局（房主调用）
    ============================================================ */
-function startGame() {
-  if (gameRunning) return;
+function startNewRound(isHost) {
+  if (!isHost) return;
+  if (matchStarting) return;
+  matchStarting = true;
+
+  // 生成随机障碍物
+  const newObstacles = generateObstacles();
+
+  // 广播给加入者
+  safeSend({
+    type: 'startRound',
+    obstacles: newObstacles,
+    role: 'blue'  // 告诉加入者其角色
+  });
+
+  // 房主本地开始
+  obstacles = newObstacles;
+  startRoundLocally('red');
+  matchStarting = false;
+}
+
+/* ============================================================
+   本地开始一局
+   ============================================================ */
+function startRoundLocally(role, isFirst = true) {
+  myRole = role;
   gameRunning = true;
 
   redPlayer = { x: RED_START.x, y: RED_START.y, hp: 100, cooldown: 0 };
@@ -646,6 +853,7 @@ function startGame() {
   myRoleLabel.className = myRole === 'red' ? 'role-red' : 'role-blue';
   switchView('game');
   setStatus('对战中', 'ok');
+  updateScoreboard();
 
   SFX.start();
   broadcastPlayerState();
@@ -656,6 +864,42 @@ function startGame() {
   }
 }
 
+/* ============================================================
+   一局结束处理
+   ============================================================ */
+function handleRoundEnd(winner, sRed, sBlue) {
+  gameRunning = false;
+  scoreRed = sRed;
+  scoreBlue = sBlue;
+  updateScoreboard();
+
+  // 音效
+  if (winner === myRole) SFX.win();
+  else SFX.lose();
+
+  // 房主负责在 2 秒后开始下一局
+  if (isHost) {
+    setTimeout(() => {
+      startNextRoundHost();
+    }, 2000);
+  }
+}
+
+function startNextRoundHost() {
+  if (!isHost) return;
+  const newObstacles = generateObstacles();
+  safeSend({
+    type: 'nextRound',
+    obstacles: newObstacles,
+    role: 'blue'
+  });
+  obstacles = newObstacles;
+  startRoundLocally('red', false);
+}
+
+/* ============================================================
+   广播
+   ============================================================ */
 function broadcastPlayerState() {
   const p = myRole === 'red' ? redPlayer : bluePlayer;
   safeSend({ type: 'playerUpdate', role: myRole, x: p.x, y: p.y, hp: p.hp });
@@ -663,11 +907,6 @@ function broadcastPlayerState() {
 
 function broadcastBullet(bullet) {
   safeSend({ type: 'bulletSpawn', bullet: bullet });
-}
-
-function broadcastHp() {
-  const p = myRole === 'red' ? redPlayer : bluePlayer;
-  safeSend({ type: 'hpUpdate', role: myRole, hp: p.hp });
 }
 
 /* ============================================================
@@ -679,6 +918,7 @@ function update() {
   const localPlayer = myRole === 'red' ? redPlayer : bluePlayer;
   const opponentPlayer = myRole === 'red' ? bluePlayer : redPlayer;
 
+  // ---------- 移动 ----------
   let dx = 0, dy = 0;
   if (keys.w) dy -= 1;
   if (keys.s) dy += 1;
@@ -689,18 +929,36 @@ function update() {
     const len = Math.hypot(dx, dy);
     dx = dx / len * PLAYER_SPEED;
     dy = dy / len * PLAYER_SPEED;
-    localPlayer.x = Math.min(Math.max(localPlayer.x + dx, PLAYER_SIZE/2 + 4), W - PLAYER_SIZE/2 - 4);
-    localPlayer.y = Math.min(Math.max(localPlayer.y + dy, PLAYER_SIZE/2 + 4), H - PLAYER_SIZE/2 - 4);
+
+    // 分轴移动，撞墙时单独处理每一轴，避免卡死
+    const tryX = localPlayer.x + dx;
+    const tryY = localPlayer.y + dy;
+
+    // X 轴
+    const clampedX = Math.min(Math.max(tryX, PLAYER_SIZE/2 + 4), W - PLAYER_SIZE/2 - 4);
+    if (!playerHitsObstacle(clampedX, localPlayer.y, obstacles)) {
+      localPlayer.x = clampedX;
+    }
+
+    // Y 轴
+    const clampedY = Math.min(Math.max(tryY, PLAYER_SIZE/2 + 4), H - PLAYER_SIZE/2 - 4);
+    if (!playerHitsObstacle(localPlayer.x, clampedY, obstacles)) {
+      localPlayer.y = clampedY;
+    }
+
     broadcastPlayerState();
   }
 
+  // ---------- 射击 ----------
   if (keys.space && localPlayer.cooldown <= 0) {
     const bullet = {
-      x: localPlayer.x, y: localPlayer.y,
+      id: Date.now() + '-' + Math.random().toString(36).substr(2, 6),
+      x: localPlayer.x,
+      y: localPlayer.y,
       vx: 0, vy: 0,
       owner: myRole,
       size: BULLET_SIZE,
-      life: 120
+      life: 150
     };
     const angle = Math.atan2(opponentPlayer.y - localPlayer.y, opponentPlayer.x - localPlayer.x);
     bullet.vx = Math.cos(angle) * BULLET_SPEED;
@@ -714,47 +972,61 @@ function update() {
   if (redPlayer.cooldown > 0) redPlayer.cooldown--;
   if (bluePlayer.cooldown > 0) bluePlayer.cooldown--;
 
-  // 子弹更新 & 碰撞
+  // ---------- 子弹更新 ----------
   for (let i = bullets.length - 1; i >= 0; i--) {
     const b = bullets[i];
+    const prevX = b.x, prevY = b.y;
     b.x += b.vx;
     b.y += b.vy;
     b.life--;
 
+    // 边界
     if (b.x < -30 || b.x > W + 30 || b.y < -30 || b.y > H + 30 || b.life <= 0) {
       bullets.splice(i, 1);
       continue;
     }
 
-    const hitRadius = PLAYER_SIZE / 2 + BULLET_SIZE / 2;
-    if (b.owner !== myRole) {
-      if (Math.hypot(b.x - localPlayer.x, b.y - localPlayer.y) < hitRadius) {
-        // 我被打中
-        localPlayer.hp = Math.max(0, localPlayer.hp - DAMAGE_AMOUNT);
-        broadcastHp();
-        // 本地受伤音效 + 飘字
-        SFX.hurt();
-        spawnDamageText(localPlayer.x, localPlayer.y, DAMAGE_AMOUNT, '#ff4d4d');
+    // 障碍物碰撞（任何子弹都会被阻挡）
+    if (bulletHitsObstacle(b, obstacles)) {
+      // 打中障碍物的小特效
+      spawnDamageText(b.x, b.y, '✕', '#8899bb');
+      SFX.obstacle();
+      bullets.splice(i, 1);
+      continue;
+    }
+
+    // ---------- 命中判定（只有发射者判定） ----------
+    if (b.owner === myRole) {
+      const targetRole = myRole === 'red' ? 'blue' : 'red';
+      const target = targetRole === 'red' ? redPlayer : bluePlayer;
+
+      // 线段 - 矩形连续检测
+      if (segmentHitsPlayer(prevX, prevY, b.x, b.y, target)) {
+        // 广播命中
+        safeSend({
+          type: 'hit',
+          bulletId: b.id,
+          targetRole: targetRole,
+          damage: DAMAGE_AMOUNT,
+          hitX: b.x,
+          hitY: b.y
+        });
+
+        // 本地表现
+        SFX.hit();
+        spawnDamageText(b.x, b.y, DAMAGE_AMOUNT,
+          targetRole === 'red' ? '#ff6b8a' : '#6bb8ff');
+
+        // 本地立即扣对方血（视觉即时）
+        target.hp = Math.max(0, target.hp - DAMAGE_AMOUNT);
+
+        // 移除子弹
         bullets.splice(i, 1);
 
-        // 通知对方：他打中了我（用于对方播放命中音效和飘字）
-        safeSend({ type: 'damage', role: myRole });
-
-        if (localPlayer.hp <= 0) {
-          gameRunning = false;
-          // 判断胜负并播放音效
-          if (myRole === 'red') {
-            // 我是红方，我死了 -> 我输
-            SFX.lose();
-          } else {
-            SFX.win();
-          }
-          setTimeout(() => {
-            safeSend({ type: 'resetGame' });
-            resetGameLocally(false);
-            gameRunning = true;
-            SFX.reset();
-          }, 1000);
+        // 检查是否死亡
+        if (target.hp <= 0) {
+          // 本局结束，我赢了
+          handleLocalWin(targetRole);
         }
       }
     }
@@ -763,8 +1035,71 @@ function update() {
   updateDamageTexts();
 }
 
+/* 本局分出胜负 */
+function handleLocalWin(deadRole) {
+  gameRunning = false;
+
+  // 更新分数
+  if (deadRole === 'red') {
+    // 红方死了，蓝方赢
+    scoreBlue++;
+  } else {
+    scoreRed++;
+  }
+  updateScoreboard();
+
+  // 广播本局结束（由发射者/胜者广播，避免重复）
+  safeSend({
+    type: 'roundEnd',
+    winner: myRole,
+    scoreRed: scoreRed,
+    scoreBlue: scoreBlue
+  });
+
+  // 播放胜利音效
+  SFX.win();
+
+  // 房主安排下一局
+  if (isHost) {
+    setTimeout(() => startNextRoundHost(), 2000);
+  }
+}
+
+/* 线段与玩家方块（AABB）连续碰撞 */
+function segmentHitsPlayer(x1, y1, x2, y2, player) {
+  const half = PLAYER_SIZE / 2;
+  const r = BULLET_SIZE / 2;
+  const rect = {
+    x1: player.x - half - r,
+    x2: player.x + half + r,
+    y1: player.y - half - r,
+    y2: player.y + half + r
+  };
+  const dist = Math.hypot(x2 - x1, y2 - y1);
+  const steps = Math.max(2, Math.ceil(dist / 3));
+  for (let i = 0; i <= steps; i++) {
+    const t = i / steps;
+    const px = x1 + (x2 - x1) * t;
+    const py = y1 + (y2 - y1) * t;
+    if (px > rect.x1 && px < rect.x2 && py > rect.y1 && py < rect.y2) {
+      return true;
+    }
+  }
+  return false;
+}
+
+/* ============================================================
+   绘制
+   ============================================================ */
 function draw() {
   ctx.clearRect(0, 0, W, H);
+
+  // 背景
+  const grad = ctx.createRadialGradient(W/2, H/2, 100, W/2, H/2, 700);
+  grad.addColorStop(0, '#0e1424');
+  grad.addColorStop(1, '#080b16');
+  ctx.fillStyle = grad;
+  ctx.fillRect(0, 0, W, H);
 
   // 网格
   ctx.strokeStyle = '#141a2a';
@@ -776,10 +1111,34 @@ function draw() {
     ctx.beginPath(); ctx.moveTo(0, i); ctx.lineTo(W, i); ctx.stroke();
   }
 
+  // 障碍物
+  for (const o of obstacles) {
+    // 阴影
+    ctx.shadowColor = 'rgba(0,0,0,0.5)';
+    ctx.shadowBlur = 12;
+    ctx.shadowOffsetY = 4;
+    // 主体
+    ctx.fillStyle = '#1e2a44';
+    ctx.beginPath();
+    ctx.roundRect(o.x, o.y, o.w, o.h, 8);
+    ctx.fill();
+    ctx.shadowBlur = 0;
+    ctx.shadowOffsetY = 0;
+    // 边框
+    ctx.strokeStyle = '#3a4d75';
+    ctx.lineWidth = 2;
+    ctx.stroke();
+    // 顶部高光
+    ctx.fillStyle = 'rgba(120,160,255,0.08)';
+    ctx.beginPath();
+    ctx.roundRect(o.x + 3, o.y + 3, o.w - 6, 6, 4);
+    ctx.fill();
+  }
+
   // 子弹
   for (const b of bullets) {
     ctx.beginPath();
-    ctx.arc(b.x, b.y, BULLET_SIZE * 0.8, 0, Math.PI * 2);
+    ctx.arc(b.x, b.y, BULLET_SIZE * 0.7, 0, Math.PI * 2);
     ctx.fillStyle = b.owner === 'red' ? '#ff4d6d' : '#4da6ff';
     ctx.shadowColor = b.owner === 'red' ? '#ff4d6d' : '#4da6ff';
     ctx.shadowBlur = 16;
@@ -787,16 +1146,18 @@ function draw() {
     ctx.shadowBlur = 0;
   }
 
+  // 玩家
   drawPlayer(redPlayer, '#ff4d6d', '#2e1a1f', 'P1');
   drawPlayer(bluePlayer, '#4da6ff', '#1a2a3a', 'P2');
 
   // 伤害飘字
   drawDamageTexts();
 
-  // 状态提示
+  // 顶部提示
   ctx.font = '14px "Segoe UI"';
   ctx.fillStyle = '#6b7fa0';
   ctx.fillText(`你是: ${myRole === 'red' ? '红方 (P1)' : '蓝方 (P2)'}`, 30, 40);
+  ctx.fillText(`比分 红 ${scoreRed} : ${scoreBlue} 蓝`, 30, 62);
 
   if (redPlayer.hp <= 0) {
     ctx.font = 'bold 42px "Segoe UI"'; ctx.fillStyle = '#ff4d6daa';
@@ -816,10 +1177,12 @@ function drawPlayer(p, color, bgColor, label) {
   ctx.roundRect(p.x - PLAYER_SIZE/2, p.y - PLAYER_SIZE/2, PLAYER_SIZE, PLAYER_SIZE, 8);
   ctx.fill();
   ctx.shadowBlur = 0;
+  // 血条
   ctx.fillStyle = bgColor;
   ctx.fillRect(p.x - 24, p.y - PLAYER_SIZE/2 - 16, 48, 8);
   ctx.fillStyle = color;
   ctx.fillRect(p.x - 24, p.y - PLAYER_SIZE/2 - 16, 48 * (p.hp / 100), 8);
+  // 标签
   ctx.font = 'bold 12px "Segoe UI"';
   ctx.fillStyle = color;
   ctx.fillText(label, p.x - 10, p.y - 34);
@@ -830,21 +1193,13 @@ function gameLoop() {
     update();
     draw();
   } else {
-    // 即使不在游戏中，也清空画布（避免残留）
-    ctx.clearRect(0, 0, W, H);
+    // 即使停止，也重绘一次，保持画面
+    draw();
   }
   requestAnimationFrame(gameLoop);
 }
 
-function resetGameLocally(broadcast = true) {
-  redPlayer = { x: RED_START.x, y: RED_START.y, hp: 100, cooldown: 0 };
-  bluePlayer = { x: BLUE_START.x, y: BLUE_START.y, hp: 100, cooldown: 0 };
-  bullets = [];
-  damageTexts = [];
-  if (broadcast) safeSend({ type: 'resetGame' });
-  broadcastPlayerState();
-}
-
+/* roundRect polyfill */
 if (!CanvasRenderingContext2D.prototype.roundRect) {
   CanvasRenderingContext2D.prototype.roundRect = function(x, y, w, h, r) {
     if (w < 2 * r) r = w / 2;
@@ -863,7 +1218,7 @@ if (!CanvasRenderingContext2D.prototype.roundRect) {
 }
 
 /* ============================================================
-   离开房间
+   离开 / 全屏
    ============================================================ */
 function cleanupAndReturnToLobby() {
   gameRunning = false;
@@ -876,8 +1231,10 @@ function cleanupAndReturnToLobby() {
   peer = null;
   bullets = [];
   damageTexts = [];
+  obstacles = [];
   isHost = false;
   roomCode = '';
+  matchStarting = false;
   switchView('lobby');
   setStatus('已返回大厅', '');
   document.getElementById('createRoomBtn').disabled = false;
@@ -904,13 +1261,31 @@ document.getElementById('copyCodeBtn').addEventListener('click', () => {
   });
 });
 
+// 全屏
+document.getElementById('fullscreenBtn').addEventListener('click', () => {
+  const docEl = document.documentElement;
+  if (!document.fullscreenElement) {
+    if (docEl.requestFullscreen) docEl.requestFullscreen();
+    else if (docEl.webkitRequestFullscreen) docEl.webkitRequestFullscreen();
+    else if (docEl.msRequestFullscreen) docEl.msRequestFullscreen();
+    document.getElementById('fullscreenBtn').textContent = '⛶ 退出全屏';
+  } else {
+    if (document.exitFullscreen) document.exitFullscreen();
+    else if (document.webkitExitFullscreen) document.webkitExitFullscreen();
+    document.getElementById('fullscreenBtn').textContent = '⛶ 全屏';
+  }
+});
+
+document.addEventListener('fullscreenchange', () => {
+  document.getElementById('fullscreenBtn').textContent =
+    document.fullscreenElement ? '⛶ 退出全屏' : '⛶ 全屏';
+});
+
 /* ============================================================
-   ⌨️ 键盘处理 —— 关键修复：只在对战中拦截按键
+   键盘
    ============================================================ */
 window.addEventListener('keydown', (e) => {
-  // 🚨 修复：如果不在游戏中，不拦截任何按键！让用户能正常输入
   if (!gameRunning) return;
-
   const k = e.key.toLowerCase();
   if (['w','a','s','d'].includes(k)) { keys[k] = true; e.preventDefault(); }
   if (k === ' ' || k === 'space') { keys.space = true; e.preventDefault(); }
@@ -918,19 +1293,17 @@ window.addEventListener('keydown', (e) => {
 
 window.addEventListener('keyup', (e) => {
   if (!gameRunning) return;
-
   const k = e.key.toLowerCase();
   if (['w','a','s','d'].includes(k)) { keys[k] = false; e.preventDefault(); }
   if (k === ' ' || k === 'space') { keys.space = false; e.preventDefault(); }
 });
 
-// 额外保险：当窗口失去焦点时，重置所有按键状态，避免"卡键"
 window.addEventListener('blur', () => {
   keys.w = keys.a = keys.s = keys.d = keys.space = false;
 });
 
-// 准备就绪
 setStatus('准备就绪，创建或加入房间', '');
+updateScoreboard();
 </script>
 </body>
 </html>
