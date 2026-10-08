@@ -276,4 +276,329 @@ button {
 .setting-item {
   display: flex; align-items: center; justify-content: space-between;
   padding: 14px 16px; background: #0a0f1c;
-  border: 1px solid #1e2a44; border-radius: 12px; margin-bottom: 8px
+  border: 1px solid #1e2a44; border-radius: 12px; margin-bottom: 8px;
+}
+.setting-info { display: flex; flex-direction: column; gap: 2px; }
+.setting-title { font-size: 0.88rem; color: #cdd9f0; font-weight: 600; }
+.setting-desc { font-size: 0.72rem; color: #6b7fa0; }
+.toggle-switch {
+  width: 46px; height: 26px; background: #1a2238;
+  border-radius: 14px; position: relative; cursor: pointer;
+  transition: 0.2s; border: 1px solid #2e3d5e; flex-shrink: 0;
+}
+.toggle-switch::after {
+  content: ''; position: absolute; top: 2px; left: 2px;
+  width: 18px; height: 18px; background: #6b7fa0;
+  border-radius: 50%; transition: 0.2s;
+}
+.toggle-switch.on {
+  background: linear-gradient(135deg, #3d6bff, #5a4dff);
+  border-color: #5a8aff;
+}
+.toggle-switch.on::after { left: 24px; background: #fff; box-shadow: 0 0 8px rgba(120,160,255,0.6); }
+
+/* 等待房间 */
+#waiting {
+  background: rgba(18, 24, 40, 0.85);
+  backdrop-filter: blur(12px);
+  border-radius: 32px; padding: 40px 48px;
+  box-shadow: 0 30px 60px -10px rgba(0,0,0,0.8), inset 0 1px 2px rgba(120,160,255,0.15);
+  border: 1px solid rgba(90, 130, 220, 0.2);
+  text-align: center; min-width: 480px;
+  max-height: 90vh; overflow-y: auto;
+}
+.room-code-display {
+  background: #0a0f1c; border: 1px dashed #3d6bff; border-radius: 16px;
+  padding: 20px; text-align: center; margin-top: 20px;
+}
+.room-code-display .code {
+  font-family: 'Consolas', monospace; font-size: 2.4rem; font-weight: 700;
+  color: #7da2ff; letter-spacing: 8px; text-shadow: 0 0 24px rgba(125,162,255,0.6);
+}
+.room-code-display .hint { font-size: 0.78rem; color: #5d7099; margin-top: 8px; }
+
+/* 游戏界面 */
+#game { display: none; flex-direction: column; align-items: center; position: relative; }
+.game-header {
+  display: flex; justify-content: space-between; align-items: center;
+  width: 1200px; max-width: 100vw; margin-bottom: 10px; gap: 10px;
+  flex-wrap: wrap;
+}
+.badge {
+  display: flex; align-items: center; gap: 10px;
+  background: #0d1424; padding: 8px 16px; border-radius: 30px;
+  border: 1px solid #253253; font-size: 0.85rem; white-space: nowrap;
+}
+.badge .role-red { color: #ff6b8a; font-weight: 700; }
+.badge .role-blue { color: #6bb8ff; font-weight: 700; }
+
+/* 等级条 */
+.xp-bar {
+  width: 60px; height: 6px; background: #1a2238;
+  border-radius: 3px; overflow: hidden; margin-left: 6px;
+}
+.xp-fill {
+  height: 100%; width: 0%;
+  background: linear-gradient(90deg, #ffd24d, #ffaa4d);
+  transition: width 0.3s;
+  box-shadow: 0 0 8px #ffd24d;
+}
+
+.scoreboard {
+  display: flex; align-items: center; gap: 8px;
+  background: linear-gradient(135deg, #0f1524, #161d2f);
+  padding: 8px 20px; border-radius: 30px;
+  border: 1px solid #253253; font-size: 0.88rem;
+}
+.score-item { display: flex; align-items: center; gap: 8px; padding: 4px 10px; border-radius: 20px; transition: all 0.3s; }
+.score-item.winner { background: rgba(78, 255, 139, 0.12); box-shadow: 0 0 12px rgba(78,255,139,0.2); }
+.score-swatch { width: 12px; height: 12px; border-radius: 4px; }
+.score-red { background: #ff4d6d; box-shadow: 0 0 8px #ff4d6d; }
+.score-blue { background: #4da6ff; box-shadow: 0 0 8px #4da6ff; }
+.score-num { font-family: 'Consolas', monospace; font-weight: 700; font-size: 1.1rem; color: #e0eaff; min-width: 22px; text-align: center; }
+.score-label { font-size: 0.75rem; color: #6b7fa0; }
+
+canvas#gameCanvas {
+  border-radius: 28px;
+  background: #0a0e1a;
+  box-shadow: 0 0 0 2px #1a2338, 0 30px 50px -20px black;
+  display: block;
+  transition: filter 0.3s;
+  max-width: 100vw;
+}
+canvas#gameCanvas.slowmo { filter: saturate(1.4) brightness(1.1); }
+canvas#gameCanvas.aim-mode { cursor: crosshair; }
+
+/* 小地图 */
+canvas#minimap {
+  position: absolute;
+  top: 70px; right: 20px;
+  background: rgba(10, 15, 28, 0.85);
+  border: 1px solid #253253;
+  border-radius: 12px;
+  box-shadow: 0 8px 24px rgba(0,0,0,0.6);
+  z-index: 100;
+  display: none;
+}
+canvas#minimap.visible { display: block; }
+
+.game-footer {
+  display: flex; justify-content: space-between; align-items: center;
+  width: 1200px; max-width: 100vw; margin-top: 10px;
+  font-size: 0.85rem; color: #6b7fa0; gap: 12px; flex-wrap: wrap;
+}
+kbd {
+  background: #1a2238; border-radius: 7px; padding: 3px 10px; color: #b8ceff;
+  font-weight: 600; border: 1px solid #33436b; box-shadow: 0 2px 0 #0a0e16; font-family: inherit;
+}
+.footer-btn {
+  background: #1a2235; color: #a8c4ff; border: 1px solid #2e3d5e;
+  padding: 8px 16px; font-size: 0.82rem; border-radius: 12px;
+  box-shadow: 0 3px 0 #0d1220; cursor: pointer; transition: 0.15s;
+}
+.footer-btn:hover { background: #222d47; transform: translateY(-1px); }
+.footer-btn:active { transform: translateY(2px); box-shadow: 0 1px 0 #0d1220; }
+.leave-btn {
+  background: #2a1a24; color: #ff8aa3; border: 1px solid #5e2e40;
+  padding: 8px 20px; font-size: 0.85rem; border-radius: 12px; box-shadow: 0 3px 0 #150a10;
+}
+.leave-btn:hover { background: #3a2430; }
+
+.hidden { display: none !important; }
+
+/* 技能栏 */
+.skill-bar {
+  display: flex; gap: 8px;
+  background: #0a0f1c; padding: 6px 10px; border-radius: 16px;
+  border: 1px solid #1e2a44;
+}
+.skill-slot {
+  width: 48px; height: 48px;
+  background: #131a2c; border-radius: 12px;
+  border: 2px solid #2a3650;
+  display: flex; flex-direction: column;
+  align-items: center; justify-content: center;
+  font-size: 0.6rem; color: #6b7fa0;
+  position: relative; overflow: hidden;
+}
+.skill-slot .sk-icon { font-size: 1.2rem; }
+.skill-slot .sk-key {
+  position: absolute; top: 2px; right: 4px;
+  font-size: 0.6rem; color: #7da2ff; font-family: 'Consolas', monospace;
+}
+.skill-slot.ready { border-color: #4d7dff; box-shadow: 0 0 12px rgba(77,125,255,0.3); }
+.skill-slot.cooling { opacity: 0.5; }
+.skill-slot .cd-overlay {
+  position: absolute; bottom: 0; left: 0; right: 0;
+  background: rgba(0,0,0,0.6); height: 0%;
+}
+.skill-slot .cd-text {
+  position: absolute; bottom: 2px;
+  font-size: 0.7rem; color: #b8ceff; font-weight: 700;
+  font-family: 'Consolas', monospace;
+}
+
+.weapon-badge {
+  display: flex; align-items: center; gap: 6px;
+  background: #0a0f1c; padding: 8px 14px; border-radius: 30px;
+  border: 1px solid #1e2a44; font-size: 0.82rem; color: #b8ceff;
+}
+.weapon-badge .w-icon { font-size: 1.1rem; }
+.weapon-badge .w-ammo { color: #ffd24d; font-family: 'Consolas', monospace; font-weight: 700; }
+
+.buff-timer { display: flex; gap: 6px; font-size: 0.75rem; }
+.buff-pill {
+  padding: 3px 10px; border-radius: 12px;
+  background: #1a2a5e; color: #a8c4ff;
+  font-family: 'Consolas', monospace; font-weight: 700;
+}
+.buff-pill.speed { background: #0e2a3e; color: #4dd4ff; }
+.buff-pill.invisible { background: #2a0e3e; color: #d44dff; }
+.buff-pill.double { background: #3e2a0e; color: #ffd24d; }
+
+.theme-badge {
+  display: flex; align-items: center; gap: 6px;
+  background: #0a0f1c; padding: 8px 14px; border-radius: 30px;
+  border: 1px solid #1e2a44; font-size: 0.82rem; color: #8fa4cc;
+}
+.aim-indicator {
+  display: flex; align-items: center; gap: 6px;
+  background: #0a0f1c; padding: 6px 12px; border-radius: 20px;
+  border: 1px solid #1e2a44; font-size: 0.75rem; color: #8fa4cc;
+}
+.aim-indicator.auto { border-color: #4d7dff; color: #a8c4ff; }
+.aim-indicator.manual { border-color: #ffaa4d; color: #ffd24d; }
+
+/* 聊天 */
+.chat-panel {
+  position: fixed; bottom: 120px; left: 50%; transform: translateX(-50%);
+  background: rgba(10, 15, 28, 0.98); border: 1px solid #2e3d5e;
+  border-radius: 16px; padding: 12px; z-index: 300;
+  display: none; gap: 8px; flex-direction: column;
+  box-shadow: 0 10px 40px rgba(0,0,0,0.7); min-width: 260px;
+}
+.chat-panel.visible { display: flex; }
+.chat-panel .chat-title {
+  font-size: 0.78rem; color: #7da2ff; font-weight: 600;
+  text-align: center; margin-bottom: 4px;
+}
+.chat-option {
+  background: #1a2235; color: #cdd9f0;
+  border: 1px solid #2e3d5e; border-radius: 10px;
+  padding: 8px 14px; cursor: pointer;
+  font-size: 0.85rem; transition: 0.15s;
+  display: flex; justify-content: space-between; align-items: center;
+}
+.chat-option:hover { background: #222d47; border-color: #4d7dff; }
+.chat-option .chat-key {
+  font-family: 'Consolas', monospace; font-size: 0.7rem;
+  color: #7da2ff; padding: 1px 6px; background: #0a0f1c; border-radius: 6px;
+}
+.chat-messages {
+  position: fixed; top: 90px; left: 50%; transform: translateX(-50%);
+  display: flex; flex-direction: column; gap: 6px;
+  z-index: 250; pointer-events: none; align-items: center;
+}
+.chat-bubble {
+  background: rgba(10, 15, 28, 0.9); border: 1px solid #2e3d5e;
+  border-radius: 20px; padding: 6px 16px; font-size: 0.88rem;
+  color: #cdd9f0; animation: chatPop 0.3s ease-out; max-width: 400px;
+}
+.chat-bubble.mine { border-color: #4d7dff; color: #a8c4ff; }
+.chat-bubble .sender { color: #7da2ff; font-weight: 600; margin-right: 6px; }
+@keyframes chatPop {
+  0% { transform: translateY(-20px); opacity: 0; }
+  100% { transform: translateY(0); opacity: 1; }
+}
+
+/* 击杀播报 */
+.kill-feed {
+  position: fixed; top: 120px; right: 20px;
+  display: flex; flex-direction: column; gap: 6px;
+  z-index: 260; pointer-events: none;
+}
+.kill-entry {
+  background: rgba(10, 15, 28, 0.92);
+  border-left: 4px solid #ff4d6d;
+  border-radius: 8px; padding: 8px 14px;
+  font-size: 0.82rem; color: #cdd9f0;
+  animation: slideInRight 0.3s ease-out;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.5);
+}
+.kill-entry .killer { color: #4eff8b; font-weight: 700; }
+.kill-entry .victim { color: #ff6b8a; font-weight: 700; }
+.kill-entry .weapon-icon { margin: 0 6px; font-size: 1rem; }
+@keyframes slideInRight {
+  from { opacity: 0; transform: translateX(40px); }
+  to { opacity: 1; transform: translateX(0); }
+}
+
+/* 升级三选一 */
+.upgrade-panel {
+  position: fixed; inset: 0; z-index: 400;
+  display: none; align-items: center; justify-content: center;
+  background: rgba(5, 8, 16, 0.75); backdrop-filter: blur(8px);
+}
+.upgrade-panel.visible { display: flex; flex-direction: column; gap: 24px; }
+.upgrade-title {
+  font-size: 1.8rem; color: #ffd24d;
+  text-shadow: 0 0 30px #ffd24d; font-weight: 800;
+  letter-spacing: 2px; animation: pulse 1.5s infinite;
+}
+@keyframes pulse {
+  0%, 100% { transform: scale(1); }
+  50% { transform: scale(1.05); }
+}
+.upgrade-options { display: flex; gap: 18px; flex-wrap: wrap; justify-content: center; }
+.upgrade-card {
+  width: 220px; padding: 24px 18px; border-radius: 18px;
+  background: linear-gradient(160deg, #1a2a5e, #0f1830);
+  border: 2px solid #3d6bff; cursor: pointer;
+  display: flex; flex-direction: column; align-items: center; gap: 10px;
+  transition: 0.2s; text-align: center;
+}
+.upgrade-card:hover {
+  transform: translateY(-6px); border-color: #7da2ff;
+  box-shadow: 0 12px 32px rgba(77,125,255,0.5);
+}
+.upgrade-card .u-icon { font-size: 2.4rem; }
+.upgrade-card .u-name { font-size: 1rem; font-weight: 700; color: #e8eeff; }
+.upgrade-card .u-desc { font-size: 0.78rem; color: #8fa4cc; line-height: 1.4; }
+
+/* 慢动作 & Round 横幅 */
+.slowmo-overlay {
+  position: fixed; inset: 0; pointer-events: none;
+  background: radial-gradient(circle at center, transparent 30%, rgba(0,0,0,0.6) 100%);
+  opacity: 0; transition: opacity 0.2s; z-index: 150;
+}
+.slowmo-overlay.active { opacity: 1; }
+.slowmo-text {
+  position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%);
+  font-size: 3rem; font-weight: 900; color: #ff4d6d;
+  text-shadow: 0 0 30px #ff4d6d, 0 0 60px #ff4d6d;
+  z-index: 160; pointer-events: none; opacity: 0; transition: opacity 0.2s;
+  letter-spacing: 4px;
+}
+.slowmo-text.active { opacity: 1; }
+
+.round-banner {
+  position: fixed; top: 50%; left: 50%;
+  transform: translate(-50%, -50%) scale(0.6);
+  font-size: 6rem; font-weight: 900; letter-spacing: 8px;
+  color: #fff; text-shadow: 0 0 40px #4d7dff, 0 0 80px #4d7dff;
+  opacity: 0; transition: 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
+  z-index: 500; pointer-events: none;
+}
+.round-banner.show { opacity: 1; transform: translate(-50%, -50%) scale(1); }
+
+/* 低血量红晕 */
+.low-hp-vignette {
+  position: fixed; inset: 0; pointer-events: none; z-index: 140;
+  background: radial-gradient(circle at center, transparent 40%, rgba(255, 0, 40, 0.35) 100%);
+  opacity: 0; transition: opacity 0.3s;
+}
+.low-hp-vignette.active { opacity: 1; animation: heartbeat 0.8s infinite; }
+@keyframes heartbeat {
+  0%, 100% { opacity: 0.5; }
+  50% { opacity: 0.9; }
+}
