@@ -9,18 +9,31 @@
 <style>
   * { box-sizing: border-box; user-select: none; }
 
-  ::-webkit-scrollbar { width: 10px; height: 10px; }
-  ::-webkit-scrollbar-track { background: transparent; border-radius: 10px; }
+  /* ============ 更精致的滚动条 ============ */
+  ::-webkit-scrollbar { width: 8px; height: 8px; }
+  ::-webkit-scrollbar-track {
+    background: transparent;
+    margin: 6px 0;
+  }
   ::-webkit-scrollbar-thumb {
-    background: linear-gradient(180deg, #2a3650, #1a2238);
-    border-radius: 10px; border: 2px solid transparent; background-clip: padding-box;
+    background: rgba(90, 130, 220, 0.35);
+    border-radius: 10px;
+    border: 2px solid transparent;
+    background-clip: padding-box;
+    transition: background 0.2s;
   }
   ::-webkit-scrollbar-thumb:hover {
-    background: linear-gradient(180deg, #4d7dff, #3d5bff);
-    background-clip: padding-box; border: 2px solid transparent;
+    background: rgba(120, 160, 255, 0.7);
+    background-clip: padding-box;
+    border: 2px solid transparent;
+  }
+  ::-webkit-scrollbar-thumb:active {
+    background: rgba(140, 180, 255, 0.9);
+    background-clip: padding-box;
+    border: 2px solid transparent;
   }
   ::-webkit-scrollbar-corner { background: transparent; }
-  * { scrollbar-width: thin; scrollbar-color: #2a3650 transparent; }
+  * { scrollbar-width: thin; scrollbar-color: rgba(90, 130, 220, 0.35) transparent; }
 
   body {
     margin: 0; min-height: 100vh;
@@ -30,22 +43,34 @@
     padding: 16px; color: #cdd9f0;
     overflow: hidden;
   }
+  /* 外框（滚动容器） */
+  .app-scroll {
+    max-height: 98vh;
+    border-radius: 40px;
+    padding: 4px;
+    background: rgba(18, 24, 40, 0.6);
+    box-shadow: 0 30px 60px -10px rgba(0,0,0,0.8), inset 0 1px 2px rgba(120,160,255,0.15);
+    border: 1px solid rgba(90, 130, 220, 0.2);
+    overflow-y: auto;
+    overflow-x: hidden;
+  }
   .app {
     background: rgba(18, 24, 40, 0.85);
     backdrop-filter: blur(8px);
-    border-radius: 40px;
+    border-radius: 36px;
     padding: 28px 32px;
-    box-shadow: 0 30px 60px -10px rgba(0,0,0,0.8), inset 0 1px 2px rgba(120,160,255,0.15);
-    border: 1px solid rgba(90, 130, 220, 0.2);
     width: fit-content;
-    max-height: 98vh;
-    overflow-y: auto;
   }
-  body:fullscreen .app, body:-webkit-full-screen .app {
-    border-radius: 0; width: 100vw; height: 100vh; padding: 20px;
-    display: flex; flex-direction: column; justify-content: center; align-items: center;
+  body:fullscreen .app-scroll, body:-webkit-full-screen .app-scroll {
+    border-radius: 0; width: 100vw; height: 100vh;
     background: rgba(10, 14, 26, 0.98);
     overflow: hidden;
+    display: flex; justify-content: center; align-items: center;
+  }
+  body:fullscreen .app, body:-webkit-full-screen .app {
+    border-radius: 0; padding: 20px;
+    display: flex; flex-direction: column; justify-content: center; align-items: center;
+    background: transparent;
   }
 
   h1 { margin: 0 0 6px; font-size: 1.5rem; font-weight: 600; color: #a8c4ff; }
@@ -124,6 +149,34 @@
   .mode-card .name { font-weight: 700; color: #cdd9f0; font-size: 0.95rem; }
   .mode-card .desc { font-size: 0.72rem; color: #6b7fa0; margin-top: 4px; }
 
+  /* 自动瞄准开关 */
+  .aim-toggle {
+    display: flex; align-items: center; gap: 10px;
+    background: #0d1220; border: 1px solid #2a3650;
+    border-radius: 14px; padding: 12px 16px;
+    cursor: pointer; transition: 0.2s;
+  }
+  .aim-toggle:hover { border-color: #4d7dff; background: #131a2c; }
+  .aim-check {
+    width: 22px; height: 22px; border-radius: 6px;
+    border: 2px solid #2e3d5e; background: #0a0f1c;
+    display: flex; align-items: center; justify-content: center;
+    transition: 0.2s; flex-shrink: 0;
+  }
+  .aim-toggle.checked .aim-check {
+    background: linear-gradient(135deg, #3d6bff, #5a4dff);
+    border-color: #5a8aff;
+    box-shadow: 0 0 12px rgba(77,125,255,0.5);
+  }
+  .aim-check::after {
+    content: '✓'; color: white; font-weight: 900; font-size: 0.9rem;
+    opacity: 0; transition: 0.15s;
+  }
+  .aim-toggle.checked .aim-check::after { opacity: 1; }
+  .aim-text { display: flex; flex-direction: column; gap: 2px; }
+  .aim-title { font-size: 0.88rem; color: #cdd9f0; font-weight: 600; }
+  .aim-desc { font-size: 0.72rem; color: #6b7fa0; }
+
   #game { display: none; flex-direction: column; align-items: center; }
   .game-header {
     display: flex; justify-content: space-between; align-items: center;
@@ -155,6 +208,7 @@
 
   canvas { border-radius: 32px; background: #0a0e1a; box-shadow: 0 0 0 2px #1a2338, 0 30px 50px -20px black; display: block; transition: filter 0.3s; }
   canvas.slowmo { filter: saturate(1.4) brightness(1.1); }
+  canvas.aim-mode { cursor: crosshair; }
   .game-footer {
     display: flex; justify-content: space-between; align-items: center;
     width: 900px; margin-top: 12px; font-size: 0.85rem; color: #6b7fa0; gap: 12px;
@@ -182,23 +236,14 @@
   .hidden { display: none !important; }
   .error-msg { color: #ff6b8a; font-size: 0.82rem; min-height: 1.2em; }
 
-  .sound-toggle {
-    display: flex; align-items: center; gap: 8px;
-    background: #0a0f1c; padding: 8px 16px; border-radius: 30px;
-    border: 1px solid #1e2a44; font-size: 0.82rem; color: #8fa4cc;
-    cursor: pointer; transition: 0.2s;
-  }
-  .sound-toggle:hover { background: #131a2c; border-color: #2e3d5e; }
-  .sound-toggle .icon { font-size: 1rem; }
-
-  .music-toggle {
+  .sound-toggle, .music-toggle {
     display: flex; align-items: center; gap: 8px;
     background: #0a0f1c; padding: 8px 12px; border-radius: 30px;
     border: 1px solid #1e2a44; font-size: 0.82rem; color: #8fa4cc;
     cursor: pointer; transition: 0.2s;
   }
-  .music-toggle:hover { background: #131a2c; border-color: #2e3d5e; }
-  .music-toggle .icon { font-size: 1rem; }
+  .sound-toggle { padding: 8px 16px; }
+  .sound-toggle:hover, .music-toggle:hover { background: #131a2c; border-color: #2e3d5e; }
 
   .leaderboard {
     background: #0a0f1c; border: 1px solid #1e2a44; border-radius: 14px;
@@ -277,7 +322,6 @@
   .buff-pill.invisible { background: #2a0e3e; color: #d44dff; }
   .buff-pill.double { background: #3e2a0e; color: #ffd24d; }
 
-  /* 主题徽章 */
   .theme-badge {
     display: flex; align-items: center; gap: 6px;
     background: #0a0f1c; padding: 8px 14px; border-radius: 30px;
@@ -285,14 +329,14 @@
   }
   .theme-badge .t-icon { font-size: 1.1rem; }
 
-  /* 快捷聊天 */
-  .chat-hint {
-    position: fixed; bottom: 90px; left: 50%; transform: translateX(-50%);
-    background: rgba(10, 15, 28, 0.95); border: 1px solid #2e3d5e;
-    border-radius: 12px; padding: 8px 16px; font-size: 0.8rem;
-    color: #8fa4cc; z-index: 200; pointer-events: none;
-    transition: opacity 0.2s;
+  .aim-indicator {
+    display: flex; align-items: center; gap: 6px;
+    background: #0a0f1c; padding: 6px 12px; border-radius: 20px;
+    border: 1px solid #1e2a44; font-size: 0.75rem; color: #8fa4cc;
   }
+  .aim-indicator.auto { border-color: #4d7dff; color: #a8c4ff; }
+  .aim-indicator.manual { border-color: #ffaa4d; color: #ffd24d; }
+
   .chat-panel {
     position: fixed; bottom: 120px; left: 50%; transform: translateX(-50%);
     background: rgba(10, 15, 28, 0.98); border: 1px solid #2e3d5e;
@@ -337,7 +381,6 @@
     100% { transform: translateY(0); opacity: 1; }
   }
 
-  /* 慢动作叠加层 */
   .slowmo-overlay {
     position: fixed; inset: 0; pointer-events: none;
     background: radial-gradient(circle at center, transparent 30%, rgba(0,0,0,0.6) 100%);
@@ -357,6 +400,7 @@
 </style>
 </head>
 <body>
+<div class="app-scroll">
 <div class="app">
   <!-- 慢动作特效 -->
   <div class="slowmo-overlay" id="slowmoOverlay"></div>
@@ -397,6 +441,17 @@
           <span class="icon">🧟</span>
           <div class="name">合作打僵尸</div>
           <div class="desc">两人组队生存</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="field">
+      <label>射击方式（房主设置）</label>
+      <div class="aim-toggle checked" id="aimToggle">
+        <div class="aim-check"></div>
+        <div class="aim-text">
+          <span class="aim-title" id="aimTitle">🎯 自动瞄准</span>
+          <span class="aim-desc" id="aimDesc">按空格朝向敌人自动射击</span>
         </div>
       </div>
     </div>
@@ -459,6 +514,11 @@
       <div class="theme-badge" id="themeBadge">
         <span class="t-icon" id="themeIcon">🌌</span>
         <span id="themeName">深空</span>
+      </div>
+
+      <div class="aim-indicator auto" id="aimIndicator">
+        <span id="aimModeIcon">🎯</span>
+        <span id="aimModeText">自动瞄准</span>
       </div>
 
       <div class="scoreboard" id="pvpScoreboard">
@@ -552,7 +612,7 @@
     <div class="game-footer">
       <div style="display:flex; gap:14px; align-items:center;">
         <span><kbd>W</kbd><kbd>A</kbd><kbd>S</kbd><kbd>D</kbd> 移动</span>
-        <span><kbd>空格</kbd> 射击</span>
+        <span id="shootHint"><kbd>空格</kbd> 射击</span>
         <span><kbd>Q</kbd> 冲刺</span>
         <span><kbd>E</kbd> 护盾</span>
         <span><kbd>R</kbd> 大招</span>
@@ -562,16 +622,16 @@
     </div>
   </div>
 </div>
+</div>
 
 <script src="https://unpkg.com/peerjs@1.5.2/dist/peerjs.min.js"></script>
 <script>
 /* ============================================================
-   房间对战 v7
-   - PvE 队友误伤修复
-   - 每局随机地图主题
-   - 背景音乐
-   - 快捷聊天
-   - 死亡回放（慢动作）
+   房间对战 v8
+   - 修复命中延迟不同步（子弹瞬移到命中点 + hitmark 延迟删除）
+   - remoteHpSeq 防止乐观扣血被覆盖
+   - 更精致的小滚动条
+   - 自动瞄准开关（房主设置）
    ============================================================ */
 
 'use strict';
@@ -615,6 +675,13 @@ const chatPanelEl = document.getElementById('chatPanel');
 const chatMessagesEl = document.getElementById('chatMessages');
 const slowmoOverlayEl = document.getElementById('slowmoOverlay');
 const slowmoTextEl = document.getElementById('slowmoText');
+const aimToggleEl = document.getElementById('aimToggle');
+const aimTitleEl = document.getElementById('aimTitle');
+const aimDescEl = document.getElementById('aimDesc');
+const aimIndicatorEl = document.getElementById('aimIndicator');
+const aimModeIconEl = document.getElementById('aimModeIcon');
+const aimModeTextEl = document.getElementById('aimModeText');
+const shootHintEl = document.getElementById('shootHint');
 
 /* ========== 状态 ========== */
 let peer = null;
@@ -628,9 +695,13 @@ let opponentNickname = '对手';
 let gameMode = 'pvp';
 let frameCount = 0;
 
+// 自动瞄准（房主设置，同步给加入者）
+let autoAim = true;
+
 // 命中同步
 const processedHits = new Set();
 let hpSeq = 0;
+let remoteHpSeq = 0;    // 记录发射方已应用的对方 hpSeq
 
 // 连击
 let comboCount = 0;
@@ -640,42 +711,38 @@ const COMBO_MILESTONES = [3, 5, 10, 15, 20, 30];
 let screenShake = 0;
 
 // 死亡回放
-let slowmoTimer = 0;        // 剩余帧数
-const SLOWMO_DURATION = 30; // 0.5 秒
-let timeScale = 1;          // 时间流速（0.3 = 30% 速度）
+let slowmoTimer = 0;
+const SLOWMO_DURATION = 30;
+let timeScale = 1;
+
+// 鼠标（手动瞄准模式）
+let mouseX = W / 2, mouseY = H / 2;
+let mouseDown = false;
 
 // 地图主题
 const THEMES = {
   space: {
     name: '深空', icon: '🌌',
-    bg: ['#0e1424', '#080b16'],
-    grid: '#141a2a',
-    obstacleFill: '#1e2a44',
-    obstacleStroke: '#3a4d75',
+    bg: ['#0e1424', '#080b16'], grid: '#141a2a',
+    obstacleFill: '#1e2a44', obstacleStroke: '#3a4d75',
     obstacleHighlight: 'rgba(120,160,255,0.08)'
   },
   snow: {
     name: '雪地', icon: '❄️',
-    bg: ['#1a2438', '#0d1522'],
-    grid: '#1f2c44',
-    obstacleFill: '#c8d8ec',
-    obstacleStroke: '#e8f0ff',
+    bg: ['#1a2438', '#0d1522'], grid: '#1f2c44',
+    obstacleFill: '#c8d8ec', obstacleStroke: '#e8f0ff',
     obstacleHighlight: 'rgba(255,255,255,0.3)'
   },
   desert: {
     name: '沙漠', icon: '🏜️',
-    bg: ['#2a2015', '#150e05'],
-    grid: '#2e2418',
-    obstacleFill: '#a8845a',
-    obstacleStroke: '#d4a878',
+    bg: ['#2a2015', '#150e05'], grid: '#2e2418',
+    obstacleFill: '#a8845a', obstacleStroke: '#d4a878',
     obstacleHighlight: 'rgba(255,220,150,0.15)'
   },
   zombie: {
     name: '末日', icon: '🧟',
-    bg: ['#1a1420', '#0a0710'],
-    grid: '#1e1428',
-    obstacleFill: '#2a1e3a',
-    obstacleStroke: '#4d3670',
+    bg: ['#1a1420', '#0a0710'], grid: '#1e1428',
+    obstacleFill: '#2a1e3a', obstacleStroke: '#4d3670',
     obstacleHighlight: 'rgba(120,80,180,0.15)'
   }
 };
@@ -774,7 +841,6 @@ function consumePress(code) {
   return false;
 }
 
-// 聊天面板打开时，不拦截游戏按键
 let chatPanelOpen = false;
 
 window.addEventListener('keydown', (e) => {
@@ -783,7 +849,6 @@ window.addEventListener('keydown', (e) => {
   e.preventDefault();
   if (e.repeat) return;
 
-  // 聊天面板打开时的数字键选择
   if (chatPanelOpen) {
     const idx = ['Digit1','Digit2','Digit3','Digit4','Digit5'].indexOf(e.code);
     if (idx !== -1) {
@@ -811,6 +876,34 @@ window.addEventListener('keyup', (e) => {
 window.addEventListener('blur', clearAllKeys);
 window.addEventListener('visibilitychange', () => { if (document.hidden) clearAllKeys(); });
 document.addEventListener('mouseleave', clearAllKeys);
+
+/* ========== 鼠标 ========== */
+function getCanvasMouse(e) {
+  const rect = canvas.getBoundingClientRect();
+  const scaleX = canvas.width / rect.width;
+  const scaleY = canvas.height / rect.height;
+  return {
+    x: (e.clientX - rect.left) * scaleX,
+    y: (e.clientY - rect.top) * scaleY
+  };
+}
+canvas.addEventListener('mousemove', (e) => {
+  if (!gameRunning || autoAim) return;
+  const m = getCanvasMouse(e);
+  mouseX = m.x; mouseY = m.y;
+});
+canvas.addEventListener('mousedown', (e) => {
+  if (!gameRunning || autoAim) return;
+  if (e.button !== 0) return;
+  mouseDown = true;
+  e.preventDefault();
+});
+canvas.addEventListener('mouseup', (e) => {
+  if (e.button !== 0) return;
+  mouseDown = false;
+});
+canvas.addEventListener('mouseleave', () => { mouseDown = false; });
+canvas.addEventListener('contextmenu', (e) => e.preventDefault());
 
 /* ========== 音效 ========== */
 let audioCtx = null;
@@ -898,47 +991,31 @@ if (soundToggleEl) {
 }
 
 /* ========== 背景音乐 ========== */
-let musicNodes = [];      // 当前播放的音符
+let musicNodes = [];
 let musicTimer = null;
 let musicStep = 0;
 let musicGain = null;
 
-// 简单的循环旋律（C 大调）
 const MUSIC_PATTERN = [
-  // 音高（Hz），时长（拍）
-  { f: 261.63, d: 1 },   // C4
-  { f: 329.63, d: 1 },   // E4
-  { f: 392.00, d: 1 },   // G4
-  { f: 329.63, d: 1 },   // E4
-  { f: 293.66, d: 1 },   // D4
-  { f: 349.23, d: 1 },   // F4
-  { f: 440.00, d: 1 },   // A4
-  { f: 349.23, d: 1 },   // F4
-  { f: 261.63, d: 1 },   // C4
-  { f: 329.63, d: 1 },   // E4
-  { f: 392.00, d: 1 },   // G4
-  { f: 523.25, d: 1 },   // C5
-  { f: 440.00, d: 2 },   // A4
-  { f: 392.00, d: 1 },   // G4
-  { f: 329.63, d: 1 },   // E4
-  { f: 293.66, d: 2 },   // D4
+  { f: 261.63, d: 1 }, { f: 329.63, d: 1 }, { f: 392.00, d: 1 }, { f: 329.63, d: 1 },
+  { f: 293.66, d: 1 }, { f: 349.23, d: 1 }, { f: 440.00, d: 1 }, { f: 349.23, d: 1 },
+  { f: 261.63, d: 1 }, { f: 329.63, d: 1 }, { f: 392.00, d: 1 }, { f: 523.25, d: 1 },
+  { f: 440.00, d: 2 }, { f: 392.00, d: 1 }, { f: 329.63, d: 1 }, { f: 293.66, d: 2 },
 ];
 
 function startMusic() {
   if (!musicEnabled || !audioCtx) return;
   stopMusic();
   musicGain = audioCtx.createGain();
-  musicGain.gain.value = 0.04;   // 音量较小
+  musicGain.gain.value = 0.04;
   musicGain.connect(audioCtx.destination);
   musicStep = 0;
   scheduleNextNote();
 }
-
 function scheduleNextNote() {
   if (!musicEnabled || !audioCtx || !gameRunning) return;
   const note = MUSIC_PATTERN[musicStep % MUSIC_PATTERN.length];
-  const duration = note.d * 0.5;   // 每拍 0.5 秒
-
+  const duration = note.d * 0.5;
   const t = audioCtx.currentTime;
   const osc = audioCtx.createOscillator();
   const g = audioCtx.createGain();
@@ -948,11 +1025,9 @@ function scheduleNextNote() {
   g.gain.linearRampToValueAtTime(0.8, t + 0.02);
   g.gain.exponentialRampToValueAtTime(0.001, t + duration * 0.9);
   osc.connect(g); g.connect(musicGain);
-  osc.start(t);
-  osc.stop(t + duration);
+  osc.start(t); osc.stop(t + duration);
   musicNodes.push(osc);
 
-  // 低频贝斯
   if (musicStep % 4 === 0) {
     const bassOsc = audioCtx.createOscillator();
     const bassG = audioCtx.createGain();
@@ -961,22 +1036,18 @@ function scheduleNextNote() {
     bassG.gain.setValueAtTime(0.6, t);
     bassG.gain.exponentialRampToValueAtTime(0.001, t + duration * 1.8);
     bassOsc.connect(bassG); bassG.connect(musicGain);
-    bassOsc.start(t);
-    bassOsc.stop(t + duration * 2);
+    bassOsc.start(t); bassOsc.stop(t + duration * 2);
     musicNodes.push(bassOsc);
   }
-
   musicStep++;
   musicTimer = setTimeout(scheduleNextNote, duration * 1000);
 }
-
 function stopMusic() {
   if (musicTimer) { clearTimeout(musicTimer); musicTimer = null; }
   for (const n of musicNodes) { try { n.stop(); } catch(e) {} }
   musicNodes = [];
   if (musicGain) { try { musicGain.disconnect(); } catch(e) {} musicGain = null; }
 }
-
 if (musicToggleEl) {
   musicToggleEl.addEventListener('click', () => {
     musicEnabled = !musicEnabled;
@@ -984,9 +1055,7 @@ if (musicToggleEl) {
     if (musicEnabled) {
       initAudio();
       if (gameRunning) startMusic();
-    } else {
-      stopMusic();
-    }
+    } else stopMusic();
   });
 }
 
@@ -1001,9 +1070,7 @@ function addCombo() {
     const c = colors[Math.min(Math.floor(comboCount / 5), colors.length - 1)];
     spawnDamageText(W/2, H/2 - 100, 0, c, comboCount + ' 连击!', true);
     screenShake = 12;
-  } else {
-    SFX.combo(comboCount);
-  }
+  } else SFX.combo(comboCount);
 }
 function resetCombo() {
   comboCount = 0;
@@ -1060,10 +1127,8 @@ function closeChatPanel() {
 function sendChatMessage(msg) {
   if (!msg) return;
   closeChatPanel();
-  // 本地显示
   showChatBubble(myNickname, msg, true);
   SFX.chat();
-  // 广播给对方
   safeSend({ type: 'chat', msg });
 }
 function showChatBubble(sender, msg, isMine) {
@@ -1078,7 +1143,6 @@ function showChatBubble(sender, msg, isMine) {
     setTimeout(() => bubble.remove(), 400);
   }, 2500);
 }
-// 点击聊天选项
 document.querySelectorAll('.chat-option').forEach(opt => {
   opt.addEventListener('click', () => sendChatMessage(opt.dataset.msg));
 });
@@ -1171,7 +1235,7 @@ function bulletHitsObstacle(bullet, obs) {
   return false;
 }
 
-/* ========== 网格预渲染（按主题） ========== */
+/* ========== 网格 ========== */
 const gridCache = {};
 function getGridCanvas(themeKey) {
   if (gridCache[themeKey]) return gridCache[themeKey];
@@ -1237,6 +1301,23 @@ function updateThemeBadge() {
   if (themeIconEl) themeIconEl.textContent = theme.icon;
   if (themeNameEl) themeNameEl.textContent = theme.name;
 }
+function updateAimUI() {
+  if (aimToggleEl) aimToggleEl.classList.toggle('checked', autoAim);
+  if (aimTitleEl) aimTitleEl.textContent = autoAim ? '🎯 自动瞄准' : '🖱️ 手动瞄准';
+  if (aimDescEl) aimDescEl.textContent = autoAim
+    ? '按空格朝向敌人自动射击'
+    : '鼠标瞄准，左键射击';
+  if (aimIndicatorEl) {
+    aimIndicatorEl.classList.toggle('auto', autoAim);
+    aimIndicatorEl.classList.toggle('manual', !autoAim);
+  }
+  if (aimModeIconEl) aimModeIconEl.textContent = autoAim ? '🎯' : '🖱️';
+  if (aimModeTextEl) aimModeTextEl.textContent = autoAim ? '自动瞄准' : '手动瞄准';
+  if (shootHintEl) {
+    shootHintEl.innerHTML = autoAim ? '<kbd>空格</kbd> 射击' : '<kbd>左键</kbd> 射击';
+  }
+  if (canvas) canvas.classList.toggle('aim-mode', !autoAim);
+}
 function initPeer(peerId) {
   return new Promise((resolve, reject) => {
     if (peer && !peer.destroyed) { try { peer.destroy(); } catch(e) {} }
@@ -1291,6 +1372,20 @@ function updateBuffTimer() {
   buffTimerEl.innerHTML = buffs.join('');
 }
 
+/* ========== 自动瞄准切换 ========== */
+aimToggleEl.addEventListener('click', () => {
+  // 只有房主能切换（加入者点击只提示）
+  if (!isHost && gameRunning) {
+    // 简单提示：直接弹一个飘字
+    spawnDamageText(W/2, H/2, 0, '#ffaa4d', '只有房主能改', true);
+    return;
+  }
+  autoAim = !autoAim;
+  updateAimUI();
+});
+// 加入者也可在大厅看房主的设置（等待界面），点击时不做切换，只显示
+// 房主点击后广播
+
 /* ========== 模式选择 ========== */
 document.querySelectorAll('.mode-card').forEach(card => {
   card.addEventListener('click', () => {
@@ -1319,7 +1414,14 @@ createRoomBtn.addEventListener('click', async () => {
       conn = incomingConn;
       conn.on('open', () => {
         setupConnection();
-        safeSend({ type: 'assignRole', role: 'blue', mode: gameMode, hostName: myNickname });
+        // 房主把模式 + 自动瞄准设置 + 房主名字 都发给加入者
+        safeSend({
+          type: 'assignRole',
+          role: 'blue',
+          mode: gameMode,
+          hostName: myNickname,
+          autoAim: autoAim
+        });
         setStatus('对手已连接', 'ok');
       });
       conn.on('data', (data) => handleMessage(data));
@@ -1328,7 +1430,9 @@ createRoomBtn.addEventListener('click', async () => {
       });
     });
     displayRoomCode.textContent = roomCode;
-    waitingModeHintEl.textContent = '模式：' + (gameMode === 'pvp' ? '1v1 竞技' : '合作打僵尸');
+    waitingModeHintEl.textContent = '模式：' +
+      (gameMode === 'pvp' ? '1v1 竞技' : '合作打僵尸') +
+      ' · ' + (autoAim ? '自动瞄准' : '手动瞄准');
     switchView('waiting');
     setStatus('房间已创建，等待加入…', 'ok');
   } catch (err) {
@@ -1421,6 +1525,10 @@ function handleMessage(data) {
       myRole = data.role;
       gameMode = data.mode || 'pvp';
       opponentNickname = data.hostName || '房主';
+      if (data.autoAim !== undefined) {
+        autoAim = data.autoAim;
+        updateAimUI();
+      }
       myRoleLabel.textContent = myRole === 'red' ? '红方' : '蓝方';
       myRoleLabel.className = myRole === 'red' ? 'role-red' : 'role-blue';
       updateScoreboardVisibility();
@@ -1436,8 +1544,13 @@ function handleMessage(data) {
       startGame();
       break;
 
+    case 'autoAimUpdate':
+      // 游戏中房主改设置，实时同步
+      autoAim = data.autoAim;
+      updateAimUI();
+      break;
+
     case 'theme':
-      // 房主广播本局主题
       currentTheme = data.theme || 'space';
       updateThemeBadge();
       break;
@@ -1464,33 +1577,51 @@ function handleMessage(data) {
       if (data.bullet && data.bullet.owner !== myRole) bullets.push(data.bullet);
       break;
 
+    // ✅ 命中处理：被击中方收到后，把子弹瞬移到命中点，播放特效，延迟删除
     case 'hit': {
       if (data.targetRole === myRole && gameMode === 'pvp') {
         if (processedHits.has(data.bulletId)) break;
         processedHits.add(data.bulletId);
         const me = myRole === 'red' ? redPlayer : bluePlayer;
+
+        // 护盾抵挡
         if (me.shieldActive > 0) {
           spawnDamageText(data.hitX, data.hitY, 0, '#4dd4ff', '🛡');
+          // 仍然把子弹移除
+          const idx = bullets.findIndex(b => b.id === data.bulletId);
+          if (idx !== -1) bullets.splice(idx, 1);
           safeSend({ type: 'hpUpdate', role: myRole, hp: me.hp, seq: ++me.hpSeq });
           break;
         }
+
+        // ✅ 关键修复：把子弹瞬移到命中点，让视觉同步
+        const bulletIdx = bullets.findIndex(b => b.id === data.bulletId);
+        if (bulletIdx !== -1) {
+          bullets[bulletIdx].x = data.hitX;
+          bullets[bulletIdx].y = data.hitY;
+          bullets[bulletIdx].hitmark = 3;   // 3 帧后自动消失
+        }
+
+        // 扣血 + 飘字（在命中点显示）
         me.hp = Math.max(0, me.hp - data.damage);
         SFX.hurt();
         spawnDamageText(data.hitX, data.hitY, data.damage, '#ff4d4d');
-        const idx = bullets.findIndex(b => b.id === data.bulletId);
-        if (idx !== -1) bullets.splice(idx, 1);
+
+        // 广播血量
         safeSend({ type: 'hpUpdate', role: myRole, hp: me.hp, seq: ++me.hpSeq });
         if (me.hp <= 0) me.dead = true;
       }
       break;
     }
 
+    // ✅ hpUpdate：发射方收到被击中方的血量，用 remoteHpSeq 判断是否覆盖
     case 'hpUpdate': {
       const target = data.role === 'red' ? redPlayer : bluePlayer;
       if (target && data.role !== myRole) {
-        if (data.seq !== undefined && data.seq > target.hpSeq) {
+        // ✅ 只有对方报的 seq 比我们最后应用的还新，才覆盖
+        if (data.seq !== undefined && data.seq > remoteHpSeq) {
           target.hp = data.hp;
-          target.hpSeq = data.seq;
+          remoteHpSeq = data.seq;
         } else if (data.seq === undefined) {
           target.hp = data.hp;
         }
@@ -1689,13 +1820,9 @@ function useUltimate() {
 /* ========== 开始游戏 ========== */
 function startGame() {
   if (gameRunning) return;
-  // 房主生成主题和障碍物
   const themeKeys = Object.keys(THEMES).filter(k => k !== 'zombie');
-  if (gameMode === 'zombie') {
-    currentTheme = 'zombie';
-  } else {
-    currentTheme = themeKeys[Math.floor(Math.random() * themeKeys.length)];
-  }
+  if (gameMode === 'zombie') currentTheme = 'zombie';
+  else currentTheme = themeKeys[Math.floor(Math.random() * themeKeys.length)];
   const newObstacles = generateObstacles();
   safeSend({ type: 'nextRound', obstacles: newObstacles, role: 'blue', theme: currentTheme });
   obstacles = newObstacles;
@@ -1715,6 +1842,7 @@ function startRoundLocally(role, isFirst = true) {
   damageTexts = [];
   pickups = [];
   processedHits.clear();
+  remoteHpSeq = 0;
   resetCombo();
   endSlowmo();
 
@@ -1723,6 +1851,7 @@ function startRoundLocally(role, isFirst = true) {
   myRoleLabel.className = myRole === 'red' ? 'role-red' : 'role-blue';
   updateScoreboardVisibility();
   updateThemeBadge();
+  updateAimUI();
   switchView('game');
   setStatus('对战中', 'ok');
   updateScoreboard();
@@ -1748,6 +1877,7 @@ function startZombieModeLocally(role) {
   zombies = [];
   pickups = [];
   processedHits.clear();
+  remoteHpSeq = 0;
   resetCombo();
   endSlowmo();
   zombieKills = 0;
@@ -1761,6 +1891,7 @@ function startZombieModeLocally(role) {
   myRoleLabel.className = myRole === 'red' ? 'role-red' : 'role-blue';
   updateScoreboardVisibility();
   updateThemeBadge();
+  updateAimUI();
   switchView('game');
   setStatus('僵尸模式', 'ok');
   updateScoreboard();
@@ -1784,9 +1915,7 @@ function handleRoundEnd(winner, sRed, sBlue) {
     SFX.win();
     const me = myRole === 'red' ? redPlayer : bluePlayer;
     if (me) addLeaderboardEntry(me.name, me.kills || 1, 'pvp');
-  } else {
-    SFX.lose();
-  }
+  } else SFX.lose();
   if (isHost && gameMode === 'pvp') setTimeout(() => startNextRound(), 2000);
 }
 
@@ -1802,7 +1931,6 @@ function startNextRound() {
 }
 
 function handleLocalWin(deadRole) {
-  // 触发死亡回放
   triggerSlowmo();
   gameRunning = false;
   if (deadRole === 'red') scoreBlue++;
@@ -1813,7 +1941,6 @@ function handleLocalWin(deadRole) {
   safeSend({ type: 'roundEnd', winner: myRole, scoreRed: scoreRed, scoreBlue: scoreBlue });
   SFX.win();
   if (me) addLeaderboardEntry(me.name, me.kills, 'pvp');
-  // 慢动作结束后再开下一局
   setTimeout(() => {
     stopMusic();
     if (isHost) startNextRound();
@@ -1934,16 +2061,12 @@ function updateZombies() {
 /* ========== 更新 ========== */
 function update() {
   if (!gameRunning) return;
-
-  // 死亡回放期间时间减速
   if (slowmoTimer > 0) {
     updateSlowmo();
-    // 仍然更新视觉状态（伤害飘字、屏幕震动），但不推进游戏逻辑
     updateDamageTexts();
     if (screenShake > 0) screenShake *= 0.85;
     return;
   }
-
   frameCount++;
 
   const me = myRole === 'red' ? redPlayer : bluePlayer;
@@ -1964,13 +2087,11 @@ function update() {
   if (me.invisibleTimer > 0) me.invisibleTimer--;
   if (me.doubleTimer > 0) me.doubleTimer--;
 
-  // 聊天面板
   if (consumePress('KeyT')) {
     if (chatPanelOpen) closeChatPanel();
     else openChatPanel();
   }
 
-  // 技能（聊天面板打开时不响应）
   if (!chatPanelOpen) {
     if (consumePress('KeyQ')) useDash();
     if (consumePress('KeyE')) useShield();
@@ -2011,12 +2132,18 @@ function update() {
     }
   }
 
-  me.facing = Math.atan2(opponent.y - me.y, opponent.x - me.x);
+  // 朝向：自动瞄准 → 朝对手；手动 → 朝鼠标
+  if (autoAim) {
+    me.facing = Math.atan2(opponent.y - me.y, opponent.x - me.x);
+  } else {
+    me.facing = Math.atan2(mouseY - me.y, mouseX - me.x);
+  }
 
   // 射击
   const w = WEAPONS[me.weapon];
   if (me.cooldown > 0) me.cooldown--;
-  if (keyDown('space') && me.cooldown <= 0 && me.hp > 0 && !chatPanelOpen) {
+  const wantShoot = autoAim ? keyDown('space') : mouseDown;
+  if (wantShoot && me.cooldown <= 0 && me.hp > 0 && !chatPanelOpen) {
     if (me.ammo !== Infinity && me.ammo <= 0) {
       if (me.reloadTimer <= 0) me.reloadTimer = 60;
     } else {
@@ -2051,7 +2178,6 @@ function update() {
     if (me.reloadTimer === 0) reloadWeapon();
   }
 
-  // 僵尸
   if (gameMode === 'zombie' && isHost) {
     updateZombies();
     if (frameCount % 3 === 0) {
@@ -2066,6 +2192,18 @@ function update() {
   // 子弹
   for (let i = bullets.length - 1; i >= 0; i--) {
     const b = bullets[i];
+
+    // ✅ hitmark：命中后延迟删除，让玩家看到子弹到达
+    if (b.hitmark !== undefined) {
+      b.hitmark--;
+      if (b.hitmark <= 0) {
+        bullets.splice(i, 1);
+        continue;
+      }
+      // 命中后不再移动
+      continue;
+    }
+
     const prevX = b.x, prevY = b.y;
     b.x += b.vx; b.y += b.vy; b.life--;
     if (b.x < -30 || b.x > W + 30 || b.y < -30 || b.y > H + 30 || b.life <= 0) {
@@ -2078,7 +2216,6 @@ function update() {
     }
     if (b.owner === myRole) {
       if (gameMode === 'pvp') {
-        // PvP: 子弹打到对方
         const targetRole = myRole === 'red' ? 'blue' : 'red';
         const target = targetRole === 'red' ? redPlayer : bluePlayer;
         if (segmentHitsPlayer(prevX, prevY, b.x, b.y, target)) {
@@ -2089,18 +2226,19 @@ function update() {
             continue;
           }
           const dmg = b.damage || DAMAGE_AMOUNT;
+          // 乐观扣血
           target.hp = Math.max(0, target.hp - dmg);
-          target.hpSeq++;
+          // 广播 hit，带上命中点
           safeSend({ type: 'hit', bulletId: b.id, targetRole, damage: dmg, hitX: b.x, hitY: b.y });
+          // 本地特效
           SFX.hit();
           spawnDamageText(b.x, b.y, dmg, targetRole === 'red' ? '#ff6b8a' : '#6bb8ff', null, dmg > 20);
           addCombo();
-          bullets.splice(i, 1);
+          // 让子弹在命中点显示几帧
+          b.hitmark = 3;
           if (target.hp <= 0) handleLocalWin(targetRole);
         }
       } else {
-        // PvE: 子弹只对僵尸生效！
-        // ❌ 完全不做玩家碰撞检测，子弹穿过队友/自己
         let hitZombie = null;
         for (const z of zombies) {
           if (segmentHitsZombie(prevX, prevY, b.x, b.y, z)) { hitZombie = z; break; }
@@ -2133,7 +2271,6 @@ function update() {
           }
           bullets.splice(i, 1);
         }
-        // 注意：PvE 模式下子弹不会打到队友，继续飞行
       }
     }
   }
@@ -2171,12 +2308,10 @@ function segmentHitsZombie(x1, y1, x2, y2, z) {
 /* ========== 绘制 ========== */
 function draw() {
   const theme = THEMES[currentTheme] || THEMES.space;
-
   ctx.save();
   if (screenShake > 0.5) {
     ctx.translate((Math.random() - 0.5) * screenShake, (Math.random() - 0.5) * screenShake);
   }
-
   ctx.clearRect(0, 0, W, H);
   const grad = ctx.createRadialGradient(W/2, H/2, 100, W/2, H/2, 700);
   grad.addColorStop(0, theme.bg[0]);
@@ -2184,11 +2319,9 @@ function draw() {
   ctx.fillStyle = grad;
   ctx.fillRect(0, 0, W, H);
 
-  // 网格
   const grid = getGridCanvas(currentTheme);
   if (grid) ctx.drawImage(grid, 0, 0);
 
-  // 障碍物
   for (const o of obstacles) {
     ctx.shadowColor = 'rgba(0,0,0,0.5)'; ctx.shadowBlur = 12; ctx.shadowOffsetY = 4;
     ctx.fillStyle = theme.obstacleFill;
@@ -2196,12 +2329,27 @@ function draw() {
     ctx.shadowBlur = 0; ctx.shadowOffsetY = 0;
     ctx.strokeStyle = theme.obstacleStroke;
     ctx.lineWidth = 2; ctx.stroke();
-    // 高光
     ctx.fillStyle = theme.obstacleHighlight;
     ctx.beginPath(); ctx.roundRect(o.x + 3, o.y + 3, o.w - 6, 6, 4); ctx.fill();
   }
 
-  // 掉落物
+  // 手动瞄准准星
+  if (!autoAim && gameRunning) {
+    ctx.save();
+    ctx.strokeStyle = 'rgba(255, 200, 100, 0.7)';
+    ctx.lineWidth = 2;
+    ctx.beginPath();
+    ctx.arc(mouseX, mouseY, 12, 0, Math.PI * 2);
+    ctx.stroke();
+    ctx.beginPath();
+    ctx.moveTo(mouseX - 18, mouseY); ctx.lineTo(mouseX - 6, mouseY);
+    ctx.moveTo(mouseX + 6, mouseY); ctx.lineTo(mouseX + 18, mouseY);
+    ctx.moveTo(mouseX, mouseY - 18); ctx.lineTo(mouseX, mouseY - 6);
+    ctx.moveTo(mouseX, mouseY + 6); ctx.lineTo(mouseX, mouseY + 18);
+    ctx.stroke();
+    ctx.restore();
+  }
+
   for (const p of pickups) {
     const bob = Math.sin(p.bob) * 3;
     const alpha = p.life < 120 ? (0.4 + 0.6 * Math.abs(Math.sin(p.life * 0.3))) : 1;
@@ -2287,7 +2435,6 @@ function draw() {
       ctx.fillText(bluePlayer.name + ' DOWN', W/2-180, H/2 + 50);
     }
   }
-
   ctx.restore();
 }
 
@@ -2333,7 +2480,22 @@ function drawPlayer(p) {
     ctx.shadowBlur = 0;
   }
 
-  // PvE 模式：队友头顶加个小标记
+  // 朝向指示器
+  if (p.role === myRole && gameRunning) {
+    ctx.save();
+    ctx.translate(p.x, p.y);
+    ctx.rotate(p.facing);
+    ctx.fillStyle = color;
+    ctx.globalAlpha = alpha * 0.6;
+    ctx.beginPath();
+    ctx.moveTo(PLAYER_SIZE/2 + 4, 0);
+    ctx.lineTo(PLAYER_SIZE/2 - 2, -4);
+    ctx.lineTo(PLAYER_SIZE/2 - 2, 4);
+    ctx.closePath();
+    ctx.fill();
+    ctx.restore();
+  }
+
   if (gameMode === 'zombie' && p.role !== myRole) {
     ctx.font = 'bold 12px "Segoe UI"';
     ctx.fillStyle = '#4dd4ff';
@@ -2380,7 +2542,7 @@ function drawZombie(z) {
 
 function gameLoop() {
   if (gameRunning) { update(); draw(); updateSkillHUD(); updateWeaponHUD(); updateBuffTimer(); }
-  else { draw(); }
+  else draw();
   requestAnimationFrame(gameLoop);
 }
 
@@ -2418,6 +2580,7 @@ function cleanupAndReturnToLobby() {
   bullets = []; damageTexts = []; obstacles = []; zombies = []; pickups = [];
   redPlayer = null; bluePlayer = null;
   processedHits.clear();
+  remoteHpSeq = 0;
   resetCombo();
   isHost = false;
   roomCode = '';
@@ -2461,6 +2624,7 @@ setStatus('准备就绪，创建或加入房间', '');
 updateScoreboard();
 updateScoreboardVisibility();
 updateThemeBadge();
+updateAimUI();
 renderLeaderboard();
 </script>
 </body>
