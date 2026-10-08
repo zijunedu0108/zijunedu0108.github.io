@@ -220,6 +220,27 @@ kbd{background:#1a2238;border-radius:7px;padding:3px 10px;color:#b8ceff;font-wei
 .maze-progress .mp-red{background:linear-gradient(90deg,#ff4d6d,#ff8aa3)}
 .maze-progress .mp-blue{background:linear-gradient(90deg,#4da6ff,#8fc4ff)}
 .maze-progress .mp-pct{width:36px;text-align:right;color:#cdd9f0;font-family:'Consolas',monospace}
+/* ===== 2v2 队伍槽位 ===== */
+.team-slots{display:flex;flex-direction:column;gap:10px;margin-top:16px}
+.team-row{display:flex;align-items:center;gap:10px;justify-content:center}
+.team-label{font-size:.85rem;font-weight:700;width:80px;text-align:right}
+.team-label.red{color:#ff6b8a}
+.team-label.blue{color:#6bb8ff}
+.team-slot{background:#0a0f1c;border:2px solid #2a3650;border-radius:12px;padding:12px 18px;min-width:140px;cursor:pointer;transition:.2s;font-size:.85rem;color:#8fa4cc;text-align:center}
+.team-slot.filled{border-color:#4d7dff;background:#131a2c;color:#cdd9f0;font-weight:600}
+.team-slot:hover{border-color:#7da2ff}
+.team-slot.host{cursor:default;border-color:#ffd24d;background:#1a1408}
+.team-slot.host:hover{border-color:#ffd24d}
+.team-slot .slot-name{display:block}
+.team-slot .slot-hint{display:block;font-size:.65rem;color:#5d7099;margin-top:2px}
+.team-slot.filled .slot-hint{color:#7da2ff}
+/* 2v2 队伍 HUD 顶部提示 */
+.team-hud-tip{position:absolute;top:70px;left:50%;transform:translateX(-50%);background:rgba(10,15,28,.85);border:1px solid #253253;border-radius:12px;padding:6px 16px;font-size:.75rem;color:#8fa4cc;z-index:99;display:none}
+.team-hud-tip.visible{display:block}
+.team-hud-tip .team-red{color:#ff6b8a;font-weight:700}
+.team-hud-tip .team-blue{color:#6bb8ff;font-weight:700}
+/* 等待界面的宽版（4 人） */
+#waiting.wide{min-width:620px}
 </style>
 </head>
 <body>
@@ -331,6 +352,11 @@ kbd{background:#1a2238;border-radius:7px;padding:3px 10px;color:#b8ceff;font-wei
             <div class="name" id="modePvp">1v1 竞技</div>
             <div class="desc" id="modePvpDesc">红蓝对决</div>
           </div>
+          <div class="mode-card" data-mode="pvp2v2">
+            <span class="icon">👥</span>
+            <div class="name" id="modePvp2v2">2v2 团队竞技</div>
+            <div class="desc" id="modePvp2v2Desc">4 人红蓝团战</div>
+          </div>
           <div class="mode-card" data-mode="zombie">
             <span class="icon">🧟</span>
             <div class="name" id="modeZombie">合作打僵尸</div>
@@ -424,6 +450,22 @@ kbd{background:#1a2238;border-radius:7px;padding:3px 10px;color:#b8ceff;font-wei
     <div class="hint" id="waitingModeHint">模式：1v1 竞技</div>
   </div>
 
+  <div class="team-slots" id="teamSlots" style="display:none;">
+    <div class="section-title" style="margin-top:20px;text-align:left;" id="teamTitle">队伍分配（房主可点击换边）</div>
+    <div class="team-row">
+      <span class="team-label red">🔴 <span id="teamRedLabel">红队</span></span>
+      <div class="team-slot" data-slot="red1" id="slotRed1"><span class="slot-name">空</span><span class="slot-hint" id="slotRed1Hint"></span></div>
+      <div class="team-slot" data-slot="red2" id="slotRed2"><span class="slot-name">空</span><span class="slot-hint" id="slotRed2Hint"></span></div>
+    </div>
+    <div class="team-row">
+      <span class="team-label blue">🔵 <span id="teamBlueLabel">蓝队</span></span>
+      <div class="team-slot" data-slot="blue1" id="slotBlue1"><span class="slot-name">空</span><span class="slot-hint" id="slotBlue1Hint"></span></div>
+      <div class="team-slot" data-slot="blue2" id="slotBlue2"><span class="slot-name">空</span><span class="slot-hint" id="slotBlue2Hint"></span></div>
+    </div>
+    <div style="font-size:.75rem;color:#5d7099;margin-top:8px;text-align:center;" id="teamHint">至少 2 人开始 · 点击玩家槽位可换边</div>
+    <button class="btn-primary" id="start2v2Btn" style="margin-top:16px;width:240px;display:none;">▶ <span id="start2v2Text">开始游戏</span></button>
+  </div>
+
   <div class="room-settings">
     <div class="section-title" style="margin-top:20px;text-align:left;" id="roomSettings">房间设置（仅房主可改）</div>
 
@@ -481,6 +523,10 @@ kbd{background:#1a2238;border-radius:7px;padding:3px 10px;color:#b8ceff;font-wei
     <div class="badge">
       <span class="dot ok" id="gameConnDot"></span>
       <span id="roomLabel">房间</span> <b id="gameRoomCode" style="color:#7da2ff;font-family:Consolas;">------</b>
+    </div>
+
+    <div class="team-hud-tip" id="teamHudTip">
+      <span class="team-red" id="tipRedNames">红队</span> vs <span class="team-blue" id="tipBlueNames">蓝队</span>
     </div>
 
     <div class="badge" id="levelBadge">
@@ -802,7 +848,7 @@ function applyLanguage(lang){
     setFFTitle:'setFFTitle',setFFDesc:'setFFDesc',setAmmoTitle:'setAmmoTitle',setAmmoDesc:'setAmmoDesc',setZSpeedTitle:'setZSpeedTitle',setZSpeedDesc:'setZSpeedDesc',setBossFreqTitle:'setBossFreqTitle',setBossFreqDesc:'setBossFreqDesc',
     copyCodeText:'copyCode',cancelText:'cancel',roomLabel:'roomLabel',youAreLabel:'youAre',spectateText:'spectate',fullscreenText:'fullscreen',leaveText:'leave',
     killLabel:'killLabel',waveLabel:'waveLabel',comboLabel:'comboLabel',moveHint:'moveHint',dashHint:'dashHint',shieldHint:'shieldHint',ultHint:'ultHint',switchHint:'switchHint',chatHint:'chatHint',
-    goReturnBtn:'returnLobby'
+    goReturnBtn:'returnLobby',modePvp2v2:'modePvp2v2', modePvp2v2Desc:'modePvp2v2Desc',teamTitle:'teamTitle', teamRedLabel:'teamRedLabel', teamBlueLabel:'teamBlueLabel',teamHint:'teamHint', start2v2Text:'start2v2'
   };
   for(const [id,k] of Object.entries(map)){const el=$(id);if(el)el.textContent=t(k);}
   const cb=$('clearLeaderboard');if(cb)cb.textContent=t('clear');
@@ -813,8 +859,15 @@ function applyLanguage(lang){
   renderLeaderboard();renderSkinShop();renderAchievements();updateScoreboard();updateThemeBadge();
   updateModeCardText();
 }
+
 function updateModeCardText(){
-  const modes={pvp:['modePvp','modePvpDesc'],zombie:['modeZombie','modeZombieDesc'],maze:['modeMaze','modeMazeDesc'],race:['modeRace','modeRaceDesc']};
+  const modes={
+    pvp:['modePvp','modePvpDesc'],
+    pvp2v2:['modePvp2v2','modePvp2v2Desc'],
+    zombie:['modeZombie','modeZombieDesc'],
+    maze:['modeMaze','modeMazeDesc'],
+    race:['modeRace','modeRaceDesc']
+  };
   document.querySelectorAll('.mode-card').forEach(c=>{
     const m=c.dataset.mode;if(!modes[m])return;
     const n=c.querySelector('.name'),d=c.querySelector('.desc');
@@ -822,6 +875,7 @@ function updateModeCardText(){
     if(d)d.textContent=t(modes[m][1]);
   });
 }
+
 function initLanguage(){
   let lang=null;
   try{lang=localStorage.getItem('arena_lang');}catch(e){}
