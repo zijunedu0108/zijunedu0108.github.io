@@ -53,6 +53,18 @@ body {
 }
 .brand-text .tagline { font-size: 0.78rem; color: #6b7fa0; margin-top: 2px; }
 
+/* 主页右上角金币 */
+.lobby-coins {
+  position: absolute; top: 20px; right: 24px;
+  display: flex; align-items: center; gap: 6px;
+  background: #0a0f1c; border: 1px solid #2a3650;
+  border-radius: 20px; padding: 6px 14px;
+  font-family: 'Consolas', monospace; font-weight: 700;
+  color: #ffd24d; font-size: 0.9rem;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.4);
+  z-index: 10;
+}
+
 .auth-area { position: relative; z-index: 1; }
 .btn-google {
   width: 100%; background: #fff; color: #333;
@@ -197,7 +209,7 @@ button {
 .room-code-display .hint { font-size: 0.78rem; color: #5d7099; margin-top: 8px; }
 
 #game { display: none; flex-direction: column; align-items: center; position: relative; }
-.game-header { display: flex; justify-content: space-between; align-items: center; width: 1200px; max-width: 100vw; margin-bottom: 10px; gap: 10px; flex-wrap: wrap; }
+.game-header { display: flex; justify-content: space-between; align-items: center; width: 1104px; max-width: 100vw; margin-bottom: 10px; gap: 10px; flex-wrap: wrap; }
 .badge { display: flex; align-items: center; gap: 10px; background: #0d1424; padding: 8px 16px; border-radius: 30px; border: 1px solid #253253; font-size: 0.85rem; white-space: nowrap; }
 .badge .role-red { color: #ff6b8a; font-weight: 700; }
 .badge .role-blue { color: #6bb8ff; font-weight: 700; }
@@ -221,7 +233,7 @@ canvas#gameCanvas.aim-mode { cursor: crosshair; }
 canvas#minimap { position: absolute; top: 70px; right: 20px; background: rgba(10, 15, 28, 0.85); border: 1px solid #253253; border-radius: 12px; box-shadow: 0 8px 24px rgba(0,0,0,0.6); z-index: 100; display: none; }
 canvas#minimap.visible { display: block; }
 
-.game-footer { display: flex; justify-content: space-between; align-items: center; width: 1200px; max-width: 100vw; margin-top: 10px; font-size: 0.85rem; color: #6b7fa0; gap: 12px; flex-wrap: wrap; }
+.game-footer { display: flex; justify-content: space-between; align-items: center; width: 1104px; max-width: 100vw; margin-top: 10px; font-size: 0.85rem; color: #6b7fa0; gap: 12px; flex-wrap: wrap; }
 kbd { background: #1a2238; border-radius: 7px; padding: 3px 10px; color: #b8ceff; font-weight: 600; border: 1px solid #33436b; box-shadow: 0 2px 0 #0a0e16; font-family: inherit; }
 .footer-btn { background: #1a2235; color: #a8c4ff; border: 1px solid #2e3d5e; padding: 8px 16px; font-size: 0.82rem; border-radius: 12px; box-shadow: 0 3px 0 #0d1220; cursor: pointer; transition: 0.15s; }
 .footer-btn:hover { background: #222d47; transform: translateY(-1px); }
@@ -295,6 +307,9 @@ kbd { background: #1a2238; border-radius: 7px; padding: 3px 10px; color: #b8ceff
 @keyframes heartbeat { 0%, 100% { opacity: 0.5; } 50% { opacity: 0.9; } }
 
 .login-tip { font-size: 0.7rem; color: #5d7099; margin-top: 6px; text-align: center; }
+
+/* 游戏整体缩放 */
+#game { transform: scale(0.92); transform-origin: top center; }
 </style>
 </head>
 <body>
@@ -321,6 +336,9 @@ kbd { background: #1a2238; border-radius: 7px; padding: 3px 10px; color: #b8ceff
 </div>
 
 <div id="lobby" class="lobby-shell">
+  <!-- 主页右上角金币 -->
+  <div class="lobby-coins" id="lobbyCoins">💰 0</div>
+
   <div class="lobby-left">
     <div class="brand">
       <div class="brand-logo">⚔️</div>
@@ -558,7 +576,7 @@ kbd { background: #1a2238; border-radius: 7px; padding: 3px 10px; color: #b8ceff
   <canvas id="gameCanvas" width="1200" height="700"></canvas>
   <canvas id="minimap" width="200" height="120"></canvas>
 
-  <div style="display:flex; gap:16px; align-items:center; margin-top:10px; width:1200px; max-width:100vw; justify-content:space-between;">
+  <div style="display:flex; gap:16px; align-items:center; margin-top:10px; width:1104px; max-width:100vw; justify-content:space-between;">
     <div style="display:flex; gap:14px; align-items:center;">
       <div class="skill-bar">
         <div class="skill-slot" id="skillDash" title="冲刺">
@@ -604,7 +622,6 @@ kbd { background: #1a2238; border-radius: 7px; padding: 3px 10px; color: #b8ceff
 
 <script src="https://unpkg.com/peerjs@1.5.2/dist/peerjs.min.js"></script>
 <script>
-// PeerJS 加载失败备用
 if (typeof Peer === 'undefined') {
   document.write('<script src="https://cdn.jsdelivr.net/npm/peerjs@1.5.2/dist/peerjs.min.js"><\/script>');
 }
@@ -629,9 +646,6 @@ window.addEventListener('unhandledrejection', (e) => {
 
 'use strict';
 
-/* ============================================================
-   工具
-   ============================================================ */
 function $(id) { return document.getElementById(id); }
 function on(el, ev, fn) { if (el && el.addEventListener) el.addEventListener(ev, fn); }
 function txt(el, s) { if (el) el.textContent = s; }
@@ -671,8 +685,8 @@ const COMBO_WINDOW = 120;
 const COMBO_MILESTONES = [3, 5, 10, 15, 20, 30];
 const SLOWMO_DURATION = 30;
 
-const XP_PER_LEVEL = 3;            // 每击杀数 = 升 1 级
-const LEVELS_PER_UPGRADE = 10;     // 每 10 级给一次三选一
+const XP_PER_LEVEL = 3;
+const LEVELS_PER_UPGRADE = 10;
 
 const WEAPONS = {
   pistol:   { name: '手枪', icon: '🔫', cooldown: 14, damage: 14, bulletSpeed: 9,  bulletsPerShot: 1, spread: 0,    ammo: Infinity, color: '#ffffff' },
@@ -796,7 +810,6 @@ const SFX = {
   levelUp() { [523, 659, 784, 1047].forEach((f, i) => playTone('sine', f, f * 1.5, 0.2, 0.13, i * 0.08)); }
 };
 
-/* BGM */
 let musicNodes = [];
 let musicTimer = null;
 let musicStep = 0;
@@ -910,6 +923,7 @@ const G = {
   currentTheme: 'space',
   camera: { x: 0, y: 0 },
   currentSkin: null,
+  opponentSkin: null,
   roundNumber: 1,
   spectating: false, spectatorTarget: null,
   settings: {
@@ -1174,7 +1188,6 @@ function getGridCanvas(key, worldW, worldH) {
    ============================================================ */
 function generateObstacles(worldW, worldH, count = 12) {
   const newObs = [];
-  // 出生安全区：红方 200,H/2；蓝方 W-200,H/2
   const safeZones = [
     { x: 60,  y: worldH/2 - 120, w: 280, h: 240 },
     { x: worldW - 340, y: worldH/2 - 120, w: 280, h: 240 }
@@ -1187,14 +1200,12 @@ function generateObstacles(worldW, worldH, count = 12) {
     const x = 100 + Math.random() * (worldW - 200 - w);
     const y = 100 + Math.random() * (worldH - 200 - h);
     const rect = { x, y, w, h };
-    // 避开出生区
     let inSafe = false;
     for (const sz of safeZones) {
       if (rect.x < sz.x + sz.w && rect.x + rect.w > sz.x &&
           rect.y < sz.y + sz.h && rect.y + rect.h > sz.y) { inSafe = true; break; }
     }
     if (inSafe) continue;
-    // 避开已有障碍
     let ov = false;
     for (const o of newObs) {
       if (rect.x < o.x + o.w + 40 && rect.x + rect.w + 40 > o.x &&
@@ -1220,7 +1231,6 @@ function bulletHitsObstacle(b, obs) {
   for (const o of obs) if (rectsOverlap(bR, o)) return true;
   return false;
 }
-// 兜底：出生点若卡在障碍里，向外找最近空位
 function findFreeSpot(px, py, obstacles, maxRadius = 400) {
   if (!playerHitsObstacle(px, py, obstacles)) return { x: px, y: py };
   for (let r = 20; r <= maxRadius; r += 20) {
@@ -1279,7 +1289,10 @@ function spawnZombie(zombies, wave, forceType = null, x = null, y = null) {
     angle: 0,
     wobble: Math.random() * Math.PI * 2,
     fuse: t.explode ? 60 : undefined,
-    shootTimer: t.ranged ? 120 : undefined
+    shootTimer: t.ranged ? 120 : undefined,
+    // 绕路：记录卡住时选择的侧向方向
+    detourDir: Math.random() < 0.5 ? 1 : -1,
+    detourTimer: 0
   };
   zombies.push(z);
   return z;
@@ -1302,7 +1315,8 @@ function spawnBoss(bosses, wave) {
     id: 'boss-' + (bossIdCounter++),
     x, y, hp, maxHp: hp,
     size: BOSS_SIZE, speed, shootCD, shootTimer: 60,
-    angle: 0, wobble: 0, phase: 0, isBoss: true
+    angle: 0, wobble: 0, phase: 0, isBoss: true,
+    detourDir: 1, detourTimer: 0
   });
   SFX.bossSpawn();
   spawnParticles(x, y, { count: 30, color: '#ff4d6d', speed: 8, life: 60, size: 5 });
@@ -1321,8 +1335,60 @@ function spawnSplitterChildren(z, zombies) {
 }
 
 /* ============================================================
-   僵尸 AI
+   僵尸 AI（含绕路）
    ============================================================ */
+function moveZombieWithObstacles(z, dx, dy, dist, speedMult) {
+  const zSpeedMult = G.settings.zombieSpeedMult || 1;
+  const step = z.speed * speedMult * zSpeedMult;
+  let nx = z.x + (dx / dist) * step;
+  let ny = z.y + (dy / dist) * step;
+
+  const zHalf = z.size / 2;
+  const check = (cx, cy) => {
+    const zRect = { x: cx - zHalf, y: cy - zHalf, w: z.size, h: z.size };
+    for (const o of G.obstacles) if (rectsOverlap(zRect, o)) return true;
+    return false;
+  };
+
+  if (!check(nx, ny)) {
+    z.x = nx; z.y = ny;
+    z.detourTimer = Math.max(0, (z.detourTimer || 0) - 1);
+    return;
+  }
+
+  // 撞墙：尝试沿墙滑动
+  const tryX = !check(nx, z.y);
+  const tryY = !check(z.x, ny);
+  if (tryX && !tryY) {
+    z.x = nx;
+    z.detourTimer = 30;
+  } else if (tryY && !tryX) {
+    z.y = ny;
+    z.detourTimer = 30;
+  } else if (tryX && tryY) {
+    // 两个方向都可走，选更接近目标方向的
+    if (Math.abs(dx) > Math.abs(dy)) z.x = nx; else z.y = ny;
+    z.detourTimer = 20;
+  } else {
+    // 完全卡住，沿切向绕路
+    z.detourTimer = (z.detourTimer || 0) + 1;
+    const tangent = Math.atan2(dy, dx) + (Math.PI / 2) * (z.detourDir || 1);
+    const tx = Math.cos(tangent) * step;
+    const ty = Math.sin(tangent) * step;
+    const cx = z.x + tx, cy = z.y + ty;
+    if (!check(cx, cy)) { z.x = cx; z.y = cy; }
+    else {
+      // 换另一个方向
+      z.detourDir = -(z.detourDir || 1);
+      const tx2 = Math.cos(tangent + Math.PI) * step;
+      const ty2 = Math.sin(tangent + Math.PI) * step;
+      if (!check(z.x + tx2, z.y + ty2)) { z.x += tx2; z.y += ty2; }
+    }
+    // 卡太久就换方向
+    if (z.detourTimer > 90) { z.detourDir = -(z.detourDir || 1); z.detourTimer = 0; }
+  }
+}
+
 function updateZombiesAndBosses() {
   const zSpeedMult = G.settings.zombieSpeedMult || 1;
   const players = [G.redPlayer, G.bluePlayer].filter(p => p && p.hp > 0);
@@ -1343,8 +1409,7 @@ function updateZombiesAndBosses() {
       if (dist < 70) {
         z.fuse = (z.fuse !== undefined ? z.fuse : 60) - 1;
       } else {
-        z.x += (dx / dist) * z.speed * zSpeedMult;
-        z.y += (dy / dist) * z.speed * zSpeedMult;
+        moveZombieWithObstacles(z, dx, dy, dist, 1);
       }
       if (z.fuse <= 0) {
         for (const p of players) {
@@ -1364,11 +1429,9 @@ function updateZombiesAndBosses() {
     } else if (z.type === 'thrower') {
       const desiredDist = 280;
       if (dist > desiredDist + 40) {
-        z.x += (dx / dist) * z.speed * zSpeedMult;
-        z.y += (dy / dist) * z.speed * zSpeedMult;
+        moveZombieWithObstacles(z, dx, dy, dist, 1);
       } else if (dist < desiredDist - 40) {
-        z.x -= (dx / dist) * z.speed * zSpeedMult * 0.5;
-        z.y -= (dy / dist) * z.speed * zSpeedMult * 0.5;
+        moveZombieWithObstacles(z, -dx, -dy, dist, 0.5);
       }
       z.shootTimer = (z.shootTimer || 120) - 1;
       if (z.shootTimer <= 0 && dist < 500) {
@@ -1384,20 +1447,7 @@ function updateZombiesAndBosses() {
         if (!G.isSoloMode) safeSend({ type: 'bulletSpawn', bullet });
       }
     } else {
-      z.x += (dx / dist) * z.speed * zSpeedMult;
-      z.y += (dy / dist) * z.speed * zSpeedMult;
-    }
-
-    const zHalf = z.size / 2;
-    const zRect = { x: z.x - zHalf, y: z.y - zHalf, w: z.size, h: z.size };
-    for (const o of G.obstacles) {
-      if (rectsOverlap(zRect, o)) {
-        const oL = (zRect.x + zRect.w) - o.x, oR = (o.x + o.w) - zRect.x;
-        const oT = (zRect.y + zRect.h) - o.y, oB = (o.y + o.h) - zRect.y;
-        const min = Math.min(oL, oR, oT, oB);
-        if (min === oL) z.x -= oL; else if (min === oR) z.x += oR;
-        else if (min === oT) z.y -= oT; else z.y += oB;
-      }
+      moveZombieWithObstacles(z, dx, dy, dist, 1);
     }
 
     if (z.type !== 'bomber' && z.type !== 'thrower') {
@@ -1430,22 +1480,9 @@ function updateZombiesAndBosses() {
     if (!target) continue;
     const dx = target.x - b.x, dy = target.y - b.y;
     const dist = Math.hypot(dx, dy) || 1;
-    b.x += (dx / dist) * b.speed * zSpeedMult;
-    b.y += (dy / dist) * b.speed * zSpeedMult;
+    moveZombieWithObstacles(b, dx, dy, dist, 1);
     b.angle = Math.atan2(dy, dx);
     b.wobble += 0.08;
-
-    const bHalf = b.size / 2;
-    const bRect = { x: b.x - bHalf, y: b.y - bHalf, w: b.size, h: b.size };
-    for (const o of G.obstacles) {
-      if (rectsOverlap(bRect, o)) {
-        const oL = (bRect.x + bRect.w) - o.x, oR = (o.x + o.w) - bRect.x;
-        const oT = (bRect.y + bRect.h) - o.y, oB = (o.y + o.h) - bRect.y;
-        const min = Math.min(oL, oR, oT, oB);
-        if (min === oL) b.x -= oL; else if (min === oR) b.x += oR;
-        else if (min === oT) b.y -= oT; else b.y += oB;
-      }
-    }
 
     if (b.shootTimer > 0) b.shootTimer--;
     if (b.shootTimer <= 0 && target) {
@@ -1604,7 +1641,7 @@ function reloadWeapon() {
 }
 
 /* ============================================================
-   升级（每 10 级三选一）
+   升级
    ============================================================ */
 function checkLevelUp(player, onPause, onResume) {
   if (!player) return;
@@ -1735,13 +1772,16 @@ function draw() {
 function drawPlayer(p) {
   if (!p) return;
   const isRed = p.role === 'red';
+  const isMe = (p.role === G.myRole) || G.isSoloMode;
+  // 自己的皮肤用自己的；对手的皮肤用对手广播的
+  const skin = isMe ? (G.currentSkin || SKINS.default) : (G.opponentSkin || SKINS.default);
   let color = isRed ? '#ff4d6d' : '#4da6ff';
   const bgColor = isRed ? '#2e1a1f' : '#1a2a3a';
-  if (p.skin && p.skin.color) color = p.skin.color;
-  const glow = p.skin ? p.skin.glow : 28;
+  if (skin && skin.color) color = skin.color;
+  const glow = skin ? skin.glow : 28;
   let alpha = 1;
-  if (p.invisibleTimer > 0 && p.role !== G.myRole) alpha = 0.35;
-  if (p.invisibleTimer > 0 && p.role === G.myRole) alpha = 0.6;
+  if (p.invisibleTimer > 0 && !isMe) alpha = 0.35;
+  if (p.invisibleTimer > 0 && isMe) alpha = 0.6;
   if (p.hp <= 0) alpha = 0.4;
   ctx.globalAlpha = alpha;
   if (p.dashFrames > 0) {
@@ -1766,7 +1806,7 @@ function drawPlayer(p) {
     ctx.beginPath(); ctx.arc(p.x, p.y, PLAYER_SIZE * 0.85, 0, Math.PI * 2); ctx.stroke();
     ctx.shadowBlur = 0;
   }
-  if ((p.role === G.myRole || G.isSoloMode) && p.hp > 0) {
+  if (isMe && p.hp > 0) {
     ctx.save();
     ctx.translate(p.x, p.y); ctx.rotate(p.facing);
     ctx.fillStyle = color; ctx.globalAlpha = alpha * 0.6;
@@ -1777,7 +1817,8 @@ function drawPlayer(p) {
     ctx.closePath(); ctx.fill();
     ctx.restore();
   }
-  if (p.role !== G.myRole && !G.isSoloMode && p.hp > 0 && p.role === 'blue') {
+  // 只在僵尸合作模式显示队友标记（1v1 是对手，不显示）
+  if (!isMe && !G.isSoloMode && G.gameMode === 'zombie' && p.hp > 0) {
     ctx.font = 'bold 12px "Segoe UI"'; ctx.fillStyle = '#4dd4ff';
     ctx.textAlign = 'center';
     ctx.fillText('🛡 队友', p.x, p.y - PLAYER_SIZE/2 - 42);
@@ -2160,7 +2201,6 @@ function updateCamera() {
     G.camera.y = 0;
   }
 }
-// 直接对齐相机（避免开局第一帧还在旧位置）
 function snapCameraToMe() {
   const me = G.myRole === 'red' ? G.redPlayer : G.bluePlayer;
   if (!me) return;
@@ -2589,8 +2629,7 @@ function updateAimUI() {
 }
 
 /* ============================================================
-   视图
-   ============================================================ */
+   视图   ============================================================ */
 function switchView(view) {
   cls($('lobby'), 'hidden', true);
   cls($('waiting'), 'hidden', true);
@@ -2619,10 +2658,17 @@ function broadcastPlayerState() {
     type: 'playerUpdate', role: G.myRole,
     x: me.x, y: me.y, hp: me.hp, facing: me.facing,
     shieldActive: me.shieldActive, invisible: me.invisibleTimer > 0,
-    name: G.myNickname
+    name: G.myNickname,
+    skinId: getSkinId(G.currentSkin)
   });
 }
 function broadcastBullet(bullet) { safeSend({ type: 'bulletSpawn', bullet }); }
+
+function getSkinId(skin) {
+  if (!skin) return 'default';
+  for (const [id, s] of Object.entries(SKINS)) if (s === skin) return id;
+  return 'default';
+}
 
 /* ============================================================
    开始游戏
@@ -2639,7 +2685,6 @@ function startSoloGame(myNickname) {
   resetCombo(); endSlowmo();
   G.zombieKills = 0; G.zombieWave = 1; G.waveTimer = 0; G.spawnTimer = 0;
   G.obstacles = generateObstacles(WORLD_W, WORLD_H, 15);
-  // 出生点兜底
   const spot = findFreeSpot(G.redPlayer.x, G.redPlayer.y, G.obstacles);
   G.redPlayer.x = spot.x; G.redPlayer.y = spot.y;
   txt($('gameRoomCode'), '单机');
@@ -2685,7 +2730,6 @@ function startRoundLocally(role, isFirst = true) {
   G.bullets = []; G.damageTexts = []; G.pickups = [];
   G.processedHits.clear();
   resetCombo(); endSlowmo();
-  // 出生点兜底
   const spotR = findFreeSpot(G.redPlayer.x, G.redPlayer.y, G.obstacles);
   G.redPlayer.x = spotR.x; G.redPlayer.y = spotR.y;
   const spotB = findFreeSpot(G.bluePlayer.x, G.bluePlayer.y, G.obstacles);
@@ -2718,7 +2762,6 @@ function startZombieModeLocally(role) {
   G.processedHits.clear();
   resetCombo(); endSlowmo();
   G.zombieKills = 0; G.zombieWave = 1; G.waveTimer = 0; G.spawnTimer = 0;
-  // 出生点兜底
   const spotR = findFreeSpot(G.redPlayer.x, G.redPlayer.y, G.obstacles);
   G.redPlayer.x = spotR.x; G.redPlayer.y = spotR.y;
   const spotB = findFreeSpot(G.bluePlayer.x, G.bluePlayer.y, G.obstacles);
@@ -2749,7 +2792,6 @@ function handleRoundEnd(winner, sRed, sBlue) {
   G.scoreRed = sRed; G.scoreBlue = sBlue;
   updateScoreboard();
   if (winner === G.myRole) SFX.win(); else SFX.lose();
-  // 金币奖励
   const myWin = (winner === G.myRole);
   awardCoins(myWin ? 50 : 20, myWin ? 'PvP 胜利' : 'PvP 参与');
   if (G.isHost && G.gameMode === 'pvp') setTimeout(() => startNextRound(), 3000);
@@ -2766,7 +2808,7 @@ function startNextRound() {
   setTimeout(() => startRoundLocally('red', false), 3000);
 }
 function handleLocalWin(deadRole) {
-  triggerSlowmo();
+  // 移除慢动作胜利动画，直接结算
   G.gameRunning = false;
   if (deadRole === 'red') G.scoreBlue++;
   else G.scoreRed++;
@@ -2777,7 +2819,6 @@ function handleLocalWin(deadRole) {
   safeSend({ type: 'roundEnd', winner: G.myRole, scoreRed: G.scoreRed, scoreBlue: G.scoreBlue });
   if (me && opponent) addKillFeed(me.name, opponent.name, WEAPONS[me.weapon].icon);
   SFX.win();
-  // 金币奖励
   awardCoins(50, 'PvP 胜利');
   setTimeout(() => {
     stopMusic();
@@ -2789,20 +2830,12 @@ function gameOverPvE() {
   stopMusic();
   SFX.lose();
   const coins = G.zombieKills * 2 + G.zombieWave * 10;
-  awardCoins(coins, '僵尸模式');
+  awardCoins(coins, G.isSoloMode ? '单人僵尸' : '合作僵尸');
   addLeaderboardEntry(G.myNickname, G.zombieKills, G.isSoloMode ? 'solo' : 'zombie');
-  if (G.isSoloMode) {
-    setTimeout(() => {
-      alert('💀 被僵尸击败！\n击杀数：' + G.zombieKills + '  波次：' + G.zombieWave + '\n💰 +' + coins + ' 金币');
-      cleanupAndReturnToLobby();
-    }, 200);
-  } else {
-    safeSend({ type: 'gameOver', kills: G.zombieKills, wave: G.zombieWave });
-    setTimeout(() => {
-      alert('💀 被僵尸击败！\n击杀数：' + G.zombieKills + '  波次：' + G.zombieWave + '\n💰 +' + coins + ' 金币');
-      cleanupAndReturnToLobby();
-    }, 200);
-  }
+  setTimeout(() => {
+    alert('💀 被僵尸击败！\n击杀数：' + G.zombieKills + '  波次：' + G.zombieWave + '\n💰 +' + coins + ' 金币');
+    cleanupAndReturnToLobby();
+  }, 200);
 }
 
 /* ============================================================
@@ -2835,6 +2868,7 @@ function handleMessage(data) {
         if (data.shieldActive !== undefined) target.shieldActive = data.shieldActive;
         if (data.invisible !== undefined) target.invisibleTimer = data.invisible ? 30 : 0;
         if (data.name) target.name = data.name;
+        if (data.skinId && SKINS[data.skinId]) G.opponentSkin = SKINS[data.skinId];
       }
       break;
     }
@@ -3000,9 +3034,11 @@ function cleanupAndReturnToLobby() {
   G.roomCode = '';
   G.camera.x = 0; G.camera.y = 0;
   G.spectating = false; G.spectatorTarget = null;
+  G.opponentSkin = null;
   switchView('lobby');
   const lowHpEl = $('lowHpVignette');
   if (lowHpEl) cls(lowHpEl, 'active', false);
+  updateLobbyCoins();
 }
 
 /* ============================================================
@@ -3044,7 +3080,7 @@ function renderLeaderboard() {
 }
 
 /* ============================================================
-   Firebase（redirect 登录 + 皮肤存档 + 金币）
+   Firebase（Popup 登录 + 皮肤存档 + 金币）
    ============================================================ */
 let firebaseAuth = null;
 let firebaseDb = null;
@@ -3078,7 +3114,7 @@ async function initFirebase() {
       import("https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js")
     ]);
 
-    const { getAuth, signInWithRedirect, getRedirectResult, GoogleAuthProvider,
+    const { getAuth, signInWithPopup, getRedirectResult, GoogleAuthProvider,
             onAuthStateChanged, signOut, setPersistence, browserLocalPersistence } = authMod;
     const { getFirestore, doc, getDoc, setDoc } = firestoreMod;
 
@@ -3087,14 +3123,12 @@ async function initFirebase() {
     firebaseDb = getFirestore(app);
     fbModules = { doc, getDoc, setDoc };
 
-    // 保证登录状态持久化（刷新后仍登录）
     try {
       await setPersistence(firebaseAuth, browserLocalPersistence);
     } catch (e) {
       console.warn('[Firebase] setPersistence 失败:', e);
     }
 
-    // 先注册 onAuthStateChanged，保证 redirect 回来后 UI 立即更新
     onAuthStateChanged(firebaseAuth, async (user) => {
       console.log('[Auth] 状态变化:', user ? (user.displayName || user.email) : '未登录');
       currentUser = user;
@@ -3112,7 +3146,6 @@ async function initFirebase() {
         cls($('userInfo'), 'hidden', true);
         cls($('loginBtn'), 'hidden', false);
         if ($('loginTip')) $('loginTip').style.display = 'block';
-        // 未登录时尝试读取本地 profile（金币/皮肤）
         try {
           const local = JSON.parse(localStorage.getItem('arena_local_profile') || 'null');
           if (local) profile = { ...profile, ...local };
@@ -3121,9 +3154,9 @@ async function initFirebase() {
         renderSkinShop();
         applySkin(profile.equippedSkin);
       }
+      updateLobbyCoins();
     });
 
-    // 处理 redirect 返回（即便上面 onAuthStateChanged 已经处理，这里只是补日志）
     try {
       const result = await getRedirectResult(firebaseAuth);
       if (result && result.user) {
@@ -3136,13 +3169,24 @@ async function initFirebase() {
     on($('loginBtn'), 'click', async () => {
       if (!firebaseAuth) { alert('Firebase 还在加载，请稍等'); return; }
       const provider = new GoogleAuthProvider();
-      provider.setCustomParameters({ prompt: 'select_account' });
       try {
-        txt($('statusText'), '正在跳转 Google 登录…');
-        await signInWithRedirect(firebaseAuth, provider);
+        txt($('statusText'), '正在打开登录窗口…');
+        const result = await signInWithPopup(firebaseAuth, provider);
+        console.log('[登录] 成功:', result.user.displayName);
+        txt($('statusText'), '✅ 已登录: ' + (result.user.displayName || ''));
       } catch (e) {
         console.error('[登录] 失败', e);
-        alert('登录失败：' + e.message);
+        if (e.code === 'auth/popup-blocked') {
+          alert('弹窗被浏览器拦截，请允许本站弹窗后重试');
+        } else if (e.code === 'auth/popup-closed-by-user') {
+          txt($('statusText'), '登录窗口被关闭');
+        } else if (e.code === 'auth/unauthorized-domain') {
+          alert('域名未授权。请到 Firebase 控制台 → Authentication → Settings → 已授权的网域，添加当前域名。');
+        } else if (e.code === 'auth/operation-not-allowed') {
+          alert('Google 登录未启用。请到 Firebase 控制台 → Authentication → Sign-in method，启用 Google。');
+        } else {
+          alert('登录失败：' + e.message);
+        }
       }
     });
 
@@ -3170,6 +3214,7 @@ async function loadUserProfile(user) {
     updateCoinUI();
     renderSkinShop();
     applySkin(profile.equippedSkin);
+    updateLobbyCoins();
     if (profile.name && $('nickname') && !$('nickname').value) {
       $('nickname').value = profile.name.slice(0, 10);
     }
@@ -3180,9 +3225,12 @@ async function loadUserProfile(user) {
 
 function updateCoinUI() {
   txt($('userCoins'), `💰 ${profile.coins}`);
+  updateLobbyCoins();
+}
+function updateLobbyCoins() {
+  txt($('lobbyCoins'), `💰 ${profile.coins || 0}`);
 }
 
-// 发放金币（自动保存到 Firebase 或 localStorage）
 async function awardCoins(amount, reason) {
   if (amount <= 0) return;
   profile.coins = (profile.coins || 0) + amount;
@@ -3248,8 +3296,9 @@ async function handleSkinClick(id) {
 }
 function applySkin(id) {
   G.currentSkin = SKINS[id] || SKINS.default;
-  if (G.redPlayer) G.redPlayer.skin = G.currentSkin;
-  if (G.bluePlayer) G.bluePlayer.skin = G.currentSkin;
+  // 只影响自己的玩家对象，对手皮肤由广播决定
+  const me = G.myRole === 'red' ? G.redPlayer : G.bluePlayer;
+  if (me) me.skin = G.currentSkin;
 }
 
 /* ============================================================
@@ -3537,6 +3586,7 @@ if (!CanvasRenderingContext2D.prototype.roundRect) {
     updateScoreboardVisibility();
     updateThemeBadge();
     updateAimUI();
+    updateLobbyCoins();
     txt($('statusText'), '✅ 准备就绪');
     cls($('statusDot'), 'ok', true);
     initFirebase();
