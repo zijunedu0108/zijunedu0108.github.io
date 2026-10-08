@@ -94,7 +94,6 @@ button{border:none;cursor:pointer;font-family:inherit;font-weight:600;border-rad
 .skin-name{font-size:.85rem;color:#cdd9f0;font-weight:600}
 .skin-price{font-size:.75rem;color:#ffd24d;font-family:'Consolas',monospace;margin-top:4px}
 .skin-card.equipped .skin-price{color:#4eff8b}
-/* 成就卡片 */
 .achievement-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px}
 .achievement-card{background:#0a0f1c;border:2px solid #1e2a44;border-radius:12px;padding:10px;text-align:center;transition:.2s}
 .achievement-card.unlocked{border-color:#ffd24d;background:linear-gradient(135deg,#1a2a5e,#0f1830);box-shadow:0 0 16px rgba(255,210,77,.25)}
@@ -102,7 +101,6 @@ button{border:none;cursor:pointer;font-family:inherit;font-weight:600;border-rad
 .achievement-card .ach-icon{font-size:1.6rem;margin-bottom:4px}
 .achievement-card .ach-name{font-size:.8rem;color:#cdd9f0;font-weight:600}
 .achievement-card .ach-desc{font-size:.68rem;color:#6b7fa0;margin-top:2px;line-height:1.3}
-/* 成就 toast */
 .achievement-toast{position:fixed;top:20px;right:20px;z-index:700;display:flex;gap:14px;align-items:center;background:linear-gradient(135deg,#1a2a5e,#0f1830);border:2px solid #ffd24d;border-radius:16px;padding:14px 20px;min-width:280px;box-shadow:0 10px 40px rgba(255,210,77,.4);transform:translateX(400px);opacity:0;transition:all .5s cubic-bezier(.34,1.56,.64,1)}
 .achievement-toast.show{transform:translateX(0);opacity:1}
 .achievement-toast .ach-icon{font-size:2.4rem;filter:drop-shadow(0 0 12px #ffd24d)}
@@ -110,7 +108,6 @@ button{border:none;cursor:pointer;font-family:inherit;font-weight:600;border-rad
 .achievement-toast .ach-title{font-size:.7rem;color:#ffd24d;font-weight:700;letter-spacing:1px}
 .achievement-toast .ach-name{font-size:1rem;color:#e8eeff;font-weight:700;margin:2px 0}
 .achievement-toast .ach-desc{font-size:.75rem;color:#8fa4cc}
-/* 结算面板 */
 .gameover-panel{position:fixed;inset:0;z-index:600;display:none;flex-direction:column;align-items:center;justify-content:center;background:rgba(5,8,16,.88);backdrop-filter:blur(12px);gap:20px}
 .gameover-panel.visible{display:flex}
 .go-title{font-size:2.6rem;font-weight:900;color:#ff4d6d;text-shadow:0 0 40px #ff4d6d;letter-spacing:4px;text-align:center}
@@ -234,12 +231,10 @@ kbd{background:#1a2238;border-radius:7px;padding:3px 10px;color:#b8ceff;font-wei
 .team-slot .slot-name{display:block}
 .team-slot .slot-hint{display:block;font-size:.65rem;color:#5d7099;margin-top:2px}
 .team-slot.filled .slot-hint{color:#7da2ff}
-/* 2v2 队伍 HUD 顶部提示 */
 .team-hud-tip{position:absolute;top:70px;left:50%;transform:translateX(-50%);background:rgba(10,15,28,.85);border:1px solid #253253;border-radius:12px;padding:6px 16px;font-size:.75rem;color:#8fa4cc;z-index:99;display:none}
 .team-hud-tip.visible{display:block}
 .team-hud-tip .team-red{color:#ff6b8a;font-weight:700}
 .team-hud-tip .team-blue{color:#6bb8ff;font-weight:700}
-/* 等待界面的宽版（4 人） */
 #waiting.wide{min-width:620px}
 </style>
 </head>
@@ -649,6 +644,7 @@ if (typeof Peer === 'undefined') {
   document.write('<script src="https://cdn.jsdelivr.net/npm/peerjs@1.5.2/dist/peerjs.min.js"><\/script>');
 }
 </script>
+
 <script>
 window.addEventListener('error', (e) => {
   const el = document.getElementById('statusText');
@@ -674,6 +670,7 @@ function escapeHtml(s){return String(s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':
 const W=1200,H=700;
 const WORLD_W=W*2,WORLD_H=H*2;
 const PVP_W=900,PVP_H=600;
+const PVP2V2_W=1000,PVP2V2_H=700;
 const MAZE_COLS=13,MAZE_ROWS=9,MAZE_CELL=110;
 const MAZE_W=MAZE_COLS*MAZE_CELL,MAZE_H=MAZE_ROWS*MAZE_CELL;
 const RACE_W=1800,RACE_H=700;
@@ -782,6 +779,9 @@ const I18N={
     statusReady:'✅ 准备就绪',statusInit:'正在初始化…',
     tabMode:'🎮 模式',tabRank:'🏆 排行',tabSkin:'🎨 皮肤',tabAch:'🏅 成就',tabSettings:'⚙️ 设置',
     chooseMode:'选择游戏模式',modePvp:'1v1 竞技',modePvpDesc:'红蓝对决',modeZombie:'合作打僵尸',modeZombieDesc:'两人组队生存',modeMaze:'迷宫竞速',modeMazeDesc:'谁先到达终点',modeRace:'直线竞速',modeRaceDesc:'绕过障碍先到终点',
+    modePvp2v2:'2v2 团队竞技',modePvp2v2Desc:'4 人红蓝团战',
+    teamTitle:'队伍分配（房主可点击换边）',teamRedLabel:'红队',teamBlueLabel:'蓝队',
+    teamHint:'至少 2 人开始 · 点击玩家槽位可换边',start2v2:'开始游戏',
     shootStyle:'射击方式',autoAim:'🎯 自动瞄准',manualAim:'🖱️ 手动瞄准',autoAimDesc:'按空格朝向敌人自动射击',manualAimDesc:'鼠标瞄准，左键射击',
     rankTitle:'🏆 历史战绩 Top 10',clear:'清空',noRecord:'暂无记录，快去战斗吧！',skinShop:'🎨 皮肤商店',
     achTitle:'🏅 成就',
@@ -808,6 +808,9 @@ const I18N={
     statusReady:'✅ Ready',statusInit:'Initializing…',
     tabMode:'🎮 Mode',tabRank:'🏆 Rank',tabSkin:'🎨 Skins',tabAch:'🏅 Achievements',tabSettings:'⚙️ Settings',
     chooseMode:'Choose Game Mode',modePvp:'1v1 Arena',modePvpDesc:'Red vs Blue',modeZombie:'Co-op Zombies',modeZombieDesc:'Two-player survival',modeMaze:'Maze Race',modeMazeDesc:'First to the exit',modeRace:'Straight Race',modeRaceDesc:'Dodge obstacles to the goal',
+    modePvp2v2:'2v2 Team Battle',modePvp2v2Desc:'4-player red vs blue',
+    teamTitle:'Team Assignment (host can swap)',teamRedLabel:'Red',teamBlueLabel:'Blue',
+    teamHint:'At least 2 players · click slot to swap',start2v2:'Start Game',
     shootStyle:'Shooting Style',autoAim:'🎯 Auto Aim',manualAim:'🖱️ Manual Aim',autoAimDesc:'Press Space to auto-shoot',manualAimDesc:'Mouse aim, LMB shoot',
     rankTitle:'🏆 Top 10 Records',clear:'Clear',noRecord:'No records yet. Go fight!',skinShop:'🎨 Skin Shop',
     achTitle:'🏅 Achievements',
@@ -848,7 +851,10 @@ function applyLanguage(lang){
     setFFTitle:'setFFTitle',setFFDesc:'setFFDesc',setAmmoTitle:'setAmmoTitle',setAmmoDesc:'setAmmoDesc',setZSpeedTitle:'setZSpeedTitle',setZSpeedDesc:'setZSpeedDesc',setBossFreqTitle:'setBossFreqTitle',setBossFreqDesc:'setBossFreqDesc',
     copyCodeText:'copyCode',cancelText:'cancel',roomLabel:'roomLabel',youAreLabel:'youAre',spectateText:'spectate',fullscreenText:'fullscreen',leaveText:'leave',
     killLabel:'killLabel',waveLabel:'waveLabel',comboLabel:'comboLabel',moveHint:'moveHint',dashHint:'dashHint',shieldHint:'shieldHint',ultHint:'ultHint',switchHint:'switchHint',chatHint:'chatHint',
-    goReturnBtn:'returnLobby',modePvp2v2:'modePvp2v2', modePvp2v2Desc:'modePvp2v2Desc',teamTitle:'teamTitle', teamRedLabel:'teamRedLabel', teamBlueLabel:'teamBlueLabel',teamHint:'teamHint', start2v2Text:'start2v2'
+    goReturnBtn:'returnLobby',
+    modePvp2v2:'modePvp2v2', modePvp2v2Desc:'modePvp2v2Desc',
+    teamTitle:'teamTitle', teamRedLabel:'teamRedLabel', teamBlueLabel:'teamBlueLabel',
+    teamHint:'teamHint', start2v2Text:'start2v2'
   };
   for(const [id,k] of Object.entries(map)){const el=$(id);if(el)el.textContent=t(k);}
   const cb=$('clearLeaderboard');if(cb)cb.textContent=t('clear');
@@ -968,6 +974,9 @@ const G={
   comboCount:0,comboTimer:0,screenShake:0,slowmoTimer:0,
   mouseX:600,mouseY:350,mouseDown:false,
   redPlayer:null,bluePlayer:null,
+  players:{red1:null,red2:null,blue1:null,blue2:null},
+  myPlayerId:'red1',
+  connections:[],
   scoreRed:0,scoreBlue:0,
   zombies:[],bosses:[],obstacles:[],bullets:[],damageTexts:[],pickups:[],
   zombieKills:0,zombieWave:1,waveTimer:0,spawnTimer:0,
@@ -984,18 +993,48 @@ const G={
 
 let canvas=null,ctx=null;
 
-function createPlayer(role,myNick,oppNick,skin){
+function getPlayer(id){return G.players[id];}
+function getMyPlayer(){return G.players[G.myPlayerId];}
+function getAlivePlayers(){
+  return Object.keys(G.players)
+    .filter(k=>G.players[k] && G.players[k].hp>0)
+    .map(k=>G.players[k]);
+}
+function getTeamIds(team){return [team+'1',team+'2'];}
+function getOpponentTeam(team){return team==='red'?'blue':'red';}
+function isTeammate(id1,id2){
+  if(!id1||!id2)return false;
+  return (id1.startsWith('red')&&id2.startsWith('red'))||
+         (id1.startsWith('blue')&&id2.startsWith('blue'));
+}
+function isPvp2v2(){return G.gameMode==='pvp2v2';}
+function syncLegacyAliases(){
+  G.redPlayer = G.players.red1;
+  G.bluePlayer = G.players.blue1;
+}
+
+function createPlayer(role,myNick,oppNick,skin,slotId){
   const isRed=role==='red';
   const pvp=(G.gameMode==='pvp'&&!G.isSoloMode);
+  const pvp2=(G.gameMode==='pvp2v2');
   const maze=(G.gameMode==='maze');
   const race=(G.gameMode==='race');
   let mapW,mapH,startX,startY;
-  if(pvp){mapW=PVP_W;mapH=PVP_H;startX=isRed?100:mapW-100;startY=mapH/2;}
+  if(pvp2){
+    mapW=PVP2V2_W;mapH=PVP2V2_H;
+    if(slotId==='red1'){startX=80;startY=100;}
+    else if(slotId==='red2'){startX=80;startY=mapH-100;}
+    else if(slotId==='blue1'){startX=mapW-80;startY=100;}
+    else if(slotId==='blue2'){startX=mapW-80;startY=mapH-100;}
+    else {startX=isRed?80:mapW-80;startY=mapH/2;}
+  }
+  else if(pvp){mapW=PVP_W;mapH=PVP_H;startX=isRed?100:mapW-100;startY=mapH/2;}
   else if(maze){mapW=MAZE_W;mapH=MAZE_H;startX=MAZE_CELL/2;startY=MAZE_CELL/2;}
   else if(race){mapW=RACE_W;mapH=RACE_H;startX=isRed?100:mapW-100;startY=mapH/2;}
   else{mapW=WORLD_W;mapH=WORLD_H;startX=isRed?200:mapW-200;startY=mapH/2;}
   return {
     role,name:isRed?myNick:oppNick,x:startX,y:startY,
+    slotId:slotId||null,
     hp:100,maxHp:100,hpSeq:0,cooldown:0,
     facing:isRed?0:Math.PI,
     skillCD:{dash:0,shield:0,ultimate:0},shieldActive:0,
@@ -1099,8 +1138,20 @@ function updateSlowmo(){if(G.slowmoTimer>0){G.slowmoTimer--;if(G.slowmoTimer===0
 
 function safeSend(data){
   if(G.isSoloMode)return false;
+  if(G.isHost){
+    let ok=false;
+    for(const c of G.connections){
+      if(c&&c.open){try{c.send(data);ok=true;}catch(e){}}
+    }
+    return ok;
+  }
   if(G.conn&&G.conn.open){try{G.conn.send(data);return true;}catch(e){return false;}}
   return false;
+}
+function broadcastAll(data){
+  for(const c of G.connections){
+    if(c&&c.open){try{c.send(data);}catch(e){}}
+  }
 }
 function generateRoomCode(){const c='ABCDEFGHJKLMNPQRSTUVWXYZ23456789';let s='';for(let i=0;i<6;i++)s+=c[Math.floor(Math.random()*c.length)];return s;}
 function initPeer(peerId){
@@ -1113,6 +1164,74 @@ function initPeer(peerId){
       G.peer.on('error',(err)=>{clearTimeout(to);reject(err);});
     }catch(e){reject(e);}
   });
+}
+function findEmptySlot(){
+  for(const id of ['red1','red2','blue1','blue2']){
+    if(!G.players[id])return id;
+  }
+  return null;
+}
+function serializePlayers(){
+  const out={};
+  for(const id of Object.keys(G.players)){
+    const p=G.players[id];
+    if(p)out[id]={name:p.name,isHost:!!p.isHost};
+  }
+  return out;
+}
+function updateTeamSlotsUI(){
+  const slots=['red1','red2','blue1','blue2'];
+  for(const s of slots){
+    const el=$('slot'+s.charAt(0).toUpperCase()+s.slice(1));
+    if(!el)continue;
+    const p=G.players[s];
+    const nameEl=el.querySelector('.slot-name');
+    const hintEl=el.querySelector('.slot-hint');
+    if(p){
+      nameEl.textContent=(p.isHost?'👑 ':'')+p.name;
+      el.classList.add('filled');
+      el.classList.toggle('host',!!p.isHost);
+      if(hintEl)hintEl.textContent=s===G.myPlayerId?'（你）':'';
+    }else{
+      nameEl.textContent='空';
+      el.classList.remove('filled','host');
+      if(hintEl)hintEl.textContent='';
+    }
+  }
+  const playerCount=Object.keys(G.players).filter(k=>G.players[k]).length;
+  const btn=$('start2v2Btn');
+  if(btn){
+    if(G.isHost&&isPvp2v2()){
+      btn.style.display='block';
+      btn.disabled=playerCount<2;
+      txt($('start2v2Text'),t('start2v2'));
+    }else{
+      btn.style.display='none';
+    }
+  }
+  const tip=$('teamHudTip');
+  if(tip&&isPvp2v2()){
+    const redNames=['red1','red2'].filter(id=>G.players[id]).map(id=>G.players[id].name).join(' / ')||'空';
+    const blueNames=['blue1','blue2'].filter(id=>G.players[id]).map(id=>G.players[id].name).join(' / ')||'空';
+    txt($('tipRedNames'),redNames);
+    txt($('tipBlueNames'),blueNames);
+  }
+}
+function broadcastPlayerList(){
+  broadcastAll({type:'playerListUpdate',players:serializePlayers()});
+}
+function swapSlot(slot){
+  if(!G.isHost||!isPvp2v2())return;
+  const p=G.players[slot];
+  if(!p||p.isHost)return;
+  const team=slot.startsWith('red')?'red':'blue';
+  const other=team==='red'?'blue':'red';
+  const targetSlot=[other+'1',other+'2'].find(s=>!G.players[s]);
+  if(!targetSlot){alert(currentLang==='zh'?'对方队伍已满':'Opponent team full');return;}
+  G.players[targetSlot]=p;
+  delete G.players[slot];
+  broadcastAll({type:'slotUpdate',players:serializePlayers(),myPlayerId:null});
+  updateTeamSlotsUI();
 }
 
 const gridCache={};
@@ -1225,12 +1344,14 @@ function isMazeMap(){return G.gameMode==='maze';}
 function isRaceMap(){return G.gameMode==='race';}
 function getMapW(){
   if(isPvpMap())return PVP_W;
+  if(G.gameMode==='pvp2v2')return PVP2V2_W;
   if(isMazeMap())return MAZE_W;
   if(isRaceMap())return RACE_W;
   return WORLD_W;
 }
 function getMapH(){
   if(isPvpMap())return PVP_H;
+  if(G.gameMode==='pvp2v2')return PVP2V2_H;
   if(isMazeMap())return MAZE_H;
   if(isRaceMap())return RACE_H;
   return WORLD_H;
@@ -1301,7 +1422,6 @@ function spawnSplitterChildren(z,zombies){
     if(child){child.hp=2;child.maxHp=2;child.speed*=1.3;child.isSplitChild=true;}}
 }
 
-/* ====== 皮肤特效 ====== */
 function playSkinKillEffect(player,x,y){
   const id=getSkinId(player.skin||SKINS.default);
   switch(id){
@@ -1323,9 +1443,6 @@ function playSkinDeathEffect(player){
   SFX.bossDie();
 }
 
-/* ============================================================
-   僵尸 AI（含绕路 + 减速）
-   ============================================================ */
 function moveZombieWithObstacles(z, dx, dy, dist, speedMult) {
   const zSpeedMult = G.settings.zombieSpeedMult || 1;
   const slowMult = z.slowTimer > 0 ? 0.7 : 1;
@@ -1638,7 +1755,7 @@ function showUpgradeChoice(player, onResume) {
     </div>
   `).join('');
   G.upgradeOpen = true;
-  player.invincible = true; // 无敌
+  player.invincible = true;
   box.querySelectorAll('.upgrade-card').forEach(card => {
     card.addEventListener('click', () => {
       const u = UPGRADES.find(x => x.id === card.dataset.id);
@@ -1653,9 +1770,6 @@ function showUpgradeChoice(player, onResume) {
   panel.classList.add('visible');
 }
 
-/* ============================================================
-   渲染
-   ============================================================ */
 function mixColor(c1, c2, t0) {
   const p = h => {
     if (h.startsWith('#')) { const n = parseInt(h.slice(1), 16); return [(n >> 16) & 255, (n >> 8) & 255, n & 255]; }
@@ -1803,7 +1917,6 @@ function drawPlayer(p) {
   if (p.invisibleTimer > 0 && isMe) alpha = 0.6;
   if (p.hp <= 0) alpha = 0.4;
   if (p.invincible) {
-    // 无敌光环
     ctx.save();
     ctx.globalAlpha = 0.6;
     ctx.strokeStyle = '#ffd24d';
@@ -2053,7 +2166,6 @@ function drawHUD() {
     }
   }
 
-  // 队友 HUD
   if (!G.isSoloMode && G.bluePlayer && G.redPlayer && G.gameMode === 'zombie') {
     const ally = G.myRole === 'red' ? G.bluePlayer : G.redPlayer;
     if (ally) {
@@ -2526,9 +2638,6 @@ function getSkinId(skin) {
   return 'default';
 }
 
-/* ============================================================
-   开始游戏
-   ============================================================ */
 function startSoloGame(myNickname) {
   G.isSoloMode = true;
   G.gameMode = 'zombie';
@@ -2767,7 +2876,6 @@ function gameOverPvE() {
   const coins = G.zombieKills * 2 + G.zombieWave * 10;
   awardCoins(coins, G.isSoloMode ? t('soloZombie') : t('coopZombie'));
   addLeaderboardEntry(G.myNickname, G.zombieKills, G.isSoloMode ? 'solo' : 'zombie');
-  // 无伤通关检查
   const me = G.myRole === 'red' ? G.redPlayer : G.bluePlayer;
   if (me && !me.damagedThisRun && G.zombieWave >= 5) unlockAchievement('noHitPvE');
   if (!G.isSoloMode) {
@@ -2789,12 +2897,49 @@ function showGameOverPanel(kills, wave, coins) {
   panel.classList.add('visible');
 }
 
-/* ============================================================
-   网络消息
-   ============================================================ */
-function handleMessage(data) {
+function handleMessage(data, fromConn) {
   if (!data || !data.type) return;
+  const relayTypes = ['playerUpdate','bulletSpawn','hit','hpUpdate','pickupSpawn','pickupCollected',
+                      'chat','roundEnd','nextRound','zombieState','zombieHit','zombieDamaged','zombieDied',
+                      'progress','raceWin','gameOver','teamChange','playerListUpdate','slotUpdate'];
+  if (G.isHost && fromConn && relayTypes.includes(data.type)) {
+    for (const c of G.connections) {
+      if (c !== fromConn && c.open) try { c.send(data); } catch(e) {}
+    }
+  }
   switch (data.type) {
+    case 'assignSlot':
+      G.myPlayerId = data.slot;
+      G.myRole = data.slot.startsWith('red') ? 'red' : 'blue';
+      G.gameMode = data.mode || 'pvp';
+      G.opponentNickname = data.hostName || (currentLang === 'zh' ? '房主' : 'Host');
+      if (data.autoAim !== undefined) G.autoAim = data.autoAim;
+      if (data.settings) G.settings = { ...G.settings, ...data.settings };
+      if (data.players) {
+        G.players = { red1: null, red2: null, blue1: null, blue2: null };
+        for (const [id, info] of Object.entries(data.players)) {
+          G.players[id] = { name: info.name, isHost: info.isHost };
+        }
+      }
+      safeSend({ type: 'playerReady', nickname: G.myNickname });
+      updateTeamSlotsUI();
+      break;
+    case 'playerListUpdate':
+      G.players = { red1: null, red2: null, blue1: null, blue2: null };
+      for (const [id, info] of Object.entries(data.players)) {
+        G.players[id] = { name: info.name, isHost: info.isHost };
+      }
+      updateTeamSlotsUI();
+      break;
+    case 'slotUpdate':
+      G.players = { red1: null, red2: null, blue1: null, blue2: null };
+      for (const [id, info] of Object.entries(data.players)) {
+        G.players[id] = { name: info.name, isHost: info.isHost };
+        if (info.name === G.myNickname && !G.players[G.myPlayerId]) G.myPlayerId = id;
+      }
+      G.myRole = G.myPlayerId.startsWith('red') ? 'red' : 'blue';
+      updateTeamSlotsUI();
+      break;
     case 'assignRole':
       G.myRole = data.role;
       G.gameMode = data.mode || 'pvp';
@@ -2995,25 +3140,29 @@ function handleMessage(data) {
   }
 }
 
-/* ============================================================
-   清理
-   ============================================================ */
 function cleanupAndReturnToLobby() {
   G.gameRunning = false;
   clearAllKeys();
   closeChatPanel();
   endSlowmo();
   stopMusic();
-  if (!G.isSoloMode && G.conn && G.conn.open) {
-    safeSend({ type: 'leave' });
-    try { G.conn.close(); } catch(e) {}
+  if (!G.isSoloMode) {
+    if (G.isHost) {
+      broadcastAll({ type: 'leave' });
+      for (const c of G.connections) { try { c.close(); } catch(e) {} }
+    } else if (G.conn && G.conn.open) {
+      try { G.conn.send({ type: 'leave' }); G.conn.close(); } catch(e) {}
+    }
   }
   G.conn = null;
+  G.connections = [];
   if (G.peer && !G.peer.destroyed) { try { G.peer.destroy(); } catch(e) {} }
   G.peer = null;
   G.bullets = []; G.damageTexts = []; G.obstacles = [];
   G.zombies = []; G.bosses = []; G.pickups = [];
   G.redPlayer = null; G.bluePlayer = null;
+  G.players = { red1: null, red2: null, blue1: null, blue2: null };
+  G.myPlayerId = 'red1';
   G.processedHits.clear();
   G.remoteHpSeq = 0;
   resetCombo();
@@ -3034,9 +3183,6 @@ function cleanupAndReturnToLobby() {
   cls($('gameOverPanel'), 'visible', false);
 }
 
-/* ============================================================
-   排行榜
-   ============================================================ */
 const LB_KEY = 'arena_leaderboard_v3';
 function loadLeaderboard() { try { return JSON.parse(localStorage.getItem(LB_KEY) || '[]'); } catch(e) { return []; } }
 function saveLeaderboard(list) { try { localStorage.setItem(LB_KEY, JSON.stringify(list.slice(0, 20))); } catch(e) {} }
@@ -3059,9 +3205,6 @@ function renderLeaderboard() {
   }).join('');
 }
 
-/* ============================================================
-   成就
-   ============================================================ */
 function unlockAchievement(id) {
   if (!profile.achievements) profile.achievements = [];
   if (profile.achievements.includes(id)) return;
@@ -3111,9 +3254,6 @@ async function saveProfile() {
   }
 }
 
-/* ============================================================
-   Firebase
-   ============================================================ */
 let firebaseAuth = null, firebaseDb = null, currentUser = null;
 let profile = { uid: null, name: '玩家', coins: 500, unlockedSkins: ['default'], equippedSkin: 'default', achievements: [], achievementStats: { totalKills: 0, totalWins: 0, maxCombo: 0, bossKills: 0, maxWave: 0, flawlessPvE: 0 }, stats: { totalKills: 0, totalWins: 0, maxCombo: 0, gamesPlayed: 0 } };
 let fbModules = null;
@@ -3234,9 +3374,6 @@ function applySkin(id) {
   if (me) me.skin = G.currentSkin;
 }
 
-/* ============================================================
-   UI 绑定
-   ============================================================ */
 function bindUI() {
   document.querySelectorAll('.tab').forEach(tab => {
     tab.addEventListener('click', () => {
@@ -3265,6 +3402,23 @@ function bindUI() {
   });
   on($('goReturnBtn'), 'click', cleanupAndReturnToLobby);
 
+  on($('slotRed1'), 'click', () => swapSlot('red1'));
+  on($('slotRed2'), 'click', () => swapSlot('red2'));
+  on($('slotBlue1'), 'click', () => swapSlot('blue1'));
+  on($('slotBlue2'), 'click', () => swapSlot('blue2'));
+
+  on($('start2v2Btn'), 'click', () => {
+    if (!G.isHost) return;
+    const playerCount = Object.keys(G.players).filter(k => G.players[k]).length;
+    if (playerCount < 2) { alert(currentLang === 'zh' ? '至少 2 人才能开始' : 'Need at least 2 players'); return; }
+    broadcastAll({
+      type: 'start2v2',
+      players: serializePlayers(),
+      hostName: G.myNickname
+    });
+    start2v2Locally();
+  });
+
   on($('soloBtn'), 'click', () => {
     initAudio();
     const nick = ($('nickname') ? $('nickname').value.trim() : '') || (currentLang === 'zh' ? '玩家' : 'Player');
@@ -3284,24 +3438,66 @@ function bindUI() {
     G.isHost = true;
     G.isSoloMode = false;
     G.myRole = 'red';
+    G.myPlayerId = 'red1';
+    G.connections = [];
+    const is2v2 = G.gameMode === 'pvp2v2';
+    G.players = { red1: { name: nick, isHost: true }, red2: null, blue1: null, blue2: null };
     const peerId = 'arena-' + G.roomCode;
     try {
       await initPeer(peerId);
       txt($('statusText'), t('roomCreated'));
       cls($('statusDot'), 'ok', true);
       G.peer.on('connection', (incomingConn) => {
-        if (G.conn && G.conn.open) { try { incomingConn.close(); } catch(e) {} return; }
-        G.conn = incomingConn;
-        G.conn.on('open', () => {
-          safeSend({ type: 'assignRole', role: 'blue', mode: G.gameMode, hostName: G.myNickname, autoAim: G.autoAim, settings: G.settings });
-          txt($('statusText'), t('oppConnected'));
-        });
-        G.conn.on('data', handleMessage);
-        G.conn.on('close', () => { if (G.gameRunning) { alert(t('oppDisconnected')); cleanupAndReturnToLobby(); } });
+        if (is2v2) {
+          const slot = findEmptySlot();
+          if (!slot) { try { incomingConn.send({ type: 'roomFull' }); incomingConn.close(); } catch(e) {} return; }
+          G.connections.push(incomingConn);
+          incomingConn.on('open', () => {
+            G.players[slot] = { name: '玩家', isHost: false, conn: incomingConn };
+            incomingConn.send({
+              type: 'assignSlot',
+              slot,
+              mode: G.gameMode,
+              hostName: G.myNickname,
+              autoAim: G.autoAim,
+              settings: G.settings,
+              players: serializePlayers()
+            });
+            updateTeamSlotsUI();
+            broadcastPlayerList();
+            incomingConn.send({ type: 'playerListUpdate', players: serializePlayers() });
+          });
+          incomingConn.on('data', (data) => handleMessage(data, incomingConn));
+          incomingConn.on('close', () => {
+            G.connections = G.connections.filter(c => c !== incomingConn);
+            for (const id of Object.keys(G.players)) {
+              if (G.players[id] && G.players[id].conn === incomingConn) G.players[id] = null;
+            }
+            updateTeamSlotsUI();
+            broadcastPlayerList();
+          });
+        } else {
+          if (G.conn && G.conn.open) { try { incomingConn.close(); } catch(e) {} return; }
+          G.conn = incomingConn;
+          incomingConn.on('open', () => {
+            incomingConn.send({ type: 'assignRole', role: 'blue', mode: G.gameMode, hostName: G.myNickname, autoAim: G.autoAim, settings: G.settings });
+            txt($('statusText'), t('oppConnected'));
+          });
+          incomingConn.on('data', (data) => handleMessage(data, incomingConn));
+          incomingConn.on('close', () => { if (G.gameRunning) { alert(t('oppDisconnected')); cleanupAndReturnToLobby(); } });
+        }
       });
       txt($('displayRoomCode'), G.roomCode);
-      const modeText = G.gameMode === 'pvp' ? t('modePvp') : G.gameMode === 'zombie' ? t('modeZombie') : G.gameMode === 'maze' ? t('modeMaze') : t('modeRace');
+      const modeText = G.gameMode === 'pvp' ? t('modePvp') : G.gameMode === 'pvp2v2' ? t('modePvp2v2') : G.gameMode === 'zombie' ? t('modeZombie') : G.gameMode === 'maze' ? t('modeMaze') : t('modeRace');
       txt($('waitingModeHint'), (currentLang === 'zh' ? '模式：' : 'Mode: ') + modeText);
+      if (is2v2) {
+        $('teamSlots').style.display = 'flex';
+        $('waiting').classList.add('wide');
+        updateTeamSlotsUI();
+      } else {
+        $('teamSlots').style.display = 'none';
+        $('waiting').classList.remove('wide');
+      }
       switchView('waiting');
     } catch (err) { txt($('lobbyError'), t('createFailed') + ': ' + (err.message || 'error')); }
     $('createRoomBtn').disabled = false;
@@ -3330,7 +3526,7 @@ function bindUI() {
       targetConn.on('open', () => {
         clearTimeout(to);
         G.conn = targetConn;
-        G.conn.on('data', handleMessage);
+        G.conn.on('data', (data) => handleMessage(data, null));
         G.conn.on('close', () => { if (G.gameRunning) { alert(t('oppDisconnected')); cleanupAndReturnToLobby(); } });
         txt($('statusText'), t('connectedWaiting'));
         cls($('statusDot'), 'ok', true);
@@ -3381,6 +3577,43 @@ function bindUI() {
   });
 }
 
+function start2v2Locally() {
+  G.gameRunning = true;
+  G.currentTheme = Object.keys(THEMES).filter(k => k !== 'zombie' && k !== 'maze')[Math.floor(Math.random() * 3)] || 'space';
+  G.obstacles = generateObstacles(PVP2V2_W, PVP2V2_H, 16);
+  G.bullets = []; G.damageTexts = []; G.pickups = [];
+  resetCombo(); endSlowmo();
+  for (const id of Object.keys(G.players)) {
+    if (!G.players[id]) continue;
+    const role = id.startsWith('red') ? 'red' : 'blue';
+    const p = G.players[id];
+    const isMe = (id === G.myPlayerId);
+    G.players[id] = {
+      ...createPlayer(role, p.name, '', isMe ? G.currentSkin : null, id),
+      name: p.name,
+      isHost: p.isHost
+    };
+  }
+  G.redPlayer = G.players.red1;
+  G.bluePlayer = G.players.blue1;
+  txt($('gameRoomCode'), G.roomCode);
+  txt($('myRoleLabel'), G.myPlayerId.startsWith('red') ? t('red') : t('blue'));
+  if ($('myRoleLabel')) $('myRoleLabel').className = G.myPlayerId.startsWith('red') ? 'role-red' : 'role-blue';
+  cls($('pvpScoreboard'), 'hidden', true);
+  cls($('zombieScoreboard'), 'hidden', true);
+  const tip = $('teamHudTip');
+  if (tip) cls(tip, 'visible', true);
+  updateThemeBadge();
+  updateAimUI();
+  switchView('game');
+  updateWeaponHUD();
+  clearAllKeys();
+  SFX.start();
+  if (musicEnabled) { initAudio(); startMusic(); }
+  snapCameraToMe();
+  startGameLoop();
+}
+
 if (!CanvasRenderingContext2D.prototype.roundRect) {
   CanvasRenderingContext2D.prototype.roundRect = function(x, y, w, h, r) {
     if (w < 2 * r) r = w / 2;
@@ -3398,9 +3631,6 @@ if (!CanvasRenderingContext2D.prototype.roundRect) {
   };
 }
 
-/* ============================================================
-   启动
-   ============================================================ */
 let lastMinimapDraw = 0, gameLoopRunning = false;
 function startGameLoop() { if (gameLoopRunning) return; gameLoopRunning = true; requestAnimationFrame(gameLoop); }
 function gameLoop() {
@@ -3480,6 +3710,8 @@ function updateScoreboardVisibility() {
   cls($('zombieScoreboard'), 'hidden', !showZombie);
   const mm = $('minimap');
   if (mm) cls(mm, 'visible', showZombie);
+  const tip = $('teamHudTip');
+  if (tip) cls(tip, 'visible', G.gameMode === 'pvp2v2');
 }
 function updateThemeBadge() {
   const theme = THEMES[G.currentTheme] || THEMES.space;
