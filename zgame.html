@@ -2749,6 +2749,12 @@ function handleMessage(data){
       if(data.settings)G.settings={...G.settings,...data.settings};
       startPvEGame(false);
       break;
+    case 'hostStart2P':
+      if(data.players)G.roomPlayers=data.players.map(p=>({...p,conn:null}));
+      if(data.settings)G.settings={...G.settings,...data.settings};
+      G.gameMode=data.mode||G.gameMode;
+      startGame();
+      break;
     case 'playerUpdate':{
       const target=getPlayerByRole(data.role);
       if(target&&data.role!==G.myRole){
@@ -3792,19 +3798,34 @@ function bindUI(){
   on($('setBossFreq'),'click',()=>{if(!G.isHost)return;G.settings.bossEvery=G.settings.bossEvery===10?5:10;cls($('setBossFreq'),'on',G.settings.bossEvery===5);broadcastSettings();});
 
   // 房主开始按钮
+  // 房主开始按钮
   on($('hostStartBtn'),'click',()=>{
     if(!G.isHost)return;
-    // 房主本地启动
-    startPvEGame(true);
-    // 通知其他人
-    const list=G.roomPlayers.map(p=>({nickname:p.nickname,role:p.role,isHost:p.isHost}));
-    broadcastToOthers(null,{
-      type:'hostStartGame',
-      settings:G.settings,
-      mapSize:G.mapSize,
-      weather:G.weather,
-      players:list
-    });
+    if(G.gameMode==='zombie'){
+      // ===== PvE 多人模式 =====
+      startPvEGame(true);
+      const list=G.roomPlayers.map(p=>({nickname:p.nickname,role:p.role,isHost:p.isHost}));
+      broadcastToOthers(null,{
+        type:'hostStartGame',
+        settings:G.settings,
+        mapSize:G.mapSize,
+        weather:G.weather,
+        players:list
+      });
+    } else {
+      // ===== 1v1 / 迷宫 / 竞速（2 人） =====
+      if(G.roomPlayers.length < 2){
+        alert(currentLang==='zh'?'需要至少 2 名玩家才能开始':'Need at least 2 players');
+        return;
+      }
+      startGame();
+      broadcastToOthers(null,{
+        type:'hostStart2P',
+        mode:G.gameMode,
+        settings:G.settings,
+        players:G.roomPlayers.map(p=>({nickname:p.nickname,role:p.role,isHost:p.isHost}))
+      });
+    }
   });
 
   // 房间聊天
