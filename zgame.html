@@ -9,7 +9,6 @@
 ::-webkit-scrollbar { width: 8px; height: 8px; }
 ::-webkit-scrollbar-track { background: transparent; margin: 6px 0; }
 ::-webkit-scrollbar-thumb { background: rgba(90, 130, 220, 0.35); border-radius: 10px; border: 2px solid transparent; background-clip: padding-box; }
-::-webkit-scrollbar-thumb:hover { background: rgba(120, 160, 255, 0.7); background-clip: padding-box; border: 2px solid transparent; }
 * { scrollbar-width: thin; scrollbar-color: rgba(90, 130, 220, 0.35) transparent; }
 
 body {
@@ -166,14 +165,11 @@ button {
 .leaderboard { display: flex; flex-direction: column; gap: 4px; }
 .clear-btn { font-size: 0.7rem; color: #5d7099; cursor: pointer; background: none; border: none; padding: 2px 6px; border-radius: 6px; transition: 0.2s; }
 .clear-btn:hover { color: #ff6b8a; background: #1a0f15; }
-.lb-row { display: flex; justify-content: space-between; align-items: center; padding: 8px 12px; font-size: 0.82rem; background: #0a0f1c; border-radius: 10px; border: 1px solid #141a2a; cursor: pointer; transition: 0.15s; }
-.lb-row:hover { border-color: #3d6bff; background: #101828; }
+.lb-row { display: flex; justify-content: space-between; align-items: center; padding: 8px 12px; font-size: 0.82rem; background: #0a0f1c; border-radius: 10px; border: 1px solid #141a2a; }
 .lb-rank { color: #5d7099; font-family: 'Consolas', monospace; width: 30px; font-weight: 700; }
 .lb-name { flex: 1; margin-left: 8px; color: #cdd9f0; font-weight: 500; }
 .lb-score { font-family: 'Consolas', monospace; font-weight: 700; color: #ffd24d; background: rgba(255,210,77,0.08); padding: 2px 10px; border-radius: 10px; }
 .lb-empty { color: #3d4d6e; font-size: 0.8rem; text-align: center; padding: 30px 0; }
-.lb-detail { background: #0a0f1c; border: 1px solid #1e2a44; border-radius: 10px; padding: 12px 14px; margin: 4px 0 8px; font-size: 0.78rem; color: #8fa4cc; line-height: 1.7; animation: slideDown 0.25s ease-out; }
-@keyframes slideDown { from { opacity: 0; transform: translateY(-6px); } to { opacity: 1; transform: translateY(0); } }
 
 .skin-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
 .skin-card { background: #0d1220; border: 2px solid #2a3650; border-radius: 14px; padding: 14px; cursor: pointer; transition: 0.2s; text-align: center; }
@@ -296,6 +292,8 @@ kbd { background: #1a2238; border-radius: 7px; padding: 3px 10px; color: #b8ceff
 .low-hp-vignette { position: fixed; inset: 0; pointer-events: none; z-index: 140; background: radial-gradient(circle at center, transparent 40%, rgba(255, 0, 40, 0.35) 100%); opacity: 0; transition: opacity 0.3s; }
 .low-hp-vignette.active { opacity: 1; animation: heartbeat 0.8s infinite; }
 @keyframes heartbeat { 0%, 100% { opacity: 0.5; } 50% { opacity: 0.9; } }
+
+.login-tip { font-size: 0.7rem; color: #5d7099; margin-top: 6px; text-align: center; }
 </style>
 </head>
 <body>
@@ -317,7 +315,7 @@ kbd { background: #1a2238; border-radius: 7px; padding: 3px 10px; color: #b8ceff
 <div class="kill-feed" id="killFeed"></div>
 
 <div class="upgrade-panel" id="upgradePanel">
-  <div class="upgrade-title">⬆️ 升级！选择一项强化</div>
+  <div class="upgrade-title">⬆️ 选择一项强化</div>
   <div class="upgrade-options" id="upgradeOptions"></div>
 </div>
 
@@ -343,6 +341,7 @@ kbd { background: #1a2238; border-radius: 7px; padding: 3px 10px; color: #b8ceff
         </div>
         <button id="logoutBtn" class="btn-logout">退出</button>
       </div>
+      <div id="loginTip" class="login-tip">登录后可保存皮肤到云端</div>
     </div>
 
     <div class="field">
@@ -425,9 +424,6 @@ kbd { background: #1a2238; border-radius: 7px; padding: 3px 10px; color: #b8ceff
       <div class="tab-pane" data-pane="skin">
         <div class="section-title">🎨 皮肤商店</div>
         <div class="skin-grid" id="skinGrid"></div>
-        <div style="font-size:0.72rem; color:#5d7099; margin-top:12px; text-align:center;">
-          登录后可保存皮肤到云端
-        </div>
       </div>
 
       <div class="tab-pane" data-pane="settings">
@@ -606,10 +602,16 @@ kbd { background: #1a2238; border-radius: 7px; padding: 3px 10px; color: #b8ceff
 </div>
 
 <script src="https://unpkg.com/peerjs@1.5.2/dist/peerjs.min.js"></script>
+<script>
+// PeerJS 加载失败备用
+if (typeof Peer === 'undefined') {
+  document.write('<script src="https://cdn.jsdelivr.net/npm/peerjs@1.5.2/dist/peerjs.min.js"><\/script>');
+}
+</script>
 
 <script>
 /* ============================================================
-   全局错误捕获（放在最前面，第一时间显示问题）
+   全局错误捕获
    ============================================================ */
 window.addEventListener('error', (e) => {
   const el = document.getElementById('statusText');
@@ -627,7 +629,7 @@ window.addEventListener('unhandledrejection', (e) => {
 'use strict';
 
 /* ============================================================
-   工具函数
+   工具
    ============================================================ */
 function $(id) { return document.getElementById(id); }
 function on(el, ev, fn) { if (el && el.addEventListener) el.addEventListener(ev, fn); }
@@ -638,7 +640,7 @@ function escapeHtml(s) {
 }
 
 /* ============================================================
-   常量配置
+   常量
    ============================================================ */
 const W = 1200, H = 700;
 const WORLD_W = W * 2;
@@ -667,7 +669,9 @@ const BUFF_SPEED_MULT = 1.6, BUFF_DOUBLE_MULT = 2;
 const COMBO_WINDOW = 120;
 const COMBO_MILESTONES = [3, 5, 10, 15, 20, 30];
 const SLOWMO_DURATION = 30;
-const XP_PER_LEVEL = 3;
+
+const XP_PER_LEVEL = 3;            // 每击杀数 = 升 1 级
+const LEVELS_PER_UPGRADE = 10;     // 每 10 级给一次三选一
 
 const WEAPONS = {
   pistol:   { name: '手枪', icon: '🔫', cooldown: 14, damage: 14, bulletSpeed: 9,  bulletsPerShot: 1, spread: 0,    ammo: Infinity, color: '#ffffff' },
@@ -712,12 +716,12 @@ const UPGRADES = [
 ];
 
 const SKINS = {
-  default:  { name: '默认',   price: 0,    color: null,       trail: null,     glow: 28, desc: '经典红蓝配色' },
-  neon:     { name: '霓虹',   price: 500,  color: '#ff00ff',  trail: '#ff00ff', glow: 40, desc: '赛博朋克风' },
-  gold:     { name: '黄金',   price: 2000, color: '#ffd24d',  trail: '#ffd24d', glow: 36, desc: '土豪专属' },
-  shadow:   { name: '暗影',   price: 1500, color: '#1a1a2a',  trail: '#4d4dff', glow: 20, desc: '暗夜潜行' },
-  fire:     { name: '烈焰',   price: 3000, color: '#ff4d1a',  trail: '#ffd24d', glow: 44, desc: '燃烧的心' },
-  ice:      { name: '冰霜',   price: 2500, color: '#4dd4ff',  trail: '#a8e8ff', glow: 32, desc: '寒冰之力' }
+  default:  { name: '默认',   price: 0,    color: null,       trail: null,     glow: 28 },
+  neon:     { name: '霓虹',   price: 500,  color: '#ff00ff',  trail: '#ff00ff', glow: 40 },
+  gold:     { name: '黄金',   price: 2000, color: '#ffd24d',  trail: '#ffd24d', glow: 36 },
+  shadow:   { name: '暗影',   price: 1500, color: '#1a1a2a',  trail: '#4d4dff', glow: 20 },
+  fire:     { name: '烈焰',   price: 3000, color: '#ff4d1a',  trail: '#ffd24d', glow: 44 },
+  ice:      { name: '冰霜',   price: 2500, color: '#4dd4ff',  trail: '#a8e8ff', glow: 32 }
 };
 
 /* ============================================================
@@ -851,7 +855,7 @@ function stopMusic() {
 }
 
 /* ============================================================
-   粒子系统
+   粒子
    ============================================================ */
 const particles = [];
 const MAX_PARTICLES = 400;
@@ -884,7 +888,7 @@ function updateParticles() {
 }
 
 /* ============================================================
-   游戏状态
+   全局状态
    ============================================================ */
 const G = {
   peer: null, conn: null, isHost: false, roomCode: '', myRole: 'red',
@@ -1005,24 +1009,6 @@ window.addEventListener('keyup', (e) => {
 });
 window.addEventListener('blur', clearAllKeys);
 window.addEventListener('visibilitychange', () => { if (document.hidden) clearAllKeys(); });
-
-/* 鼠标 */
-function getCanvasMouse(e) {
-  if (!canvas) return { x: 0, y: 0 };
-  const rect = canvas.getBoundingClientRect();
-  const sx = canvas.width / rect.width;
-  const sy = canvas.height / rect.height;
-  return {
-    x: (e.clientX - rect.left) * sx + G.camera.x,
-    y: (e.clientY - rect.top) * sy + G.camera.y
-  };
-}
-on(document, 'mousemove', (e) => {
-  if (canvas && e.target === canvas && G.gameRunning && !G.autoAim) {
-    const m = getCanvasMouse(e);
-    G.mouseX = m.x; G.mouseY = m.y;
-  }
-});
 
 /* ============================================================
    聊天
@@ -1163,14 +1149,6 @@ function initPeer(peerId) {
   });
 }
 
-console.log('[游戏] 前 1/2 JS 加载完成，等待第二部分...');
-</script>
-
-<script>
-/* ============================================================
-   第二部分：游戏逻辑 + 渲染 + 网络 + Firebase + UI 绑定
-   ============================================================ */
-
 /* ============================================================
    网格缓存
    ============================================================ */
@@ -1237,7 +1215,6 @@ let bossIdCounter = 0;
 
 function spawnZombie(zombies, wave, forceType = null, x = null, y = null) {
   if (zombies.length >= ZOMBIE_MAX_COUNT) return null;
-
   let typeKey = forceType;
   if (!typeKey) {
     const available = Object.entries(ZOMBIE_TYPES).filter(([k, t]) => (t.minWave || 1) <= wave);
@@ -1249,7 +1226,6 @@ function spawnZombie(zombies, wave, forceType = null, x = null, y = null) {
     }
     if (!typeKey) typeKey = 'normal';
   }
-
   const t = ZOMBIE_TYPES[typeKey];
   let px = x, py = y;
   if (px === null) {
@@ -1261,10 +1237,8 @@ function spawnZombie(zombies, wave, forceType = null, x = null, y = null) {
       default: px = Math.random() * WORLD_W; py = WORLD_H + 40; break;
     }
   }
-
   const speedBonus = Math.min(1.8, wave * 0.08);
   const hp = t.hp + Math.floor(wave / 3);
-
   const z = {
     id: 'z-' + (zombieIdCounter++),
     type: typeKey,
@@ -1282,7 +1256,6 @@ function spawnZombie(zombies, wave, forceType = null, x = null, y = null) {
   zombies.push(z);
   return z;
 }
-
 function spawnBoss(bosses, wave) {
   const side = Math.floor(Math.random() * 4);
   const margin = 200;
@@ -1297,7 +1270,6 @@ function spawnBoss(bosses, wave) {
   const hp = BOSS_BASE_HP + (bossNum - 1) * 80;
   const speed = 0.6 + (bossNum - 1) * 0.15;
   const shootCD = Math.max(40, 90 - (bossNum - 1) * 8);
-
   bosses.push({
     id: 'boss-' + (bossIdCounter++),
     x, y, hp, maxHp: hp,
@@ -1307,7 +1279,6 @@ function spawnBoss(bosses, wave) {
   SFX.bossSpawn();
   spawnParticles(x, y, { count: 30, color: '#ff4d6d', speed: 8, life: 60, size: 5 });
 }
-
 function spawnSplitterChildren(z, zombies) {
   for (let i = 0; i < 3; i++) {
     const a = (i / 3) * Math.PI * 2;
@@ -1335,7 +1306,6 @@ function updateZombiesAndBosses() {
       if (d < minD) { minD = d; target = p; }
     }
     if (!target) continue;
-
     const dx = target.x - z.x, dy = target.y - z.y;
     const dist = Math.hypot(dx, dy) || 1;
     z.angle = Math.atan2(dy, dx);
@@ -1390,7 +1360,6 @@ function updateZombiesAndBosses() {
       z.y += (dy / dist) * z.speed * zSpeedMult;
     }
 
-    // 障碍物推开
     const zHalf = z.size / 2;
     const zRect = { x: z.x - zHalf, y: z.y - zHalf, w: z.size, h: z.size };
     for (const o of G.obstacles) {
@@ -1403,7 +1372,6 @@ function updateZombiesAndBosses() {
       }
     }
 
-    // 攻击玩家
     if (z.type !== 'bomber' && z.type !== 'thrower') {
       for (const p of players) {
         const zr = z.size / 2 + PLAYER_SIZE / 2;
@@ -1425,7 +1393,6 @@ function updateZombiesAndBosses() {
     }
   }
 
-  // 更新 Boss
   for (const b of G.bosses) {
     let target = null, minD = Infinity;
     for (const p of players) {
@@ -1490,11 +1457,8 @@ function updateZombiesAndBosses() {
     }
   }
 
-  // 检查死亡
   const anyAlive = players.length > 0;
-  if (!anyAlive) {
-    gameOverPvE();
-  }
+  if (!anyAlive) gameOverPvE();
 }
 
 /* ============================================================
@@ -1612,15 +1576,18 @@ function reloadWeapon() {
 }
 
 /* ============================================================
-   升级系统
+   升级（每 10 级三选一）
    ============================================================ */
 function checkLevelUp(player, onPause, onResume) {
   if (!player) return;
-  if (player.xp >= XP_PER_LEVEL) {
+  while (player.xp >= XP_PER_LEVEL) {
     player.xp -= XP_PER_LEVEL;
     player.level++;
-    onPause();
-    showUpgradeChoice(player, onResume);
+    if (player.level % LEVELS_PER_UPGRADE === 0) {
+      onPause();
+      showUpgradeChoice(player, onResume);
+      return;
+    }
   }
 }
 function showUpgradeChoice(player, onResume) {
@@ -1628,6 +1595,8 @@ function showUpgradeChoice(player, onResume) {
   const panel = $('upgradePanel');
   const box = $('upgradeOptions');
   if (!panel || !box) return;
+  const titleEl = panel.querySelector('.upgrade-title');
+  if (titleEl) titleEl.textContent = `⬆️ 第 ${player.level} 级！选择一项强化`;
   box.innerHTML = pool.map(u => `
     <div class="upgrade-card" data-id="${u.id}">
       <div class="u-icon">${u.icon}</div>
@@ -1635,7 +1604,6 @@ function showUpgradeChoice(player, onResume) {
       <div class="u-desc">${u.desc}</div>
     </div>
   `).join('');
-
   box.querySelectorAll('.upgrade-card').forEach(card => {
     card.addEventListener('click', () => {
       const u = UPGRADES.find(x => x.id === card.dataset.id);
@@ -1644,11 +1612,7 @@ function showUpgradeChoice(player, onResume) {
       SFX.levelUp();
       if (onResume) onResume();
       if (player.xp >= XP_PER_LEVEL) {
-        setTimeout(() => {
-          player.xp -= XP_PER_LEVEL;
-          player.level++;
-          showUpgradeChoice(player, onResume);
-        }, 300);
+        setTimeout(() => checkLevelUp(player, () => { G.gameRunning = false; }, onResume), 300);
       }
     }, { once: true });
   });
@@ -1672,7 +1636,6 @@ function mixColor(c1, c2, t) {
   const bl = Math.round(a[2] + (b[2] - a[2]) * t);
   return `rgb(${r},${g},${bl})`;
 }
-
 function draw() {
   if (!ctx) return;
   const theme = THEMES[G.currentTheme] || THEMES.space;
@@ -1681,8 +1644,6 @@ function draw() {
     ctx.translate((Math.random() - 0.5) * G.screenShake, (Math.random() - 0.5) * G.screenShake);
   }
   ctx.clearRect(0, 0, W, H);
-
-  // 背景（连击越高越暖）
   const warm = Math.min(1, G.comboCount / 30);
   const bgTop = warm > 0 ? mixColor(theme.bg[0], '#3a1a0a', warm * 0.6) : theme.bg[0];
   const bgBot = warm > 0 ? mixColor(theme.bg[1], '#1a0805', warm * 0.6) : theme.bg[1];
@@ -1691,18 +1652,12 @@ function draw() {
   grad.addColorStop(1, bgBot);
   ctx.fillStyle = grad;
   ctx.fillRect(0, 0, W, H);
-
-  // 相机
   ctx.save();
   ctx.translate(-G.camera.x, -G.camera.y);
-
   const worldW = (G.gameMode === 'zombie' || G.isSoloMode) ? WORLD_W : W;
   const worldH = (G.gameMode === 'zombie' || G.isSoloMode) ? WORLD_H : H;
-
   const grid = getGridCanvas(G.currentTheme, worldW, worldH);
   if (grid) ctx.drawImage(grid, G.camera.x, G.camera.y, W, H, G.camera.x, G.camera.y, W, H);
-
-  // 障碍物
   for (const o of G.obstacles) {
     if (o.x + o.w < G.camera.x - 50 || o.x > G.camera.x + W + 50 ||
         o.y + o.h < G.camera.y - 50 || o.y > G.camera.y + H + 50) continue;
@@ -1715,15 +1670,11 @@ function draw() {
     ctx.fillStyle = theme.obstacleHighlight;
     ctx.beginPath(); ctx.roundRect(o.x + 3, o.y + 3, o.w - 6, 6, 4); ctx.fill();
   }
-
-  // 掉落物
   for (const p of G.pickups) {
     if (p.x < G.camera.x - 50 || p.x > G.camera.x + W + 50 ||
         p.y < G.camera.y - 50 || p.y > G.camera.y + H + 50) continue;
     drawPickup(p);
   }
-
-  // 僵尸
   if (G.gameMode === 'zombie' || G.isSoloMode) {
     for (const z of G.zombies) {
       if (z.x < G.camera.x - 80 || z.x > G.camera.x + W + 80 ||
@@ -1736,8 +1687,6 @@ function draw() {
       drawBoss(b);
     }
   }
-
-  // 子弹
   for (const b of G.bullets) {
     if (b.x < G.camera.x - 30 || b.x > G.camera.x + W + 30 ||
         b.y < G.camera.y - 30 || b.y > G.camera.y + H + 30) continue;
@@ -1747,24 +1696,14 @@ function draw() {
     ctx.fillStyle = c;
     ctx.shadowColor = c; ctx.shadowBlur = 16; ctx.fill(); ctx.shadowBlur = 0;
   }
-
-  // 粒子
   drawParticles();
-
-  // 玩家
   if (G.redPlayer) drawPlayer(G.redPlayer);
   if (G.bluePlayer) drawPlayer(G.bluePlayer);
-
-  // 伤害飘字
   drawDamageTexts();
-
   ctx.restore();
-
-  // HUD
   drawHUD();
   ctx.restore();
 }
-
 function drawPlayer(p) {
   if (!p) return;
   const isRed = p.role === 'red';
@@ -1772,13 +1711,11 @@ function drawPlayer(p) {
   const bgColor = isRed ? '#2e1a1f' : '#1a2a3a';
   if (p.skin && p.skin.color) color = p.skin.color;
   const glow = p.skin ? p.skin.glow : 28;
-
   let alpha = 1;
   if (p.invisibleTimer > 0 && p.role !== G.myRole) alpha = 0.35;
   if (p.invisibleTimer > 0 && p.role === G.myRole) alpha = 0.6;
   if (p.hp <= 0) alpha = 0.4;
   ctx.globalAlpha = alpha;
-
   if (p.dashFrames > 0) {
     for (let i = 1; i <= 3; i++) {
       ctx.globalAlpha = alpha * (0.3 / i);
@@ -1789,21 +1726,18 @@ function drawPlayer(p) {
     }
     ctx.globalAlpha = alpha;
   }
-
   ctx.shadowColor = color; ctx.shadowBlur = glow;
   ctx.fillStyle = color;
   ctx.beginPath();
   ctx.roundRect(p.x - PLAYER_SIZE/2, p.y - PLAYER_SIZE/2, PLAYER_SIZE, PLAYER_SIZE, 8);
   ctx.fill();
   ctx.shadowBlur = 0;
-
   if (p.shieldActive > 0) {
     ctx.strokeStyle = '#4dd4ff'; ctx.lineWidth = 3;
     ctx.shadowColor = '#4dd4ff'; ctx.shadowBlur = 20;
     ctx.beginPath(); ctx.arc(p.x, p.y, PLAYER_SIZE * 0.85, 0, Math.PI * 2); ctx.stroke();
     ctx.shadowBlur = 0;
   }
-
   if ((p.role === G.myRole || G.isSoloMode) && p.hp > 0) {
     ctx.save();
     ctx.translate(p.x, p.y); ctx.rotate(p.facing);
@@ -1815,25 +1749,20 @@ function drawPlayer(p) {
     ctx.closePath(); ctx.fill();
     ctx.restore();
   }
-
   if (p.role !== G.myRole && !G.isSoloMode && p.hp > 0 && p.role === 'blue') {
     ctx.font = 'bold 12px "Segoe UI"'; ctx.fillStyle = '#4dd4ff';
     ctx.textAlign = 'center';
     ctx.fillText('🛡 队友', p.x, p.y - PLAYER_SIZE/2 - 42);
   }
-
   ctx.fillStyle = bgColor;
   ctx.fillRect(p.x - 28, p.y - PLAYER_SIZE/2 - 20, 56, 8);
   ctx.fillStyle = color;
   ctx.fillRect(p.x - 28, p.y - PLAYER_SIZE/2 - 20, 56 * (p.hp / p.maxHp), 8);
-
   ctx.font = 'bold 12px "Segoe UI"'; ctx.textAlign = 'center';
   ctx.fillStyle = color;
   ctx.fillText(p.name, p.x, p.y - PLAYER_SIZE/2 - 26);
-
   ctx.globalAlpha = 1; ctx.textAlign = 'left';
 }
-
 function drawZombie(z) {
   const half = (z.size || ZOMBIE_SIZE) / 2;
   const wob = Math.sin(z.wobble) * 2;
@@ -2097,7 +2026,6 @@ function drawHUD() {
       ctx.fillText(`地图: ${WORLD_W}×${WORLD_H}  位置: ${Math.round(me.x)},${Math.round(me.y)}`, 30, H - 20);
     }
   }
-
   if (G.gameMode === 'pvp' && G.redPlayer && G.bluePlayer) {
     if (G.redPlayer.hp <= 0) {
       ctx.font = 'bold 42px "Segoe UI"'; ctx.fillStyle = '#ff4d6daa';
@@ -2143,7 +2071,7 @@ function drawMinimap() {
 }
 
 /* ============================================================
-   碰撞检测（Liang-Barsky）
+   碰撞
    ============================================================ */
 function segmentHitsRect(x1, y1, x2, y2, r) {
   let t0 = 0, t1 = 1;
@@ -2226,7 +2154,6 @@ function updateBullets(worldW, worldH, me) {
       SFX.obstacle();
       G.bullets.splice(i, 1); continue;
     }
-
     if (b.owner === G.myRole) {
       if (G.gameMode === 'pvp') {
         const targetRole = G.myRole === 'red' ? 'blue' : 'red';
@@ -2283,10 +2210,7 @@ function updateBullets(worldW, worldH, me) {
                 if (Math.random() < 0.08) spawnPickup(hitZ.x, hitZ.y, 'invisible');
                 if (Math.random() < 0.08) spawnPickup(hitZ.x, hitZ.y, 'double');
                 if (hitZ.type === 'splitter') spawnSplitterChildren(hitZ, G.zombies);
-                checkLevelUp(me,
-                  () => { G.gameRunning = false; },
-                  () => { G.gameRunning = true; }
-                );
+                checkLevelUp(me, () => { G.gameRunning = false; }, () => { G.gameRunning = true; });
               } else {
                 G.bosses = G.bosses.filter(bb => bb.id !== hitB.id);
                 G.zombieKills += 10;
@@ -2299,10 +2223,7 @@ function updateBullets(worldW, worldH, me) {
                 if (!G.isSoloMode) safeSend({ type: 'zombieDied', zombieId: hitB.id, x: hitB.x, y: hitB.y, isBoss: true });
                 spawnPickup(hitB.x, hitB.y, 'health');
                 spawnPickup(hitB.x + 40, hitB.y, 'double');
-                checkLevelUp(me,
-                  () => { G.gameRunning = false; },
-                  () => { G.gameRunning = true; }
-                );
+                checkLevelUp(me, () => { G.gameRunning = false; }, () => { G.gameRunning = true; });
               }
             } else {
               spawnDamageText(target.x, target.y, Math.round(dmg), b.isCrit ? '#ffd24d' : '#ffaa4d');
@@ -2343,7 +2264,7 @@ function updateBullets(worldW, worldH, me) {
 }
 
 /* ============================================================
-   更新
+   更新主循环
    ============================================================ */
 function update() {
   if (!G.gameRunning) return;
@@ -2354,22 +2275,17 @@ function update() {
     return;
   }
   G.frameCount++;
-
   const me = G.myRole === 'red' ? G.redPlayer : G.bluePlayer;
   const opponent = G.myRole === 'red' ? G.bluePlayer : G.redPlayer;
   if (!me) return;
-
   updateCamera();
-
   if (G.comboTimer > 0) { G.comboTimer--; if (G.comboTimer === 0) resetCombo(); }
   if (G.screenShake > 0) G.screenShake *= 0.85;
-
   for (const k of ['dash', 'shield', 'ultimate']) if (me.skillCD[k] > 0) me.skillCD[k]--;
   if (me.shieldActive > 0) me.shieldActive--;
   if (me.speedTimer > 0) me.speedTimer--;
   if (me.invisibleTimer > 0) me.invisibleTimer--;
   if (me.doubleTimer > 0) me.doubleTimer--;
-
   if (consumePress('KeyT')) {
     if (G.chatPanelOpen) closeChatPanel();
     else openChatPanel();
@@ -2383,10 +2299,8 @@ function update() {
     if (consumePress('Digit3')) switchWeapon(3);
     if (consumePress('Digit4')) switchWeapon(4);
   }
-
   const worldW = (G.gameMode === 'zombie' || G.isSoloMode) ? WORLD_W : W;
   const worldH = (G.gameMode === 'zombie' || G.isSoloMode) ? WORLD_H : H;
-
   if (me.dashFrames > 0) {
     const cx = Math.min(Math.max(me.x + me.dashVx, PLAYER_SIZE/2 + 4), worldW - PLAYER_SIZE/2 - 4);
     if (!playerHitsObstacle(cx, me.y, G.obstacles)) me.x = cx;
@@ -2416,7 +2330,6 @@ function update() {
       }
     }
   }
-
   if (G.autoAim) {
     if (G.gameMode === 'pvp' && opponent) {
       me.facing = Math.atan2(opponent.y - me.y, opponent.x - me.x);
@@ -2433,7 +2346,6 @@ function update() {
   } else {
     me.facing = Math.atan2(G.mouseY - me.y, G.mouseX - me.x);
   }
-
   const w = WEAPONS[me.weapon];
   if (me.cooldown > 0) me.cooldown--;
   const wantShoot = G.autoAim ? keyDown('space') : G.mouseDown;
@@ -2472,11 +2384,8 @@ function update() {
     me.reloadTimer--;
     if (me.reloadTimer === 0) reloadWeapon();
   }
-
-  // 僵尸模式
   if ((G.gameMode === 'zombie' || G.isSoloMode) && (G.isHost || G.isSoloMode)) {
     updateZombiesAndBosses();
-
     G.waveTimer++;
     if (G.waveTimer >= 1200) {
       G.waveTimer = 0;
@@ -2492,7 +2401,6 @@ function update() {
       G.spawnTimer = 0;
       spawnZombie(G.zombies, G.zombieWave);
     }
-
     if (!G.isSoloMode && G.frameCount % 3 === 0) {
       safeSend({
         type: 'zombieState',
@@ -2502,20 +2410,17 @@ function update() {
       });
     }
   }
-
   updateBullets(worldW, worldH, me);
   updateDamageTexts();
   updateParticles();
   updatePickups();
   if (me.hp <= 0) me.dead = true;
-
-  // 低血警告
   const lowHpEl = $('lowHpVignette');
   if (lowHpEl) cls(lowHpEl, 'active', me.hp / me.maxHp < 0.25 && me.hp > 0);
 }
 
 /* ============================================================
-   游戏循环
+   主循环
    ============================================================ */
 let lastMinimapDraw = 0;
 let gameLoopRunning = false;
@@ -2539,7 +2444,7 @@ function gameLoop() {
 }
 
 /* ============================================================
-   HUD 更新
+   HUD
    ============================================================ */
 function updateSkillHUD() {
   const me = G.myRole === 'red' ? G.redPlayer : G.bluePlayer;
@@ -2590,7 +2495,18 @@ function updateLevelHUD() {
   if (!me) return;
   txt($('levelNum'), me.level);
   const fill = $('xpFill');
-  if (fill) fill.style.width = ((me.xp / XP_PER_LEVEL) * 100) + '%';
+  if (fill) {
+    // 显示距离下一个"10 级倍数"的进度
+    const levelsIntoBlock = me.level % LEVELS_PER_UPGRADE;
+    const xpInBlock = levelsIntoBlock * XP_PER_LEVEL + me.xp;
+    const xpNeeded = LEVELS_PER_UPGRADE * XP_PER_LEVEL;
+    fill.style.width = ((xpInBlock / xpNeeded) * 100) + '%';
+  }
+  const badge = $('levelBadge');
+  if (badge) {
+    const remain = LEVELS_PER_UPGRADE - (me.level % LEVELS_PER_UPGRADE);
+    badge.title = `再升 ${remain} 级获得强化选择`;
+  }
 }
 function updateScoreboard() {
   if (G.gameMode === 'pvp') {
@@ -2630,7 +2546,7 @@ function updateAimUI() {
 }
 
 /* ============================================================
-   视图切换
+   视图
    ============================================================ */
 function switchView(view) {
   cls($('lobby'), 'hidden', true);
@@ -2695,7 +2611,6 @@ function startSoloGame(myNickname) {
   showRoundBanner(1);
   if (!gameLoopRunning) { gameLoopRunning = true; gameLoop(); }
 }
-
 function startGame() {
   if (G.gameRunning) return;
   const themeKeys = Object.keys(THEMES).filter(k => k !== 'zombie');
@@ -2712,7 +2627,6 @@ function startGame() {
   if (G.gameMode === 'pvp') startRoundLocally('red', true);
   else startZombieModeLocally('red');
 }
-
 function startRoundLocally(role, isFirst = true) {
   G.isSoloMode = false;
   G.myRole = role;
@@ -2739,7 +2653,6 @@ function startRoundLocally(role, isFirst = true) {
   broadcastPlayerState();
   if (!gameLoopRunning) { gameLoopRunning = true; gameLoop(); }
 }
-
 function startZombieModeLocally(role) {
   G.isSoloMode = false;
   G.myRole = role;
@@ -2843,16 +2756,9 @@ function handleMessage(data) {
       G.opponentNickname = data.nickname || '对手';
       if (G.isHost) startGame();
       break;
-    case 'startGame':
-      startGame();
-      break;
-    case 'autoAimUpdate':
-      G.autoAim = data.autoAim;
-      updateAimUI();
-      break;
-    case 'roomSettings':
-      G.settings = { ...G.settings, ...data.settings };
-      break;
+    case 'startGame': startGame(); break;
+    case 'autoAimUpdate': G.autoAim = data.autoAim; updateAimUI(); break;
+    case 'roomSettings': G.settings = { ...G.settings, ...data.settings }; break;
     case 'playerUpdate': {
       const target = data.role === 'red' ? G.redPlayer : G.bluePlayer;
       if (target && data.role !== G.myRole) {
@@ -3071,7 +2977,7 @@ function renderLeaderboard() {
 }
 
 /* ============================================================
-   Firebase
+   Firebase（redirect 登录 + 皮肤存档）
    ============================================================ */
 let firebaseAuth = null;
 let firebaseDb = null;
@@ -3082,6 +2988,7 @@ let profile = {
   equippedSkin: 'default',
   stats: { totalKills: 0, totalWins: 0, maxCombo: 0, gamesPlayed: 0 }
 };
+let fbModules = null;
 
 const firebaseConfig = {
   apiKey: "AIzaSyBhc2JVAoxfk3wEsLee-Gr4I1StgqsPkBU",
@@ -3094,26 +3001,47 @@ const firebaseConfig = {
 
 async function initFirebase() {
   try {
-    const { initializeApp } = await import("https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js");
-    const { getAuth, signInWithPopup, GoogleAuthProvider, onAuthStateChanged, signOut } =
-      await import("https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js");
-    const { getFirestore, doc, getDoc, setDoc } =
-      await import("https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js");
+    const [
+      { initializeApp },
+      authMod,
+      firestoreMod
+    ] = await Promise.all([
+      import("https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js"),
+      import("https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js"),
+      import("https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js")
+    ]);
+
+    const { getAuth, signInWithRedirect, getRedirectResult, GoogleAuthProvider, onAuthStateChanged, signOut } = authMod;
+    const { getFirestore, doc, getDoc, setDoc } = firestoreMod;
 
     const app = initializeApp(firebaseConfig);
     firebaseAuth = getAuth(app);
     firebaseDb = getFirestore(app);
+    fbModules = { doc, getDoc, setDoc };
 
-    window._fbDoc = doc;
-    window._fbGetDoc = getDoc;
-    window._fbSetDoc = setDoc;
-    window._fbSignOut = signOut;
+    // 处理 redirect 登录返回
+    try {
+      const result = await getRedirectResult(firebaseAuth);
+      if (result && result.user) {
+        console.log('[Firebase] 重定向登录成功:', result.user.displayName);
+      }
+    } catch (e) {
+      console.warn('[Firebase] 处理重定向结果失败:', e);
+    }
 
     on($('loginBtn'), 'click', async () => {
+      if (!firebaseAuth) { alert('Firebase 还在加载，请稍等'); return; }
       const provider = new GoogleAuthProvider();
-      try { await signInWithPopup(firebaseAuth, provider); }
-      catch(e) { console.error('登录失败', e); }
+      provider.setCustomParameters({ prompt: 'select_account' });
+      try {
+        console.log('[登录] 开始重定向登录...');
+        await signInWithRedirect(firebaseAuth, provider);
+      } catch (e) {
+        console.error('[登录] 失败', e);
+        alert('登录失败：' + e.message);
+      }
     });
+
     on($('logoutBtn'), 'click', async () => {
       try { await signOut(firebaseAuth); location.reload(); } catch(e) {}
     });
@@ -3125,6 +3053,11 @@ async function initFirebase() {
         if ($('userAvatar')) $('userAvatar').src = user.photoURL || '';
         cls($('userInfo'), 'hidden', false);
         cls($('loginBtn'), 'hidden', true);
+        if ($('loginTip')) $('loginTip').style.display = 'none';
+        // 自动把昵称填入
+        if (user.displayName && $('nickname') && !$('nickname').value) {
+          $('nickname').value = user.displayName.slice(0, 10);
+        }
         try {
           const ref = doc(firebaseDb, 'players', user.uid);
           const snap = await getDoc(ref);
@@ -3132,22 +3065,25 @@ async function initFirebase() {
             profile = { ...profile, ...snap.data(), uid: user.uid };
           } else {
             profile.uid = user.uid;
+            profile.name = user.displayName || '玩家';
             await setDoc(ref, profile);
           }
           updateCoinUI();
           renderSkinShop();
           applySkin(profile.equippedSkin);
-        } catch(e) {
-          console.error('[Firebase] 加载档案失败', e);
+        } catch (e) {
+          console.error('[Firebase] 加载档案失败:', e);
         }
       } else {
         cls($('userInfo'), 'hidden', true);
         cls($('loginBtn'), 'hidden', false);
+        if ($('loginTip')) $('loginTip').style.display = 'block';
         renderSkinShop();
       }
     });
   } catch (e) {
     console.warn('[Firebase] 初始化失败（不影响游戏）:', e.message);
+    if ($('loginTip')) $('loginTip').textContent = '⚠️ Firebase 加载失败，皮肤仅保存在本地';
   }
 }
 
@@ -3160,7 +3096,9 @@ function renderSkinShop() {
   grid.innerHTML = Object.entries(SKINS).map(([id, s]) => {
     const owned = profile.unlockedSkins.includes(id);
     const equipped = profile.equippedSkin === id;
-    const colorStyle = s.color ? `background:${s.color}; box-shadow:0 0 20px ${s.color};` : 'background:linear-gradient(135deg,#ff4d6d,#4da6ff);';
+    const colorStyle = s.color
+      ? `background:${s.color}; box-shadow:0 0 20px ${s.color};`
+      : 'background:linear-gradient(135deg,#ff4d6d,#4da6ff);';
     return `
       <div class="skin-card ${owned ? 'owned' : ''} ${equipped ? 'equipped' : ''}" data-id="${id}">
         <div class="skin-preview" style="${colorStyle}"></div>
@@ -3188,10 +3126,13 @@ async function handleSkinClick(id) {
   }
   profile.equippedSkin = id;
   // 保存到 Firebase
-  if (currentUser && firebaseDb) {
+  if (currentUser && firebaseDb && fbModules) {
     try {
-      await window._fbSetDoc(window._fbDoc(firebaseDb, 'players', currentUser.uid), profile);
-    } catch(e) { console.error('保存失败', e); }
+      await fbModules.setDoc(fbModules.doc(firebaseDb, 'players', currentUser.uid), profile);
+    } catch (e) { console.error('保存失败', e); }
+  } else {
+    // 未登录也保存到 localStorage
+    try { localStorage.setItem('arena_local_profile', JSON.stringify(profile)); } catch(e) {}
   }
   updateCoinUI();
   renderSkinShop();
@@ -3207,7 +3148,8 @@ function applySkin(id) {
    UI 绑定
    ============================================================ */
 function bindUI() {
-  // Tab 切换
+  console.log('[bindUI] 开始绑定事件');
+  // Tab
   document.querySelectorAll('.tab').forEach(tab => {
     tab.addEventListener('click', () => {
       document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
@@ -3218,23 +3160,24 @@ function bindUI() {
     });
   });
 
-  // 模式选择
+  // 模式
   document.querySelectorAll('.mode-card').forEach(card => {
     card.addEventListener('click', () => {
       document.querySelectorAll('.mode-card').forEach(c => c.classList.remove('selected'));
       card.classList.add('selected');
       G.gameMode = card.dataset.mode;
+      console.log('[模式] 选择:', G.gameMode);
     });
   });
 
-  // 瞄准切换
+  // 瞄准
   on($('aimToggle'), 'click', () => {
     G.autoAim = !G.autoAim;
     updateAimUI();
     if (G.gameRunning && !G.isSoloMode) safeSend({ type: 'autoAimUpdate', autoAim: G.autoAim });
   });
 
-  // 设置开关
+  // 音效开关
   on($('soundToggleSwitch'), 'click', () => {
     soundEnabled = !soundEnabled;
     cls($('soundToggleSwitch'), 'on', soundEnabled);
@@ -3249,6 +3192,7 @@ function bindUI() {
 
   // 单人
   on($('soloBtn'), 'click', () => {
+    console.log('[单人] 点击');
     initAudio();
     const nick = ($('nickname') ? $('nickname').value.trim() : '') || '玩家';
     G.myNickname = nick;
@@ -3257,42 +3201,65 @@ function bindUI() {
 
   // 创建房间
   on($('createRoomBtn'), 'click', async () => {
+    console.log('[创建房间] 开始');
     initAudio();
     txt($('lobbyError'), '');
     const nick = ($('nickname') ? $('nickname').value.trim() : '') || '玩家';
     G.myNickname = nick;
     $('createRoomBtn').disabled = true;
     txt($('statusText'), '正在创建房间…');
+
+    if (typeof Peer === 'undefined') {
+      txt($('lobbyError'), '❌ PeerJS 未加载！请检查网络，或刷新页面');
+      txt($('statusText'), '❌ PeerJS 未加载');
+      cls($('statusDot'), 'err', true);
+      $('createRoomBtn').disabled = false;
+      console.error('[创建房间] Peer 未定义');
+      return;
+    }
+
     G.roomCode = generateRoomCode();
     G.isHost = true;
     G.isSoloMode = false;
     G.myRole = 'red';
     const peerId = 'arena-' + G.roomCode;
+    console.log('[创建房间] peerId =', peerId);
+
     try {
       await initPeer(peerId);
+      console.log('[创建房间] Peer 已连接');
+      txt($('statusText'), '✅ 房间已创建，等待加入');
+      cls($('statusDot'), 'ok', true);
+
       G.peer.on('connection', (incomingConn) => {
         if (G.conn && G.conn.open) { try { incomingConn.close(); } catch(e) {} return; }
         G.conn = incomingConn;
         G.conn.on('open', () => {
+          console.log('[房主] 对手已连接');
           safeSend({ type: 'assignRole', role: 'blue', mode: G.gameMode, hostName: G.myNickname, autoAim: G.autoAim, settings: G.settings });
-          txt($('statusText'), '对手已连接');
+          txt($('statusText'), '对手已连接，开始游戏');
         });
         G.conn.on('data', handleMessage);
         G.conn.on('close', () => {
           if (G.gameRunning) { alert('对手已断开连接'); cleanupAndReturnToLobby(); }
         });
       });
+
       txt($('displayRoomCode'), G.roomCode);
       txt($('waitingModeHint'), '模式：' + (G.gameMode === 'pvp' ? '1v1 竞技' : '合作打僵尸'));
       switchView('waiting');
     } catch (err) {
-      txt($('lobbyError'), '创建失败：' + (err.message || '未知错误'));
+      console.error('[创建房间] 失败:', err);
+      txt($('lobbyError'), '创建失败：' + (err.message || JSON.stringify(err) || '未知错误'));
+      txt($('statusText'), '❌ 创建失败');
+      cls($('statusDot'), 'err', true);
     }
     $('createRoomBtn').disabled = false;
   });
 
   // 加入房间
   on($('joinRoomBtn'), 'click', async () => {
+    console.log('[加入房间] 开始');
     initAudio();
     txt($('lobbyError'), '');
     const nick = ($('nickname') ? $('nickname').value.trim() : '') || '玩家';
@@ -3301,6 +3268,13 @@ function bindUI() {
     if (code.length !== 6) { txt($('lobbyError'), '请输入 6 位房间号'); return; }
     $('joinRoomBtn').disabled = true;
     txt($('statusText'), '正在加入房间…');
+
+    if (typeof Peer === 'undefined') {
+      txt($('lobbyError'), '❌ PeerJS 未加载！');
+      $('joinRoomBtn').disabled = false;
+      return;
+    }
+
     G.roomCode = code;
     G.isHost = false;
     G.isSoloMode = false;
@@ -3317,12 +3291,14 @@ function bindUI() {
       }, 12000);
       targetConn.on('open', () => {
         clearTimeout(to);
+        console.log('[加入] 连接成功');
         G.conn = targetConn;
         G.conn.on('data', handleMessage);
         G.conn.on('close', () => {
           if (G.gameRunning) { alert('对手已断开连接'); cleanupAndReturnToLobby(); }
         });
-        txt($('statusText'), '已连接，等待开始…');
+        txt($('statusText'), '✅ 已连接，等待开始…');
+        cls($('statusDot'), 'ok', true);
       });
       targetConn.on('error', () => {
         clearTimeout(to);
@@ -3335,7 +3311,7 @@ function bindUI() {
     $('joinRoomBtn').disabled = false;
   });
 
-  // 复制房间号
+  // 复制
   on($('copyCodeBtn'), 'click', () => {
     if (navigator.clipboard) {
       navigator.clipboard.writeText(G.roomCode).then(() => {
@@ -3345,7 +3321,6 @@ function bindUI() {
     }
   });
 
-  // 取消/离开
   on($('cancelWaitBtn'), 'click', cleanupAndReturnToLobby);
   on($('leaveBtn'), 'click', cleanupAndReturnToLobby);
 
@@ -3361,11 +3336,9 @@ function bindUI() {
     }
   });
 
-  // 聊天选项
+  // 聊天
   document.querySelectorAll('.chat-option').forEach(opt => {
-    opt.addEventListener('click', () => {
-      sendChatMessage(opt.dataset.msg);
-    });
+    opt.addEventListener('click', () => sendChatMessage(opt.dataset.msg));
   });
 
   // 观战
@@ -3415,7 +3388,7 @@ function bindUI() {
     if (!G.isSoloMode) safeSend({ type: 'roomSettings', settings: G.settings });
   });
 
-  // 鼠标射击（手动瞄准模式）
+  // 鼠标
   on(canvas, 'mousedown', (e) => {
     if (!G.gameRunning || G.autoAim) return;
     if (e.button !== 0) return;
@@ -3426,13 +3399,18 @@ function bindUI() {
   on(canvas, 'contextmenu', (e) => e.preventDefault());
   on(canvas, 'mousemove', (e) => {
     if (!G.gameRunning || G.autoAim) return;
-    const m = getCanvasMouse(e);
-    G.mouseX = m.x; G.mouseY = m.y;
+    const rect = canvas.getBoundingClientRect();
+    const sx = canvas.width / rect.width;
+    const sy = canvas.height / rect.height;
+    G.mouseX = (e.clientX - rect.left) * sx + G.camera.x;
+    G.mouseY = (e.clientY - rect.top) * sy + G.camera.y;
   });
+
+  console.log('[bindUI] 完成');
 }
 
 /* ============================================================
-   Canvas roundRect polyfill
+   roundRect polyfill
    ============================================================ */
 if (!CanvasRenderingContext2D.prototype.roundRect) {
   CanvasRenderingContext2D.prototype.roundRect = function(x, y, w, h, r) {
@@ -3454,7 +3432,7 @@ if (!CanvasRenderingContext2D.prototype.roundRect) {
 /* ============================================================
    启动
    ============================================================ */
-(async function bootstrap() {
+(function bootstrap() {
   try {
     canvas = $('gameCanvas');
     if (canvas) ctx = canvas.getContext('2d');
@@ -3465,7 +3443,7 @@ if (!CanvasRenderingContext2D.prototype.roundRect) {
     updateScoreboardVisibility();
     updateThemeBadge();
     updateAimUI();
-    txt($('statusText'), '✅ 准备就绪，创建或加入房间');
+    txt($('statusText'), '✅ 准备就绪');
     cls($('statusDot'), 'ok', true);
     // 异步加载 Firebase（不阻塞）
     initFirebase();
@@ -3477,3 +3455,5 @@ if (!CanvasRenderingContext2D.prototype.roundRect) {
   }
 })();
 </script>
+</body>
+</html>
