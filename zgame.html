@@ -25,7 +25,6 @@
   h1 { margin: 0 0 6px; font-size: 1.5rem; font-weight: 600; color: #a8c4ff; letter-spacing: 0.5px; }
   .subtitle { font-size: 0.85rem; color: #6b7fa0; margin-bottom: 22px; }
 
-  /* 大厅界面 */
   #lobby { display: flex; flex-direction: column; gap: 18px; min-width: 380px; }
   .field { display: flex; flex-direction: column; gap: 8px; }
   .field label { font-size: 0.85rem; color: #8fa4cc; font-weight: 500; }
@@ -90,7 +89,6 @@
   .dot.ok { background: #4eff8b; box-shadow: 0 0 10px #4eff8b; }
   .dot.err { background: #ff4d6d; box-shadow: 0 0 10px #ff4d6d; }
 
-  /* 游戏界面 */
   #game { display: none; flex-direction: column; align-items: center; }
   .game-header {
     display: flex; justify-content: space-between; align-items: center;
@@ -202,30 +200,24 @@
   </div>
 </div>
 
-<!-- PeerJS 信令库 -->
 <script src="https://unpkg.com/peerjs@1.5.2/dist/peerjs.min.js"></script>
 <script>
 /* ============================================================
-   房间对战逻辑说明
-   ------------------------------------------------------------
-   - 使用 PeerJS (WebRTC) 实现点对点连接，免费公共信令服务器
-   - 创建房间：生成一个 6 位房间号作为 Peer ID 前缀，例如 room-ABC123
-     创建者的 Peer ID = "arena-" + 房间号
-   - 加入房间：使用相同规则构造 Peer ID，调用 peer.connect() 连接
-   - 创建者（房主）默认为红方，加入者默认为蓝方
-   - 数据通道建立后，双方互相发送玩家状态、子弹、重置信号
+   房间对战 —— 修复版
+   关键修复：
+   1. 所有 send 前必须检查 conn && conn.open
+   2. 房主在 conn 的 'open' 事件触发后才发送角色分配
+   3. 加入者也在 'open' 后才开始通信
    ============================================================ */
 
-// ---------- 全局状态 ----------
-let peer = null;              // PeerJS 实例
-let conn = null;              // 数据连接
-let isHost = false;           // 是否为房主（红方）
-let roomCode = '';            // 房间号
-let myRole = 'red';           // 'red' 或 'blue'
-let gameRunning = false;      // 是否在对战中
+let peer = null;
+let conn = null;
+let isHost = false;
+let roomCode = '';
+let myRole = 'red';
+let gameRunning = false;
 let myNickname = '玩家';
 
-// 游戏状态
 let redPlayer = { x: 0, y: 0, hp: 100, cooldown: 0 };
 let bluePlayer = { x: 0, y: 0, hp: 100, cooldown: 0 };
 let bullets = [];
@@ -238,10 +230,8 @@ const SHOOT_COOLDOWN = 12;
 const RED_START = { x: 200, y: H / 2 };
 const BLUE_START = { x: W - 200, y: H / 2 };
 
-// 键盘
 const keys = { w: false, a: false, s: false, d: false, space: false };
 
-// DOM
 const lobbyEl = document.getElementById('lobby');
 const waitingEl = document.getElementById('waiting');
 const gameEl = document.getElementById('game');
@@ -254,7 +244,6 @@ const myRoleLabel = document.getElementById('myRoleLabel');
 const canvas = document.getElementById('gameCanvas');
 const ctx = canvas.getContext('2d');
 
-// ---------- 工具函数 ----------
 function setStatus(text, type = '') {
   statusText.textContent = text;
   statusDot.className = 'dot ' + type;
@@ -278,10 +267,23 @@ function switchView(view) {
   else if (view === 'game') gameEl.style.display = 'flex';
 }
 
-// ---------- 初始化 PeerJS ----------
+// ========== 安全发送：只有连接打开时才发送 ==========
+function safeSend(data) {
+  if (conn && conn.open) {
+    try {
+      conn.send(data);
+      return true;
+    } catch (e) {
+      console.warn('发送失败:', e);
+      return false;
+    }
+  }
+  console.warn('连接未打开，消息被丢弃:', data.type);
+  return false;
+}
+
 function initPeer(peerId) {
   return new Promise((resolve, reject) => {
-    // 如果已有 peer，先销毁
     if (peer && !peer.destroyed) {
       try { peer.destroy(); } catch(e) {}
     }
@@ -305,7 +307,7 @@ function initPeer(peerId) {
   });
 }
 
-// ---------- 创建房间（成为红方 / 房主） ----------
+// ---------- 创建房间（房主 / 红方） ----------
 document.getElementById('createRoomBtn').addEventListener('click', async () => {
   clearError();
   myNickname = document.getElementById('nickname').value.trim() || '玩家';
@@ -321,20 +323,40 @@ document.getElementById('createRoomBtn').addEventListener('click', async () => {
   try {
     await initPeer(peerId);
 
-    // 房主：监听连接
+    // 房主监听连接
     peer.on('connection', (incomingConn) => {
       if (conn && conn.open) {
-        // 已有玩家，拒绝新连接
-        incomingConn.close();
+        // 已有玩家连接，拒绝新的
+        try { incomingConn.close(); } catch(e) {}
         return;
       }
       conn = incomingConn;
-      setupConnection();
-      // 房主告知对方：你是蓝方
-      conn.send({ type: 'assignRole', role: 'blue' });
+      console.log('📥 收到连接请求，等待打开…');
+
+      // ✅ 关键：必须等 open 事件后才能发送
+      conn.on('open', () => {
+        console.log('🔗 数据通道已打开');
+        setupConnection();
+        // 现在可以安全发送角色分配
+        safeSend({ type: 'assignRole', role: 'blue' });
+        setStatus('对手已连接，准备开始…', 'ok');
+      });
+
+      conn.on('data', (data) => handleMessage(data));
+
+      conn.on('close', () => {
+        console.log('❌ 连接关闭');
+        if (gameRunning) {
+          alert('对手已断开连接，返回大厅');
+          cleanupAndReturnToLobby();
+        }
+      });
+
+      conn.on('error', (err) => {
+        console.error('数据通道错误:', err);
+      });
     });
 
-    // 显示等待界面
     displayRoomCode.textContent = roomCode;
     switchView('waiting');
     setStatus('房间已创建，等待加入…', 'ok');
@@ -342,12 +364,11 @@ document.getElementById('createRoomBtn').addEventListener('click', async () => {
     console.error(err);
     showError('创建房间失败：' + (err.message || '未知错误') + '（可尝试重试）');
     setStatus('创建失败', 'err');
-    btn.disabled = false;
   }
   btn.disabled = false;
 });
 
-// ---------- 加入房间（成为蓝方） ----------
+// ---------- 加入房间（加入者 / 蓝方） ----------
 document.getElementById('joinRoomBtn').addEventListener('click', async () => {
   clearError();
   myNickname = document.getElementById('nickname').value.trim() || '玩家';
@@ -364,15 +385,13 @@ document.getElementById('joinRoomBtn').addEventListener('click', async () => {
 
   roomCode = code;
   isHost = false;
-  myRole = 'blue'; // 临时，等待房主确认
+  myRole = 'blue';
   const peerId = 'arena-' + roomCode;
 
   try {
-    // 加入者用不同的随机 ID，避免与房主 ID 冲突
     const myId = 'join-' + Math.random().toString(36).substr(2, 9);
     await initPeer(myId);
 
-    // 连接到房主
     const targetConn = peer.connect(peerId, { reliable: true });
 
     const connectTimeout = setTimeout(() => {
@@ -385,8 +404,10 @@ document.getElementById('joinRoomBtn').addEventListener('click', async () => {
     targetConn.on('open', () => {
       clearTimeout(connectTimeout);
       conn = targetConn;
+      console.log('🔗 已连接到房主');
       setupConnection();
-      setStatus('已连接，准备开始…', 'ok');
+      setStatus('已连接，等待房主开始…', 'ok');
+      // 加入者不主动发送角色，等待房主分配 assignRole
     });
 
     targetConn.on('error', (err) => {
@@ -405,50 +426,41 @@ document.getElementById('joinRoomBtn').addEventListener('click', async () => {
   btn.disabled = false;
 });
 
-// ---------- 连接建立后的通用设置 ----------
+// ---------- 连接建立后绑定 data 监听（双方通用） ----------
 function setupConnection() {
-  if (!conn) return;
-
-  conn.on('data', (data) => {
-    handleMessage(data);
-  });
-
-  conn.on('close', () => {
-    // 对方断线
-    if (gameRunning) {
-      alert('对手已断开连接，返回大厅');
-      cleanupAndReturnToLobby();
-    }
-  });
-
-  conn.on('error', (err) => {
-    console.error('数据通道错误:', err);
-  });
-
-  // 如果是加入者，等待房主分配角色；如果是房主，连接已建立，可以开始
-  if (isHost) {
-    // 房主等待对方发送 ready 再开始，或者直接开始
-    // 我们让加入者准备好后通知房主
+  // 如果是加入者，conn 是 targetConn，需要绑定 data 和 close
+  if (!isHost) {
+    conn.on('data', (data) => handleMessage(data));
+    conn.on('close', () => {
+      if (gameRunning) {
+        alert('对手已断开连接，返回大厅');
+        cleanupAndReturnToLobby();
+      }
+    });
   }
+  // 房主的监听已在 on('connection') 里绑定好了
 }
 
 // ---------- 消息处理 ----------
 function handleMessage(data) {
   if (!data || !data.type) return;
+  console.log('📨 收到:', data.type);
 
   switch (data.type) {
     case 'assignRole':
-      // 加入者收到角色分配
       myRole = data.role;
+      myRoleLabel.textContent = myRole === 'red' ? '红方' : '蓝方';
+      myRoleLabel.className = myRole === 'red' ? 'role-red' : 'role-blue';
       // 通知房主我准备好了
-      conn.send({ type: 'playerReady', nickname: myNickname });
+      safeSend({ type: 'playerReady', nickname: myNickname });
       break;
 
     case 'playerReady':
       // 房主收到对方准备好了，开始游戏
-      startGame();
-      // 告诉对方开始
-      conn.send({ type: 'startGame' });
+      if (isHost) {
+        safeSend({ type: 'startGame' });
+        startGame();
+      }
       break;
 
     case 'startGame':
@@ -457,7 +469,6 @@ function handleMessage(data) {
       break;
 
     case 'playerUpdate':
-      // 更新远程玩家位置
       if (data.role === 'red' && myRole !== 'red') {
         redPlayer.x = data.x;
         redPlayer.y = data.y;
@@ -470,14 +481,12 @@ function handleMessage(data) {
       break;
 
     case 'bulletSpawn':
-      // 添加对方发射的子弹
       if (data.bullet && data.bullet.owner !== myRole) {
         bullets.push(data.bullet);
       }
       break;
 
     case 'hpUpdate':
-      // 更新远程玩家血量
       if (data.role === 'red' && myRole !== 'red') {
         redPlayer.hp = data.hp;
       } else if (data.role === 'blue' && myRole !== 'blue') {
@@ -503,33 +512,28 @@ function startGame() {
   if (gameRunning) return;
   gameRunning = true;
 
-  // 初始化位置
   redPlayer = { x: RED_START.x, y: RED_START.y, hp: 100, cooldown: 0 };
   bluePlayer = { x: BLUE_START.x, y: BLUE_START.y, hp: 100, cooldown: 0 };
   bullets = [];
 
-  // UI
   gameRoomCode.textContent = roomCode;
   myRoleLabel.textContent = myRole === 'red' ? '红方' : '蓝方';
   myRoleLabel.className = myRole === 'red' ? 'role-red' : 'role-blue';
   switchView('game');
   setStatus('对战中', 'ok');
 
-  // 广播自己的位置
   broadcastPlayerState();
 
-  // 启动游戏循环（如果还没启动）
   if (!window._gameLoopRunning) {
     window._gameLoopRunning = true;
     gameLoop();
   }
 }
 
-// ---------- 广播 ----------
+// ---------- 广播（全部用 safeSend） ----------
 function broadcastPlayerState() {
-  if (!conn || !conn.open) return;
   const p = myRole === 'red' ? redPlayer : bluePlayer;
-  conn.send({
+  safeSend({
     type: 'playerUpdate',
     role: myRole,
     x: p.x,
@@ -539,14 +543,12 @@ function broadcastPlayerState() {
 }
 
 function broadcastBullet(bullet) {
-  if (!conn || !conn.open) return;
-  conn.send({ type: 'bulletSpawn', bullet: bullet });
+  safeSend({ type: 'bulletSpawn', bullet: bullet });
 }
 
 function broadcastHp() {
-  if (!conn || !conn.open) return;
   const p = myRole === 'red' ? redPlayer : bluePlayer;
-  conn.send({ type: 'hpUpdate', role: myRole, hp: p.hp });
+  safeSend({ type: 'hpUpdate', role: myRole, hp: p.hp });
 }
 
 // ---------- 游戏循环 ----------
@@ -556,7 +558,6 @@ function update() {
   const localPlayer = myRole === 'red' ? redPlayer : bluePlayer;
   const opponentPlayer = myRole === 'red' ? bluePlayer : redPlayer;
 
-  // 移动
   let dx = 0, dy = 0;
   if (keys.w) dy -= 1;
   if (keys.s) dy += 1;
@@ -572,11 +573,9 @@ function update() {
     broadcastPlayerState();
   }
 
-  // 射击
   if (keys.space && localPlayer.cooldown <= 0) {
     const bullet = {
-      x: localPlayer.x,
-      y: localPlayer.y,
+      x: localPlayer.x, y: localPlayer.y,
       vx: 0, vy: 0,
       owner: myRole,
       size: BULLET_SIZE,
@@ -593,7 +592,6 @@ function update() {
   if (redPlayer.cooldown > 0) redPlayer.cooldown--;
   if (bluePlayer.cooldown > 0) bluePlayer.cooldown--;
 
-  // 更新子弹 & 碰撞（只处理击中本地玩家）
   for (let i = bullets.length - 1; i >= 0; i--) {
     const b = bullets[i];
     b.x += b.vx;
@@ -607,18 +605,14 @@ function update() {
 
     const hitRadius = PLAYER_SIZE / 2 + BULLET_SIZE / 2;
     if (b.owner !== myRole) {
-      // 来自对方的子弹，检查是否击中我
       if (Math.hypot(b.x - localPlayer.x, b.y - localPlayer.y) < hitRadius) {
         localPlayer.hp = Math.max(0, localPlayer.hp - 14);
         broadcastHp();
         bullets.splice(i, 1);
         if (localPlayer.hp <= 0) {
-          // 游戏结束
           gameRunning = false;
           setTimeout(() => {
-            if (conn && conn.open) {
-              conn.send({ type: 'resetGame' });
-            }
+            safeSend({ type: 'resetGame' });
             resetGameLocally(false);
             gameRunning = true;
           }, 800);
@@ -631,7 +625,6 @@ function update() {
 function draw() {
   ctx.clearRect(0, 0, W, H);
 
-  // 网格
   ctx.strokeStyle = '#141a2a';
   ctx.lineWidth = 1;
   for (let i = 0; i < W; i += 50) {
@@ -641,7 +634,6 @@ function draw() {
     ctx.beginPath(); ctx.moveTo(0, i); ctx.lineTo(W, i); ctx.stroke();
   }
 
-  // 子弹
   for (const b of bullets) {
     ctx.beginPath();
     ctx.arc(b.x, b.y, BULLET_SIZE * 0.8, 0, Math.PI * 2);
@@ -652,12 +644,9 @@ function draw() {
     ctx.shadowBlur = 0;
   }
 
-  // 红方
   drawPlayer(redPlayer, '#ff4d6d', '#2e1a1f', 'P1');
-  // 蓝方
   drawPlayer(bluePlayer, '#4da6ff', '#1a2a3a', 'P2');
 
-  // 状态提示
   ctx.font = '14px "Segoe UI"';
   ctx.fillStyle = '#6b7fa0';
   ctx.fillText(`你是: ${myRole === 'red' ? '红方 (P1)' : '蓝方 (P2)'}`, 30, 40);
@@ -680,12 +669,10 @@ function drawPlayer(p, color, bgColor, label) {
   ctx.roundRect(p.x - PLAYER_SIZE/2, p.y - PLAYER_SIZE/2, PLAYER_SIZE, PLAYER_SIZE, 8);
   ctx.fill();
   ctx.shadowBlur = 0;
-  // 血条
   ctx.fillStyle = bgColor;
   ctx.fillRect(p.x - 24, p.y - PLAYER_SIZE/2 - 16, 48, 8);
   ctx.fillStyle = color;
   ctx.fillRect(p.x - 24, p.y - PLAYER_SIZE/2 - 16, 48 * (p.hp / 100), 8);
-  // 标签
   ctx.font = 'bold 12px "Segoe UI"';
   ctx.fillStyle = color;
   ctx.fillText(label, p.x - 10, p.y - 34);
@@ -703,13 +690,12 @@ function resetGameLocally(broadcast = true) {
   redPlayer = { x: RED_START.x, y: RED_START.y, hp: 100, cooldown: 0 };
   bluePlayer = { x: BLUE_START.x, y: BLUE_START.y, hp: 100, cooldown: 0 };
   bullets = [];
-  if (broadcast && conn && conn.open) {
-    conn.send({ type: 'resetGame' });
+  if (broadcast) {
+    safeSend({ type: 'resetGame' });
   }
   broadcastPlayerState();
 }
 
-// roundRect polyfill
 if (!CanvasRenderingContext2D.prototype.roundRect) {
   CanvasRenderingContext2D.prototype.roundRect = function(x, y, w, h, r) {
     if (w < 2 * r) r = w / 2;
@@ -731,7 +717,7 @@ if (!CanvasRenderingContext2D.prototype.roundRect) {
 function cleanupAndReturnToLobby() {
   gameRunning = false;
   if (conn && conn.open) {
-    try { conn.send({ type: 'leave' }); } catch(e) {}
+    safeSend({ type: 'leave' });
     try { conn.close(); } catch(e) {}
   }
   conn = null;
@@ -757,7 +743,6 @@ document.getElementById('copyCodeBtn').addEventListener('click', () => {
     document.getElementById('copyCodeBtn').textContent = '✅ 已复制';
     setTimeout(() => { document.getElementById('copyCodeBtn').textContent = '📋 复制房间号'; }, 1500);
   }).catch(() => {
-    // 降级方案
     const ta = document.createElement('textarea');
     ta.value = roomCode;
     document.body.appendChild(ta);
@@ -782,7 +767,6 @@ window.addEventListener('keyup', (e) => {
 });
 window.addEventListener('keydown', (e) => { if (e.key === ' ') e.preventDefault(); }, false);
 
-// 初始化界面
 setStatus('准备就绪，创建或加入房间', '');
 </script>
 </body>
