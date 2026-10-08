@@ -4,7 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <link rel="icon" type="image/png" href="zijunlogo.png">
-<title>多人连线 · 房间对战</title>
+<title>房间对战 · Room Battle</title>
 <style>
 * { box-sizing: border-box; user-select: none; }
 ::-webkit-scrollbar { width: 8px; height: 8px; }
@@ -52,18 +52,6 @@ body {
   background-clip: text;
 }
 .brand-text .tagline { font-size: 0.78rem; color: #6b7fa0; margin-top: 2px; }
-
-/* 主页右上角金币 */
-.lobby-coins {
-  position: absolute; top: 20px; right: 24px;
-  display: flex; align-items: center; gap: 6px;
-  background: #0a0f1c; border: 1px solid #2a3650;
-  border-radius: 20px; padding: 6px 14px;
-  font-family: 'Consolas', monospace; font-weight: 700;
-  color: #ffd24d; font-size: 0.9rem;
-  box-shadow: 0 4px 12px rgba(0,0,0,0.4);
-  z-index: 10;
-}
 
 .auth-area { position: relative; z-index: 1; }
 .btn-google {
@@ -208,8 +196,8 @@ button {
 .room-code-display .code { font-family: 'Consolas', monospace; font-size: 2.4rem; font-weight: 700; color: #7da2ff; letter-spacing: 8px; text-shadow: 0 0 24px rgba(125,162,255,0.6); }
 .room-code-display .hint { font-size: 0.78rem; color: #5d7099; margin-top: 8px; }
 
-#game { display: none; flex-direction: column; align-items: center; position: relative; }
-.game-header { display: flex; justify-content: space-between; align-items: center; width: 1104px; max-width: 100vw; margin-bottom: 10px; gap: 10px; flex-wrap: wrap; }
+#game { display: none; flex-direction: column; align-items: center; position: relative; transform: scale(0.92); transform-origin: top center; }
+.game-header { display: flex; align-items: center; width: 1104px; max-width: 100vw; margin-bottom: 10px; gap: 10px; flex-wrap: wrap; justify-content: flex-start; }
 .badge { display: flex; align-items: center; gap: 10px; background: #0d1424; padding: 8px 16px; border-radius: 30px; border: 1px solid #253253; font-size: 0.85rem; white-space: nowrap; }
 .badge .role-red { color: #ff6b8a; font-weight: 700; }
 .badge .role-blue { color: #6bb8ff; font-weight: 700; }
@@ -237,7 +225,7 @@ canvas#minimap.visible { display: block; }
 kbd { background: #1a2238; border-radius: 7px; padding: 3px 10px; color: #b8ceff; font-weight: 600; border: 1px solid #33436b; box-shadow: 0 2px 0 #0a0e16; font-family: inherit; }
 .footer-btn { background: #1a2235; color: #a8c4ff; border: 1px solid #2e3d5e; padding: 8px 16px; font-size: 0.82rem; border-radius: 12px; box-shadow: 0 3px 0 #0d1220; cursor: pointer; transition: 0.15s; }
 .footer-btn:hover { background: #222d47; transform: translateY(-1px); }
-.leave-btn { background: #2a1a24; color: #ff8aa3; border: 1px solid #5e2e40; padding: 8px 20px; font-size: 0.85rem; border-radius: 12px; box-shadow: 0 3px 0 #150a10; }
+.leave-btn { background: #2a1a24; color: #ff8aa3; border: 1px solid #5e2e40; padding: 8px 20px; font-size: 0.85rem; border-radius: 12px; box-shadow: 0 3px 0 #150a10; cursor: pointer; }
 
 .hidden { display: none !important; }
 
@@ -307,9 +295,6 @@ kbd { background: #1a2238; border-radius: 7px; padding: 3px 10px; color: #b8ceff
 @keyframes heartbeat { 0%, 100% { opacity: 0.5; } 50% { opacity: 0.9; } }
 
 .login-tip { font-size: 0.7rem; color: #5d7099; margin-top: 6px; text-align: center; }
-
-/* 游戏整体缩放 */
-#game { transform: scale(0.92); transform-origin: top center; }
 </style>
 </head>
 <body>
@@ -320,37 +305,34 @@ kbd { background: #1a2238; border-radius: 7px; padding: 3px 10px; color: #b8ceff
 <div class="low-hp-vignette" id="lowHpVignette"></div>
 
 <div class="chat-panel" id="chatPanel">
-  <div class="chat-title">💬 快捷聊天 (按 Esc 关闭)</div>
+  <div class="chat-title" id="chatTitle">💬 快捷聊天 (按 Esc 关闭)</div>
   <div class="chat-option" data-msg="GG">GG <span class="chat-key">1</span></div>
-  <div class="chat-option" data-msg="打得好！">打得好！ <span class="chat-key">2</span></div>
-  <div class="chat-option" data-msg="小心！">小心！ <span class="chat-key">3</span></div>
-  <div class="chat-option" data-msg="跟我走">跟我走 <span class="chat-key">4</span></div>
-  <div class="chat-option" data-msg="谢谢">谢谢 <span class="chat-key">5</span></div>
+  <div class="chat-option" data-msg="Nice!">Nice! <span class="chat-key">2</span></div>
+  <div class="chat-option" data-msg="Careful!">Careful! <span class="chat-key">3</span></div>
+  <div class="chat-option" data-msg="Follow me">Follow me <span class="chat-key">4</span></div>
+  <div class="chat-option" data-msg="Thanks">Thanks <span class="chat-key">5</span></div>
 </div>
 <div class="chat-messages" id="chatMessages"></div>
 <div class="kill-feed" id="killFeed"></div>
 
 <div class="upgrade-panel" id="upgradePanel">
-  <div class="upgrade-title">⬆️ 选择一项强化</div>
+  <div class="upgrade-title" id="upgradeTitle">⬆️ 选择一项强化</div>
   <div class="upgrade-options" id="upgradeOptions"></div>
 </div>
 
 <div id="lobby" class="lobby-shell">
-  <!-- 主页右上角金币 -->
-  <div class="lobby-coins" id="lobbyCoins">💰 0</div>
-
   <div class="lobby-left">
     <div class="brand">
       <div class="brand-logo">⚔️</div>
       <div class="brand-text">
-        <h1>房间对战</h1>
-        <div class="tagline">创建或加入房间 · 与好友实时连线</div>
+        <h1 id="brandTitle">房间对战</h1>
+        <div class="tagline" id="brandTagline">创建或加入房间 · 与好友实时连线</div>
       </div>
     </div>
 
     <div id="authArea" class="auth-area">
       <button id="loginBtn" class="btn-google">
-        <span>🔐</span> Google 登录
+        <span>🔐</span> <span id="loginBtnText">Google 登录</span>
       </button>
       <div id="userInfo" class="user-info hidden">
         <img id="userAvatar" class="user-avatar" alt="">
@@ -358,33 +340,33 @@ kbd { background: #1a2238; border-radius: 7px; padding: 3px 10px; color: #b8ceff
           <div id="userName" class="user-name"></div>
           <div id="userCoins" class="user-coins">💰 0</div>
         </div>
-        <button id="logoutBtn" class="btn-logout">退出</button>
+        <button id="logoutBtn" class="btn-logout" id="logoutBtnText">退出</button>
       </div>
       <div id="loginTip" class="login-tip">登录后可保存皮肤到云端</div>
     </div>
 
     <div class="field">
-      <label>你的昵称</label>
+      <label id="nicknameLabel">你的昵称</label>
       <input id="nickname" placeholder="玩家" maxlength="10" value="">
     </div>
 
     <div class="field">
-      <label>单人模式（离线）</label>
-      <button class="btn-solo" id="soloBtn">🎯 单人打僵尸</button>
+      <label id="soloLabel">单人模式（离线）</label>
+      <button class="btn-solo" id="soloBtn">🎯 <span id="soloBtnText">单人打僵尸</span></button>
     </div>
 
-    <div class="divider">多人房间</div>
+    <div class="divider" id="multiDivider">多人房间</div>
 
     <div class="field">
-      <label>创建新房间</label>
-      <button class="btn-primary" id="createRoomBtn">🏠 创建房间</button>
+      <label id="createRoomLabel">创建新房间</label>
+      <button class="btn-primary" id="createRoomBtn">🏠 <span id="createRoomBtnText">创建房间</span></button>
     </div>
 
     <div class="field">
-      <label>房间号</label>
+      <label id="roomCodeLabel">房间号</label>
       <div style="display:flex; gap:10px;">
         <input id="joinCode" placeholder="6 位房间号" maxlength="6" autocomplete="off" style="text-transform:uppercase; flex:1;">
-        <button class="btn-secondary" id="joinRoomBtn" style="padding: 14px 24px;">加入</button>
+        <button class="btn-secondary" id="joinRoomBtn" style="padding: 14px 24px;" id="joinBtnText">加入</button>
       </div>
     </div>
 
@@ -398,29 +380,29 @@ kbd { background: #1a2238; border-radius: 7px; padding: 3px 10px; color: #b8ceff
 
   <div class="lobby-right">
     <div class="tabs" id="lobbyTabs">
-      <div class="tab active" data-tab="mode">🎮 模式</div>
-      <div class="tab" data-tab="rank">🏆 排行</div>
-      <div class="tab" data-tab="skin">🎨 皮肤</div>
-      <div class="tab" data-tab="settings">⚙️ 设置</div>
+      <div class="tab active" data-tab="mode" id="tabMode">🎮 模式</div>
+      <div class="tab" data-tab="rank" id="tabRank">🏆 排行</div>
+      <div class="tab" data-tab="skin" id="tabSkin">🎨 皮肤</div>
+      <div class="tab" data-tab="settings" id="tabSettings">⚙️ 设置</div>
     </div>
 
     <div class="tab-content">
       <div class="tab-pane active" data-pane="mode">
-        <div class="section-title">选择游戏模式</div>
+        <div class="section-title" id="chooseMode">选择游戏模式</div>
         <div class="mode-grid" id="modePicker">
           <div class="mode-card selected" data-mode="pvp">
             <span class="icon">⚔️</span>
-            <div class="name">1v1 竞技</div>
-            <div class="desc">红蓝对决</div>
+            <div class="name" id="modePvp">1v1 竞技</div>
+            <div class="desc" id="modePvpDesc">红蓝对决</div>
           </div>
           <div class="mode-card" data-mode="zombie">
             <span class="icon">🧟</span>
-            <div class="name">合作打僵尸</div>
-            <div class="desc">两人组队生存</div>
+            <div class="name" id="modeZombie">合作打僵尸</div>
+            <div class="desc" id="modeZombieDesc">两人组队生存</div>
           </div>
         </div>
 
-        <div class="section-title" style="margin-top:24px;">射击方式</div>
+        <div class="section-title" style="margin-top:24px;" id="shootStyle">射击方式</div>
         <div class="aim-toggle checked" id="aimToggle">
           <div class="aim-check"></div>
           <div class="aim-text">
@@ -432,32 +414,47 @@ kbd { background: #1a2238; border-radius: 7px; padding: 3px 10px; color: #b8ceff
 
       <div class="tab-pane" data-pane="rank">
         <div class="section-title">
-          🏆 历史战绩 Top 10
+          <span id="rankTitle">🏆 历史战绩 Top 10</span>
           <button class="clear-btn" id="clearLeaderboard">清空</button>
         </div>
         <div class="leaderboard" id="leaderboardList">
-          <div class="lb-empty">暂无记录，快去战斗吧！</div>
+          <div class="lb-empty" id="noRecord">暂无记录，快去战斗吧！</div>
         </div>
       </div>
 
       <div class="tab-pane" data-pane="skin">
-        <div class="section-title">🎨 皮肤商店</div>
+        <div class="section-title">
+          <span id="skinShop">🎨 皮肤商店</span>
+          <span style="color:#ffd24d; font-family:Consolas; font-weight:700;" id="skinCoins">💰 0</span>
+        </div>
         <div class="skin-grid" id="skinGrid"></div>
       </div>
 
       <div class="tab-pane" data-pane="settings">
-        <div class="section-title">音效</div>
+        <div class="section-title" id="languageTitle">🌐 语言 / Language</div>
         <div class="setting-item">
           <div class="setting-info">
-            <div class="setting-title">🔊 游戏音效</div>
-            <div class="setting-desc">射击 / 命中 / 技能音效</div>
+            <div class="setting-title" id="languageLabel">界面语言</div>
+            <div class="setting-desc" id="languageDesc">切换后立即生效并保存</div>
+          </div>
+          <select id="langSelect" style="background:#0d1220; color:#cdd9f0; border:1px solid #2a3650; border-radius:10px; padding:8px 12px; font-family:inherit; font-size:0.85rem; outline:none; cursor:pointer;">
+            <option value="zh">中文</option>
+            <option value="en">English</option>
+          </select>
+        </div>
+
+        <div class="section-title" style="margin-top:20px;" id="audioTitle">🔊 音效</div>
+        <div class="setting-item">
+          <div class="setting-info">
+            <div class="setting-title" id="sfxTitle">游戏音效</div>
+            <div class="setting-desc" id="sfxDesc">射击 / 命中 / 技能音效</div>
           </div>
           <div class="toggle-switch on" id="soundToggleSwitch"></div>
         </div>
         <div class="setting-item">
           <div class="setting-info">
-            <div class="setting-title">🎵 背景音乐</div>
-            <div class="setting-desc">循环 BGM</div>
+            <div class="setting-title" id="bgmTitle">背景音乐</div>
+            <div class="setting-desc" id="bgmDesc">循环 BGM</div>
           </div>
           <div class="toggle-switch on" id="musicToggleSwitch"></div>
         </div>
@@ -467,48 +464,48 @@ kbd { background: #1a2238; border-radius: 7px; padding: 3px 10px; color: #b8ceff
 </div>
 
 <div id="waiting" class="hidden">
-  <h1 style="margin:0 0 8px; font-size:1.6rem; color:#a8c4ff;">等待对手加入…</h1>
-  <div style="font-size:0.85rem; color:#6b7fa0;">把房间号发给好友，他输入即可加入</div>
+  <h1 style="margin:0 0 8px; font-size:1.6rem; color:#a8c4ff;" id="waitingTitle">等待对手加入…</h1>
+  <div style="font-size:0.85rem; color:#6b7fa0;" id="waitingHint">把房间号发给好友，他输入即可加入</div>
   <div class="room-code-display">
     <div class="code" id="displayRoomCode">------</div>
     <div class="hint" id="waitingModeHint">模式：1v1 竞技</div>
   </div>
 
   <div class="room-settings">
-    <div class="section-title" style="margin-top:20px; text-align:left;">房间设置（仅房主可改）</div>
+    <div class="section-title" style="margin-top:20px; text-align:left;" id="roomSettings">房间设置（仅房主可改）</div>
     <div class="setting-item">
       <div class="setting-info">
-        <div class="setting-title">💥 友军伤害</div>
-        <div class="setting-desc">打中队友会掉血</div>
+        <div class="setting-title" id="setFFTitle">💥 友军伤害</div>
+        <div class="setting-desc" id="setFFDesc">打中队友会掉血</div>
       </div>
       <div class="toggle-switch" id="setFF"></div>
     </div>
     <div class="setting-item">
       <div class="setting-info">
-        <div class="setting-title">♾️ 无限弹药</div>
-        <div class="setting-desc">所有武器不消耗弹药</div>
+        <div class="setting-title" id="setAmmoTitle">♾️ 无限弹药</div>
+        <div class="setting-desc" id="setAmmoDesc">所有武器不消耗弹药</div>
       </div>
       <div class="toggle-switch" id="setAmmo"></div>
     </div>
     <div class="setting-item">
       <div class="setting-info">
-        <div class="setting-title">🏃 僵尸加速 ×1.5</div>
-        <div class="setting-desc">僵尸移动速度提升</div>
+        <div class="setting-title" id="setZSpeedTitle">🏃 僵尸加速 ×1.5</div>
+        <div class="setting-desc" id="setZSpeedDesc">僵尸移动速度提升</div>
       </div>
       <div class="toggle-switch" id="setZSpeed"></div>
     </div>
     <div class="setting-item">
       <div class="setting-info">
-        <div class="setting-title">👑 每 5 波出 Boss</div>
-        <div class="setting-desc">Boss 出现更频繁</div>
+        <div class="setting-title" id="setBossFreqTitle">👑 每 5 波出 Boss</div>
+        <div class="setting-desc" id="setBossFreqDesc">Boss 出现更频繁</div>
       </div>
       <div class="toggle-switch" id="setBossFreq"></div>
     </div>
   </div>
 
   <div style="margin-top:24px; display:flex; gap:10px; justify-content:center;">
-    <button class="btn-secondary" id="copyCodeBtn" style="padding: 12px 22px;">📋 复制房间号</button>
-    <button class="btn-secondary" id="cancelWaitBtn" style="padding: 12px 22px;">取消</button>
+    <button class="btn-secondary" id="copyCodeBtn" style="padding: 12px 22px;">📋 <span id="copyCodeText">复制房间号</span></button>
+    <button class="btn-secondary" id="cancelWaitBtn" style="padding: 12px 22px;" id="cancelText">取消</button>
   </div>
 </div>
 
@@ -516,7 +513,7 @@ kbd { background: #1a2238; border-radius: 7px; padding: 3px 10px; color: #b8ceff
   <div class="game-header">
     <div class="badge">
       <span class="dot ok" id="gameConnDot"></span>
-      <span>房间 <b id="gameRoomCode" style="color:#7da2ff; font-family:Consolas;">------</b></span>
+      <span id="roomLabel">房间</span> <b id="gameRoomCode" style="color:#7da2ff; font-family:Consolas;">------</b>
     </div>
 
     <div class="badge" id="levelBadge">
@@ -551,25 +548,31 @@ kbd { background: #1a2238; border-radius: 7px; padding: 3px 10px; color: #b8ceff
     <div class="scoreboard hidden" id="zombieScoreboard">
       <div class="score-item">
         <span style="font-size:1rem;">🧟</span>
-        <span class="score-label">击杀</span>
+        <span class="score-label" id="killLabel">击杀</span>
         <span class="score-num" id="zombieKills">0</span>
       </div>
       <span style="color:#3d4d6e; font-weight:700;">|</span>
       <div class="score-item">
         <span style="font-size:1rem;">🌊</span>
-        <span class="score-label">波次</span>
+        <span class="score-label" id="waveLabel">波次</span>
         <span class="score-num" id="zombieWave">1</span>
       </div>
       <span style="color:#3d4d6e; font-weight:700;">|</span>
       <div class="score-item">
         <span style="font-size:1rem;">🔥</span>
-        <span class="score-label">连击</span>
+        <span class="score-label" id="comboLabel">连击</span>
         <span class="score-num" id="comboDisplay">0</span>
       </div>
     </div>
 
     <div class="badge">
-      你是 <span id="myRoleLabel" class="role-red">红方</span>
+      <span id="youAreLabel">你是</span> <span id="myRoleLabel" class="role-red">红方</span>
+    </div>
+
+    <div style="display:flex; gap:8px; margin-left:auto;">
+      <button class="footer-btn" id="spectateBtn" style="display:none;">👁 <span id="spectateText">观战</span></button>
+      <button class="footer-btn" id="fullscreenBtn">⛶ <span id="fullscreenText">全屏</span></button>
+      <button class="leave-btn" id="leaveBtn"><span id="leaveText">离开</span></button>
     </div>
   </div>
 
@@ -579,15 +582,15 @@ kbd { background: #1a2238; border-radius: 7px; padding: 3px 10px; color: #b8ceff
   <div style="display:flex; gap:16px; align-items:center; margin-top:10px; width:1104px; max-width:100vw; justify-content:space-between;">
     <div style="display:flex; gap:14px; align-items:center;">
       <div class="skill-bar">
-        <div class="skill-slot" id="skillDash" title="冲刺">
+        <div class="skill-slot" id="skillDash" title="Dash">
           <span class="sk-key">Q</span><span class="sk-icon">💨</span>
           <div class="cd-overlay"></div><div class="cd-text"></div>
         </div>
-        <div class="skill-slot" id="skillShield" title="护盾">
+        <div class="skill-slot" id="skillShield" title="Shield">
           <span class="sk-key">E</span><span class="sk-icon">🛡️</span>
           <div class="cd-overlay"></div><div class="cd-text"></div>
         </div>
-        <div class="skill-slot" id="skillUltimate" title="大招">
+        <div class="skill-slot" id="skillUltimate" title="Ultimate">
           <span class="sk-key">R</span><span class="sk-icon">💥</span>
           <div class="cd-overlay"></div><div class="cd-text"></div>
         </div>
@@ -599,23 +602,17 @@ kbd { background: #1a2238; border-radius: 7px; padding: 3px 10px; color: #b8ceff
       </div>
       <div class="buff-timer" id="buffTimer"></div>
     </div>
-
-    <div style="display:flex; gap:8px;">
-      <button class="footer-btn" id="spectateBtn" style="display:none;">👁 观战</button>
-      <button class="footer-btn" id="fullscreenBtn">⛶ 全屏</button>
-      <button class="leave-btn" id="leaveBtn">离开</button>
-    </div>
   </div>
 
   <div class="game-footer">
-    <div style="display:flex; gap:14px; align-items:center; flex-wrap:wrap;">
-      <span><kbd>W</kbd><kbd>A</kbd><kbd>S</kbd><kbd>D</kbd> 移动</span>
+    <div style="display:flex; gap:14px; align-items:center; flex-wrap:wrap;" id="controlsHint">
+      <span><kbd>W</kbd><kbd>A</kbd><kbd>S</kbd><kbd>D</kbd> <span id="moveHint">移动</span></span>
       <span id="shootHint"><kbd>空格</kbd> 射击</span>
-      <span><kbd>Q</kbd> 冲刺</span>
-      <span><kbd>E</kbd> 护盾</span>
-      <span><kbd>R</kbd> 大招</span>
-      <span><kbd>1</kbd>~<kbd>4</kbd> 换枪</span>
-      <span><kbd>T</kbd> 聊天</span>
+      <span><kbd>Q</kbd> <span id="dashHint">冲刺</span></span>
+      <span><kbd>E</kbd> <span id="shieldHint">护盾</span></span>
+      <span><kbd>R</kbd> <span id="ultHint">大招</span></span>
+      <span><kbd>1</kbd>~<kbd>4</kbd> <span id="switchHint">换枪</span></span>
+      <span><kbd>T</kbd> <span id="chatHint">聊天</span></span>
     </div>
   </div>
 </div>
@@ -660,6 +657,7 @@ function escapeHtml(s) {
 const W = 1200, H = 700;
 const WORLD_W = W * 2;
 const WORLD_H = H * 2;
+const PVP_W = 900, PVP_H = 600;
 
 const PLAYER_SIZE = 28;
 const BULLET_SIZE = 8;
@@ -689,21 +687,21 @@ const XP_PER_LEVEL = 3;
 const LEVELS_PER_UPGRADE = 10;
 
 const WEAPONS = {
-  pistol:   { name: '手枪', icon: '🔫', cooldown: 14, damage: 14, bulletSpeed: 9,  bulletsPerShot: 1, spread: 0,    ammo: Infinity, color: '#ffffff' },
-  shotgun:  { name: '散弹', icon: '💥', cooldown: 36, damage: 8,  bulletSpeed: 8,  bulletsPerShot: 5, spread: 0.35, ammo: 8,        color: '#ffaa4d' },
-  sniper:   { name: '狙击', icon: '🎯', cooldown: 60, damage: 40, bulletSpeed: 16, bulletsPerShot: 1, spread: 0,    ammo: 5,        color: '#4dffd2' },
-  machine:  { name: '机枪', icon: '⚙️', cooldown: 5,  damage: 6,  bulletSpeed: 10, bulletsPerShot: 1, spread: 0.12, ammo: 60,       color: '#ff6bd2' }
+  pistol:   { name: '手枪', nameEn: 'Pistol',  icon: '🔫', cooldown: 14, damage: 14, bulletSpeed: 9,  bulletsPerShot: 1, spread: 0,    ammo: Infinity, color: '#ffffff' },
+  shotgun:  { name: '散弹', nameEn: 'Shotgun', icon: '💥', cooldown: 36, damage: 8,  bulletSpeed: 8,  bulletsPerShot: 5, spread: 0.35, ammo: 8,        color: '#ffaa4d' },
+  sniper:   { name: '狙击', nameEn: 'Sniper',  icon: '🎯', cooldown: 60, damage: 40, bulletSpeed: 16, bulletsPerShot: 1, spread: 0,    ammo: 5,        color: '#4dffd2' },
+  machine:  { name: '机枪', nameEn: 'Machine', icon: '⚙️', cooldown: 5,  damage: 6,  bulletSpeed: 10, bulletsPerShot: 1, spread: 0.12, ammo: 60,       color: '#ff6bd2' }
 };
 const WEAPON_ORDER = ['pistol', 'shotgun', 'sniper', 'machine'];
 
 const THEMES = {
-  space:  { name: '深空', icon: '🌌', bg: ['#0e1424', '#080b16'], grid: '#141a2a',
+  space:  { name: '深空', nameEn: 'Space',  icon: '🌌', bg: ['#0e1424', '#080b16'], grid: '#141a2a',
             obstacleFill: '#1e2a44', obstacleStroke: '#3a4d75', obstacleHighlight: 'rgba(120,160,255,0.08)' },
-  snow:   { name: '雪地', icon: '❄️', bg: ['#1a2438', '#0d1522'], grid: '#1f2c44',
+  snow:   { name: '雪地', nameEn: 'Snow',   icon: '❄️', bg: ['#1a2438', '#0d1522'], grid: '#1f2c44',
             obstacleFill: '#c8d8ec', obstacleStroke: '#e8f0ff', obstacleHighlight: 'rgba(255,255,255,0.3)' },
-  desert: { name: '沙漠', icon: '🏜️', bg: ['#2a2015', '#150e05'], grid: '#2e2418',
+  desert: { name: '沙漠', nameEn: 'Desert', icon: '🏜️', bg: ['#2a2015', '#150e05'], grid: '#2e2418',
             obstacleFill: '#a8845a', obstacleStroke: '#d4a878', obstacleHighlight: 'rgba(255,220,150,0.15)' },
-  zombie: { name: '末日', icon: '🧟', bg: ['#1a1420', '#0a0710'], grid: '#1e1428',
+  zombie: { name: '末日', nameEn: 'Doom',   icon: '🧟', bg: ['#1a1420', '#0a0710'], grid: '#1e1428',
             obstacleFill: '#2a1e3a', obstacleStroke: '#4d3670', obstacleHighlight: 'rgba(120,80,180,0.15)' }
 };
 
@@ -718,26 +716,198 @@ const ZOMBIE_TYPES = {
 };
 
 const UPGRADES = [
-  { id: 'dmg',      icon: '💥', name: '伤害强化',  desc: '所有武器伤害 +20%',        apply: p => p.dmgMult *= 1.2 },
-  { id: 'speed',    icon: '💨', name: '疾风步',    desc: '移动速度 +15%',            apply: p => p.speedMult *= 1.15 },
-  { id: 'hp',       icon: '❤️', name: '强健体魄',  desc: '最大生命 +20 并回满',      apply: p => { p.maxHp += 20; p.hp = p.maxHp; } },
-  { id: 'dashcd',   icon: '⚡', name: '迅捷冲刺',  desc: '冲刺冷却 -25%',            apply: p => p.cdMult.dash *= 0.75 },
-  { id: 'shield',   icon: '🛡', name: '护盾强化',  desc: '护盾冷却 -25%，持续 +50%', apply: p => { p.cdMult.shield *= 0.75; p.shieldDurMult *= 1.5; } },
-  { id: 'reload',   icon: '🔄', name: '快速换弹',  desc: '换弹时间 -40%',            apply: p => p.reloadMult *= 0.6 },
-  { id: 'pierce',   icon: '🎯', name: '穿甲弹',    desc: '子弹可穿透 1 个敌人',      apply: p => p.pierce += 1 },
-  { id: 'crit',     icon: '✨', name: '致命一击',  desc: '20% 概率造成双倍伤害',     apply: p => p.critChance += 0.2 },
-  { id: 'lifesteal',icon: '🩸', name: '吸血',      desc: '击杀回复 5 点生命',        apply: p => p.lifesteal += 5 },
-  { id: 'magnet',   icon: '🧲', name: '磁力场',    desc: '掉落物拾取范围 +80%',      apply: p => p.pickupRange *= 1.8 }
+  { id: 'dmg',      icon: '💥', name: '伤害强化', nameEn: 'Damage',    desc: '所有武器伤害 +20%', descEn: 'All weapon damage +20%',   apply: p => p.dmgMult *= 1.2 },
+  { id: 'speed',    icon: '💨', name: '疾风步',   nameEn: 'Swift',     desc: '移动速度 +15%',     descEn: 'Move speed +15%',          apply: p => p.speedMult *= 1.15 },
+  { id: 'hp',       icon: '❤️', name: '强健体魄', nameEn: 'Tough',     desc: '最大生命 +20 并回满', descEn: 'Max HP +20 and full heal', apply: p => { p.maxHp += 20; p.hp = p.maxHp; } },
+  { id: 'dashcd',   icon: '⚡', name: '迅捷冲刺', nameEn: 'Quick Dash',desc: '冲刺冷却 -25%',     descEn: 'Dash CD -25%',             apply: p => p.cdMult.dash *= 0.75 },
+  { id: 'shield',   icon: '🛡', name: '护盾强化', nameEn: 'Shield+',   desc: '护盾冷却 -25%，持续 +50%', descEn: 'Shield CD -25%, dur +50%', apply: p => { p.cdMult.shield *= 0.75; p.shieldDurMult *= 1.5; } },
+  { id: 'reload',   icon: '🔄', name: '快速换弹', nameEn: 'Reload',    desc: '换弹时间 -40%',     descEn: 'Reload time -40%',         apply: p => p.reloadMult *= 0.6 },
+  { id: 'pierce',   icon: '🎯', name: '穿甲弹',   nameEn: 'Pierce',    desc: '子弹可穿透 1 个敌人', descEn: 'Bullets pierce 1 enemy',   apply: p => p.pierce += 1 },
+  { id: 'crit',     icon: '✨', name: '致命一击', nameEn: 'Crit',      desc: '20% 概率造成双倍伤害', descEn: '20% chance double damage', apply: p => p.critChance += 0.2 },
+  { id: 'lifesteal',icon: '🩸', name: '吸血',     nameEn: 'Lifesteal', desc: '击杀回复 5 点生命',  descEn: 'Heal 5 HP on kill',        apply: p => p.lifesteal += 5 },
+  { id: 'magnet',   icon: '🧲', name: '磁力场',   nameEn: 'Magnet',    desc: '掉落物拾取范围 +80%', descEn: 'Pickup range +80%',       apply: p => p.pickupRange *= 1.8 }
 ];
 
 const SKINS = {
-  default:  { name: '默认',   price: 0,    color: null,       trail: null,     glow: 28 },
-  neon:     { name: '霓虹',   price: 500,  color: '#ff00ff',  trail: '#ff00ff', glow: 40 },
-  gold:     { name: '黄金',   price: 2000, color: '#ffd24d',  trail: '#ffd24d', glow: 36 },
-  shadow:   { name: '暗影',   price: 1500, color: '#1a1a2a',  trail: '#4d4dff', glow: 20 },
-  fire:     { name: '烈焰',   price: 3000, color: '#ff4d1a',  trail: '#ffd24d', glow: 44 },
-  ice:      { name: '冰霜',   price: 2500, color: '#4dd4ff',  trail: '#a8e8ff', glow: 32 }
+  default:  { name: '默认', nameEn: 'Default', price: 0,    color: null,       trail: null,     glow: 28 },
+  neon:     { name: '霓虹', nameEn: 'Neon',    price: 500,  color: '#ff00ff',  trail: '#ff00ff', glow: 40 },
+  gold:     { name: '黄金', nameEn: 'Gold',    price: 2000, color: '#ffd24d',  trail: '#ffd24d', glow: 36 },
+  shadow:   { name: '暗影', nameEn: 'Shadow',  price: 1500, color: '#1a1a2a',  trail: '#4d4dff', glow: 20 },
+  fire:     { name: '烈焰', nameEn: 'Fire',    price: 3000, color: '#ff4d1a',  trail: '#ffd24d', glow: 44 },
+  ice:      { name: '冰霜', nameEn: 'Ice',     price: 2500, color: '#4dd4ff',  trail: '#a8e8ff', glow: 32 }
 };
+
+/* ============================================================
+   i18n
+   ============================================================ */
+const I18N = {
+  zh: {
+    brandTitle: '房间对战', brandTagline: '创建或加入房间 · 与好友实时连线',
+    loginGoogle: 'Google 登录', logout: '退出', loginTip: '登录后可保存皮肤到云端',
+    nicknameLabel: '你的昵称', soloLabel: '单人模式（离线）', soloBtn: '单人打僵尸',
+    multiDivider: '多人房间', createRoomLabel: '创建新房间', createRoomBtn: '创建房间',
+    roomCodeLabel: '房间号', joinBtn: '加入', statusReady: '✅ 准备就绪', statusInit: '正在初始化…',
+    tabMode: '🎮 模式', tabRank: '🏆 排行', tabSkin: '🎨 皮肤', tabSettings: '⚙️ 设置',
+    chooseMode: '选择游戏模式', modePvp: '1v1 竞技', modePvpDesc: '红蓝对决',
+    modeZombie: '合作打僵尸', modeZombieDesc: '两人组队生存',
+    shootStyle: '射击方式', autoAim: '🎯 自动瞄准', manualAim: '🖱️ 手动瞄准',
+    autoAimDesc: '按空格朝向敌人自动射击', manualAimDesc: '鼠标瞄准，左键射击',
+    rankTitle: '🏆 历史战绩 Top 10', clear: '清空', noRecord: '暂无记录，快去战斗吧！',
+    skinShop: '🎨 皮肤商店', languageTitle: '🌐 语言 / Language',
+    languageLabel: '界面语言', languageDesc: '切换后立即生效并保存',
+    audioTitle: '🔊 音效', sfxTitle: '游戏音效', sfxDesc: '射击 / 命中 / 技能音效',
+    bgmTitle: '背景音乐', bgmDesc: '循环 BGM',
+    waitingTitle: '等待对手加入…', waitingHint: '把房间号发给好友，他输入即可加入',
+    roomSettings: '房间设置（仅房主可改）',
+    setFFTitle: '💥 友军伤害', setFFDesc: '打中队友会掉血',
+    setAmmoTitle: '♾️ 无限弹药', setAmmoDesc: '所有武器不消耗弹药',
+    setZSpeedTitle: '🏃 僵尸加速 ×1.5', setZSpeedDesc: '僵尸移动速度提升',
+    setBossFreqTitle: '👑 每 5 波出 Boss', setBossFreqDesc: 'Boss 出现更频繁',
+    copyCode: '复制房间号', copied: '已复制', cancel: '取消',
+    roomLabel: '房间', youAre: '你是', red: '红方', blue: '蓝方',
+    spectate: '观战', fullscreen: '全屏', exitFullscreen: '退出全屏', leave: '离开',
+    killLabel: '击杀', waveLabel: '波次', comboLabel: '连击',
+    moveHint: '移动', shootKey: '射击', dashHint: '冲刺', shieldHint: '护盾',
+    ultHint: '大招', switchHint: '换枪', chatHint: '聊天',
+    oppLeft: '对手离开了房间', oppDisconnected: '对手已断开连接',
+    zombieDefeat: '💀 被僵尸击败！', killCount: '击杀数', waveCount: '波次', coinsGained: '金币',
+    insufficientCoins: '💰 金币不足！', current: '当前', need: '需要',
+    confirmBuy: '确定花费 {price} 金币购买「{name}」？',
+    popupBlocked: '弹窗被浏览器拦截，请允许本站弹窗后重试',
+    popupClosed: '登录窗口被关闭', loginSuccess: '✅ 已登录', loginFail: '登录失败',
+    domainNotAuthorized: '域名未授权。请到 Firebase 控制台 → Authentication → Settings → 已授权的网域，添加当前域名。',
+    googleNotEnabled: 'Google 登录未启用。请到 Firebase 控制台 → Authentication → Sign-in method，启用 Google。',
+    firebaseLoading: 'Firebase 还在加载，请稍等',
+    pvpWin: 'PvP 胜利', pvpLose: 'PvP 参与', soloZombie: '单人僵尸', coopZombie: '合作僵尸',
+    system: '系统', round: 'ROUND',
+    creatingRoom: '正在创建房间…', joiningRoom: '正在加入房间…',
+    roomCreated: '✅ 房间已创建，等待加入', connectedWaiting: '✅ 已连接，等待开始…',
+    oppConnected: '对手已连接，开始游戏',
+    peerNotLoaded: '❌ PeerJS 未加载！请检查网络，或刷新页面',
+    joinTimeout: '连接超时', cannotConnect: '无法连接到房间',
+    createFailed: '创建失败', joinFailed: '加入失败', enterCode: '请输入 6 位房间号',
+    redirectingLogin: '正在打开登录窗口…'
+  },
+  en: {
+    brandTitle: 'Room Battle', brandTagline: 'Create or join a room · Play with friends',
+    loginGoogle: 'Google Login', logout: 'Logout', loginTip: 'Login to save skins to cloud',
+    nicknameLabel: 'Your Nickname', soloLabel: 'Single Player (Offline)', soloBtn: 'Solo Zombies',
+    multiDivider: 'Multiplayer', createRoomLabel: 'Create New Room', createRoomBtn: 'Create Room',
+    roomCodeLabel: 'Room Code', joinBtn: 'Join', statusReady: '✅ Ready', statusInit: 'Initializing…',
+    tabMode: '🎮 Mode', tabRank: '🏆 Rank', tabSkin: '🎨 Skins', tabSettings: '⚙️ Settings',
+    chooseMode: 'Choose Game Mode', modePvp: '1v1 Arena', modePvpDesc: 'Red vs Blue',
+    modeZombie: 'Co-op Zombies', modeZombieDesc: 'Two-player survival',
+    shootStyle: 'Shooting Style', autoAim: '🎯 Auto Aim', manualAim: '🖱️ Manual Aim',
+    autoAimDesc: 'Press Space to auto-shoot at enemies', manualAimDesc: 'Mouse aim, left click to shoot',
+    rankTitle: '🏆 Top 10 Records', clear: 'Clear', noRecord: 'No records yet. Go fight!',
+    skinShop: '🎨 Skin Shop', languageTitle: '🌐 Language / 语言',
+    languageLabel: 'Interface Language', languageDesc: 'Takes effect immediately and saved',
+    audioTitle: '🔊 Audio', sfxTitle: 'Sound Effects', sfxDesc: 'Shoot / Hit / Skill sounds',
+    bgmTitle: 'Background Music', bgmDesc: 'Looping BGM',
+    waitingTitle: 'Waiting for opponent…', waitingHint: 'Send the room code to your friend',
+    roomSettings: 'Room Settings (Host only)',
+    setFFTitle: '💥 Friendly Fire', setFFDesc: 'Damage teammates',
+    setAmmoTitle: '♾️ Infinite Ammo', setAmmoDesc: 'No ammo consumption',
+    setZSpeedTitle: '🏃 Zombie Speed ×1.5', setZSpeedDesc: 'Zombies move faster',
+    setBossFreqTitle: '👑 Boss every 5 waves', setBossFreqDesc: 'Boss appears more often',
+    copyCode: 'Copy Room Code', copied: 'Copied', cancel: 'Cancel',
+    roomLabel: 'Room', youAre: 'You are', red: 'Red', blue: 'Blue',
+    spectate: 'Spectate', fullscreen: 'Fullscreen', exitFullscreen: 'Exit Fullscreen', leave: 'Leave',
+    killLabel: 'Kills', waveLabel: 'Wave', comboLabel: 'Combo',
+    moveHint: 'Move', shootKey: 'Shoot', dashHint: 'Dash', shieldHint: 'Shield',
+    ultHint: 'Ultimate', switchHint: 'Switch', chatHint: 'Chat',
+    oppLeft: 'Opponent left the room', oppDisconnected: 'Opponent disconnected',
+    zombieDefeat: '💀 Defeated by zombies!', killCount: 'Kills', waveCount: 'Wave', coinsGained: 'Coins',
+    insufficientCoins: '💰 Not enough coins!', current: 'Current', need: 'Need',
+    confirmBuy: 'Spend {price} coins to buy "{name}"?',
+    popupBlocked: 'Popup blocked. Please allow popups and retry.',
+    popupClosed: 'Login window closed', loginSuccess: '✅ Logged in', loginFail: 'Login failed',
+    domainNotAuthorized: 'Domain not authorized. Go to Firebase Console → Authentication → Settings → Authorized domains.',
+    googleNotEnabled: 'Google sign-in not enabled. Go to Firebase Console → Authentication → Sign-in method.',
+    firebaseLoading: 'Firebase still loading, please wait',
+    pvpWin: 'PvP Victory', pvpLose: 'PvP Participation', soloZombie: 'Solo Zombies', coopZombie: 'Co-op Zombies',
+    system: 'System', round: 'ROUND',
+    creatingRoom: 'Creating room…', joiningRoom: 'Joining room…',
+    roomCreated: '✅ Room created, waiting', connectedWaiting: '✅ Connected, waiting to start…',
+    oppConnected: 'Opponent connected, starting',
+    peerNotLoaded: '❌ PeerJS not loaded! Check network or refresh',
+    joinTimeout: 'Connection timeout', cannotConnect: 'Cannot connect to room',
+    createFailed: 'Create failed', joinFailed: 'Join failed', enterCode: 'Enter 6-digit room code',
+    redirectingLogin: 'Opening login window…'
+  }
+};
+
+let currentLang = 'zh';
+function t(key) { return (I18N[currentLang] && I18N[currentLang][key]) || I18N.zh[key] || key; }
+
+function applyLanguage(lang) {
+  currentLang = lang;
+  try { localStorage.setItem('arena_lang', lang); } catch(e) {}
+  document.documentElement.lang = lang === 'zh' ? 'zh-CN' : 'en';
+
+  // 按 id 映射
+  const map = {
+    brandTitle: 'brandTitle', brandTagline: 'brandTagline',
+    loginBtnText: 'loginGoogle', logoutBtnText: 'logout', loginTip: 'loginTip',
+    nicknameLabel: 'nicknameLabel', soloLabel: 'soloLabel', soloBtnText: 'soloBtn',
+    multiDivider: 'multiDivider', createRoomLabel: 'createRoomLabel', createRoomBtnText: 'createRoomBtn',
+    roomCodeLabel: 'roomCodeLabel', joinBtnText: 'joinBtn',
+    tabMode: 'tabMode', tabRank: 'tabRank', tabSkin: 'tabSkin', tabSettings: 'tabSettings',
+    chooseMode: 'chooseMode', modePvp: 'modePvp', modePvpDesc: 'modePvpDesc',
+    modeZombie: 'modeZombie', modeZombieDesc: 'modeZombieDesc',
+    shootStyle: 'shootStyle',
+    rankTitle: 'rankTitle', noRecord: 'noRecord',
+    skinShop: 'skinShop', languageTitle: 'languageTitle',
+    languageLabel: 'languageLabel', languageDesc: 'languageDesc',
+    audioTitle: 'audioTitle', sfxTitle: 'sfxTitle', sfxDesc: 'sfxDesc',
+    bgmTitle: 'bgmTitle', bgmDesc: 'bgmDesc',
+    waitingTitle: 'waitingTitle', waitingHint: 'waitingHint', roomSettings: 'roomSettings',
+    setFFTitle: 'setFFTitle', setFFDesc: 'setFFDesc',
+    setAmmoTitle: 'setAmmoTitle', setAmmoDesc: 'setAmmoDesc',
+    setZSpeedTitle: 'setZSpeedTitle', setZSpeedDesc: 'setZSpeedDesc',
+    setBossFreqTitle: 'setBossFreqTitle', setBossFreqDesc: 'setBossFreqDesc',
+    copyCodeText: 'copyCode', cancelText: 'cancel',
+    roomLabel: 'roomLabel', youAreLabel: 'youAre',
+    spectateText: 'spectate', fullscreenText: 'fullscreen', leaveText: 'leave',
+    killLabel: 'killLabel', waveLabel: 'waveLabel', comboLabel: 'comboLabel',
+    moveHint: 'moveHint', dashHint: 'dashHint', shieldHint: 'shieldHint',
+    ultHint: 'ultHint', switchHint: 'switchHint', chatHint: 'chatHint',
+    chatTitle: 'chatTitle', upgradeTitle: null
+  };
+  for (const [elId, key] of Object.entries(map)) {
+    if (!key) continue;
+    const el = $(elId);
+    if (el) el.textContent = t(key);
+  }
+
+  // 清除按钮的清理按钮
+  const clearBtn = $('clearLeaderboard');
+  if (clearBtn) clearBtn.textContent = t('clear');
+
+  // placeholder
+  const nickEl = $('nickname');
+  if (nickEl) nickEl.placeholder = lang === 'zh' ? '玩家' : 'Player';
+  const joinEl = $('joinCode');
+  if (joinEl) joinEl.placeholder = lang === 'zh' ? '6 位房间号' : '6-digit code';
+
+  // 动态 UI
+  updateAimUI();
+  updateWeaponHUD();
+  if ($('langSelect')) $('langSelect').value = lang;
+  renderLeaderboard();
+  renderSkinShop();
+  updateScoreboard();
+}
+
+function initLanguage() {
+  let lang = null;
+  try { lang = localStorage.getItem('arena_lang'); } catch(e) {}
+  if (!lang) {
+    const sys = (navigator.language || 'zh').toLowerCase();
+    lang = sys.startsWith('zh') ? 'zh' : 'en';
+  }
+  applyLanguage(lang);
+}
 
 /* ============================================================
    音效
@@ -752,22 +922,22 @@ function initAudio() {
 function playTone(type, freq, freqEnd, duration, vol = 0.15, delay = 0) {
   if (!soundEnabled || !audioCtx) return;
   try {
-    const t = audioCtx.currentTime + delay;
+    const t0 = audioCtx.currentTime + delay;
     const osc = audioCtx.createOscillator();
     const gain = audioCtx.createGain();
     osc.type = type;
-    osc.frequency.setValueAtTime(freq, t);
-    if (freqEnd && freqEnd !== freq) osc.frequency.exponentialRampToValueAtTime(freqEnd, t + duration);
-    gain.gain.setValueAtTime(vol, t);
-    gain.gain.exponentialRampToValueAtTime(0.0001, t + duration);
+    osc.frequency.setValueAtTime(freq, t0);
+    if (freqEnd && freqEnd !== freq) osc.frequency.exponentialRampToValueAtTime(freqEnd, t0 + duration);
+    gain.gain.setValueAtTime(vol, t0);
+    gain.gain.exponentialRampToValueAtTime(0.0001, t0 + duration);
     osc.connect(gain); gain.connect(audioCtx.destination);
-    osc.start(t); osc.stop(t + duration);
+    osc.start(t0); osc.stop(t0 + duration);
   } catch(e) {}
 }
 function playNoise(duration, vol = 0.1, delay = 0) {
   if (!soundEnabled || !audioCtx) return;
   try {
-    const t = audioCtx.currentTime + delay;
+    const t0 = audioCtx.currentTime + delay;
     const size = Math.floor(audioCtx.sampleRate * duration);
     const buf = audioCtx.createBuffer(1, size, audioCtx.sampleRate);
     const d = buf.getChannelData(0);
@@ -775,12 +945,12 @@ function playNoise(duration, vol = 0.1, delay = 0) {
     const src = audioCtx.createBufferSource();
     src.buffer = buf;
     const gain = audioCtx.createGain();
-    gain.gain.setValueAtTime(vol, t);
-    gain.gain.exponentialRampToValueAtTime(0.0001, t + duration);
+    gain.gain.setValueAtTime(vol, t0);
+    gain.gain.exponentialRampToValueAtTime(0.0001, t0 + duration);
     const f = audioCtx.createBiquadFilter();
     f.type = 'lowpass'; f.frequency.value = 1200;
     src.connect(f); f.connect(gain); gain.connect(audioCtx.destination);
-    src.start(t); src.stop(t + duration);
+    src.start(t0); src.stop(t0 + duration);
   } catch(e) {}
 }
 const SFX = {
@@ -836,25 +1006,25 @@ function scheduleNextNote() {
   try {
     const note = MUSIC_PATTERN[musicStep % MUSIC_PATTERN.length];
     const dur = note.d * 0.5;
-    const t = audioCtx.currentTime;
+    const t0 = audioCtx.currentTime;
     const osc = audioCtx.createOscillator();
     const g = audioCtx.createGain();
     osc.type = 'triangle';
     osc.frequency.value = note.f;
-    g.gain.setValueAtTime(0, t);
-    g.gain.linearRampToValueAtTime(0.8, t + 0.02);
-    g.gain.exponentialRampToValueAtTime(0.001, t + dur * 0.9);
+    g.gain.setValueAtTime(0, t0);
+    g.gain.linearRampToValueAtTime(0.8, t0 + 0.02);
+    g.gain.exponentialRampToValueAtTime(0.001, t0 + dur * 0.9);
     osc.connect(g); g.connect(musicGain);
-    osc.start(t); osc.stop(t + dur);
+    osc.start(t0); osc.stop(t0 + dur);
     musicNodes.push(osc);
     if (musicStep % 4 === 0) {
       const b = audioCtx.createOscillator();
       const bg = audioCtx.createGain();
       b.type = 'sine'; b.frequency.value = note.f / 4;
-      bg.gain.setValueAtTime(0.6, t);
-      bg.gain.exponentialRampToValueAtTime(0.001, t + dur * 1.8);
+      bg.gain.setValueAtTime(0.6, t0);
+      bg.gain.exponentialRampToValueAtTime(0.001, t0 + dur * 1.8);
       b.connect(bg); bg.connect(musicGain);
-      b.start(t); b.stop(t + dur * 2);
+      b.start(t0); b.stop(t0 + dur * 2);
       musicNodes.push(b);
     }
     musicStep++;
@@ -907,7 +1077,7 @@ function updateParticles() {
 const G = {
   peer: null, conn: null, isHost: false, roomCode: '', myRole: 'red',
   gameRunning: false, isSoloMode: false,
-  myNickname: '玩家', opponentNickname: '对手',
+  myNickname: '玩家', opponentNickname: 'Opponent',
   gameMode: 'pvp', frameCount: 0,
   autoAim: true,
   processedHits: new Set(),
@@ -922,13 +1092,10 @@ const G = {
   pickupIdCounter: 0,
   currentTheme: 'space',
   camera: { x: 0, y: 0 },
-  currentSkin: null,
-  opponentSkin: null,
+  currentSkin: null, opponentSkin: null,
   roundNumber: 1,
   spectating: false, spectatorTarget: null,
-  settings: {
-    friendlyFire: false, infiniteAmmo: false, zombieSpeedMult: 1, bossEvery: 10
-  },
+  settings: { friendlyFire: false, infiniteAmmo: false, zombieSpeedMult: 1, bossEvery: 10 },
   chatPanelOpen: false
 };
 
@@ -940,11 +1107,14 @@ let ctx = null;
    ============================================================ */
 function createPlayer(role, myNick, oppNick, skin) {
   const isRed = role === 'red';
+  const pvp = (G.gameMode === 'pvp' && !G.isSoloMode);
+  const mapW = pvp ? PVP_W : WORLD_W;
+  const mapH = pvp ? PVP_H : WORLD_H;
   return {
     role,
     name: isRed ? myNick : oppNick,
-    x: isRed ? 200 : WORLD_W - 200,
-    y: WORLD_H / 2,
+    x: isRed ? 100 : mapW - 100,
+    y: mapH / 2,
     hp: 100, maxHp: 100, hpSeq: 0,
     cooldown: 0,
     facing: isRed ? 0 : Math.PI,
@@ -974,7 +1144,7 @@ const GAME_KEYS = ['KeyW','KeyA','KeyS','KeyD','Space','ArrowUp','ArrowDown','Ar
 function isKeyDown(c) { return keysDown.has(c); }
 function clearAllKeys() {
   keysDown.clear();
-  for (const t of keyTimers.values()) clearTimeout(t);
+  for (const t0 of keyTimers.values()) clearTimeout(t0);
   keyTimers.clear();
 }
 function clearKey(c) {
@@ -1106,7 +1276,7 @@ function addCombo() {
     SFX.combo(G.comboCount);
     const colors = ['#4dd4ff', '#4dff8b', '#ffd24d', '#ff6bd2', '#ff4d6d'];
     const c = colors[Math.min(Math.floor(G.comboCount / 5), colors.length - 1)];
-    if (me) spawnDamageText(me.x, me.y - 100, 0, c, G.comboCount + ' 连击!', true);
+    if (me) spawnDamageText(me.x, me.y - 100, 0, c, G.comboCount + 'x', true);
     G.screenShake = 12;
   } else SFX.combo(G.comboCount);
 }
@@ -1155,7 +1325,7 @@ function initPeer(peerId) {
     try {
       if (G.peer && !G.peer.destroyed) { try { G.peer.destroy(); } catch(e) {} }
       G.peer = new Peer(peerId, { debug: 1 });
-      const timeout = setTimeout(() => reject(new Error('连接超时')), 12000);
+      const timeout = setTimeout(() => reject(new Error('timeout')), 12000);
       G.peer.on('open', () => { clearTimeout(timeout); resolve(G.peer); });
       G.peer.on('error', (err) => { clearTimeout(timeout); reject(err); });
     } catch(e) {
@@ -1189,16 +1359,16 @@ function getGridCanvas(key, worldW, worldH) {
 function generateObstacles(worldW, worldH, count = 12) {
   const newObs = [];
   const safeZones = [
-    { x: 60,  y: worldH/2 - 120, w: 280, h: 240 },
-    { x: worldW - 340, y: worldH/2 - 120, w: 280, h: 240 }
+    { x: 40,  y: worldH/2 - 120, w: 200, h: 240 },
+    { x: worldW - 240, y: worldH/2 - 120, w: 200, h: 240 }
   ];
   let att = 0;
   while (newObs.length < count && att < count * 40) {
     att++;
     const w = 60 + Math.random() * 120;
     const h = 60 + Math.random() * 120;
-    const x = 100 + Math.random() * (worldW - 200 - w);
-    const y = 100 + Math.random() * (worldH - 200 - h);
+    const x = 80 + Math.random() * (worldW - 160 - w);
+    const y = 80 + Math.random() * (worldH - 160 - h);
     const rect = { x, y, w, h };
     let inSafe = false;
     for (const sz of safeZones) {
@@ -1232,13 +1402,16 @@ function bulletHitsObstacle(b, obs) {
   return false;
 }
 function findFreeSpot(px, py, obstacles, maxRadius = 400) {
+  const pvp = (G.gameMode === 'pvp' && !G.isSoloMode);
+  const wW = pvp ? PVP_W : WORLD_W;
+  const wH = pvp ? PVP_H : WORLD_H;
   if (!playerHitsObstacle(px, py, obstacles)) return { x: px, y: py };
   for (let r = 20; r <= maxRadius; r += 20) {
     for (let a = 0; a < Math.PI * 2; a += Math.PI / 12) {
       const nx = px + Math.cos(a) * r;
       const ny = py + Math.sin(a) * r;
-      if (nx < PLAYER_SIZE || nx > WORLD_W - PLAYER_SIZE) continue;
-      if (ny < PLAYER_SIZE || ny > WORLD_H - PLAYER_SIZE) continue;
+      if (nx < PLAYER_SIZE || nx > wW - PLAYER_SIZE) continue;
+      if (ny < PLAYER_SIZE || ny > wH - PLAYER_SIZE) continue;
       if (!playerHitsObstacle(nx, ny, obstacles)) return { x: nx, y: ny };
     }
   }
@@ -1255,16 +1428,16 @@ function spawnZombie(zombies, wave, forceType = null, x = null, y = null) {
   if (zombies.length >= ZOMBIE_MAX_COUNT) return null;
   let typeKey = forceType;
   if (!typeKey) {
-    const available = Object.entries(ZOMBIE_TYPES).filter(([k, t]) => (t.minWave || 1) <= wave);
-    const totalWeight = available.reduce((s, [k, t]) => s + t.weight, 0);
+    const available = Object.entries(ZOMBIE_TYPES).filter(([k, tp]) => (tp.minWave || 1) <= wave);
+    const totalWeight = available.reduce((s, [k, tp]) => s + tp.weight, 0);
     let r = Math.random() * totalWeight;
-    for (const [k, t] of available) {
-      r -= t.weight;
+    for (const [k, tp] of available) {
+      r -= tp.weight;
       if (r <= 0) { typeKey = k; break; }
     }
     if (!typeKey) typeKey = 'normal';
   }
-  const t = ZOMBIE_TYPES[typeKey];
+  const tp = ZOMBIE_TYPES[typeKey];
   let px = x, py = y;
   if (px === null) {
     const side = Math.floor(Math.random() * 4);
@@ -1276,21 +1449,20 @@ function spawnZombie(zombies, wave, forceType = null, x = null, y = null) {
     }
   }
   const speedBonus = Math.min(1.8, wave * 0.08);
-  const hp = t.hp + Math.floor(wave / 3);
+  const hp = tp.hp + Math.floor(wave / 3);
   const z = {
     id: 'z-' + (zombieIdCounter++),
     type: typeKey,
     x: px, y: py, hp, maxHp: hp,
-    speed: (t.speed + speedBonus) * (0.8 + Math.random() * 0.4),
-    size: t.size || ZOMBIE_SIZE,
-    damage: t.damage,
-    xp: t.xp,
+    speed: (tp.speed + speedBonus) * (0.8 + Math.random() * 0.4),
+    size: tp.size || ZOMBIE_SIZE,
+    damage: tp.damage,
+    xp: tp.xp,
     lastTouch: { red: 0, blue: 0 },
     angle: 0,
     wobble: Math.random() * Math.PI * 2,
-    fuse: t.explode ? 60 : undefined,
-    shootTimer: t.ranged ? 120 : undefined,
-    // 绕路：记录卡住时选择的侧向方向
+    fuse: tp.explode ? 60 : undefined,
+    shootTimer: tp.ranged ? 120 : undefined,
     detourDir: Math.random() < 0.5 ? 1 : -1,
     detourTimer: 0
   };
@@ -1356,21 +1528,16 @@ function moveZombieWithObstacles(z, dx, dy, dist, speedMult) {
     return;
   }
 
-  // 撞墙：尝试沿墙滑动
   const tryX = !check(nx, z.y);
   const tryY = !check(z.x, ny);
   if (tryX && !tryY) {
-    z.x = nx;
-    z.detourTimer = 30;
+    z.x = nx; z.detourTimer = 30;
   } else if (tryY && !tryX) {
-    z.y = ny;
-    z.detourTimer = 30;
+    z.y = ny; z.detourTimer = 30;
   } else if (tryX && tryY) {
-    // 两个方向都可走，选更接近目标方向的
     if (Math.abs(dx) > Math.abs(dy)) z.x = nx; else z.y = ny;
     z.detourTimer = 20;
   } else {
-    // 完全卡住，沿切向绕路
     z.detourTimer = (z.detourTimer || 0) + 1;
     const tangent = Math.atan2(dy, dx) + (Math.PI / 2) * (z.detourDir || 1);
     const tx = Math.cos(tangent) * step;
@@ -1378,19 +1545,16 @@ function moveZombieWithObstacles(z, dx, dy, dist, speedMult) {
     const cx = z.x + tx, cy = z.y + ty;
     if (!check(cx, cy)) { z.x = cx; z.y = cy; }
     else {
-      // 换另一个方向
       z.detourDir = -(z.detourDir || 1);
       const tx2 = Math.cos(tangent + Math.PI) * step;
       const ty2 = Math.sin(tangent + Math.PI) * step;
       if (!check(z.x + tx2, z.y + ty2)) { z.x += tx2; z.y += ty2; }
     }
-    // 卡太久就换方向
     if (z.detourTimer > 90) { z.detourDir = -(z.detourDir || 1); z.detourTimer = 0; }
   }
 }
 
 function updateZombiesAndBosses() {
-  const zSpeedMult = G.settings.zombieSpeedMult || 1;
   const players = [G.redPlayer, G.bluePlayer].filter(p => p && p.hp > 0);
 
   for (const z of G.zombies) {
@@ -1661,12 +1825,12 @@ function showUpgradeChoice(player, onResume) {
   const box = $('upgradeOptions');
   if (!panel || !box) return;
   const titleEl = panel.querySelector('.upgrade-title');
-  if (titleEl) titleEl.textContent = `⬆️ 第 ${player.level} 级！选择一项强化`;
+  if (titleEl) titleEl.textContent = (currentLang === 'zh' ? `⬆️ 第 ${player.level} 级！选择一项强化` : `⬆️ Level ${player.level}! Choose an upgrade`);
   box.innerHTML = pool.map(u => `
     <div class="upgrade-card" data-id="${u.id}">
       <div class="u-icon">${u.icon}</div>
-      <div class="u-name">${u.name}</div>
-      <div class="u-desc">${u.desc}</div>
+      <div class="u-name">${currentLang === 'zh' ? u.name : u.nameEn}</div>
+      <div class="u-desc">${currentLang === 'zh' ? u.desc : u.descEn}</div>
     </div>
   `).join('');
   box.querySelectorAll('.upgrade-card').forEach(card => {
@@ -1687,7 +1851,7 @@ function showUpgradeChoice(player, onResume) {
 /* ============================================================
    渲染
    ============================================================ */
-function mixColor(c1, c2, t) {
+function mixColor(c1, c2, t0) {
   const p = h => {
     if (h.startsWith('#')) {
       const n = parseInt(h.slice(1), 16);
@@ -1696,11 +1860,15 @@ function mixColor(c1, c2, t) {
     return [0, 0, 0];
   };
   const a = p(c1), b = p(c2);
-  const r = Math.round(a[0] + (b[0] - a[0]) * t);
-  const g = Math.round(a[1] + (b[1] - a[1]) * t);
-  const bl = Math.round(a[2] + (b[2] - a[2]) * t);
+  const r = Math.round(a[0] + (b[0] - a[0]) * t0);
+  const g = Math.round(a[1] + (b[1] - a[1]) * t0);
+  const bl = Math.round(a[2] + (b[2] - a[2]) * t0);
   return `rgb(${r},${g},${bl})`;
 }
+function isPvpMap() { return G.gameMode === 'pvp' && !G.isSoloMode; }
+function getMapW() { return isPvpMap() ? PVP_W : WORLD_W; }
+function getMapH() { return isPvpMap() ? PVP_H : WORLD_H; }
+
 function draw() {
   if (!ctx) return;
   const theme = THEMES[G.currentTheme] || THEMES.space;
@@ -1719,8 +1887,8 @@ function draw() {
   ctx.fillRect(0, 0, W, H);
   ctx.save();
   ctx.translate(-G.camera.x, -G.camera.y);
-  const worldW = (G.gameMode === 'zombie' || G.isSoloMode) ? WORLD_W : W;
-  const worldH = (G.gameMode === 'zombie' || G.isSoloMode) ? WORLD_H : H;
+  const worldW = getMapW();
+  const worldH = getMapH();
   const grid = getGridCanvas(G.currentTheme, worldW, worldH);
   if (grid) ctx.drawImage(grid, G.camera.x, G.camera.y, W, H, G.camera.x, G.camera.y, W, H);
   for (const o of G.obstacles) {
@@ -1773,7 +1941,6 @@ function drawPlayer(p) {
   if (!p) return;
   const isRed = p.role === 'red';
   const isMe = (p.role === G.myRole) || G.isSoloMode;
-  // 自己的皮肤用自己的；对手的皮肤用对手广播的
   const skin = isMe ? (G.currentSkin || SKINS.default) : (G.opponentSkin || SKINS.default);
   let color = isRed ? '#ff4d6d' : '#4da6ff';
   const bgColor = isRed ? '#2e1a1f' : '#1a2a3a';
@@ -1817,11 +1984,10 @@ function drawPlayer(p) {
     ctx.closePath(); ctx.fill();
     ctx.restore();
   }
-  // 只在僵尸合作模式显示队友标记（1v1 是对手，不显示）
   if (!isMe && !G.isSoloMode && G.gameMode === 'zombie' && p.hp > 0) {
     ctx.font = 'bold 12px "Segoe UI"'; ctx.fillStyle = '#4dd4ff';
     ctx.textAlign = 'center';
-    ctx.fillText('🛡 队友', p.x, p.y - PLAYER_SIZE/2 - 42);
+    ctx.fillText(currentLang === 'zh' ? '🛡 队友' : '🛡 Ally', p.x, p.y - PLAYER_SIZE/2 - 42);
   }
   ctx.fillStyle = bgColor;
   ctx.fillRect(p.x - 28, p.y - PLAYER_SIZE/2 - 20, 56, 8);
@@ -2075,24 +2241,24 @@ function drawHUD() {
   ctx.font = '14px "Segoe UI"';
   ctx.fillStyle = '#6b7fa0';
   if (me) {
-    const roleLabel = G.isSoloMode ? '单人' : (G.myRole === 'red' ? '红' : '蓝');
-    ctx.fillText(`你是: ${me.name} (${roleLabel})`, 30, 40);
+    const roleLabel = G.isSoloMode ? (currentLang === 'zh' ? '单人' : 'Solo') : (G.myRole === 'red' ? (currentLang === 'zh' ? '红' : 'Red') : (currentLang === 'zh' ? '蓝' : 'Blue'));
+    ctx.fillText(`${currentLang === 'zh' ? '你是' : 'You'}: ${me.name} (${roleLabel})`, 30, 40);
     if (G.gameMode === 'pvp' && G.redPlayer && G.bluePlayer) {
-      ctx.fillText(`比分 ${G.redPlayer.name} ${G.scoreRed} : ${G.scoreBlue} ${G.bluePlayer.name}`, 30, 62);
+      ctx.fillText(`${currentLang === 'zh' ? '比分' : 'Score'} ${G.redPlayer.name} ${G.scoreRed} : ${G.scoreBlue} ${G.bluePlayer.name}`, 30, 62);
     } else {
-      ctx.fillText(`🧟 击杀 ${G.zombieKills}   波次 ${G.zombieWave}   BOSS ${G.bosses.length}`, 30, 62);
+      ctx.fillText(`🧟 ${currentLang === 'zh' ? '击杀' : 'Kills'} ${G.zombieKills}   ${currentLang === 'zh' ? '波次' : 'Wave'} ${G.zombieWave}   BOSS ${G.bosses.length}`, 30, 62);
     }
     if (G.comboCount >= 2) {
       ctx.font = 'bold 20px "Segoe UI"';
       ctx.fillStyle = '#ffd24d';
       ctx.shadowColor = '#ffd24d'; ctx.shadowBlur = 12;
-      ctx.fillText(`🔥 ${G.comboCount} 连击`, 30, 90);
+      ctx.fillText(`🔥 ${G.comboCount} ${currentLang === 'zh' ? '连击' : 'Combo'}`, 30, 90);
       ctx.shadowBlur = 0;
     }
     if (G.gameMode === 'zombie' || G.isSoloMode) {
       ctx.font = '12px "Consolas", monospace';
       ctx.fillStyle = '#3d4d6e';
-      ctx.fillText(`地图: ${WORLD_W}×${WORLD_H}  位置: ${Math.round(me.x)},${Math.round(me.y)}`, 30, H - 20);
+      ctx.fillText(`${currentLang === 'zh' ? '地图' : 'Map'}: ${getMapW()}×${getMapH()}  ${currentLang === 'zh' ? '位置' : 'Pos'}: ${Math.round(me.x)},${Math.round(me.y)}`, 30, H - 20);
     }
   }
   if (G.gameMode === 'pvp' && G.redPlayer && G.bluePlayer) {
@@ -2150,9 +2316,9 @@ function segmentHitsRect(x1, y1, x2, y2, r) {
   for (let i = 0; i < 4; i++) {
     if (p[i] === 0) { if (q[i] < 0) return false; }
     else {
-      const t = q[i] / p[i];
-      if (p[i] < 0) { if (t > t1) return false; if (t > t0) t0 = t; }
-      else { if (t < t0) return false; if (t < t1) t1 = t; }
+      const tt = q[i] / p[i];
+      if (p[i] < 0) { if (tt > t1) return false; if (tt > t0) t0 = tt; }
+      else { if (tt < t0) return false; if (tt < t1) t1 = tt; }
     }
   }
   return true;
@@ -2191,24 +2357,25 @@ function updateCamera() {
     return;
   }
   if (!me) return;
-  if (G.gameMode === 'zombie' || G.isSoloMode) {
+  if (isPvpMap()) {
+    G.camera.x = -(W - PVP_W) / 2;
+    G.camera.y = -(H - PVP_H) / 2;
+  } else {
     G.camera.x += (me.x - W / 2 - G.camera.x) * 0.15;
     G.camera.y += (me.y - H / 2 - G.camera.y) * 0.15;
     G.camera.x = Math.max(0, Math.min(WORLD_W - W, G.camera.x));
     G.camera.y = Math.max(0, Math.min(WORLD_H - H, G.camera.y));
-  } else {
-    G.camera.x = 0;
-    G.camera.y = 0;
   }
 }
 function snapCameraToMe() {
   const me = G.myRole === 'red' ? G.redPlayer : G.bluePlayer;
   if (!me) return;
-  if (G.gameMode === 'zombie' || G.isSoloMode) {
+  if (isPvpMap()) {
+    G.camera.x = -(W - PVP_W) / 2;
+    G.camera.y = -(H - PVP_H) / 2;
+  } else {
     G.camera.x = Math.max(0, Math.min(WORLD_W - W, me.x - W / 2));
     G.camera.y = Math.max(0, Math.min(WORLD_H - H, me.y - H / 2));
-  } else {
-    G.camera.x = 0; G.camera.y = 0;
   }
 }
 
@@ -2298,7 +2465,7 @@ function updateBullets(worldW, worldH, me) {
                 SFX.bossDie();
                 G.screenShake = 25;
                 spawnParticles(hitB.x, hitB.y, { count: 60, color: '#ff4d6d', speed: 12, life: 80, size: 5 });
-                spawnDamageText(hitB.x, hitB.y, 0, '#ff4d6d', 'BOSS 击杀!', true);
+                spawnDamageText(hitB.x, hitB.y, 0, '#ff4d6d', 'BOSS!', true);
                 if (!G.isSoloMode) safeSend({ type: 'zombieDied', zombieId: hitB.id, x: hitB.x, y: hitB.y, isBoss: true });
                 spawnPickup(hitB.x, hitB.y, 'health');
                 spawnPickup(hitB.x + 40, hitB.y, 'double');
@@ -2378,8 +2545,8 @@ function update() {
     if (consumePress('Digit3')) switchWeapon(3);
     if (consumePress('Digit4')) switchWeapon(4);
   }
-  const worldW = (G.gameMode === 'zombie' || G.isSoloMode) ? WORLD_W : W;
-  const worldH = (G.gameMode === 'zombie' || G.isSoloMode) ? WORLD_H : H;
+  const worldW = getMapW();
+  const worldH = getMapH();
   if (me.dashFrames > 0) {
     const cx = Math.min(Math.max(me.x + me.dashVx, PLAYER_SIZE/2 + 4), worldW - PLAYER_SIZE/2 - 4);
     if (!playerHitsObstacle(cx, me.y, G.obstacles)) me.x = cx;
@@ -2470,7 +2637,7 @@ function update() {
       G.waveTimer = 0;
       G.zombieWave++;
       updateScoreboard();
-      spawnDamageText(G.redPlayer.x, G.redPlayer.y - 100, 0, '#ffaa4d', '🌊 第 ' + G.zombieWave + ' 波', true);
+      spawnDamageText(G.redPlayer.x, G.redPlayer.y - 100, 0, '#ffaa4d', (currentLang === 'zh' ? '🌊 第 ' : '🌊 Wave ') + G.zombieWave, true);
       const bossEvery = G.settings.bossEvery || 10;
       if (G.zombieWave % bossEvery === 0) spawnBoss(G.bosses, G.zombieWave);
     }
@@ -2557,7 +2724,7 @@ function updateWeaponHUD() {
   if (!me) return;
   const w = WEAPONS[me.weapon];
   txt($('weaponIcon'), w.icon);
-  txt($('weaponName'), w.name);
+  txt($('weaponName'), currentLang === 'zh' ? w.name : w.nameEn);
   const ammoEl = $('weaponAmmo');
   if (ammoEl) {
     ammoEl.textContent = me.ammo === Infinity ? '∞' : me.ammo;
@@ -2585,11 +2752,6 @@ function updateLevelHUD() {
     const xpNeeded = LEVELS_PER_UPGRADE * XP_PER_LEVEL;
     fill.style.width = ((xpInBlock / xpNeeded) * 100) + '%';
   }
-  const badge = $('levelBadge');
-  if (badge) {
-    const remain = LEVELS_PER_UPGRADE - (me.level % LEVELS_PER_UPGRADE);
-    badge.title = `再升 ${remain} 级获得强化选择`;
-  }
 }
 function updateScoreboard() {
   if (G.gameMode === 'pvp') {
@@ -2597,8 +2759,8 @@ function updateScoreboard() {
     txt($('scoreBlue'), G.scoreBlue);
     cls($('scoreRedItem'), 'winner', G.scoreRed > G.scoreBlue);
     cls($('scoreBlueItem'), 'winner', G.scoreBlue > G.scoreRed);
-    txt($('redNameLabel'), G.redPlayer ? G.redPlayer.name : '红');
-    txt($('blueNameLabel'), G.bluePlayer ? G.bluePlayer.name : '蓝');
+    txt($('redNameLabel'), G.redPlayer ? G.redPlayer.name : (currentLang === 'zh' ? '红' : 'Red'));
+    txt($('blueNameLabel'), G.bluePlayer ? G.bluePlayer.name : (currentLang === 'zh' ? '蓝' : 'Blue'));
   } else {
     txt($('zombieKills'), G.zombieKills);
     txt($('zombieWave'), G.zombieWave);
@@ -2614,22 +2776,24 @@ function updateScoreboardVisibility() {
 function updateThemeBadge() {
   const theme = THEMES[G.currentTheme] || THEMES.space;
   txt($('themeIcon'), theme.icon);
-  txt($('themeName'), theme.name);
+  txt($('themeName'), currentLang === 'zh' ? theme.name : theme.nameEn);
 }
 function updateAimUI() {
   cls($('aimToggle'), 'checked', G.autoAim);
-  txt($('aimTitle'), G.autoAim ? '🎯 自动瞄准' : '🖱️ 手动瞄准');
-  txt($('aimDesc'), G.autoAim ? '按空格朝向敌人自动射击' : '鼠标瞄准，左键射击');
+  txt($('aimTitle'), G.autoAim ? t('autoAim') : t('manualAim'));
+  txt($('aimDesc'), G.autoAim ? t('autoAimDesc') : t('manualAimDesc'));
   cls($('aimIndicator'), 'auto', G.autoAim);
   cls($('aimIndicator'), 'manual', !G.autoAim);
   txt($('aimModeIcon'), G.autoAim ? '🎯' : '🖱️');
-  txt($('aimModeText'), G.autoAim ? '自动瞄准' : '手动瞄准');
-  if ($('shootHint')) $('shootHint').innerHTML = G.autoAim ? '<kbd>空格</kbd> 射击' : '<kbd>左键</kbd> 射击';
+  txt($('aimModeText'), G.autoAim ? t('autoAim').replace('🎯 ','') : t('manualAim').replace('🖱️ ',''));
+  const shootKey = G.autoAim ? (currentLang === 'zh' ? '<kbd>空格</kbd> 射击' : '<kbd>Space</kbd> Shoot') : (currentLang === 'zh' ? '<kbd>左键</kbd> 射击' : '<kbd>LMB</kbd> Shoot');
+  if ($('shootHint')) $('shootHint').innerHTML = shootKey;
   cls(canvas, 'aim-mode', !G.autoAim);
 }
 
 /* ============================================================
-   视图   ============================================================ */
+   视图
+   ============================================================ */
 function switchView(view) {
   cls($('lobby'), 'hidden', true);
   cls($('waiting'), 'hidden', true);
@@ -2642,7 +2806,7 @@ function switchView(view) {
 function showRoundBanner(n) {
   const el = $('roundBanner');
   if (!el) return;
-  el.textContent = `ROUND ${n}`;
+  el.textContent = `${t('round')} ${n}`;
   el.classList.add('show');
   setTimeout(() => el.classList.remove('show'), 2200);
 }
@@ -2678,7 +2842,7 @@ function startSoloGame(myNickname) {
   G.gameMode = 'zombie';
   G.currentTheme = 'zombie';
   G.gameRunning = true;
-  G.redPlayer = createPlayer('red', myNickname, '对手', G.currentSkin);
+  G.redPlayer = createPlayer('red', myNickname, 'Opponent', G.currentSkin);
   G.bluePlayer = null;
   G.bullets = []; G.damageTexts = []; G.zombies = []; G.bosses = []; G.pickups = [];
   G.processedHits.clear();
@@ -2687,8 +2851,8 @@ function startSoloGame(myNickname) {
   G.obstacles = generateObstacles(WORLD_W, WORLD_H, 15);
   const spot = findFreeSpot(G.redPlayer.x, G.redPlayer.y, G.obstacles);
   G.redPlayer.x = spot.x; G.redPlayer.y = spot.y;
-  txt($('gameRoomCode'), '单机');
-  txt($('myRoleLabel'), '单人');
+  txt($('gameRoomCode'), currentLang === 'zh' ? '单机' : 'Solo');
+  txt($('myRoleLabel'), currentLang === 'zh' ? '单人' : 'Solo');
   if ($('myRoleLabel')) $('myRoleLabel').className = 'role-red';
   updateScoreboardVisibility();
   updateThemeBadge();
@@ -2712,7 +2876,7 @@ function startGame() {
     safeSend({ type: 'nextRound', obstacles: G.obstacles, role: 'blue', theme: G.currentTheme, round: 1 });
   } else {
     G.currentTheme = themeKeys[Math.floor(Math.random() * themeKeys.length)];
-    G.obstacles = generateObstacles(WORLD_W, WORLD_H, 15);
+    G.obstacles = generateObstacles(PVP_W, PVP_H, 14);
     safeSend({ type: 'nextRound', obstacles: G.obstacles, role: 'blue', theme: G.currentTheme, round: 1 });
   }
   updateThemeBadge();
@@ -2735,7 +2899,7 @@ function startRoundLocally(role, isFirst = true) {
   const spotB = findFreeSpot(G.bluePlayer.x, G.bluePlayer.y, G.obstacles);
   G.bluePlayer.x = spotB.x; G.bluePlayer.y = spotB.y;
   txt($('gameRoomCode'), G.roomCode);
-  txt($('myRoleLabel'), G.myRole === 'red' ? '红方' : '蓝方');
+  txt($('myRoleLabel'), G.myRole === 'red' ? t('red') : t('blue'));
   if ($('myRoleLabel')) $('myRoleLabel').className = G.myRole === 'red' ? 'role-red' : 'role-blue';
   updateScoreboardVisibility();
   updateThemeBadge();
@@ -2767,7 +2931,7 @@ function startZombieModeLocally(role) {
   const spotB = findFreeSpot(G.bluePlayer.x, G.bluePlayer.y, G.obstacles);
   G.bluePlayer.x = spotB.x; G.bluePlayer.y = spotB.y;
   txt($('gameRoomCode'), G.roomCode);
-  txt($('myRoleLabel'), G.myRole === 'red' ? '红方' : '蓝方');
+  txt($('myRoleLabel'), G.myRole === 'red' ? t('red') : t('blue'));
   if ($('myRoleLabel')) $('myRoleLabel').className = G.myRole === 'red' ? 'role-red' : 'role-blue';
   updateScoreboardVisibility();
   updateThemeBadge();
@@ -2793,7 +2957,7 @@ function handleRoundEnd(winner, sRed, sBlue) {
   updateScoreboard();
   if (winner === G.myRole) SFX.win(); else SFX.lose();
   const myWin = (winner === G.myRole);
-  awardCoins(myWin ? 50 : 20, myWin ? 'PvP 胜利' : 'PvP 参与');
+  awardCoins(myWin ? 50 : 20, myWin ? t('pvpWin') : t('pvpLose'));
   if (G.isHost && G.gameMode === 'pvp') setTimeout(() => startNextRound(), 3000);
 }
 function startNextRound() {
@@ -2801,14 +2965,13 @@ function startNextRound() {
   G.roundNumber++;
   const themeKeys = Object.keys(THEMES).filter(k => k !== 'zombie');
   G.currentTheme = themeKeys[Math.floor(Math.random() * themeKeys.length)];
-  G.obstacles = generateObstacles(WORLD_W, WORLD_H, 15);
+  G.obstacles = generateObstacles(PVP_W, PVP_H, 14);
   safeSend({ type: 'nextRound', obstacles: G.obstacles, role: 'blue', theme: G.currentTheme, round: G.roundNumber });
   updateThemeBadge();
   showRoundBanner(G.roundNumber);
   setTimeout(() => startRoundLocally('red', false), 3000);
 }
 function handleLocalWin(deadRole) {
-  // 移除慢动作胜利动画，直接结算
   G.gameRunning = false;
   if (deadRole === 'red') G.scoreBlue++;
   else G.scoreRed++;
@@ -2819,7 +2982,7 @@ function handleLocalWin(deadRole) {
   safeSend({ type: 'roundEnd', winner: G.myRole, scoreRed: G.scoreRed, scoreBlue: G.scoreBlue });
   if (me && opponent) addKillFeed(me.name, opponent.name, WEAPONS[me.weapon].icon);
   SFX.win();
-  awardCoins(50, 'PvP 胜利');
+  awardCoins(50, t('pvpWin'));
   setTimeout(() => {
     stopMusic();
     if (G.isHost) startNextRound();
@@ -2830,10 +2993,10 @@ function gameOverPvE() {
   stopMusic();
   SFX.lose();
   const coins = G.zombieKills * 2 + G.zombieWave * 10;
-  awardCoins(coins, G.isSoloMode ? '单人僵尸' : '合作僵尸');
+  awardCoins(coins, G.isSoloMode ? t('soloZombie') : t('coopZombie'));
   addLeaderboardEntry(G.myNickname, G.zombieKills, G.isSoloMode ? 'solo' : 'zombie');
   setTimeout(() => {
-    alert('💀 被僵尸击败！\n击杀数：' + G.zombieKills + '  波次：' + G.zombieWave + '\n💰 +' + coins + ' 金币');
+    alert(`${t('zombieDefeat')}\n${t('killCount')}: ${G.zombieKills}  ${t('waveCount')}: ${G.zombieWave}\n💰 +${coins} ${t('coinsGained')}`);
     cleanupAndReturnToLobby();
   }, 200);
 }
@@ -2847,13 +3010,13 @@ function handleMessage(data) {
     case 'assignRole':
       G.myRole = data.role;
       G.gameMode = data.mode || 'pvp';
-      G.opponentNickname = data.hostName || '房主';
+      G.opponentNickname = data.hostName || (currentLang === 'zh' ? '房主' : 'Host');
       if (data.autoAim !== undefined) G.autoAim = data.autoAim;
       if (data.settings) G.settings = { ...G.settings, ...data.settings };
       safeSend({ type: 'playerReady', nickname: G.myNickname });
       break;
     case 'playerReady':
-      G.opponentNickname = data.nickname || '对手';
+      G.opponentNickname = data.nickname || (currentLang === 'zh' ? '对手' : 'Opponent');
       if (G.isHost) startGame();
       break;
     case 'startGame': startGame(); break;
@@ -2954,7 +3117,7 @@ function handleMessage(data) {
               SFX.bossDie();
               G.screenShake = 25;
               spawnParticles(b.x, b.y, { count: 60, color: '#ff4d6d', speed: 12, life: 80, size: 5 });
-              spawnDamageText(b.x, b.y, 0, '#ff4d6d', 'BOSS 击杀!', true);
+              spawnDamageText(b.x, b.y, 0, '#ff4d6d', 'BOSS!', true);
               safeSend({ type: 'zombieDied', zombieId: b.id, x: b.x, y: b.y, isBoss: true });
               spawnPickup(b.x, b.y, 'health');
               spawnPickup(b.x + 40, b.y, 'double');
@@ -2980,7 +3143,7 @@ function handleMessage(data) {
         if (data.isBoss) {
           SFX.bossDie(); G.screenShake = 25;
           spawnParticles(data.x, data.y, { count: 60, color: '#ff4d6d', speed: 12, life: 80, size: 5 });
-          spawnDamageText(data.x, data.y, 0, '#ff4d6d', 'BOSS 击杀!', true);
+          spawnDamageText(data.x, data.y, 0, '#ff4d6d', 'BOSS!', true);
         } else {
           spawnParticles(data.x, data.y, { count: 18, color: '#8ac05a', speed: 6, life: 45, gravity: 0.1 });
           spawnDamageText(data.x, data.y, 0, '#ffaa4d', '💀');
@@ -2997,12 +3160,12 @@ function handleMessage(data) {
       stopMusic();
       SFX.lose();
       setTimeout(() => {
-        alert('💀 被僵尸击败！\n击杀数：' + data.kills + '  波次：' + data.wave);
+        alert(`${t('zombieDefeat')}\n${t('killCount')}: ${data.kills}  ${t('waveCount')}: ${data.wave}`);
         cleanupAndReturnToLobby();
       }, 200);
       break;
     case 'leave':
-      if (G.gameRunning) { alert('对手离开了房间'); cleanupAndReturnToLobby(); }
+      if (G.gameRunning) { alert(t('oppLeft')); cleanupAndReturnToLobby(); }
       break;
   }
 }
@@ -3038,7 +3201,6 @@ function cleanupAndReturnToLobby() {
   switchView('lobby');
   const lowHpEl = $('lowHpVignette');
   if (lowHpEl) cls(lowHpEl, 'active', false);
-  updateLobbyCoins();
 }
 
 /* ============================================================
@@ -3052,7 +3214,7 @@ function saveLeaderboard(list) {
   try { localStorage.setItem(LB_KEY, JSON.stringify(list.slice(0, 20))); } catch(e) {}
 }
 function addLeaderboardEntry(name, score, mode) {
-  if (!name || name === '玩家') name = '无名玩家';
+  if (!name || name === '玩家' || name === 'Player') name = currentLang === 'zh' ? '无名玩家' : 'Anonymous';
   const list = loadLeaderboard();
   list.push({ name, score, mode, time: Date.now() });
   list.sort((a, b) => b.score - a.score);
@@ -3064,7 +3226,7 @@ function renderLeaderboard() {
   if (!el) return;
   const list = loadLeaderboard();
   if (list.length === 0) {
-    el.innerHTML = '<div class="lb-empty">暂无记录，快去战斗吧！</div>';
+    el.innerHTML = `<div class="lb-empty">${t('noRecord')}</div>`;
     return;
   }
   el.innerHTML = list.slice(0, 10).map((e, i) => {
@@ -3154,7 +3316,6 @@ async function initFirebase() {
         renderSkinShop();
         applySkin(profile.equippedSkin);
       }
-      updateLobbyCoins();
     });
 
     try {
@@ -3167,26 +3328,20 @@ async function initFirebase() {
     }
 
     on($('loginBtn'), 'click', async () => {
-      if (!firebaseAuth) { alert('Firebase 还在加载，请稍等'); return; }
+      if (!firebaseAuth) { alert(t('firebaseLoading')); return; }
       const provider = new GoogleAuthProvider();
       try {
-        txt($('statusText'), '正在打开登录窗口…');
+        txt($('statusText'), t('redirectingLogin'));
         const result = await signInWithPopup(firebaseAuth, provider);
         console.log('[登录] 成功:', result.user.displayName);
-        txt($('statusText'), '✅ 已登录: ' + (result.user.displayName || ''));
+        txt($('statusText'), t('loginSuccess') + ': ' + (result.user.displayName || ''));
       } catch (e) {
         console.error('[登录] 失败', e);
-        if (e.code === 'auth/popup-blocked') {
-          alert('弹窗被浏览器拦截，请允许本站弹窗后重试');
-        } else if (e.code === 'auth/popup-closed-by-user') {
-          txt($('statusText'), '登录窗口被关闭');
-        } else if (e.code === 'auth/unauthorized-domain') {
-          alert('域名未授权。请到 Firebase 控制台 → Authentication → Settings → 已授权的网域，添加当前域名。');
-        } else if (e.code === 'auth/operation-not-allowed') {
-          alert('Google 登录未启用。请到 Firebase 控制台 → Authentication → Sign-in method，启用 Google。');
-        } else {
-          alert('登录失败：' + e.message);
-        }
+        if (e.code === 'auth/popup-blocked') alert(t('popupBlocked'));
+        else if (e.code === 'auth/popup-closed-by-user') txt($('statusText'), t('popupClosed'));
+        else if (e.code === 'auth/unauthorized-domain') alert(t('domainNotAuthorized'));
+        else if (e.code === 'auth/operation-not-allowed') alert(t('googleNotEnabled'));
+        else alert(t('loginFail') + ': ' + e.message);
       }
     });
 
@@ -3196,7 +3351,7 @@ async function initFirebase() {
 
   } catch (e) {
     console.warn('[Firebase] 初始化失败（不影响游戏）:', e.message);
-    if ($('loginTip')) $('loginTip').textContent = '⚠️ Firebase 加载失败，皮肤/金币仅保存在本地';
+    if ($('loginTip')) $('loginTip').textContent = '⚠️ Firebase load failed';
   }
 }
 
@@ -3214,7 +3369,6 @@ async function loadUserProfile(user) {
     updateCoinUI();
     renderSkinShop();
     applySkin(profile.equippedSkin);
-    updateLobbyCoins();
     if (profile.name && $('nickname') && !$('nickname').value) {
       $('nickname').value = profile.name.slice(0, 10);
     }
@@ -3225,10 +3379,7 @@ async function loadUserProfile(user) {
 
 function updateCoinUI() {
   txt($('userCoins'), `💰 ${profile.coins}`);
-  updateLobbyCoins();
-}
-function updateLobbyCoins() {
-  txt($('lobbyCoins'), `💰 ${profile.coins || 0}`);
+  txt($('skinCoins'), `💰 ${profile.coins}`);
 }
 
 async function awardCoins(amount, reason) {
@@ -3245,7 +3396,7 @@ async function awardCoins(amount, reason) {
     try { localStorage.setItem('arena_local_profile', JSON.stringify(profile)); } catch(e) {}
   }
   updateCoinUI();
-  showChatBubble('系统', `💰 +${amount} 金币 (${reason})`, false);
+  showChatBubble(t('system'), `💰 +${amount} (${reason})`, false);
 }
 
 function renderSkinShop() {
@@ -3257,11 +3408,15 @@ function renderSkinShop() {
     const colorStyle = s.color
       ? `background:${s.color}; box-shadow:0 0 20px ${s.color};`
       : 'background:linear-gradient(135deg,#ff4d6d,#4da6ff);';
+    const name = currentLang === 'zh' ? s.name : s.nameEn;
+    const priceText = equipped ? (currentLang === 'zh' ? '✅ 已装备' : '✅ Equipped')
+      : owned ? (currentLang === 'zh' ? '点击装备' : 'Click to equip')
+      : '💰 ' + s.price;
     return `
       <div class="skin-card ${owned ? 'owned' : ''} ${equipped ? 'equipped' : ''}" data-id="${id}">
         <div class="skin-preview" style="${colorStyle}"></div>
-        <div class="skin-name">${s.name}</div>
-        <div class="skin-price">${equipped ? '✅ 已装备' : owned ? '点击装备' : '💰 ' + s.price}</div>
+        <div class="skin-name">${name}</div>
+        <div class="skin-price">${priceText}</div>
       </div>
     `;
   }).join('');
@@ -3272,13 +3427,15 @@ function renderSkinShop() {
 async function handleSkinClick(id) {
   const s = SKINS[id];
   if (!s) return;
+  const name = currentLang === 'zh' ? s.name : s.nameEn;
   const owned = profile.unlockedSkins.includes(id);
   if (!owned) {
     if (profile.coins < s.price) {
-      alert('💰 金币不足！\n当前：' + profile.coins + '，需要：' + s.price);
+      alert(`${t('insufficientCoins')}\n${t('current')}: ${profile.coins}  ${t('need')}: ${s.price}`);
       return;
     }
-    if (!confirm(`花费 ${s.price} 金币购买「${s.name}」？`)) return;
+    const msg = t('confirmBuy').replace('{price}', s.price).replace('{name}', name);
+    if (!confirm(msg)) return;
     profile.coins -= s.price;
     profile.unlockedSkins.push(id);
   }
@@ -3296,7 +3453,6 @@ async function handleSkinClick(id) {
 }
 function applySkin(id) {
   G.currentSkin = SKINS[id] || SKINS.default;
-  // 只影响自己的玩家对象，对手皮肤由广播决定
   const me = G.myRole === 'red' ? G.redPlayer : G.bluePlayer;
   if (me) me.skin = G.currentSkin;
 }
@@ -3308,7 +3464,7 @@ function bindUI() {
   console.log('[bindUI] 开始绑定事件');
   document.querySelectorAll('.tab').forEach(tab => {
     tab.addEventListener('click', () => {
-      document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+      document.querySelectorAll('.tab').forEach(t0 => t0.classList.remove('active'));
       document.querySelectorAll('.tab-pane').forEach(p => p.classList.remove('active'));
       tab.classList.add('active');
       const pane = document.querySelector(`[data-pane="${tab.dataset.tab}"]`);
@@ -3343,29 +3499,30 @@ function bindUI() {
     else stopMusic();
   });
 
+  on($('langSelect'), 'change', (e) => {
+    applyLanguage(e.target.value);
+  });
+
   on($('soloBtn'), 'click', () => {
-    console.log('[单人] 点击');
     initAudio();
-    const nick = ($('nickname') ? $('nickname').value.trim() : '') || '玩家';
+    const nick = ($('nickname') ? $('nickname').value.trim() : '') || (currentLang === 'zh' ? '玩家' : 'Player');
     G.myNickname = nick;
     startSoloGame(nick);
   });
 
   on($('createRoomBtn'), 'click', async () => {
-    console.log('[创建房间] 开始');
     initAudio();
     txt($('lobbyError'), '');
-    const nick = ($('nickname') ? $('nickname').value.trim() : '') || '玩家';
+    const nick = ($('nickname') ? $('nickname').value.trim() : '') || (currentLang === 'zh' ? '玩家' : 'Player');
     G.myNickname = nick;
     $('createRoomBtn').disabled = true;
-    txt($('statusText'), '正在创建房间…');
+    txt($('statusText'), t('creatingRoom'));
 
     if (typeof Peer === 'undefined') {
-      txt($('lobbyError'), '❌ PeerJS 未加载！请检查网络，或刷新页面');
-      txt($('statusText'), '❌ PeerJS 未加载');
+      txt($('lobbyError'), t('peerNotLoaded'));
+      txt($('statusText'), '❌');
       cls($('statusDot'), 'err', true);
       $('createRoomBtn').disabled = false;
-      console.error('[创建房间] Peer 未定义');
       return;
     }
 
@@ -3374,53 +3531,50 @@ function bindUI() {
     G.isSoloMode = false;
     G.myRole = 'red';
     const peerId = 'arena-' + G.roomCode;
-    console.log('[创建房间] peerId =', peerId);
 
     try {
       await initPeer(peerId);
-      console.log('[创建房间] Peer 已连接');
-      txt($('statusText'), '✅ 房间已创建，等待加入');
+      txt($('statusText'), t('roomCreated'));
       cls($('statusDot'), 'ok', true);
 
       G.peer.on('connection', (incomingConn) => {
         if (G.conn && G.conn.open) { try { incomingConn.close(); } catch(e) {} return; }
         G.conn = incomingConn;
         G.conn.on('open', () => {
-          console.log('[房主] 对手已连接');
           safeSend({ type: 'assignRole', role: 'blue', mode: G.gameMode, hostName: G.myNickname, autoAim: G.autoAim, settings: G.settings });
-          txt($('statusText'), '对手已连接，开始游戏');
+          txt($('statusText'), t('oppConnected'));
         });
         G.conn.on('data', handleMessage);
         G.conn.on('close', () => {
-          if (G.gameRunning) { alert('对手已断开连接'); cleanupAndReturnToLobby(); }
+          if (G.gameRunning) { alert(t('oppDisconnected')); cleanupAndReturnToLobby(); }
         });
       });
 
       txt($('displayRoomCode'), G.roomCode);
-      txt($('waitingModeHint'), '模式：' + (G.gameMode === 'pvp' ? '1v1 竞技' : '合作打僵尸'));
+      const modeText = G.gameMode === 'pvp' ? t('modePvp') : t('modeZombie');
+      txt($('waitingModeHint'), (currentLang === 'zh' ? '模式：' : 'Mode: ') + modeText);
       switchView('waiting');
     } catch (err) {
       console.error('[创建房间] 失败:', err);
-      txt($('lobbyError'), '创建失败：' + (err.message || JSON.stringify(err) || '未知错误'));
-      txt($('statusText'), '❌ 创建失败');
+      txt($('lobbyError'), t('createFailed') + ': ' + (err.message || 'error'));
+      txt($('statusText'), '❌');
       cls($('statusDot'), 'err', true);
     }
     $('createRoomBtn').disabled = false;
   });
 
   on($('joinRoomBtn'), 'click', async () => {
-    console.log('[加入房间] 开始');
     initAudio();
     txt($('lobbyError'), '');
-    const nick = ($('nickname') ? $('nickname').value.trim() : '') || '玩家';
+    const nick = ($('nickname') ? $('nickname').value.trim() : '') || (currentLang === 'zh' ? '玩家' : 'Player');
     G.myNickname = nick;
     const code = ($('joinCode') ? $('joinCode').value.trim().toUpperCase() : '');
-    if (code.length !== 6) { txt($('lobbyError'), '请输入 6 位房间号'); return; }
+    if (code.length !== 6) { txt($('lobbyError'), t('enterCode')); return; }
     $('joinRoomBtn').disabled = true;
-    txt($('statusText'), '正在加入房间…');
+    txt($('statusText'), t('joiningRoom'));
 
     if (typeof Peer === 'undefined') {
-      txt($('lobbyError'), '❌ PeerJS 未加载！');
+      txt($('lobbyError'), t('peerNotLoaded'));
       $('joinRoomBtn').disabled = false;
       return;
     }
@@ -3435,28 +3589,27 @@ function bindUI() {
       await initPeer(myId);
       const targetConn = G.peer.connect(peerId, { reliable: true });
       const to = setTimeout(() => {
-        txt($('lobbyError'), '连接超时');
+        txt($('lobbyError'), t('joinTimeout'));
         $('joinRoomBtn').disabled = false;
         try { G.peer.destroy(); } catch(e) {}
       }, 12000);
       targetConn.on('open', () => {
         clearTimeout(to);
-        console.log('[加入] 连接成功');
         G.conn = targetConn;
         G.conn.on('data', handleMessage);
         G.conn.on('close', () => {
-          if (G.gameRunning) { alert('对手已断开连接'); cleanupAndReturnToLobby(); }
+          if (G.gameRunning) { alert(t('oppDisconnected')); cleanupAndReturnToLobby(); }
         });
-        txt($('statusText'), '✅ 已连接，等待开始…');
+        txt($('statusText'), t('connectedWaiting'));
         cls($('statusDot'), 'ok', true);
       });
       targetConn.on('error', () => {
         clearTimeout(to);
-        txt($('lobbyError'), '无法连接到房间');
+        txt($('lobbyError'), t('cannotConnect'));
         $('joinRoomBtn').disabled = false;
       });
     } catch (err) {
-      txt($('lobbyError'), '加入失败：' + (err.message || '未知错误'));
+      txt($('lobbyError'), t('joinFailed') + ': ' + (err.message || 'error'));
     }
     $('joinRoomBtn').disabled = false;
   });
@@ -3464,8 +3617,8 @@ function bindUI() {
   on($('copyCodeBtn'), 'click', () => {
     if (navigator.clipboard) {
       navigator.clipboard.writeText(G.roomCode).then(() => {
-        txt($('copyCodeBtn'), '✅ 已复制');
-        setTimeout(() => txt($('copyCodeBtn'), '📋 复制房间号'), 1500);
+        txt($('copyCodeText'), t('copied'));
+        setTimeout(() => txt($('copyCodeText'), t('copyCode')), 1500);
       }).catch(() => {});
     }
   });
@@ -3477,10 +3630,10 @@ function bindUI() {
     const docEl = document.documentElement;
     if (!document.fullscreenElement) {
       if (docEl.requestFullscreen) docEl.requestFullscreen();
-      if ($('fullscreenBtn')) $('fullscreenBtn').textContent = '⛶ 退出全屏';
+      if ($('fullscreenText')) $('fullscreenText').textContent = t('exitFullscreen').replace('⛶ ', '');
     } else {
       if (document.exitFullscreen) document.exitFullscreen();
-      if ($('fullscreenBtn')) $('fullscreenBtn').textContent = '⛶ 全屏';
+      if ($('fullscreenText')) $('fullscreenText').textContent = t('fullscreen').replace('⛶ ', '');
     }
   });
 
@@ -3494,14 +3647,15 @@ function bindUI() {
       const me = G.myRole === 'red' ? G.redPlayer : G.bluePlayer;
       const alive = [G.redPlayer, G.bluePlayer].filter(p => p && p.hp > 0 && p !== me);
       G.spectatorTarget = alive[0] || null;
-      txt($('spectateBtn'), '👁 退出观战');
+      txt($('spectateText'), currentLang === 'zh' ? '退出观战' : 'Exit');
     } else {
-      txt($('spectateBtn'), '👁 观战');
+      txt($('spectateText'), t('spectate').replace('👁 ', ''));
     }
   });
 
   on($('clearLeaderboard'), 'click', () => {
-    if (confirm('确定清空所有历史战绩吗？')) {
+    const msg = currentLang === 'zh' ? '确定清空所有历史战绩吗？' : 'Clear all records?';
+    if (confirm(msg)) {
       localStorage.removeItem(LB_KEY);
       renderLeaderboard();
     }
@@ -3579,6 +3733,7 @@ if (!CanvasRenderingContext2D.prototype.roundRect) {
   try {
     canvas = $('gameCanvas');
     if (canvas) ctx = canvas.getContext('2d');
+    initLanguage();
     bindUI();
     renderLeaderboard();
     renderSkinShop();
@@ -3586,14 +3741,13 @@ if (!CanvasRenderingContext2D.prototype.roundRect) {
     updateScoreboardVisibility();
     updateThemeBadge();
     updateAimUI();
-    updateLobbyCoins();
-    txt($('statusText'), '✅ 准备就绪');
+    txt($('statusText'), t('statusReady'));
     cls($('statusDot'), 'ok', true);
     initFirebase();
     console.log('[游戏] 全部加载完成');
   } catch (e) {
     console.error('启动失败:', e);
-    txt($('statusText'), '❌ 启动失败: ' + e.message);
+    txt($('statusText'), '❌ ' + e.message);
     cls($('statusDot'), 'err', true);
   }
 })();
