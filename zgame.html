@@ -4,6 +4,8 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>多人连线 · 房间对战</title>
+<link rel="icon" type="image/png" href="zijunlogo.png">
+<link rel="apple-touch-icon" href="zijunlogo.png">
 <style>
   * { box-sizing: border-box; user-select: none; }
   body {
@@ -119,6 +121,16 @@
 
   .hidden { display: none !important; }
   .error-msg { color: #ff6b8a; font-size: 0.82rem; min-height: 1.2em; }
+
+  /* 音效开关 */
+  .sound-toggle {
+    display: flex; align-items: center; gap: 8px;
+    background: #0a0f1c; padding: 8px 16px; border-radius: 30px;
+    border: 1px solid #1e2a44; font-size: 0.82rem; color: #8fa4cc;
+    cursor: pointer; transition: 0.2s;
+  }
+  .sound-toggle:hover { background: #131a2c; border-color: #2e3d5e; }
+  .sound-toggle .icon { font-size: 1rem; }
 </style>
 </head>
 <body>
@@ -186,6 +198,10 @@
       <div class="badge">
         你是 <span id="myRoleLabel" class="role-red">红方</span>
       </div>
+      <div class="sound-toggle" id="soundToggle">
+        <span class="icon" id="soundIcon">🔊</span>
+        <span id="soundLabel">音效开</span>
+      </div>
     </div>
 
     <canvas id="gameCanvas" width="900" height="550"></canvas>
@@ -203,11 +219,7 @@
 <script src="https://unpkg.com/peerjs@1.5.2/dist/peerjs.min.js"></script>
 <script>
 /* ============================================================
-   房间对战 —— 修复版
-   关键修复：
-   1. 所有 send 前必须检查 conn && conn.open
-   2. 房主在 conn 的 'open' 事件触发后才发送角色分配
-   3. 加入者也在 'open' 后才开始通信
+   房间对战 —— 音效 + 伤害飘字 + 输入修复 + favicon
    ============================================================ */
 
 let peer = null;
@@ -221,12 +233,14 @@ let myNickname = '玩家';
 let redPlayer = { x: 0, y: 0, hp: 100, cooldown: 0 };
 let bluePlayer = { x: 0, y: 0, hp: 100, cooldown: 0 };
 let bullets = [];
+let damageTexts = [];   // 伤害飘字数组
 const W = 900, H = 550;
 const PLAYER_SIZE = 28;
 const BULLET_SIZE = 7;
 const PLAYER_SPEED = 4.8;
 const BULLET_SPEED = 8.5;
 const SHOOT_COOLDOWN = 12;
+const DAMAGE_AMOUNT = 14;
 const RED_START = { x: 200, y: H / 2 };
 const BLUE_START = { x: W - 200, y: H / 2 };
 
@@ -243,7 +257,160 @@ const gameRoomCode = document.getElementById('gameRoomCode');
 const myRoleLabel = document.getElementById('myRoleLabel');
 const canvas = document.getElementById('gameCanvas');
 const ctx = canvas.getContext('2d');
+const soundToggle = document.getElementById('soundToggle');
+const soundIcon = document.getElementById('soundIcon');
+const soundLabel = document.getElementById('soundLabel');
 
+/* ============================================================
+   🎵 音效系统 —— 使用 Web Audio API 合成音效（无需外部文件）
+   ============================================================ */
+let audioCtx = null;
+let soundEnabled = true;
+
+function initAudio() {
+  if (audioCtx) return;
+  try {
+    audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+  } catch (e) {
+    console.warn('Web Audio 不可用', e);
+  }
+}
+
+// 生成一段音效：type 波形，freq 起始频率，freqEnd 结束频率，duration 时长(秒)，vol 音量
+function playTone(type, freq, freqEnd, duration, vol = 0.15, delay = 0) {
+  if (!soundEnabled || !audioCtx) return;
+  const startTime = audioCtx.currentTime + delay;
+  const osc = audioCtx.createOscillator();
+  const gain = audioCtx.createGain();
+  osc.type = type;
+  osc.frequency.setValueAtTime(freq, startTime);
+  if (freqEnd && freqEnd !== freq) {
+    osc.frequency.exponentialRampToValueAtTime(freqEnd, startTime + duration);
+  }
+  gain.gain.setValueAtTime(vol, startTime);
+  gain.gain.exponentialRampToValueAtTime(0.0001, startTime + duration);
+  osc.connect(gain);
+  gain.connect(audioCtx.destination);
+  osc.start(startTime);
+  osc.stop(startTime + duration);
+}
+
+// 噪声爆破（用于命中/爆炸）
+function playNoise(duration, vol = 0.1, delay = 0) {
+  if (!soundEnabled || !audioCtx) return;
+  const startTime = audioCtx.currentTime + delay;
+  const bufferSize = audioCtx.sampleRate * duration;
+  const buffer = audioCtx.createBuffer(1, bufferSize, audioCtx.sampleRate);
+  const data = buffer.getChannelData(0);
+  for (let i = 0; i < bufferSize; i++) {
+    data[i] = (Math.random() * 2 - 1) * (1 - i / bufferSize);
+  }
+  const source = audioCtx.createBufferSource();
+  source.buffer = buffer;
+  const gain = audioCtx.createGain();
+  gain.gain.setValueAtTime(vol, startTime);
+  gain.gain.exponentialRampToValueAtTime(0.0001, startTime + duration);
+  const filter = audioCtx.createBiquadFilter();
+  filter.type = 'lowpass';
+  filter.frequency.value = 1200;
+  source.connect(filter);
+  filter.connect(gain);
+  gain.connect(audioCtx.destination);
+  source.start(startTime);
+  source.stop(startTime + duration);
+}
+
+// 音效集合
+const SFX = {
+  shoot() {
+    playTone('square', 880, 220, 0.08, 0.08);
+    playTone('sawtooth', 1200, 400, 0.06, 0.05);
+  },
+  hit() {
+    playTone('square', 200, 60, 0.12, 0.12);
+    playNoise(0.08, 0.08);
+  },
+  hurt() {
+    playTone('sawtooth', 400, 100, 0.18, 0.12);
+    playTone('square', 150, 60, 0.15, 0.08, 0.02);
+  },
+  win() {
+    // 胜利：上行琶音
+    playTone('triangle', 523, 523, 0.15, 0.12, 0);
+    playTone('triangle', 659, 659, 0.15, 0.12, 0.12);
+    playTone('triangle', 784, 784, 0.15, 0.12, 0.24);
+    playTone('triangle', 1047, 1047, 0.3, 0.14, 0.36);
+  },
+  lose() {
+    // 失败：下行
+    playTone('triangle', 400, 400, 0.2, 0.12, 0);
+    playTone('triangle', 300, 300, 0.2, 0.12, 0.2);
+    playTone('triangle', 200, 200, 0.4, 0.14, 0.4);
+  },
+  start() {
+    // 游戏开始：上行
+    playTone('sine', 440, 880, 0.2, 0.12, 0);
+    playTone('sine', 660, 1320, 0.25, 0.1, 0.15);
+  },
+  reset() {
+    playTone('sine', 600, 300, 0.2, 0.1);
+  }
+};
+
+// 音效开关
+soundToggle.addEventListener('click', () => {
+  soundEnabled = !soundEnabled;
+  soundIcon.textContent = soundEnabled ? '🔊' : '🔇';
+  soundLabel.textContent = soundEnabled ? '音效开' : '音效关';
+  if (soundEnabled) initAudio();
+});
+
+/* ============================================================
+   💥 伤害飘字
+   ============================================================ */
+function spawnDamageText(x, y, amount, color) {
+  damageTexts.push({
+    x: x + (Math.random() * 20 - 10),
+    y: y - 10,
+    text: '-' + amount,
+    color: color,
+    life: 60,        // 帧数
+    maxLife: 60,
+    vy: -1.6,
+    vx: (Math.random() * 0.8 - 0.4)
+  });
+}
+
+function updateDamageTexts() {
+  for (let i = damageTexts.length - 1; i >= 0; i--) {
+    const dt = damageTexts[i];
+    dt.x += dt.vx;
+    dt.y += dt.vy;
+    dt.vy *= 0.96;   // 减速
+    dt.life--;
+    if (dt.life <= 0) damageTexts.splice(i, 1);
+  }
+}
+
+function drawDamageTexts() {
+  for (const dt of damageTexts) {
+    const alpha = Math.min(1, dt.life / (dt.maxLife * 0.5));
+    const scale = 0.9 + 0.3 * (1 - dt.life / dt.maxLife);
+    ctx.save();
+    ctx.globalAlpha = alpha;
+    ctx.font = `bold ${Math.round(18 * scale)}px "Segoe UI", sans-serif`;
+    ctx.textAlign = 'center';
+    ctx.fillStyle = dt.color;
+    ctx.shadowColor = dt.color;
+    ctx.shadowBlur = 12;
+    ctx.fillText(dt.text, dt.x, dt.y);
+    ctx.restore();
+  }
+}
+
+/* ============================================================
+   UI 辅助
+   ============================================================ */
 function setStatus(text, type = '') {
   statusText.textContent = text;
   statusDot.className = 'dot ' + type;
@@ -267,48 +434,29 @@ function switchView(view) {
   else if (view === 'game') gameEl.style.display = 'flex';
 }
 
-// ========== 安全发送：只有连接打开时才发送 ==========
 function safeSend(data) {
   if (conn && conn.open) {
-    try {
-      conn.send(data);
-      return true;
-    } catch (e) {
-      console.warn('发送失败:', e);
-      return false;
-    }
+    try { conn.send(data); return true; }
+    catch (e) { console.warn('发送失败:', e); return false; }
   }
-  console.warn('连接未打开，消息被丢弃:', data.type);
   return false;
 }
 
 function initPeer(peerId) {
   return new Promise((resolve, reject) => {
-    if (peer && !peer.destroyed) {
-      try { peer.destroy(); } catch(e) {}
-    }
+    if (peer && !peer.destroyed) { try { peer.destroy(); } catch(e) {} }
     peer = new Peer(peerId, { debug: 1 });
-
-    const timeout = setTimeout(() => {
-      reject(new Error('连接信令服务器超时，请检查网络或稍后重试'));
-    }, 12000);
-
-    peer.on('open', (id) => {
-      clearTimeout(timeout);
-      console.log('✅ Peer 已连接，ID:', id);
-      resolve(peer);
-    });
-
-    peer.on('error', (err) => {
-      clearTimeout(timeout);
-      console.error('Peer 错误:', err);
-      reject(err);
-    });
+    const timeout = setTimeout(() => reject(new Error('连接信令服务器超时，请检查网络')), 12000);
+    peer.on('open', (id) => { clearTimeout(timeout); resolve(peer); });
+    peer.on('error', (err) => { clearTimeout(timeout); reject(err); });
   });
 }
 
-// ---------- 创建房间（房主 / 红方） ----------
+/* ============================================================
+   创建房间
+   ============================================================ */
 document.getElementById('createRoomBtn').addEventListener('click', async () => {
+  initAudio();  // 用户手势后初始化音频
   clearError();
   myNickname = document.getElementById('nickname').value.trim() || '玩家';
   const btn = document.getElementById('createRoomBtn');
@@ -323,38 +471,21 @@ document.getElementById('createRoomBtn').addEventListener('click', async () => {
   try {
     await initPeer(peerId);
 
-    // 房主监听连接
     peer.on('connection', (incomingConn) => {
-      if (conn && conn.open) {
-        // 已有玩家连接，拒绝新的
-        try { incomingConn.close(); } catch(e) {}
-        return;
-      }
+      if (conn && conn.open) { try { incomingConn.close(); } catch(e) {} return; }
       conn = incomingConn;
-      console.log('📥 收到连接请求，等待打开…');
 
-      // ✅ 关键：必须等 open 事件后才能发送
       conn.on('open', () => {
-        console.log('🔗 数据通道已打开');
         setupConnection();
-        // 现在可以安全发送角色分配
         safeSend({ type: 'assignRole', role: 'blue' });
         setStatus('对手已连接，准备开始…', 'ok');
       });
 
       conn.on('data', (data) => handleMessage(data));
-
       conn.on('close', () => {
-        console.log('❌ 连接关闭');
-        if (gameRunning) {
-          alert('对手已断开连接，返回大厅');
-          cleanupAndReturnToLobby();
-        }
+        if (gameRunning) { alert('对手已断开连接，返回大厅'); cleanupAndReturnToLobby(); }
       });
-
-      conn.on('error', (err) => {
-        console.error('数据通道错误:', err);
-      });
+      conn.on('error', (err) => console.error('数据通道错误:', err));
     });
 
     displayRoomCode.textContent = roomCode;
@@ -362,22 +493,22 @@ document.getElementById('createRoomBtn').addEventListener('click', async () => {
     setStatus('房间已创建，等待加入…', 'ok');
   } catch (err) {
     console.error(err);
-    showError('创建房间失败：' + (err.message || '未知错误') + '（可尝试重试）');
+    showError('创建房间失败：' + (err.message || '未知错误'));
     setStatus('创建失败', 'err');
   }
   btn.disabled = false;
 });
 
-// ---------- 加入房间（加入者 / 蓝方） ----------
+/* ============================================================
+   加入房间
+   ============================================================ */
 document.getElementById('joinRoomBtn').addEventListener('click', async () => {
+  initAudio();
   clearError();
   myNickname = document.getElementById('nickname').value.trim() || '玩家';
   const input = document.getElementById('joinCode');
   const code = input.value.trim().toUpperCase();
-  if (code.length !== 6) {
-    showError('请输入 6 位房间号');
-    return;
-  }
+  if (code.length !== 6) { showError('请输入 6 位房间号'); return; }
 
   const btn = document.getElementById('joinRoomBtn');
   btn.disabled = true;
@@ -391,7 +522,6 @@ document.getElementById('joinRoomBtn').addEventListener('click', async () => {
   try {
     const myId = 'join-' + Math.random().toString(36).substr(2, 9);
     await initPeer(myId);
-
     const targetConn = peer.connect(peerId, { reliable: true });
 
     const connectTimeout = setTimeout(() => {
@@ -404,12 +534,9 @@ document.getElementById('joinRoomBtn').addEventListener('click', async () => {
     targetConn.on('open', () => {
       clearTimeout(connectTimeout);
       conn = targetConn;
-      console.log('🔗 已连接到房主');
       setupConnection();
       setStatus('已连接，等待房主开始…', 'ok');
-      // 加入者不主动发送角色，等待房主分配 assignRole
     });
-
     targetConn.on('error', (err) => {
       clearTimeout(connectTimeout);
       console.error('连接错误:', err);
@@ -417,7 +544,6 @@ document.getElementById('joinRoomBtn').addEventListener('click', async () => {
       setStatus('连接失败', 'err');
       btn.disabled = false;
     });
-
   } catch (err) {
     console.error(err);
     showError('加入失败：' + (err.message || '未知错误'));
@@ -426,37 +552,30 @@ document.getElementById('joinRoomBtn').addEventListener('click', async () => {
   btn.disabled = false;
 });
 
-// ---------- 连接建立后绑定 data 监听（双方通用） ----------
 function setupConnection() {
-  // 如果是加入者，conn 是 targetConn，需要绑定 data 和 close
   if (!isHost) {
     conn.on('data', (data) => handleMessage(data));
     conn.on('close', () => {
-      if (gameRunning) {
-        alert('对手已断开连接，返回大厅');
-        cleanupAndReturnToLobby();
-      }
+      if (gameRunning) { alert('对手已断开连接，返回大厅'); cleanupAndReturnToLobby(); }
     });
   }
-  // 房主的监听已在 on('connection') 里绑定好了
 }
 
-// ---------- 消息处理 ----------
+/* ============================================================
+   消息处理
+   ============================================================ */
 function handleMessage(data) {
   if (!data || !data.type) return;
-  console.log('📨 收到:', data.type);
 
   switch (data.type) {
     case 'assignRole':
       myRole = data.role;
       myRoleLabel.textContent = myRole === 'red' ? '红方' : '蓝方';
       myRoleLabel.className = myRole === 'red' ? 'role-red' : 'role-blue';
-      // 通知房主我准备好了
       safeSend({ type: 'playerReady', nickname: myNickname });
       break;
 
     case 'playerReady':
-      // 房主收到对方准备好了，开始游戏
       if (isHost) {
         safeSend({ type: 'startGame' });
         startGame();
@@ -464,18 +583,15 @@ function handleMessage(data) {
       break;
 
     case 'startGame':
-      // 加入者收到开始信号
       startGame();
       break;
 
     case 'playerUpdate':
       if (data.role === 'red' && myRole !== 'red') {
-        redPlayer.x = data.x;
-        redPlayer.y = data.y;
+        redPlayer.x = data.x; redPlayer.y = data.y;
         if (data.hp !== undefined) redPlayer.hp = data.hp;
       } else if (data.role === 'blue' && myRole !== 'blue') {
-        bluePlayer.x = data.x;
-        bluePlayer.y = data.y;
+        bluePlayer.x = data.x; bluePlayer.y = data.y;
         if (data.hp !== undefined) bluePlayer.hp = data.hp;
       }
       break;
@@ -487,27 +603,35 @@ function handleMessage(data) {
       break;
 
     case 'hpUpdate':
-      if (data.role === 'red' && myRole !== 'red') {
-        redPlayer.hp = data.hp;
-      } else if (data.role === 'blue' && myRole !== 'blue') {
-        bluePlayer.hp = data.hp;
+      if (data.role === 'red' && myRole !== 'red') redPlayer.hp = data.hp;
+      else if (data.role === 'blue' && myRole !== 'blue') bluePlayer.hp = data.hp;
+      break;
+
+    case 'damage':
+      // 对方受伤，播放音效并显示飘字（在对方位置）
+      if (data.role !== myRole) {
+        // 我打中了对方 —— 播放命中音效
+        SFX.hit();
+        // 在对方位置显示飘字
+        const target = data.role === 'red' ? redPlayer : bluePlayer;
+        spawnDamageText(target.x, target.y, DAMAGE_AMOUNT, data.role === 'red' ? '#ff6b8a' : '#6bb8ff');
       }
       break;
 
     case 'resetGame':
+      SFX.reset();
       resetGameLocally(false);
       break;
 
     case 'leave':
-      if (gameRunning) {
-        alert('对手离开了房间');
-        cleanupAndReturnToLobby();
-      }
+      if (gameRunning) { alert('对手离开了房间'); cleanupAndReturnToLobby(); }
       break;
   }
 }
 
-// ---------- 开始游戏 ----------
+/* ============================================================
+   开始游戏
+   ============================================================ */
 function startGame() {
   if (gameRunning) return;
   gameRunning = true;
@@ -515,6 +639,7 @@ function startGame() {
   redPlayer = { x: RED_START.x, y: RED_START.y, hp: 100, cooldown: 0 };
   bluePlayer = { x: BLUE_START.x, y: BLUE_START.y, hp: 100, cooldown: 0 };
   bullets = [];
+  damageTexts = [];
 
   gameRoomCode.textContent = roomCode;
   myRoleLabel.textContent = myRole === 'red' ? '红方' : '蓝方';
@@ -522,6 +647,7 @@ function startGame() {
   switchView('game');
   setStatus('对战中', 'ok');
 
+  SFX.start();
   broadcastPlayerState();
 
   if (!window._gameLoopRunning) {
@@ -530,16 +656,9 @@ function startGame() {
   }
 }
 
-// ---------- 广播（全部用 safeSend） ----------
 function broadcastPlayerState() {
   const p = myRole === 'red' ? redPlayer : bluePlayer;
-  safeSend({
-    type: 'playerUpdate',
-    role: myRole,
-    x: p.x,
-    y: p.y,
-    hp: p.hp
-  });
+  safeSend({ type: 'playerUpdate', role: myRole, x: p.x, y: p.y, hp: p.hp });
 }
 
 function broadcastBullet(bullet) {
@@ -551,7 +670,9 @@ function broadcastHp() {
   safeSend({ type: 'hpUpdate', role: myRole, hp: p.hp });
 }
 
-// ---------- 游戏循环 ----------
+/* ============================================================
+   游戏循环
+   ============================================================ */
 function update() {
   if (!gameRunning) return;
 
@@ -587,11 +708,13 @@ function update() {
     bullets.push(bullet);
     broadcastBullet(bullet);
     localPlayer.cooldown = SHOOT_COOLDOWN;
+    SFX.shoot();
   }
 
   if (redPlayer.cooldown > 0) redPlayer.cooldown--;
   if (bluePlayer.cooldown > 0) bluePlayer.cooldown--;
 
+  // 子弹更新 & 碰撞
   for (let i = bullets.length - 1; i >= 0; i--) {
     const b = bullets[i];
     b.x += b.vx;
@@ -606,25 +729,44 @@ function update() {
     const hitRadius = PLAYER_SIZE / 2 + BULLET_SIZE / 2;
     if (b.owner !== myRole) {
       if (Math.hypot(b.x - localPlayer.x, b.y - localPlayer.y) < hitRadius) {
-        localPlayer.hp = Math.max(0, localPlayer.hp - 14);
+        // 我被打中
+        localPlayer.hp = Math.max(0, localPlayer.hp - DAMAGE_AMOUNT);
         broadcastHp();
+        // 本地受伤音效 + 飘字
+        SFX.hurt();
+        spawnDamageText(localPlayer.x, localPlayer.y, DAMAGE_AMOUNT, '#ff4d4d');
         bullets.splice(i, 1);
+
+        // 通知对方：他打中了我（用于对方播放命中音效和飘字）
+        safeSend({ type: 'damage', role: myRole });
+
         if (localPlayer.hp <= 0) {
           gameRunning = false;
+          // 判断胜负并播放音效
+          if (myRole === 'red') {
+            // 我是红方，我死了 -> 我输
+            SFX.lose();
+          } else {
+            SFX.win();
+          }
           setTimeout(() => {
             safeSend({ type: 'resetGame' });
             resetGameLocally(false);
             gameRunning = true;
-          }, 800);
+            SFX.reset();
+          }, 1000);
         }
       }
     }
   }
+
+  updateDamageTexts();
 }
 
 function draw() {
   ctx.clearRect(0, 0, W, H);
 
+  // 网格
   ctx.strokeStyle = '#141a2a';
   ctx.lineWidth = 1;
   for (let i = 0; i < W; i += 50) {
@@ -634,6 +776,7 @@ function draw() {
     ctx.beginPath(); ctx.moveTo(0, i); ctx.lineTo(W, i); ctx.stroke();
   }
 
+  // 子弹
   for (const b of bullets) {
     ctx.beginPath();
     ctx.arc(b.x, b.y, BULLET_SIZE * 0.8, 0, Math.PI * 2);
@@ -647,6 +790,10 @@ function draw() {
   drawPlayer(redPlayer, '#ff4d6d', '#2e1a1f', 'P1');
   drawPlayer(bluePlayer, '#4da6ff', '#1a2a3a', 'P2');
 
+  // 伤害飘字
+  drawDamageTexts();
+
+  // 状态提示
   ctx.font = '14px "Segoe UI"';
   ctx.fillStyle = '#6b7fa0';
   ctx.fillText(`你是: ${myRole === 'red' ? '红方 (P1)' : '蓝方 (P2)'}`, 30, 40);
@@ -682,6 +829,9 @@ function gameLoop() {
   if (gameRunning) {
     update();
     draw();
+  } else {
+    // 即使不在游戏中，也清空画布（避免残留）
+    ctx.clearRect(0, 0, W, H);
   }
   requestAnimationFrame(gameLoop);
 }
@@ -690,9 +840,8 @@ function resetGameLocally(broadcast = true) {
   redPlayer = { x: RED_START.x, y: RED_START.y, hp: 100, cooldown: 0 };
   bluePlayer = { x: BLUE_START.x, y: BLUE_START.y, hp: 100, cooldown: 0 };
   bullets = [];
-  if (broadcast) {
-    safeSend({ type: 'resetGame' });
-  }
+  damageTexts = [];
+  if (broadcast) safeSend({ type: 'resetGame' });
   broadcastPlayerState();
 }
 
@@ -713,7 +862,9 @@ if (!CanvasRenderingContext2D.prototype.roundRect) {
   };
 }
 
-// ---------- 离开房间 ----------
+/* ============================================================
+   离开房间
+   ============================================================ */
 function cleanupAndReturnToLobby() {
   gameRunning = false;
   if (conn && conn.open) {
@@ -721,11 +872,10 @@ function cleanupAndReturnToLobby() {
     try { conn.close(); } catch(e) {}
   }
   conn = null;
-  if (peer && !peer.destroyed) {
-    try { peer.destroy(); } catch(e) {}
-  }
+  if (peer && !peer.destroyed) { try { peer.destroy(); } catch(e) {} }
   peer = null;
   bullets = [];
+  damageTexts = [];
   isHost = false;
   roomCode = '';
   switchView('lobby');
@@ -754,19 +904,32 @@ document.getElementById('copyCodeBtn').addEventListener('click', () => {
   });
 });
 
-// ---------- 键盘 ----------
+/* ============================================================
+   ⌨️ 键盘处理 —— 关键修复：只在对战中拦截按键
+   ============================================================ */
 window.addEventListener('keydown', (e) => {
+  // 🚨 修复：如果不在游戏中，不拦截任何按键！让用户能正常输入
+  if (!gameRunning) return;
+
   const k = e.key.toLowerCase();
   if (['w','a','s','d'].includes(k)) { keys[k] = true; e.preventDefault(); }
   if (k === ' ' || k === 'space') { keys.space = true; e.preventDefault(); }
 });
+
 window.addEventListener('keyup', (e) => {
+  if (!gameRunning) return;
+
   const k = e.key.toLowerCase();
   if (['w','a','s','d'].includes(k)) { keys[k] = false; e.preventDefault(); }
   if (k === ' ' || k === 'space') { keys.space = false; e.preventDefault(); }
 });
-window.addEventListener('keydown', (e) => { if (e.key === ' ') e.preventDefault(); }, false);
 
+// 额外保险：当窗口失去焦点时，重置所有按键状态，避免"卡键"
+window.addEventListener('blur', () => {
+  keys.w = keys.a = keys.s = keys.d = keys.space = false;
+});
+
+// 准备就绪
 setStatus('准备就绪，创建或加入房间', '');
 </script>
 </body>
