@@ -91,19 +91,11 @@
   .dot.ok { background: #4eff8b; box-shadow: 0 0 10px #4eff8b; }
   .dot.err { background: #ff4d6d; box-shadow: 0 0 10px #ff4d6d; }
 
-  /* 模式选择 */
-  .mode-picker {
-    display: flex; gap: 10px;
-  }
+  .mode-picker { display: flex; gap: 10px; }
   .mode-card {
-    flex: 1;
-    background: #0d1220;
-    border: 2px solid #2a3650;
-    border-radius: 16px;
-    padding: 14px;
-    cursor: pointer;
-    transition: all 0.2s;
-    text-align: center;
+    flex: 1; background: #0d1220; border: 2px solid #2a3650;
+    border-radius: 16px; padding: 14px; cursor: pointer;
+    transition: all 0.2s; text-align: center;
   }
   .mode-card:hover { border-color: #4d7dff; background: #131a2c; }
   .mode-card.selected {
@@ -257,7 +249,6 @@
         <span>房间 <b id="gameRoomCode" style="color:#7da2ff; font-family:Consolas;">------</b></span>
       </div>
 
-      <!-- PvP 计分板 -->
       <div class="scoreboard" id="pvpScoreboard">
         <div class="score-item" id="scoreRedItem">
           <span class="score-swatch score-red"></span>
@@ -272,7 +263,6 @@
         </div>
       </div>
 
-      <!-- 僵尸模式计分板 -->
       <div class="scoreboard hidden" id="zombieScoreboard">
         <div class="score-item">
           <span style="font-size:1.1rem;">🧟</span>
@@ -315,12 +305,46 @@
 <script src="https://unpkg.com/peerjs@1.5.2/dist/peerjs.min.js"></script>
 <script>
 /* ============================================================
-   房间对战 —— 完整版 v3
-   - 修复卡键（Set + e.code + 超时清除）
-   - 模式选择：1v1 竞技 / 合作打僵尸
-   - 房间系统 / 计分板 / 随机障碍物 / 音效 / 飘字 / 全屏
+   房间对战 v4
+   - 修复 const 重复声明
+   - DOM 引用集中在顶部
+   - 网格预渲染
+   - 音效 / 飘字 / 全屏 / 卡键修复
+   - 模式：1v1 竞技 / 合作打僵尸
    ============================================================ */
 
+'use strict';
+
+/* ============================================================
+   DOM 引用（必须在最前面）
+   ============================================================ */
+const lobbyEl = document.getElementById('lobby');
+const waitingEl = document.getElementById('waiting');
+const gameEl = document.getElementById('game');
+const statusDot = document.getElementById('statusDot');
+const statusText = document.getElementById('statusText');
+const lobbyError = document.getElementById('lobbyError');
+const displayRoomCode = document.getElementById('displayRoomCode');
+const gameRoomCode = document.getElementById('gameRoomCode');
+const myRoleLabel = document.getElementById('myRoleLabel');
+const canvas = document.getElementById('gameCanvas');
+const ctx = canvas.getContext('2d');
+const soundToggleEl = document.getElementById('soundToggle');
+const soundIcon = document.getElementById('soundIcon');
+const soundLabel = document.getElementById('soundLabel');
+const scoreRedEl = document.getElementById('scoreRed');
+const scoreBlueEl = document.getElementById('scoreBlue');
+const scoreRedItem = document.getElementById('scoreRedItem');
+const scoreBlueItem = document.getElementById('scoreBlueItem');
+const pvpScoreboardEl = document.getElementById('pvpScoreboard');
+const zombieScoreboardEl = document.getElementById('zombieScoreboard');
+const zombieKillsEl = document.getElementById('zombieKills');
+const zombieWaveEl = document.getElementById('zombieWave');
+const waitingModeHintEl = document.getElementById('waitingModeHint');
+
+/* ============================================================
+   全局状态
+   ============================================================ */
 let peer = null;
 let conn = null;
 let isHost = false;
@@ -328,7 +352,8 @@ let roomCode = '';
 let myRole = 'red';
 let gameRunning = false;
 let myNickname = '玩家';
-let gameMode = 'pvp';  // 'pvp' | 'zombie'
+let gameMode = 'pvp';
+let frameCount = 0;
 
 // 玩家
 let redPlayer = { x: 0, y: 0, hp: 100, cooldown: 0 };
@@ -342,7 +367,7 @@ let scoreBlue = 0;
 let zombies = [];
 let zombieKills = 0;
 let zombieWave = 1;
-let waveTimer = 0;         // 帧计数
+let waveTimer = 0;
 let spawnTimer = 0;
 let zombieIdCounter = 0;
 
@@ -367,15 +392,17 @@ const BLUE_START = { x: W - 120, y: H / 2 };
 // 僵尸参数
 const ZOMBIE_SIZE = 26;
 const ZOMBIE_SPEED_BASE = 1.0;
-const ZOMBIE_HP = 3;             // 3 发子弹
-const ZOMBIE_DAMAGE = 8;         // 每次碰撞扣 8 血
-const ZOMBIE_TOUCH_COOLDOWN = 60; // 60 帧（约 1 秒）内同一僵尸不再伤害同一玩家
+const ZOMBIE_HP = 3;
+const ZOMBIE_DAMAGE = 8;
+const ZOMBIE_TOUCH_COOLDOWN = 60;
+const ZOMBIE_MAX_COUNT = 30;
 
 /* ============================================================
-   ⌨️ 键盘系统（彻底修复卡键）
+   ⌨️ 键盘系统（修复卡键）
    ============================================================ */
-const keysDown = new Set();      // 当前按下的键（e.code）
-const keyTimers = new Map();     // 每个键的超时计时器
+const keysDown = new Set();
+const keyTimers = new Map();
+const GAME_KEYS = ['KeyW','KeyA','KeyS','KeyD','Space','ArrowUp','ArrowDown','ArrowLeft','ArrowRight'];
 
 function clearKey(code) {
   keysDown.delete(code);
@@ -384,22 +411,18 @@ function clearKey(code) {
     keyTimers.delete(code);
   }
 }
-
 function clearAllKeys() {
   keysDown.clear();
   for (const t of keyTimers.values()) clearTimeout(t);
   keyTimers.clear();
 }
-
 function isKeyDown(code) { return keysDown.has(code); }
-
-// 辅助：检查某个逻辑键是否按下
 function keyDown(logical) {
   switch (logical) {
-    case 'w': return isKeyDown('KeyW');
-    case 'a': return isKeyDown('KeyA');
-    case 's': return isKeyDown('KeyS');
-    case 'd': return isKeyDown('KeyD');
+    case 'w': return isKeyDown('KeyW') || isKeyDown('ArrowUp');
+    case 'a': return isKeyDown('KeyA') || isKeyDown('ArrowLeft');
+    case 's': return isKeyDown('KeyS') || isKeyDown('ArrowDown');
+    case 'd': return isKeyDown('KeyD') || isKeyDown('ArrowRight');
     case 'space': return isKeyDown('Space');
     default: return false;
   }
@@ -407,34 +430,23 @@ function keyDown(logical) {
 
 window.addEventListener('keydown', (e) => {
   if (!gameRunning) return;
-  const code = e.code;
-  // 只处理游戏相关键
-  if (!['KeyW','KeyA','KeyS','KeyD','Space','ArrowUp','ArrowDown','ArrowLeft','ArrowRight'].includes(code)) return;
-
+  if (!GAME_KEYS.includes(e.code)) return;
   e.preventDefault();
-  if (e.repeat) return;  // 忽略长按重复
-
-  keysDown.add(code);
-
-  // 超时自动清除（3 秒），防止丢 keyup
-  if (keyTimers.has(code)) clearTimeout(keyTimers.get(code));
-  keyTimers.set(code, setTimeout(() => {
-    clearKey(code);
-  }, 3000));
+  if (e.repeat) return;
+  keysDown.add(e.code);
+  if (keyTimers.has(e.code)) clearTimeout(keyTimers.get(e.code));
+  keyTimers.set(e.code, setTimeout(() => clearKey(e.code), 3000));
 });
 
 window.addEventListener('keyup', (e) => {
-  const code = e.code;
-  if (!['KeyW','KeyA','KeyS','KeyD','Space','ArrowUp','ArrowDown','ArrowLeft','ArrowRight'].includes(code)) return;
+  if (!GAME_KEYS.includes(e.code)) return;
   e.preventDefault();
-  clearKey(code);
+  clearKey(e.code);
 });
 
-// 多重保险：窗口失焦 / 可见性变化 / 鼠标离开 都清空按键
 window.addEventListener('blur', clearAllKeys);
 window.addEventListener('visibilitychange', () => { if (document.hidden) clearAllKeys(); });
 document.addEventListener('mouseleave', clearAllKeys);
-// 页面卸载
 window.addEventListener('pagehide', clearAllKeys);
 
 /* ============================================================
@@ -447,7 +459,6 @@ function initAudio() {
   if (audioCtx) return;
   try { audioCtx = new (window.AudioContext || window.webkitAudioContext)(); } catch(e) {}
 }
-
 function playTone(type, freq, freqEnd, duration, vol = 0.15, delay = 0) {
   if (!soundEnabled || !audioCtx) return;
   const t = audioCtx.currentTime + delay;
@@ -461,7 +472,6 @@ function playTone(type, freq, freqEnd, duration, vol = 0.15, delay = 0) {
   osc.connect(gain); gain.connect(audioCtx.destination);
   osc.start(t); osc.stop(t + duration);
 }
-
 function playNoise(duration, vol = 0.1, delay = 0) {
   if (!soundEnabled || !audioCtx) return;
   const t = audioCtx.currentTime + delay;
@@ -504,12 +514,14 @@ const SFX = {
   zombieHit() { playTone('square', 400, 100, 0.08, 0.07); }
 };
 
-soundToggle.addEventListener('click', () => {
-  soundEnabled = !soundEnabled;
-  soundIcon.textContent = soundEnabled ? '🔊' : '🔇';
-  soundLabel.textContent = soundEnabled ? '音效开' : '音效关';
-  if (soundEnabled) initAudio();
-});
+if (soundToggleEl) {
+  soundToggleEl.addEventListener('click', () => {
+    soundEnabled = !soundEnabled;
+    soundIcon.textContent = soundEnabled ? '🔊' : '🔇';
+    soundLabel.textContent = soundEnabled ? '音效开' : '音效关';
+    if (soundEnabled) initAudio();
+  });
+}
 
 /* ============================================================
    💥 伤害飘字
@@ -524,7 +536,6 @@ function spawnDamageText(x, y, amount, color, text = null) {
     vy: -1.6, vx: (Math.random() * 0.8 - 0.4)
   });
 }
-
 function updateDamageTexts() {
   for (let i = damageTexts.length - 1; i >= 0; i--) {
     const dt = damageTexts[i];
@@ -533,7 +544,6 @@ function updateDamageTexts() {
     if (dt.life <= 0) damageTexts.splice(i, 1);
   }
 }
-
 function drawDamageTexts() {
   for (const dt of damageTexts) {
     const alpha = Math.min(1, dt.life / (dt.maxLife * 0.5));
@@ -594,19 +604,16 @@ function generateObstacles() {
   }
   return newObstacles;
 }
-
 function rectsOverlap(a, b) {
   return a.x < b.x + b.w && a.x + a.w > b.x &&
          a.y < b.y + b.h && a.y + a.h > b.y;
 }
-
 function playerHitsObstacle(px, py, obs) {
   const half = PLAYER_SIZE / 2;
   const pRect = { x: px - half, y: py - half, w: PLAYER_SIZE, h: PLAYER_SIZE };
   for (const o of obs) if (rectsOverlap(pRect, o)) return true;
   return false;
 }
-
 function bulletHitsObstacle(bullet, obs) {
   const r = BULLET_SIZE / 2;
   const bRect = { x: bullet.x - r, y: bullet.y - r, w: BULLET_SIZE, h: BULLET_SIZE };
@@ -615,14 +622,41 @@ function bulletHitsObstacle(bullet, obs) {
 }
 
 /* ============================================================
+   🖼️ 网格预渲染
+   ============================================================ */
+let gridCanvasPvP = null;
+let gridCanvasZombie = null;
+
+function initGridCanvases() {
+  // PvP 网格
+  gridCanvasPvP = document.createElement('canvas');
+  gridCanvasPvP.width = W; gridCanvasPvP.height = H;
+  const g1 = gridCanvasPvP.getContext('2d');
+  g1.strokeStyle = '#141a2a';
+  g1.lineWidth = 1;
+  for (let i = 0; i < W; i += 50) { g1.beginPath(); g1.moveTo(i, 0); g1.lineTo(i, H); g1.stroke(); }
+  for (let i = 0; i < H; i += 50) { g1.beginPath(); g1.moveTo(0, i); g1.lineTo(W, i); g1.stroke(); }
+
+  // 僵尸网格（紫色调）
+  gridCanvasZombie = document.createElement('canvas');
+  gridCanvasZombie.width = W; gridCanvasZombie.height = H;
+  const g2 = gridCanvasZombie.getContext('2d');
+  g2.strokeStyle = '#1e1428';
+  g2.lineWidth = 1;
+  for (let i = 0; i < W; i += 50) { g2.beginPath(); g2.moveTo(i, 0); g2.lineTo(i, H); g2.stroke(); }
+  for (let i = 0; i < H; i += 50) { g2.beginPath(); g2.moveTo(0, i); g2.lineTo(W, i); g2.stroke(); }
+}
+
+/* ============================================================
    UI 辅助
    ============================================================ */
 function setStatus(text, type = '') {
+  if (!statusText || !statusDot) return;
   statusText.textContent = text;
   statusDot.className = 'dot ' + type;
 }
-function showError(msg) { lobbyError.textContent = msg; }
-function clearError() { lobbyError.textContent = ''; }
+function showError(msg) { if (lobbyError) lobbyError.textContent = msg; }
+function clearError() { if (lobbyError) lobbyError.textContent = ''; }
 
 function generateRoomCode() {
   const chars = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789';
@@ -632,12 +666,12 @@ function generateRoomCode() {
 }
 
 function switchView(view) {
-  lobbyEl.classList.add('hidden');
-  waitingEl.classList.add('hidden');
-  gameEl.style.display = 'none';
-  if (view === 'lobby') lobbyEl.classList.remove('hidden');
-  else if (view === 'waiting') waitingEl.classList.remove('hidden');
-  else if (view === 'game') gameEl.style.display = 'flex';
+  if (lobbyEl) lobbyEl.classList.add('hidden');
+  if (waitingEl) waitingEl.classList.add('hidden');
+  if (gameEl) gameEl.style.display = 'none';
+  if (view === 'lobby' && lobbyEl) lobbyEl.classList.remove('hidden');
+  else if (view === 'waiting' && waitingEl) waitingEl.classList.remove('hidden');
+  else if (view === 'game' && gameEl) gameEl.style.display = 'flex';
 }
 
 function safeSend(data) {
@@ -650,19 +684,19 @@ function safeSend(data) {
 
 function updateScoreboard() {
   if (gameMode === 'pvp') {
-    scoreRedEl.textContent = scoreRed;
-    scoreBlueEl.textContent = scoreBlue;
-    scoreRedItem.classList.toggle('winner', scoreRed > scoreBlue);
-    scoreBlueItem.classList.toggle('winner', scoreBlue > scoreRed);
+    if (scoreRedEl) scoreRedEl.textContent = scoreRed;
+    if (scoreBlueEl) scoreBlueEl.textContent = scoreBlue;
+    if (scoreRedItem) scoreRedItem.classList.toggle('winner', scoreRed > scoreBlue);
+    if (scoreBlueItem) scoreBlueItem.classList.toggle('winner', scoreBlue > scoreRed);
   } else {
-    document.getElementById('zombieKills').textContent = zombieKills;
-    document.getElementById('zombieWave').textContent = zombieWave;
+    if (zombieKillsEl) zombieKillsEl.textContent = zombieKills;
+    if (zombieWaveEl) zombieWaveEl.textContent = zombieWave;
   }
 }
 
 function updateScoreboardVisibility() {
-  document.getElementById('pvpScoreboard').classList.toggle('hidden', gameMode !== 'pvp');
-  document.getElementById('zombieScoreboard').classList.toggle('hidden', gameMode !== 'zombie');
+  if (pvpScoreboardEl) pvpScoreboardEl.classList.toggle('hidden', gameMode !== 'pvp');
+  if (zombieScoreboardEl) zombieScoreboardEl.classList.toggle('hidden', gameMode !== 'zombie');
 }
 
 function initPeer(peerId) {
@@ -674,28 +708,6 @@ function initPeer(peerId) {
     peer.on('error', (err) => { clearTimeout(timeout); reject(err); });
   });
 }
-
-/* ============================================================
-   DOM 引用
-   ============================================================ */
-const lobbyEl = document.getElementById('lobby');
-const waitingEl = document.getElementById('waiting');
-const gameEl = document.getElementById('game');
-const statusDot = document.getElementById('statusDot');
-const statusText = document.getElementById('statusText');
-const lobbyError = document.getElementById('lobbyError');
-const displayRoomCode = document.getElementById('displayRoomCode');
-const gameRoomCode = document.getElementById('gameRoomCode');
-const myRoleLabel = document.getElementById('myRoleLabel');
-const canvas = document.getElementById('gameCanvas');
-const ctx = canvas.getContext('2d');
-const soundToggle = document.getElementById('soundToggle');
-const soundIcon = document.getElementById('soundIcon');
-const soundLabel = document.getElementById('soundLabel');
-const scoreRedEl = document.getElementById('scoreRed');
-const scoreBlueEl = document.getElementById('scoreBlue');
-const scoreRedItem = document.getElementById('scoreRedItem');
-const scoreBlueItem = document.getElementById('scoreBlueItem');
 
 /* ============================================================
    模式选择
@@ -711,108 +723,112 @@ document.querySelectorAll('.mode-card').forEach(card => {
 /* ============================================================
    创建房间
    ============================================================ */
-document.getElementById('createRoomBtn').addEventListener('click', async () => {
-  initAudio();
-  clearError();
-  myNickname = document.getElementById('nickname').value.trim() || '玩家';
-  const btn = document.getElementById('createRoomBtn');
-  btn.disabled = true;
-  setStatus('正在创建房间…');
+const createRoomBtn = document.getElementById('createRoomBtn');
+if (createRoomBtn) {
+  createRoomBtn.addEventListener('click', async () => {
+    initAudio();
+    clearError();
+    myNickname = document.getElementById('nickname').value.trim() || '玩家';
+    createRoomBtn.disabled = true;
+    setStatus('正在创建房间…');
 
-  roomCode = generateRoomCode();
-  isHost = true;
-  myRole = 'red';
-  const peerId = 'arena-' + roomCode;
+    roomCode = generateRoomCode();
+    isHost = true;
+    myRole = 'red';
+    const peerId = 'arena-' + roomCode;
 
-  try {
-    await initPeer(peerId);
+    try {
+      await initPeer(peerId);
 
-    peer.on('connection', (incomingConn) => {
-      if (conn && conn.open) { try { incomingConn.close(); } catch(e) {} return; }
-      conn = incomingConn;
+      peer.on('connection', (incomingConn) => {
+        if (conn && conn.open) { try { incomingConn.close(); } catch(e) {} return; }
+        conn = incomingConn;
 
-      conn.on('open', () => {
-        setupConnection();
-        // 发送角色 + 模式
-        safeSend({ type: 'assignRole', role: 'blue', mode: gameMode });
-        setStatus('对手已连接，准备开始…', 'ok');
+        conn.on('open', () => {
+          setupConnection();
+          safeSend({ type: 'assignRole', role: 'blue', mode: gameMode });
+          setStatus('对手已连接，准备开始…', 'ok');
+        });
+
+        conn.on('data', (data) => handleMessage(data));
+        conn.on('close', () => {
+          if (gameRunning) { alert('对手已断开连接，返回大厅'); cleanupAndReturnToLobby(); }
+        });
+        conn.on('error', (err) => console.error('数据通道错误:', err));
       });
 
-      conn.on('data', (data) => handleMessage(data));
-      conn.on('close', () => {
-        if (gameRunning) { alert('对手已断开连接，返回大厅'); cleanupAndReturnToLobby(); }
-      });
-      conn.on('error', (err) => console.error('数据通道错误:', err));
-    });
-
-    displayRoomCode.textContent = roomCode;
-    document.getElementById('waitingModeHint').textContent =
-      '模式：' + (gameMode === 'pvp' ? '1v1 竞技' : '合作打僵尸');
-    switchView('waiting');
-    setStatus('房间已创建，等待加入…', 'ok');
-  } catch (err) {
-    console.error(err);
-    showError('创建房间失败：' + (err.message || '未知错误'));
-    setStatus('创建失败', 'err');
-  }
-  btn.disabled = false;
-});
+      if (displayRoomCode) displayRoomCode.textContent = roomCode;
+      if (waitingModeHintEl) {
+        waitingModeHintEl.textContent = '模式：' + (gameMode === 'pvp' ? '1v1 竞技' : '合作打僵尸');
+      }
+      switchView('waiting');
+      setStatus('房间已创建，等待加入…', 'ok');
+    } catch (err) {
+      console.error(err);
+      showError('创建房间失败：' + (err.message || '未知错误'));
+      setStatus('创建失败', 'err');
+    }
+    createRoomBtn.disabled = false;
+  });
+}
 
 /* ============================================================
    加入房间
    ============================================================ */
-document.getElementById('joinRoomBtn').addEventListener('click', async () => {
-  initAudio();
-  clearError();
-  myNickname = document.getElementById('nickname').value.trim() || '玩家';
-  const input = document.getElementById('joinCode');
-  const code = input.value.trim().toUpperCase();
-  if (code.length !== 6) { showError('请输入 6 位房间号'); return; }
+const joinRoomBtn = document.getElementById('joinRoomBtn');
+if (joinRoomBtn) {
+  joinRoomBtn.addEventListener('click', async () => {
+    initAudio();
+    clearError();
+    myNickname = document.getElementById('nickname').value.trim() || '玩家';
+    const input = document.getElementById('joinCode');
+    const code = input.value.trim().toUpperCase();
+    if (code.length !== 6) { showError('请输入 6 位房间号'); return; }
 
-  const btn = document.getElementById('joinRoomBtn');
-  btn.disabled = true;
-  setStatus('正在加入房间…');
+    joinRoomBtn.disabled = true;
+    setStatus('正在加入房间…');
 
-  roomCode = code;
-  isHost = false;
-  myRole = 'blue';
-  const peerId = 'arena-' + roomCode;
+    roomCode = code;
+    isHost = false;
+    myRole = 'blue';
+    const peerId = 'arena-' + roomCode;
 
-  try {
-    const myId = 'join-' + Math.random().toString(36).substr(2, 9);
-    await initPeer(myId);
-    const targetConn = peer.connect(peerId, { reliable: true });
+    try {
+      const myId = 'join-' + Math.random().toString(36).substr(2, 9);
+      await initPeer(myId);
+      const targetConn = peer.connect(peerId, { reliable: true });
 
-    const connectTimeout = setTimeout(() => {
-      showError('连接房间超时，请确认房间号是否正确');
-      setStatus('连接超时', 'err');
-      btn.disabled = false;
-      try { peer.destroy(); } catch(e) {}
-    }, 12000);
+      const connectTimeout = setTimeout(() => {
+        showError('连接房间超时，请确认房间号是否正确');
+        setStatus('连接超时', 'err');
+        joinRoomBtn.disabled = false;
+        try { peer.destroy(); } catch(e) {}
+      }, 12000);
 
-    targetConn.on('open', () => {
-      clearTimeout(connectTimeout);
-      conn = targetConn;
-      setupConnection();
-      setStatus('已连接，等待房主开始…', 'ok');
-    });
-    targetConn.on('error', (err) => {
-      clearTimeout(connectTimeout);
-      console.error('连接错误:', err);
-      showError('无法连接到房间，请确认房间号');
-      setStatus('连接失败', 'err');
-      btn.disabled = false;
-    });
-  } catch (err) {
-    console.error(err);
-    showError('加入失败：' + (err.message || '未知错误'));
-    setStatus('加入失败', 'err');
-  }
-  btn.disabled = false;
-});
+      targetConn.on('open', () => {
+        clearTimeout(connectTimeout);
+        conn = targetConn;
+        setupConnection();
+        setStatus('已连接，等待房主开始…', 'ok');
+      });
+      targetConn.on('error', (err) => {
+        clearTimeout(connectTimeout);
+        console.error('连接错误:', err);
+        showError('无法连接到房间，请确认房间号');
+        setStatus('连接失败', 'err');
+        joinRoomBtn.disabled = false;
+      });
+    } catch (err) {
+      console.error(err);
+      showError('加入失败：' + (err.message || '未知错误'));
+      setStatus('加入失败', 'err');
+    }
+    joinRoomBtn.disabled = false;
+  });
+}
 
 function setupConnection() {
-  if (!isHost) {
+  if (!isHost && conn) {
     conn.on('data', (data) => handleMessage(data));
     conn.on('close', () => {
       if (gameRunning) { alert('对手已断开连接，返回大厅'); cleanupAndReturnToLobby(); }
@@ -830,8 +846,10 @@ function handleMessage(data) {
     case 'assignRole':
       myRole = data.role;
       gameMode = data.mode || 'pvp';
-      myRoleLabel.textContent = myRole === 'red' ? '红方' : '蓝方';
-      myRoleLabel.className = myRole === 'red' ? 'role-red' : 'role-blue';
+      if (myRoleLabel) {
+        myRoleLabel.textContent = myRole === 'red' ? '红方' : '蓝方';
+        myRoleLabel.className = myRole === 'red' ? 'role-red' : 'role-blue';
+      }
       updateScoreboardVisibility();
       safeSend({ type: 'playerReady', nickname: myNickname });
       break;
@@ -887,9 +905,8 @@ function handleMessage(data) {
       startRoundLocally(data.role, false);
       break;
 
-    // ---------- 僵尸模式同步 ----------
+    // 僵尸模式
     case 'zombieState':
-      // 加入者收到房主广播的僵尸状态
       if (myRole === 'blue') {
         zombies = data.zombies || [];
         zombieKills = data.kills || 0;
@@ -899,22 +916,18 @@ function handleMessage(data) {
       break;
 
     case 'zombieHit':
-      // 加入者上报命中僵尸，房主处理
       if (isHost) {
-        const z = zombies.find(z => z.id === data.zombieId);
+        const z = zombies.find(zz => zz.id === data.zombieId);
         if (z && z.hp > 0) {
           z.hp -= data.damage;
           if (z.hp <= 0) {
-            // 僵尸死亡
             zombies = zombies.filter(zz => zz.id !== z.id);
             zombieKills++;
             updateScoreboard();
-            // 房主广播僵尸死亡（含爆头效果）
             safeSend({ type: 'zombieDied', zombieId: z.id, x: z.x, y: z.y });
             SFX.zombieDie();
             spawnDamageText(z.x, z.y, 0, '#ffaa4d', '💀');
           } else {
-            // 反馈命中（给加入者用于飘字）
             safeSend({ type: 'zombieDamaged', zombieId: z.id, x: z.x, y: z.y, damage: data.damage });
           }
         }
@@ -936,11 +949,20 @@ function handleMessage(data) {
       }
       break;
 
+    case 'zombieAttack':
+      if (myRole === data.role) {
+        SFX.hurt();
+        spawnDamageText(data.x, data.y, data.damage, '#ff4d4d');
+      }
+      break;
+
     case 'gameOver':
       gameRunning = false;
       SFX.lose();
-      alert('💀 你们被僵尸击败了！\n击杀数：' + data.kills + '  波次：' + data.wave);
-      cleanupAndReturnToLobby();
+      setTimeout(() => {
+        alert('💀 你们被僵尸击败了！\n击杀数：' + data.kills + '  波次：' + data.wave);
+        cleanupAndReturnToLobby();
+      }, 200);
       break;
 
     case 'leave':
@@ -955,17 +977,13 @@ function handleMessage(data) {
 function startGame() {
   if (gameRunning) return;
 
+  const newObstacles = generateObstacles();
+  safeSend({ type: 'nextRound', obstacles: newObstacles, role: 'blue' });
+  obstacles = newObstacles;
+
   if (gameMode === 'pvp') {
-    // 房主生成场景并广播
-    const newObstacles = generateObstacles();
-    safeSend({ type: 'nextRound', obstacles: newObstacles, role: 'blue' });
-    obstacles = newObstacles;
     startRoundLocally('red', true);
   } else {
-    // 僵尸模式
-    const newObstacles = generateObstacles();
-    safeSend({ type: 'nextRound', obstacles: newObstacles, role: 'blue' });
-    obstacles = newObstacles;
     startZombieModeLocally('red');
   }
 }
@@ -979,9 +997,11 @@ function startRoundLocally(role, isFirst = true) {
   bullets = [];
   damageTexts = [];
 
-  gameRoomCode.textContent = roomCode;
-  myRoleLabel.textContent = myRole === 'red' ? '红方' : '蓝方';
-  myRoleLabel.className = myRole === 'red' ? 'role-red' : 'role-blue';
+  if (gameRoomCode) gameRoomCode.textContent = roomCode;
+  if (myRoleLabel) {
+    myRoleLabel.textContent = myRole === 'red' ? '红方' : '蓝方';
+    myRoleLabel.className = myRole === 'red' ? 'role-red' : 'role-blue';
+  }
   updateScoreboardVisibility();
   switchView('game');
   setStatus('对战中', 'ok');
@@ -997,9 +1017,6 @@ function startRoundLocally(role, isFirst = true) {
   }
 }
 
-/* ============================================================
-   僵尸模式：本地开始
-   ============================================================ */
 function startZombieModeLocally(role) {
   myRole = role;
   gameRunning = true;
@@ -1015,9 +1032,11 @@ function startZombieModeLocally(role) {
   spawnTimer = 0;
   zombieIdCounter = 0;
 
-  gameRoomCode.textContent = roomCode;
-  myRoleLabel.textContent = myRole === 'red' ? '红方' : '蓝方';
-  myRoleLabel.className = myRole === 'red' ? 'role-red' : 'role-blue';
+  if (gameRoomCode) gameRoomCode.textContent = roomCode;
+  if (myRoleLabel) {
+    myRoleLabel.textContent = myRole === 'red' ? '红方' : '蓝方';
+    myRoleLabel.className = myRole === 'red' ? 'role-red' : 'role-blue';
+  }
   updateScoreboardVisibility();
   switchView('game');
   setStatus('僵尸模式', 'ok');
@@ -1034,7 +1053,7 @@ function startZombieModeLocally(role) {
 }
 
 /* ============================================================
-   PvP 回合结束处理
+   PvP 回合结束
    ============================================================ */
 function handleRoundEnd(winner, sRed, sBlue) {
   gameRunning = false;
@@ -1042,15 +1061,31 @@ function handleRoundEnd(winner, sRed, sBlue) {
   scoreBlue = sBlue;
   updateScoreboard();
   if (winner === myRole) SFX.win(); else SFX.lose();
-  if (isHost) setTimeout(() => startNextRoundHost(), 2000);
+  if (isHost && gameMode === 'pvp') {
+    setTimeout(() => {
+      const newObstacles = generateObstacles();
+      safeSend({ type: 'nextRound', obstacles: newObstacles, role: 'blue' });
+      obstacles = newObstacles;
+      startRoundLocally('red', false);
+    }, 2000);
+  }
 }
 
-function startNextRoundHost() {
-  if (!isHost || gameMode !== 'pvp') return;
-  const newObstacles = generateObstacles();
-  safeSend({ type: 'nextRound', obstacles: newObstacles, role: 'blue' });
-  obstacles = newObstacles;
-  startRoundLocally('red', false);
+function handleLocalWin(deadRole) {
+  gameRunning = false;
+  if (deadRole === 'red') scoreBlue++;
+  else scoreRed++;
+  updateScoreboard();
+  safeSend({ type: 'roundEnd', winner: myRole, scoreRed: scoreRed, scoreBlue: scoreBlue });
+  SFX.win();
+  if (isHost) {
+    setTimeout(() => {
+      const newObstacles = generateObstacles();
+      safeSend({ type: 'nextRound', obstacles: newObstacles, role: 'blue' });
+      obstacles = newObstacles;
+      startRoundLocally('red', false);
+    }, 2000);
+  }
 }
 
 /* ============================================================
@@ -1060,7 +1095,6 @@ function broadcastPlayerState() {
   const p = myRole === 'red' ? redPlayer : bluePlayer;
   safeSend({ type: 'playerUpdate', role: myRole, x: p.x, y: p.y, hp: p.hp });
 }
-
 function broadcastBullet(bullet) {
   safeSend({ type: 'bulletSpawn', bullet: bullet });
 }
@@ -1069,7 +1103,8 @@ function broadcastBullet(bullet) {
    僵尸 AI（仅房主运行）
    ============================================================ */
 function spawnZombie() {
-  // 在地图边缘随机位置生成
+  if (zombies.length >= ZOMBIE_MAX_COUNT) return;
+
   const side = Math.floor(Math.random() * 4);
   let x, y;
   switch (side) {
@@ -1078,7 +1113,6 @@ function spawnZombie() {
     case 2: x = Math.random() * W; y = -20; break;
     default: x = Math.random() * W; y = H + 20; break;
   }
-  // 难度随波次增加
   const speedBonus = Math.min(1.5, zombieWave * 0.1);
   const hp = ZOMBIE_HP + Math.floor(zombieWave / 3);
   zombies.push({
@@ -1096,29 +1130,23 @@ function spawnZombie() {
 function updateZombies() {
   if (!isHost || gameMode !== 'zombie') return;
 
-  // 波次与刷新
   waveTimer++;
-  // 每 20 秒提升一波（1200 帧）
   if (waveTimer >= 1200) {
     waveTimer = 0;
     zombieWave++;
     updateScoreboard();
-    // 波次提示
     spawnDamageText(W/2, H/2 - 60, 0, '#ffaa4d', '🌊 第 ' + zombieWave + ' 波');
   }
 
-  // 刷新僵尸
   spawnTimer++;
-  const spawnInterval = Math.max(20, 90 - zombieWave * 6);  // 越来越快
+  const spawnInterval = Math.max(20, 90 - zombieWave * 6);
   if (spawnTimer >= spawnInterval) {
     spawnTimer = 0;
     spawnZombie();
   }
 
-  // 僵尸追踪玩家
   const players = [redPlayer, bluePlayer];
   for (const z of zombies) {
-    // 找最近的活着的玩家
     let target = null, minD = Infinity;
     for (const p of players) {
       if (p.hp <= 0) continue;
@@ -1127,7 +1155,6 @@ function updateZombies() {
     }
     if (!target) continue;
 
-    // 移动
     const dx = target.x - z.x;
     const dy = target.y - z.y;
     const dist = Math.hypot(dx, dy) || 1;
@@ -1136,12 +1163,10 @@ function updateZombies() {
     z.angle = Math.atan2(dy, dx);
     z.wobble += 0.15;
 
-    // 与障碍物碰撞（简单推开）
     const zHalf = ZOMBIE_SIZE / 2;
     const zRect = { x: z.x - zHalf, y: z.y - zHalf, w: ZOMBIE_SIZE, h: ZOMBIE_SIZE };
     for (const o of obstacles) {
       if (rectsOverlap(zRect, o)) {
-        // 推开
         const overlapLeft = (zRect.x + zRect.w) - o.x;
         const overlapRight = (o.x + o.w) - zRect.x;
         const overlapTop = (zRect.y + zRect.h) - o.y;
@@ -1154,7 +1179,6 @@ function updateZombies() {
       }
     }
 
-    // 攻击玩家
     for (const p of players) {
       if (p.hp <= 0) continue;
       const zr = ZOMBIE_SIZE / 2 + PLAYER_SIZE / 2;
@@ -1163,29 +1187,27 @@ function updateZombies() {
         if (frameCount - z.lastTouch[key] > ZOMBIE_TOUCH_COOLDOWN) {
           z.lastTouch[key] = frameCount;
           p.hp = Math.max(0, p.hp - ZOMBIE_DAMAGE);
-          if (p === redPlayer) safeSend({ type: 'hpUpdate', role: 'red', hp: redPlayer.hp });
-          else safeSend({ type: 'hpUpdate', role: 'blue', hp: bluePlayer.hp });
-          // 本地表现
-          if (myRole === (p === redPlayer ? 'red' : 'blue')) {
+          safeSend({ type: 'hpUpdate', role: key, hp: p.hp });
+          safeSend({ type: 'zombieAttack', role: key, damage: ZOMBIE_DAMAGE, x: p.x, y: p.y });
+          if (myRole === key) {
             SFX.hurt();
             spawnDamageText(p.x, p.y, ZOMBIE_DAMAGE, '#ff4d4d');
           }
-          // 通知对方玩家他受伤了（用于音效 + 飘字）
-          safeSend({ type: 'zombieAttack', role: key, damage: ZOMBIE_DAMAGE, x: p.x, y: p.y });
         }
       }
     }
   }
 
-  // 检查游戏结束
   if (redPlayer.hp <= 0 && bluePlayer.hp <= 0) {
-    // 双方都倒下了
     safeSend({ type: 'gameOver', kills: zombieKills, wave: zombieWave });
-    gameOverLocally();
+    gameRunning = false;
+    SFX.lose();
+    setTimeout(() => {
+      alert('💀 你们被僵尸击败了！\n击杀数：' + zombieKills + '  波次：' + zombieWave);
+      cleanupAndReturnToLobby();
+    }, 200);
   }
 }
-
-let frameCount = 0;
 
 /* ============================================================
    更新
@@ -1197,7 +1219,7 @@ function update() {
   const localPlayer = myRole === 'red' ? redPlayer : bluePlayer;
   const opponentPlayer = myRole === 'red' ? bluePlayer : redPlayer;
 
-  // 移动（使用 keyDown 逻辑键）
+  // 移动
   let dx = 0, dy = 0;
   if (keyDown('w')) dy -= 1;
   if (keyDown('s')) dy += 1;
@@ -1230,24 +1252,18 @@ function update() {
       life: 150
     };
 
-    // 目标：PvP 是对方玩家；僵尸模式优先最近的僵尸
     let targetX, targetY;
     if (gameMode === 'pvp') {
       targetX = opponentPlayer.x;
       targetY = opponentPlayer.y;
     } else {
-      // 找最近的僵尸
       let nearest = null, minD = Infinity;
       for (const z of zombies) {
         const d = Math.hypot(z.x - localPlayer.x, z.y - localPlayer.y);
         if (d < minD) { minD = d; nearest = z; }
       }
-      if (nearest) {
-        targetX = nearest.x; targetY = nearest.y;
-      } else {
-        // 没有僵尸，朝屏幕中心
-        targetX = W/2; targetY = H/2;
-      }
+      if (nearest) { targetX = nearest.x; targetY = nearest.y; }
+      else { targetX = W/2; targetY = H/2; }
     }
 
     const angle = Math.atan2(targetY - localPlayer.y, targetX - localPlayer.x);
@@ -1265,19 +1281,20 @@ function update() {
   // 僵尸更新（房主）
   if (gameMode === 'zombie' && isHost) {
     updateZombies();
-
-    // 定期广播僵尸状态（每 3 帧，减小带宽）
     if (frameCount % 3 === 0) {
       safeSend({
         type: 'zombieState',
-        zombies: zombies.map(z => ({ id: z.id, x: z.x, y: z.y, hp: z.hp, maxHp: z.maxHp, angle: z.angle, wobble: z.wobble })),
+        zombies: zombies.map(z => ({
+          id: z.id, x: z.x, y: z.y, hp: z.hp, maxHp: z.maxHp,
+          angle: z.angle, wobble: z.wobble
+        })),
         kills: zombieKills,
         wave: zombieWave
       });
     }
   }
 
-  // 子弹更新
+  // 子弹
   for (let i = bullets.length - 1; i >= 0; i--) {
     const b = bullets[i];
     const prevX = b.x, prevY = b.y;
@@ -1289,8 +1306,6 @@ function update() {
       bullets.splice(i, 1);
       continue;
     }
-
-    // 障碍物阻挡
     if (bulletHitsObstacle(b, obstacles)) {
       spawnDamageText(b.x, b.y, 0, '#8899bb', '✕');
       SFX.obstacle();
@@ -1298,7 +1313,6 @@ function update() {
       continue;
     }
 
-    // ---------- 命中判定（发射者判定） ----------
     if (b.owner === myRole) {
       if (gameMode === 'pvp') {
         const targetRole = myRole === 'red' ? 'blue' : 'red';
@@ -1315,16 +1329,11 @@ function update() {
           if (target.hp <= 0) handleLocalWin(targetRole);
         }
       } else {
-        // 僵尸模式：检查是否命中僵尸
         let hitZombie = null;
         for (const z of zombies) {
-          if (segmentHitsZombie(prevX, prevY, b.x, b.y, z)) {
-            hitZombie = z;
-            break;
-          }
+          if (segmentHitsZombie(prevX, prevY, b.x, b.y, z)) { hitZombie = z; break; }
         }
         if (hitZombie) {
-          // 如果是房主，直接扣血
           if (isHost) {
             hitZombie.hp -= 1;
             if (hitZombie.hp <= 0) {
@@ -1340,9 +1349,7 @@ function update() {
               safeSend({ type: 'zombieDamaged', zombieId: hitZombie.id, x: hitZombie.x, y: hitZombie.y, damage: 1 });
             }
           } else {
-            // 加入者上报命中
             safeSend({ type: 'zombieHit', zombieId: hitZombie.id, damage: 1 });
-            // 本地即时反馈
             SFX.zombieHit();
             spawnDamageText(hitZombie.x, hitZombie.y, 1, '#ffaa4d');
           }
@@ -1355,26 +1362,7 @@ function update() {
   updateDamageTexts();
 }
 
-function handleLocalWin(deadRole) {
-  gameRunning = false;
-  if (deadRole === 'red') scoreBlue++;
-  else scoreRed++;
-  updateScoreboard();
-  safeSend({ type: 'roundEnd', winner: myRole, scoreRed: scoreRed, scoreBlue: scoreBlue });
-  SFX.win();
-  if (isHost) setTimeout(() => startNextRoundHost(), 2000);
-}
-
-function gameOverLocally() {
-  gameRunning = false;
-  SFX.lose();
-  setTimeout(() => {
-    alert('💀 你们被僵尸击败了！\n击杀数：' + zombieKills + '  波次：' + zombieWave);
-    cleanupAndReturnToLobby();
-  }, 500);
-}
-
-/* 线段与玩家方块 AABB */
+/* 线段与玩家 AABB */
 function segmentHitsPlayer(x1, y1, x2, y2, player) {
   const half = PLAYER_SIZE / 2;
   const r = BULLET_SIZE / 2;
@@ -1430,11 +1418,12 @@ function draw() {
   ctx.fillStyle = grad;
   ctx.fillRect(0, 0, W, H);
 
-  // 网格
-  ctx.strokeStyle = gameMode === 'zombie' ? '#1e1428' : '#141a2a';
-  ctx.lineWidth = 1;
-  for (let i = 0; i < W; i += 50) { ctx.beginPath(); ctx.moveTo(i, 0); ctx.lineTo(i, H); ctx.stroke(); }
-  for (let i = 0; i < H; i += 50) { ctx.beginPath(); ctx.moveTo(0, i); ctx.lineTo(W, i); ctx.stroke(); }
+  // 网格（预渲染贴图）
+  if (gameMode === 'zombie' && gridCanvasZombie) {
+    ctx.drawImage(gridCanvasZombie, 0, 0);
+  } else if (gridCanvasPvP) {
+    ctx.drawImage(gridCanvasPvP, 0, 0);
+  }
 
   // 障碍物
   for (const o of obstacles) {
@@ -1449,11 +1438,9 @@ function draw() {
     ctx.beginPath(); ctx.roundRect(o.x + 3, o.y + 3, o.w - 6, 6, 4); ctx.fill();
   }
 
-  // 僵尸（仅僵尸模式）
+  // 僵尸
   if (gameMode === 'zombie') {
-    for (const z of zombies) {
-      drawZombie(z);
-    }
+    for (const z of zombies) drawZombie(z);
   }
 
   // 子弹
@@ -1471,7 +1458,7 @@ function draw() {
 
   drawDamageTexts();
 
-  // 顶部提示
+  // HUD
   ctx.font = '14px "Segoe UI"';
   ctx.fillStyle = '#6b7fa0';
   ctx.fillText(`你是: ${myRole === 'red' ? '红方 (P1)' : '蓝方 (P2)'}`, 30, 40);
@@ -1494,10 +1481,7 @@ function draw() {
 }
 
 function drawPlayer(p, color, bgColor, label) {
-  if (p.hp <= 0 && gameMode === 'zombie') {
-    // 倒地状态
-    ctx.globalAlpha = 0.4;
-  }
+  ctx.globalAlpha = (p.hp <= 0 && gameMode === 'zombie') ? 0.4 : 1;
   ctx.shadowColor = color;
   ctx.shadowBlur = 28;
   ctx.fillStyle = color;
@@ -1519,29 +1503,24 @@ function drawZombie(z) {
   const half = ZOMBIE_SIZE / 2;
   const wob = Math.sin(z.wobble) * 2;
 
-  // 阴影
   ctx.shadowColor = 'rgba(140, 60, 60, 0.6)';
   ctx.shadowBlur = 16;
-  // 身体
   ctx.fillStyle = '#5a8a3a';
   ctx.beginPath();
   ctx.roundRect(z.x - half + wob, z.y - half, ZOMBIE_SIZE, ZOMBIE_SIZE, 6);
   ctx.fill();
   ctx.shadowBlur = 0;
 
-  // 边框
   ctx.strokeStyle = '#8ac05a';
   ctx.lineWidth = 2;
   ctx.stroke();
 
-  // 眼睛（朝向玩家方向）
   const eyeOffX = Math.cos(z.angle) * 5;
   const eyeOffY = Math.sin(z.angle) * 5;
   ctx.fillStyle = '#ff2020';
   ctx.beginPath(); ctx.arc(z.x - 5 + wob + eyeOffX, z.y - 4 + eyeOffY, 2.5, 0, Math.PI*2); ctx.fill();
   ctx.beginPath(); ctx.arc(z.x + 5 + wob + eyeOffX, z.y - 4 + eyeOffY, 2.5, 0, Math.PI*2); ctx.fill();
 
-  // 血条
   if (z.hp < z.maxHp) {
     const barW = ZOMBIE_SIZE;
     ctx.fillStyle = '#2e1a1f';
@@ -1561,6 +1540,7 @@ function gameLoop() {
   requestAnimationFrame(gameLoop);
 }
 
+/* roundRect polyfill */
 if (!CanvasRenderingContext2D.prototype.roundRect) {
   CanvasRenderingContext2D.prototype.roundRect = function(x, y, w, h, r) {
     if (w < 2 * r) r = w / 2;
@@ -1599,48 +1579,70 @@ function cleanupAndReturnToLobby() {
   roomCode = '';
   switchView('lobby');
   setStatus('已返回大厅', '');
-  document.getElementById('createRoomBtn').disabled = false;
-  document.getElementById('joinRoomBtn').disabled = false;
+  if (createRoomBtn) createRoomBtn.disabled = false;
+  if (joinRoomBtn) joinRoomBtn.disabled = false;
   clearError();
 }
 
-document.getElementById('leaveBtn').addEventListener('click', cleanupAndReturnToLobby);
-document.getElementById('cancelWaitBtn').addEventListener('click', cleanupAndReturnToLobby);
+const leaveBtn = document.getElementById('leaveBtn');
+if (leaveBtn) leaveBtn.addEventListener('click', cleanupAndReturnToLobby);
+const cancelWaitBtn = document.getElementById('cancelWaitBtn');
+if (cancelWaitBtn) cancelWaitBtn.addEventListener('click', cleanupAndReturnToLobby);
 
-document.getElementById('copyCodeBtn').addEventListener('click', () => {
-  navigator.clipboard.writeText(roomCode).then(() => {
-    document.getElementById('copyCodeBtn').textContent = '✅ 已复制';
-    setTimeout(() => { document.getElementById('copyCodeBtn').textContent = '📋 复制房间号'; }, 1500);
-  }).catch(() => {
-    const ta = document.createElement('textarea');
-    ta.value = roomCode;
-    document.body.appendChild(ta);
-    ta.select();
-    document.execCommand('copy');
-    document.body.removeChild(ta);
-    document.getElementById('copyCodeBtn').textContent = '✅ 已复制';
-    setTimeout(() => { document.getElementById('copyCodeBtn').textContent = '📋 复制房间号'; }, 1500);
+const copyCodeBtn = document.getElementById('copyCodeBtn');
+if (copyCodeBtn) {
+  copyCodeBtn.addEventListener('click', () => {
+    const doCopy = () => {
+      copyCodeBtn.textContent = '✅ 已复制';
+      setTimeout(() => { copyCodeBtn.textContent = '📋 复制房间号'; }, 1500);
+    };
+    if (navigator.clipboard) {
+      navigator.clipboard.writeText(roomCode).then(doCopy).catch(() => {
+        const ta = document.createElement('textarea');
+        ta.value = roomCode;
+        document.body.appendChild(ta);
+        ta.select();
+        document.execCommand('copy');
+        document.body.removeChild(ta);
+        doCopy();
+      });
+    } else {
+      const ta = document.createElement('textarea');
+      ta.value = roomCode;
+      document.body.appendChild(ta);
+      ta.select();
+      document.execCommand('copy');
+      document.body.removeChild(ta);
+      doCopy();
+    }
   });
-});
+}
 
-// 全屏
-document.getElementById('fullscreenBtn').addEventListener('click', () => {
-  const docEl = document.documentElement;
-  if (!document.fullscreenElement) {
-    if (docEl.requestFullscreen) docEl.requestFullscreen();
-    else if (docEl.webkitRequestFullscreen) docEl.webkitRequestFullscreen();
-    document.getElementById('fullscreenBtn').textContent = '⛶ 退出全屏';
-  } else {
-    if (document.exitFullscreen) document.exitFullscreen();
-    else if (document.webkitExitFullscreen) document.webkitExitFullscreen();
-    document.getElementById('fullscreenBtn').textContent = '⛶ 全屏';
+const fullscreenBtn = document.getElementById('fullscreenBtn');
+if (fullscreenBtn) {
+  fullscreenBtn.addEventListener('click', () => {
+    const docEl = document.documentElement;
+    if (!document.fullscreenElement) {
+      if (docEl.requestFullscreen) docEl.requestFullscreen();
+      else if (docEl.webkitRequestFullscreen) docEl.webkitRequestFullscreen();
+      fullscreenBtn.textContent = '⛶ 退出全屏';
+    } else {
+      if (document.exitFullscreen) document.exitFullscreen();
+      else if (document.webkitExitFullscreen) document.webkitExitFullscreen();
+      fullscreenBtn.textContent = '⛶ 全屏';
+    }
+  });
+}
+document.addEventListener('fullscreenchange', () => {
+  if (fullscreenBtn) {
+    fullscreenBtn.textContent = document.fullscreenElement ? '⛶ 退出全屏' : '⛶ 全屏';
   }
 });
-document.addEventListener('fullscreenchange', () => {
-  document.getElementById('fullscreenBtn').textContent =
-    document.fullscreenElement ? '⛶ 退出全屏' : '⛶ 全屏';
-});
 
+/* ============================================================
+   启动
+   ============================================================ */
+initGridCanvases();
 setStatus('准备就绪，创建或加入房间', '');
 updateScoreboard();
 updateScoreboardVisibility();
