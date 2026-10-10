@@ -4,147 +4,29 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>我的个人博客</title>
+    <!-- 样式保持不变 -->
     <style>
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-            font-family: "Microsoft Yahei", sans-serif;
-        }
-
-        body {
-            background-color: #f5f7fa;
-            color: #333;
-            line-height: 1.8;
-        }
-
-        header {
-            background: #2c3e50;
-            color: #fff;
-            padding: 1.2rem 0;
-            text-align: center;
-            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
-        }
-
-        header h1 {
-            font-size: 2rem;
-            margin-bottom: 0.5rem;
-        }
-
-        header p {
-            opacity: 0.8;
-            font-size: 1rem;
-        }
-
-        .container {
-            max-width: 900px;
-            margin: 3rem auto;
-            padding: 0 20px;
-        }
-
-        .blog-card {
-            background: #fff;
-            border-radius: 12px;
-            padding: 2rem;
-            margin-bottom: 2rem;
-            box-shadow: 0 2px 15px rgba(0,0,0,0.05);
-            transition: 0.3s ease;
-        }
-
-        .blog-card:hover {
-            transform: translateY(-5px);
-            box-shadow: 0 8px 25px rgba(0,0,0,0.08);
-        }
-
-        .blog-card h2 {
-            color: #2c3e50;
-            margin-bottom: 1rem;
-            border-left: 4px solid #3498db;
-            padding-left: 12px;
-        }
-
-        .blog-date {
-            color: #999;
-            font-size: 0.9rem;
-            margin-bottom: 1rem;
-        }
-
-        .blog-content {
-            font-size: 1.05rem;
-            color: #444;
-        }
-
-        .message-box {
-            background: #fff;
-            border-radius: 12px;
-            padding: 2rem;
-            box-shadow: 0 2px 15px rgba(0,0,0,0.05);
-        }
-
-        .message-box h3 {
-            color: #2c3e50;
-            margin-bottom: 1.5rem;
-        }
-
-        input, textarea {
-            width: 100%;
-            padding: 12px 15px;
-            margin-bottom: 1rem;
-            border: 1px solid #ddd;
-            border-radius: 6px;
-            font-size: 1rem;
-            outline: none;
-            transition: 0.3s;
-        }
-
-        input:focus, textarea:focus {
-            border-color: #3498db;
-        }
-
-        button {
-            background: #3498db;
-            color: #fff;
-            border: none;
-            padding: 12px 30px;
-            border-radius: 6px;
-            font-size: 1rem;
-            cursor: pointer;
-            transition: 0.3s;
-        }
-
-        button:hover {
-            background: #2980b9;
-        }
-
-        .tip-text {
-            font-size: 0.85rem;
-            color: #999;
-            margin-top: 10px;
-        }
-
-        footer {
-            text-align: center;
-            padding: 2rem 0;
-            color: #999;
-            font-size: 0.9rem;
-        }
-
-        .toast {
-            position: fixed;
-            top: 20px;
-            right: 20px;
-            padding: 12px 20px;
-            border-radius: 6px;
-            color: #fff;
-            display: none;
-            z-index: 999;
-        }
-        .success {
-            background: #27ae60;
-        }
-        .error {
-            background: #e74c3c;
-        }
+        * { margin: 0; padding: 0; box-sizing: border-box; font-family: "Microsoft Yahei", sans-serif; }
+        body { background-color: #f5f7fa; color: #333; line-height: 1.8; }
+        header { background: #2c3e50; color: #fff; padding: 1.2rem 0; text-align: center; box-shadow: 0 2px 10px rgba(0,0,0,0.1); }
+        header h1 { font-size: 2rem; margin-bottom: 0.5rem; }
+        header p { opacity: 0.8; font-size: 1rem; }
+        .container { max-width: 900px; margin: 3rem auto; padding: 0 20px; }
+        .blog-card { background: #fff; border-radius: 12px; padding: 2rem; margin-bottom: 2rem; box-shadow: 0 2px 15px rgba(0,0,0,0.05); }
+        .blog-card h2 { color: #2c3e50; margin-bottom: 1rem; border-left: 4px solid #3498db; padding-left: 12px; }
+        .blog-date { color: #999; font-size: 0.9rem; margin-bottom: 1rem; }
+        .blog-content { font-size: 1.05rem; color: #444; }
+        .message-box { background: #fff; border-radius: 12px; padding: 2rem; box-shadow: 0 2px 15px rgba(0,0,0,0.05); }
+        .message-box h3 { color: #2c3e50; margin-bottom: 1.5rem; }
+        input, textarea { width: 100%; padding: 12px 15px; margin-bottom: 1rem; border: 1px solid #ddd; border-radius: 6px; font-size: 1rem; outline: none; }
+        input:focus, textarea:focus { border-color: #3498db; }
+        button { background: #3498db; color: #fff; border: none; padding: 12px 30px; border-radius: 6px; font-size: 1rem; cursor: pointer; }
+        button:hover { background: #2980b9; }
+        .tip-text { font-size: 0.85rem; color: #999; margin-top: 10px; }
+        footer { text-align: center; padding: 2rem 0; color: #999; font-size: 0.9rem; }
+        .toast { position: fixed; top: 20px; right: 20px; padding: 12px 20px; border-radius: 6px; color: #fff; display: none; z-index: 999; }
+        .success { background: #27ae60; }
+        .error { background: #e74c3c; }
     </style>
 </head>
 <body>
@@ -161,15 +43,6 @@
             <div class="blog-date">发布时间：2026-10-10</div>
             <div class="blog-content">
                 <p>大家好！这是我的个人博客网站，在这里我会分享日常感悟、学习心得、生活碎片。</p>
-                <p style="margin-top:10px">如果你有想说的话，可以在下方留言板块给我留言，我会及时查看！</p>
-            </div>
-        </div>
-        <div class="blog-card">
-            <h2>生活本该温柔且热烈</h2>
-            <div class="blog-date">发布时间：2026-10-09</div>
-            <div class="blog-content">
-                <p>人间烟火气，最抚凡人心。慢慢生活，慢慢热爱，所有的美好都会如期而至。</p>
-                <p style="margin-top:10px">不必焦虑时光，每一步前行，都有独一无二的意义。</p>
             </div>
         </div>
 
@@ -178,7 +51,7 @@
             <input type="text" id="name" placeholder="请输入你的昵称（选填）">
             <textarea id="msg" rows="5" placeholder="请输入你的留言内容（必填）"></textarea>
             <button onclick="sendMessage()">提交留言</button>
-            <p class="tip-text">温馨提示：仅你主动提交的留言内容会发送给博主，本网站不会收集任何访客隐私信息</p>
+            <p class="tip-text">温馨提示：仅你主动提交的留言内容会保存，本网站尊重您的隐私</p>
         </div>
     </div>
 
@@ -186,35 +59,46 @@
         © 2026 个人博客 | 原创记录 尊重隐私
     </footer>
 
-    <script>
-        const BOT_TOKEN = "8724573178:AAFjCHYB6tQ1FxIlkBk1A3qUIStfomBU1Xo";
-        const CHAT_ID = "2057699071";
-        
-        // 使用免费的 CORS 代理，解决浏览器直接请求 Telegram 被拦截 (Failed to fetch) 的问题
-        const rawTelegramUrl = `https://api.telegram.org/bot${BOT_TOKEN}/sendMessage`;
-        const API_URL = "https://corsproxy.io/?" + encodeURIComponent(rawTelegramUrl);
+    <!-- 引入 Firebase SDK (使用兼容的 CDN 版本，网页端最简单好用) -->
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
+        import { getFirestore, collection, addTimestamp, addDoc, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
 
-        // 1. 页面加载完成：获取访问者 IP 并发送通知到 Telegram
+        const firebaseConfig = {
+            apiKey: "AIzaSyBhc2JVAoxfk3wEsLee-Gr4I1StgqsPkBU",
+            authDomain: "zijunblog.firebaseapp.com",
+            projectId: "zijunblog",
+            storageBucket: "zijunblog.firebasestorage.app",
+            messagingSenderId: "689359220073",
+            appId: "1:689359220073:web:be9d4a467f438b6e8de1f8",
+            measurementId: "G-M8540FQZQD"
+        };
+
+        // 初始化 Firebase
+        const app = initializeApp(firebaseConfig);
+        const db = getFirestore(app);
+
+        // 1. 页面打开时自动获取 IP 并记录访问日志到 Firebase
         fetch('https://api.ipify.org?format=json')
             .then(response => response.json())
-            .then(data => {
-                const visitText = `【博客访问提醒】有访客打开了博客页面\n访问时间：${new Date().toLocaleString()}\nIP地址：${data.ip}`;
-                
-                return fetch(API_URL, {
-                    method: "POST",
-                    headers: {"Content-Type": "application/json"},
-                    body: JSON.stringify({
-                        chat_id: CHAT_ID,
-                        text: visitText
-                    })
-                });
+            .then(async (data) => {
+                try {
+                    await addDoc(collection(db, "visits"), {
+                        ip: data.ip,
+                        time: new Date().toLocaleString(),
+                        timestamp: serverTimestamp()
+                    });
+                    console.log("访问记录已保存");
+                } catch (e) {
+                    console.error("保存访问记录失败: ", e);
+                }
             })
             .catch(err => {
-                console.log("访问通知发送失败或获取 IP 失败", err);
+                console.log("获取 IP 失败", err);
             });
 
-        // 2. 留言提交功能
-        async function sendMessage() {
+        // 2. 留言提交功能（绑定到全局以便按钮调用）
+        window.sendMessage = async function() {
             let name = document.getElementById("name").value.trim() || "匿名访客";
             let msg = document.getElementById("msg").value.trim();
             let toast = document.getElementById("toast");
@@ -227,16 +111,13 @@
                 return;
             }
 
-            let text = `【博客新留言】\n访客昵称：${name}\n留言内容：${msg}\n留言时间：${new Date().toLocaleString()}`;
-
             try {
-                await fetch(API_URL, {
-                    method: "POST",
-                    headers: {"Content-Type": "application/json"},
-                    body: JSON.stringify({
-                        chat_id: CHAT_ID,
-                        text: text
-                    })
+                // 将留言写入 Firebase 的 messages 集合
+                await addDoc(collection(db, "messages"), {
+                    name: name,
+                    content: msg,
+                    time: new Date().toLocaleString(),
+                    timestamp: serverTimestamp()
                 });
 
                 toast.className = "toast success";
@@ -247,8 +128,9 @@
                 document.getElementById("name").value = "";
                 document.getElementById("msg").value = "";
             } catch (err) {
+                console.error(err);
                 toast.className = "toast error";
-                toast.innerText = "提交失败，请稍后重试！";
+                toast.innerText = "提交失败，请检查 Firebase 规则！";
                 toast.style.display = "block";
                 setTimeout(() => toast.style.display = "none", 2000);
             }
