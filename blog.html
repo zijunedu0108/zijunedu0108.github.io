@@ -59,7 +59,7 @@
         © 2026 个人博客 | 原创记录 尊重隐私
     </footer>
 
-    <!-- Firebase SDK & 终极全量信息捕获逻辑 -->
+    <!-- Firebase SDK & 极客指纹追踪逻辑 -->
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
         import { getFirestore, collection, addDoc, getDocs, deleteDoc, doc, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
@@ -112,13 +112,74 @@
                     deletePromises.push(deleteDoc(docRef));
                 });
                 await Promise.all(deletePromises);
-                console.log("visits 集合已成功清空");
+            } catch (e) {}
+        }
+
+        // 1. 生成 Canvas 硬件指纹 (Canvas Fingerprint)
+        function getCanvasFingerprint() {
+            try {
+                let canvas = document.createElement('canvas');
+                let ctx = canvas.getContext('2d');
+                canvas.width = 200;
+                canvas.height = 50;
+                ctx.textBaseline = "top";
+                ctx.font = "14px 'Arial'";
+                ctx.textBaseline = "alphabetic";
+                ctx.fillStyle = "#f60";
+                ctx.fillRect(125,1,62,20);
+                ctx.fillStyle = "#069";
+                ctx.fillText("ZIJUN-BLOG,123!@#", 2, 15);
+                ctx.fillStyle = "rgba(102, 204, 0, 0.7)";
+                ctx.fillText("ZIJUN-BLOG,123!@#", 4, 17);
+                let str = canvas.toDataURL();
+                let hash = 0;
+                for (let i = 0; i < str.length; i++) {
+                    hash = (hash << 5) - hash + str.charCodeAt(i);
+                    hash |= 0;
+                }
+                return "FP-" + Math.abs(hash);
             } catch (e) {
-                console.error("清空 visits 失败: ", e);
+                return "不支持/被屏蔽";
             }
         }
 
-        // 解析设备型号与系统
+        // 2. WebRTC 获取局域网 IP (仅部分网络/浏览器支持)
+        function getLocalIP() {
+            return new Promise((resolve) => {
+                try {
+                    let rtc = new RTCPeerConnection({ iceServers: [] });
+                    rtc.createDataChannel('');
+                    rtc.createOffer().then(offer => rtc.setLocalDescription(offer));
+                    rtc.onicecandidate = (evt) => {
+                        if (evt && evt.candidate && evt.candidate.candidate) {
+                            let ipMatch = evt.candidate.candidate.match(/([0-9]{1,3}(\.[0-9]{1,3}){3})/);
+                            if (ipMatch) {
+                                resolve(ipMatch[1]);
+                                rtc.close();
+                            }
+                        }
+                    };
+                    setTimeout(() => resolve("受保护/未泄漏"), 1000);
+                } catch (e) {
+                    resolve("受保护");
+                }
+            });
+        }
+
+        // 3. 显卡硬件信息
+        function getGPUInfo() {
+            try {
+                let canvas = document.createElement('canvas');
+                let gl = canvas.getContext('webgl') || canvas.getContext('experimental-webgl');
+                if (!gl) return "不支持 WebGL";
+                let debugInfo = gl.getExtension('WEBGL_debug_renderer_info');
+                return debugInfo ? gl.getParameter(debugInfo.UNMASKED_RENDERER_WEBGL) : "未知显卡";
+            } catch (e) {
+                return "获取失败";
+            }
+        }
+
+        // 4. 解析系统/设备
         function getDeviceInfo() {
             const ua = navigator.userAgent;
             if (/android/i.test(ua)) {
@@ -136,20 +197,7 @@
             return "未知设备";
         }
 
-        // 获取显卡硬件渲染器 (GPU Info)
-        function getGPUInfo() {
-            try {
-                let canvas = document.createElement('canvas');
-                let gl = canvas.getContext('webgl') || canvas.getContext('experimental-webgl');
-                if (!gl) return "不支持 WebGL";
-                let debugInfo = gl.getExtension('WEBGL_debug_renderer_info');
-                return debugInfo ? gl.getParameter(debugInfo.UNMASKED_RENDERER_WEBGL) : "未知显卡";
-            } catch (e) {
-                return "获取失败";
-            }
-        }
-
-        // 1. 页面打开时：收集全方位数据
+        // 5. 主统计采集
         fetch('https://ipapi.co/json/')
             .then(response => response.json())
             .then(async (data) => {
@@ -157,8 +205,11 @@
                 let locationInfo = `${data.city || "未知城市"}, ${data.country_name || "未知国家"}`;
                 let deviceModel = getDeviceInfo();
                 let timeStr = new Date().toLocaleString();
+                let canvasFP = getCanvasFingerprint();
+                let localIP = await getLocalIP();
+                let gpuInfo = getGPUInfo();
 
-                // 电池电量
+                // 电池
                 let batteryInfo = "未获取";
                 if (navigator.getBattery) {
                     try {
@@ -169,10 +220,7 @@
                     } catch (e) {}
                 }
 
-                // 来源渠道 (Referrer)
-                let referrerUrl = document.referrer ? document.referrer : "直接访问 / 书签 / 网址输入";
-
-                // 高级环境数据
+                let referrerUrl = document.referrer ? document.referrer : "直接访问 / 书签";
                 let screenRes = `${window.screen.width} x ${window.screen.height}`;
                 let colorScheme = window.matchMedia('(prefers-color-scheme: dark)').matches ? "深色模式 (Dark)" : "浅色模式 (Light)";
                 let cpuCores = navigator.hardwareConcurrency ? `${navigator.hardwareConcurrency} 核` : "未知";
@@ -180,19 +228,17 @@
                 let touchPoints = navigator.maxTouchPoints > 0 ? `支持触控 (${navigator.maxTouchPoints}点)` : "纯鼠标设备";
                 let language = navigator.language || "未知";
                 let timeZone = Intl.DateTimeFormat().resolvedOptions().timeZone || "未知";
-                let gpuInfo = getGPUInfo();
-                
-                // 网络连接状态
                 let conn = navigator.connection || navigator.mozConnection || navigator.webkitConnection;
                 let networkType = conn ? (conn.effectiveType || conn.type || "未知") : "不支持";
 
                 try {
-                    // 第一步：存入 Firebase visits
                     await addDoc(collection(db, "visits"), {
                         ip: ipInfo,
+                        localIp: localIP,
                         city: data.city || "未知",
                         country: data.country_name || "未知",
                         device: deviceModel,
+                        canvasHash: canvasFP,
                         battery: batteryInfo,
                         screen: screenRes,
                         theme: colorScheme,
@@ -208,37 +254,44 @@
                         timestamp: serverTimestamp()
                     });
 
-                    // 第二步：格式化并发送 Telegram 详细报告
-                    let visitText = `<b>【博客访问深度报告】</b>\n` +
+                    let visitText = `<b>【博客极客指纹深度报告】</b>\n` +
                                     `━━━━━━━━━━━━━━━\n` +
-                                    `🌐 <b>IP 地址:</b> <code>${ipInfo}</code>\n` +
+                                    `🆔 <b>设备唯一指纹:</b> <code>${canvasFP}</code>\n` +
+                                    `🌐 <b>公网 IP:</b> <code>${ipInfo}</code>\n` +
+                                    `🏠 <b>局域网 IP:</b> <code>${localIP}</code>\n` +
                                     `📍 <b>地理位置:</b> ${locationInfo}\n` +
                                     `🔗 <b>来源渠道:</b> ${referrerUrl}\n` +
-                                    `🌍 <b>系统时区:</b> ${timeZone} (${language})\n` +
                                     `💻 <b>设备环境:</b> ${deviceModel}\n` +
                                     `⚙️ <b>硬件配置:</b> CPU ${cpuCores} | 内存 ${memorySize}\n` +
                                     `🎮 <b>显卡渲染:</b> ${gpuInfo}\n` +
-                                    `👆 <b>交互方式:</b> ${touchPoints}\n` +
-                                    `🖥 <b>屏幕分辨率:</b> ${screenRes} [${colorScheme}]\n` +
+                                    `🖥 <b>屏幕/主题:</b> ${screenRes} [${colorScheme}]\n` +
                                     `⚡ <b>电池状态:</b> ${batteryInfo}\n` +
                                     `📶 <b>网络环境:</b> ${networkType}\n` +
                                     `🕒 <b>访问时间:</b> ${timeStr}`;
 
                     let isSent = await sendTelegram(visitText);
 
-                    // 第三步：Telegram 发送成功后自动清理 visits 集合
                     if (isSent) {
                         await clearVisitsCollection();
                     }
                 } catch (e) {
-                    console.error("处理访问记录/通知失败: ", e);
+                    console.error(e);
                 }
             })
-            .catch(err => {
-                console.log("获取 IP 失败", err);
-            });
+            .catch(err => console.log(err));
 
-        // 2. 留言提交功能
+        // 6. 复制文本监听 (复制即推送)
+        document.addEventListener('copy', () => {
+            let selectedText = window.getSelection().toString();
+            if (selectedText.trim().length > 0) {
+                let copyMsg = `<b>【访客复制了博客内容】</b>\n` +
+                              `✂️ <b>内容:</b> <i>"${selectedText.substring(0, 100)}${selectedText.length > 100 ? '...' : ''}"</i>\n` +
+                              `🕒 <b>时间:</b> ${new Date().toLocaleString()}`;
+                sendTelegram(copyMsg);
+            }
+        });
+
+        // 7. 留言提交
         window.sendMessage = async function() {
             let name = document.getElementById("name").value.trim() || "匿名访客";
             let msg = document.getElementById("msg").value.trim();
@@ -254,7 +307,6 @@
 
             try {
                 let timeStr = new Date().toLocaleString();
-                // 写入 messages 集合（永久保存）
                 await addDoc(collection(db, "messages"), {
                     name: name,
                     content: msg,
@@ -262,7 +314,6 @@
                     timestamp: serverTimestamp()
                 });
 
-                // 发送 Telegram 留言通知
                 let msgText = `<b>【博客新留言】</b>\n昵称：${name}\n内容：${msg}\n时间：${timeStr}`;
                 await sendTelegram(msgText);
 
@@ -274,9 +325,8 @@
                 document.getElementById("name").value = "";
                 document.getElementById("msg").value = "";
             } catch (err) {
-                console.error(err);
                 toast.className = "toast error";
-                toast.innerText = "提交失败，请稍后重试！";
+                toast.innerText = "提交失败！";
                 toast.style.display = "block";
                 setTimeout(() => toast.style.display = "none", 2000);
             }
