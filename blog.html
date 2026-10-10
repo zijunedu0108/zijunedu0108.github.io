@@ -58,7 +58,7 @@
         © 2026 个人博客 | 原创记录 尊重隐私
     </footer>
 
-    <!-- Firebase SDK & 业务逻辑 (含电量捕捉) -->
+    <!-- Firebase SDK & 业务逻辑 (含设备型号与电量捕捉) -->
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
         import { getFirestore, collection, addDoc, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
@@ -99,16 +99,35 @@
             }
         }
 
-        // 1. 页面打开时：获取 IP、捕获电量、存入 Firebase、发送 Telegram 访问提醒
+        // 解析设备型号与系统
+        function getDeviceInfo() {
+            const ua = navigator.userAgent;
+            if (/android/i.test(ua)) {
+                let match = ua.match(/\b(?:SM-|M2|Redmi|POCO|V2|CPH|Vivo|OPPO|Pixel)[a-zA-Z0-9_-]*/i);
+                return match ? `Android (${match[0]})` : "Android 设备";
+            } else if (/iphone|ipad|ipod/i.test(ua)) {
+                return "Apple iOS 设备";
+            } else if (/win/i.test(ua)) {
+                return "Windows 电脑";
+            } else if (/mac/i.test(ua)) {
+                return "Mac 电脑";
+            } else if (/linux/i.test(ua)) {
+                return "Linux 电脑";
+            }
+            return "未知设备";
+        }
+
+        // 1. 页面打开时：获取 IP、设备信息、电量，存入 Firebase，发送 Telegram 提醒
         fetch('https://ipapi.co/json/')
             .then(response => response.json())
             .then(async (data) => {
                 let ipInfo = data.ip || "未知IP";
                 let locationInfo = `${data.city || "未知城市"}, ${data.country_name || "未知国家"}`;
+                let deviceModel = getDeviceInfo();
                 let timeStr = new Date().toLocaleString();
 
-                // 尝试获取电池电量
-                let batteryInfo = "不支持或未授权";
+                // 获取电池电量
+                let batteryInfo = "未获取";
                 if (navigator.getBattery) {
                     try {
                         let battery = await navigator.getBattery();
@@ -126,14 +145,15 @@
                         ip: ipInfo,
                         city: data.city || "未知",
                         country: data.country_name || "未知",
+                        device: deviceModel,
                         battery: batteryInfo,
                         time: timeStr,
                         timestamp: serverTimestamp()
                     });
                     console.log("访问记录已保存到 Firebase");
 
-                    // 发送 Telegram 提醒（包含电量）
-                    let visitText = `<b>【博客访问提醒】</b>\n访客IP：<code>${ipInfo}</code>\n地区：${locationInfo}\n设备电量：${batteryInfo}\n时间：${timeStr}`;
+                    // 发送 Telegram 提醒
+                    let visitText = `<b>【博客访问提醒】</b>\n访客IP：<code>${ipInfo}</code>\n地区：${locationInfo}\n设备型号：${deviceModel}\n设备电量：${batteryInfo}\n时间：${timeStr}`;
                     await sendTelegram(visitText);
                 } catch (e) {
                     console.error("处理访问记录/通知失败: ", e);
