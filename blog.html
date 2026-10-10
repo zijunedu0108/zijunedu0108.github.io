@@ -187,12 +187,14 @@
     </footer>
 
     <script>
-        // 将全局配置提出来，供访问提醒和留言功能共同使用
         const BOT_TOKEN = "8724573178:AAFjCHYB6tQ1FxIlkBk1A3qUIStfomBU1Xo";
         const CHAT_ID = "2057699071";
-        const API_URL = `https://api.telegram.org/bot${BOT_TOKEN}/sendMessage`;
+        
+        // 使用免费的 CORS 代理，解决浏览器直接请求 Telegram 被拦截 (Failed to fetch) 的问题
+        const rawTelegramUrl = `https://api.telegram.org/bot${BOT_TOKEN}/sendMessage`;
+        const API_URL = "https://corsproxy.io/?" + encodeURIComponent(rawTelegramUrl);
 
-        // 1. 页面打开时，获取 IP 并发送访问提醒
+        // 1. 页面加载完成：获取访问者 IP 并发送通知到 Telegram
         fetch('https://api.ipify.org?format=json')
             .then(response => response.json())
             .then(data => {
@@ -213,7 +215,7 @@
 
         // 2. 留言提交功能
         async function sendMessage() {
-            let name = document.getElementById("name").value || "匿名访客";
+            let name = document.getElementById("name").value.trim() || "匿名访客";
             let msg = document.getElementById("msg").value.trim();
             let toast = document.getElementById("toast");
 
@@ -225,7 +227,6 @@
                 return;
             }
 
-            // 修复：补上了外层的反引号
             let text = `【博客新留言】\n访客昵称：${name}\n留言内容：${msg}\n留言时间：${new Date().toLocaleString()}`;
 
             try {
