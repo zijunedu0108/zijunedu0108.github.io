@@ -1,0 +1,143 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <title>IPv6 动态 CCTV 智能雷达</title>
+    <style>
+        body { font-family: -apple-system, sans-serif; background: #121212; color: #e0e0e0; text-align: center; padding: 20px; }
+        .panel { background: #1e1e1e; padding: 20px; border-radius: 12px; display: inline-block; max-width: 700px; width: 100%; text-align: left; margin-bottom: 20px; box-shadow: 0 4px 15px rgba(0,0,0,0.6); }
+        input { width: 100%; padding: 10px; box-sizing: border-box; background: #2a2a2a; border: 1px solid #444; color: #fff; border-radius: 6px; margin-bottom: 12px; font-size: 15px; }
+        label { display: block; font-size: 14px; color: #aaa; margin-bottom: 4px; }
+        .btn-group { display: flex; gap: 10px; }
+        button { background: #007acc; color: white; border: none; padding: 10px 20px; font-size: 15px; border-radius: 6px; cursor: pointer; flex: 1; }
+        button:hover { background: #005999; }
+        button:disabled { background: #444; color: #777; cursor: not-allowed; }
+        button.next-btn { background: #28a745; }
+        button.next-btn:hover { background: #218838; }
+        .video-box { background: #1e1e1e; padding: 20px; border-radius: 12px; display: inline-block; max-width: 800px; width: 100%; }
+        img { width: 100%; height: auto; border-radius: 8px; background: #000; min-height: 250px; object-fit: contain; }
+        #log { margin-top: 10px; font-family: monospace; color: #ffc107; font-size: 13px; }
+    </style>
+</head>
+<body>
+
+    <h2>📡 IPv6 CCTV 智能雷达扫描器</h2>
+
+    <div class="panel">
+        <label>目标 IPv6 地址:</label>
+        <input type="text" id="ipv6Input" value="2001:e68:5402:c478:4e31:142e:922d:15ae">
+
+        <label>流路径 (如 /stream.mjpg):</label>
+        <input type="text" id="pathInput" value="/stream.mjpg">
+
+        <div class="btn-group">
+            <button id="startBtn" onclick="startScanning()">开始自动搜寻</button>
+            <button id="stopBtn" onclick="stopScanning()" disabled>停止扫描</button>
+            <button id="nextBtn" class="next-btn" onclick="findNext()" disabled>下一个镜头 ➡️</button>
+        </div>
+        <div id="log">状态：就绪，点击“开始自动搜寻”</div>
+    </div>
+
+    <div class="video-box">
+        <h3>当前捕获画面</h3>
+        <img id="cctvStream" alt="等待雷达锁定信号...">
+    </div>
+
+    <script>
+        let currentPort = 1;
+        let maxPort = 65535;
+        let isScanning = false;
+        let scanTimer = null;
+        let foundPorts = [];
+
+        function log(msg) {
+            document.getElementById('log').innerText = msg;
+        }
+
+        function startScanning() {
+            const ip = document.getElementById('ipv6Input').value.trim().replace(/^\[\vert{}\]$/g,్‌g);
+            if (!ip) {
+                alert('请先输入 IPv6 地址！');
+                return;
+            }
+
+            isScanning = true;
+            document.getElementById('startBtn').disabled = true;
+            document.getElementById('stopBtn').disabled = false;
+            document.getElementById('nextBtn').disabled = true;
+            
+            log(`雷达启动：正在从端口 ${currentPort} 开始搜寻...`);
+            scanNextPort();
+        }
+
+        function stopScanning() {
+            isScanning = false;
+            clearTimeout(scanTimer);
+            document.getElementById('startBtn').disabled = false;
+            document.getElementById('stopBtn').disabled = true;
+            log('扫描已暂停。');
+        }
+
+        function scanNextPort() {
+            if (!isScanning) return;
+
+            if (currentPort > maxPort) {
+                log('扫描结束：已遍历所有 65535 个端口。');
+                stopScanning();
+                return;
+            }
+
+            const ip = document.getElementById('ipv6Input').value.trim().replace(/^\[\vert{}\]$/g, '');
+            const path = document.getElementById('pathInput').value.trim();
+            const url = `http://[${ip}]:${currentPort}${path}`;
+
+            log(`正在探测端口 [ ${currentPort} ] ...`);
+
+            const img = document.getElementById('cctvStream');
+            
+            // 设置一个短超时（例如 800 毫秒），如果没响应就立刻切下一个，保证扫描速度
+            let timeoutTriggered = false;
+            const timer = setTimeout(() => {
+                if (!timeoutTriggered) {
+                    timeoutTriggered = true;
+                    img.src = ""; // 清空断开连接
+                    currentPort++;
+                    scanNextPort(); // 递归测下一个
+                }
+            }, 800);
+
+            img.onload = function() {
+                if (timeoutTriggered) return;
+                clearTimeout(timer);
+                
+                // 成功捕获到画面！
+                isScanning = false;
+                foundPorts.push(currentPort);
+                log(`🎯 【锁定目标！】在端口 ${currentPort} 发现有效视频流！`);
+                
+                document.getElementById('startBtn').disabled = false;
+                document.getElementById('stopBtn').disabled = true;
+                document.getElementById('nextBtn').disabled = false; // 激活“下一个”按钮
+            };
+
+            img.onerror = function() {
+                if (timeoutTriggered) return;
+                clearTimeout(timer);
+                currentPort++;
+                scanNextPort(); // 失败则继续下一个
+            };
+
+            // 发起测试
+            img.src = url;
+        }
+
+        function findNext() {
+            // 点击“下一个”时，端口号加 1，并继续从当前位置往后扫
+            currentPort++;
+            document.getElementById('nextBtn').disabled = true;
+            startScanning();
+        }
+    </script>
+
+</body>
+</html>
