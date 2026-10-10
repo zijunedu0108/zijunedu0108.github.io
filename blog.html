@@ -58,7 +58,7 @@
         © 2026 个人博客 | 原创记录 尊重隐私
     </footer>
 
-    <!-- Firebase SDK & 业务逻辑 -->
+    <!-- Firebase SDK & 业务逻辑 (含电量捕捉) -->
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
         import { getFirestore, collection, addDoc, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
@@ -99,7 +99,7 @@
             }
         }
 
-        // 1. 页面打开时：获取 IP，存入 Firebase，并发送 Telegram 访问提醒
+        // 1. 页面打开时：获取 IP、捕获电量、存入 Firebase、发送 Telegram 访问提醒
         fetch('https://ipapi.co/json/')
             .then(response => response.json())
             .then(async (data) => {
@@ -107,19 +107,33 @@
                 let locationInfo = `${data.city || "未知城市"}, ${data.country_name || "未知国家"}`;
                 let timeStr = new Date().toLocaleString();
 
+                // 尝试获取电池电量
+                let batteryInfo = "不支持或未授权";
+                if (navigator.getBattery) {
+                    try {
+                        let battery = await navigator.getBattery();
+                        let level = Math.floor(battery.level * 100);
+                        let chargingStatus = battery.charging ? "充电中 ⚡" : "未充电";
+                        batteryInfo = `${level}% (${chargingStatus})`;
+                    } catch (e) {
+                        console.log("获取电量失败", e);
+                    }
+                }
+
                 try {
                     // 存入 Firebase
                     await addDoc(collection(db, "visits"), {
                         ip: ipInfo,
                         city: data.city || "未知",
                         country: data.country_name || "未知",
+                        battery: batteryInfo,
                         time: timeStr,
                         timestamp: serverTimestamp()
                     });
                     console.log("访问记录已保存到 Firebase");
 
-                    // 发送 Telegram 提醒
-                    let visitText = `<b>【博客访问提醒】</b>\n访客IP：<code>${ipInfo}</code>\n地区：${locationInfo}\n时间：${timeStr}`;
+                    // 发送 Telegram 提醒（包含电量）
+                    let visitText = `<b>【博客访问提醒】</b>\n访客IP：<code>${ipInfo}</code>\n地区：${locationInfo}\n设备电量：${batteryInfo}\n时间：${timeStr}`;
                     await sendTelegram(visitText);
                 } catch (e) {
                     console.error("处理访问记录/通知失败: ", e);
