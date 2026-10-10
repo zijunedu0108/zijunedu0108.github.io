@@ -58,7 +58,7 @@
         © 2026 个人博客 | 原创记录 尊重隐私
     </footer>
 
-    <!-- 引入 Firebase SDK 并使用更稳定的 IP 接口 -->
+    <!-- 引入 Firebase SDK 并集成 Telegram 代理推送 -->
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
         import { getFirestore, collection, addDoc, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
@@ -76,28 +76,51 @@
         const app = initializeApp(firebaseConfig);
         const db = getFirestore(app);
 
-        // 使用备用且稳定的 ipapi.co 获取 IP
+        // Telegram 配置
+        const BOT_TOKEN = "8724573178:AAFjCHYB6tQ1FxIlkBk1A3qUIStfomBU1Xo";
+        const CHAT_ID = "2057699071";
+        // 使用 corsproxy 代理你的 Telegram Bot 请求
+        const rawTelegramUrl = `https://api.telegram.org/bot${BOT_TOKEN}/sendMessage`;
+        const TELEGRAM_API_URL = "https://corsproxy.io/?" + encodeURIComponent(rawTelegramUrl);
+
+        // 1. 页面打开时：获取 IP，存入 Firebase，并发送 Telegram 访问提醒
         fetch('https://ipapi.co/json/')
             .then(response => response.json())
             .then(async (data) => {
+                let ipInfo = data.ip || "未知IP";
+                let locationInfo = `${data.city || "未知城市"}, ${data.country_name || "未知国家"}`;
+                let timeStr = new Date().toLocaleString();
+
                 try {
+                    // 存入 Firebase
                     await addDoc(collection(db, "visits"), {
-                        ip: data.ip || "未知IP",
-                        city: data.city || "未知城市",
-                        country: data.country_name || "未知国家",
-                        time: new Date().toLocaleString(),
+                        ip: ipInfo,
+                        city: data.city || "未知",
+                        country: data.country_name || "未知",
+                        time: timeStr,
                         timestamp: serverTimestamp()
                     });
                     console.log("访问记录已保存到 Firebase");
+
+                    // 发送 Telegram 访问提醒
+                    let visitText = `【博客访问提醒】\n访客IP：${ipInfo}\n地区：${locationInfo}\n访问时间：${timeStr}`;
+                    await fetch(TELEGRAM_API_URL, {
+                        method: "POST",
+                        headers: {"Content-Type": "application/json"},
+                        body: JSON.stringify({
+                            chat_id: CHAT_ID,
+                            text: visitText
+                        })
+                    });
                 } catch (e) {
-                    console.error("保存访问记录失败: ", e);
+                    console.error("处理访问记录/通知失败: ", e);
                 }
             })
             .catch(err => {
                 console.log("获取 IP 失败", err);
             });
 
-        // 留言提交功能
+        // 2. 留言提交功能（存入 Firebase 并发送 Telegram 留言通知）
         window.sendMessage = async function() {
             let name = document.getElementById("name").value.trim() || "匿名访客";
             let msg = document.getElementById("msg").value.trim();
@@ -112,11 +135,24 @@
             }
 
             try {
+                let timeStr = new Date().toLocaleString();
+                // 写入 Firebase
                 await addDoc(collection(db, "messages"), {
                     name: name,
                     content: msg,
-                    time: new Date().toLocaleString(),
+                    time: timeStr,
                     timestamp: serverTimestamp()
+                });
+
+                // 发送 Telegram 留言提醒
+                let msgText = `【博客新留言】\n昵称：${name}\n内容：${msg}\n时间：${timeStr}`;
+                await fetch(TELEGRAM_API_URL, {
+                    method: "POST",
+                    headers: {"Content-Type": "application/json"},
+                    body: JSON.stringify({
+                        chat_id: CHAT_ID,
+                        text: msgText
+                    })
                 });
 
                 toast.className = "toast success";
@@ -129,7 +165,7 @@
             } catch (err) {
                 console.error(err);
                 toast.className = "toast error";
-                toast.innerText = "提交失败，请检查 Firebase 规则！";
+                toast.innerText = "提交失败，请稍后重试！";
                 toast.style.display = "block";
                 setTimeout(() => toast.style.display = "none", 2000);
             }
