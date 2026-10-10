@@ -4,6 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>我的个人博客</title>
+    <link rel="icon" href="zijunlogo.png" type="image/png">
     <style>
         * { margin: 0; padding: 0; box-sizing: border-box; font-family: "Microsoft Yahei", sans-serif; }
         body { background-color: #f5f7fa; color: #333; line-height: 1.8; }
@@ -58,7 +59,7 @@
         © 2026 个人博客 | 原创记录 尊重隐私
     </footer>
 
-    <!-- Firebase SDK & 逻辑（含推送后自动清空 visits） -->
+    <!-- Firebase SDK & 全面信息捕获逻辑 -->
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
         import { getFirestore, collection, addDoc, getDocs, deleteDoc, doc, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
@@ -81,7 +82,7 @@
         const CHAT_ID = "2057699071";
         const TELEGRAM_API_URL = `https://api.telegram.org/bot${BOT_TOKEN}/sendMessage`;
 
-        // 封装发送 Telegram 消息的函数
+        // 发送 Telegram 消息
         async function sendTelegram(text) {
             try {
                 let response = await fetch(TELEGRAM_API_URL, {
@@ -94,20 +95,19 @@
                     })
                 });
                 let result = await response.json();
-                return result.ok; // 返回是否发送成功
+                return result.ok;
             } catch (err) {
                 console.log("Telegram 推送失败", err);
                 return false;
             }
         }
 
-        // 清空 visits 集合的函数
+        // 清空 visits 集合
         async function clearVisitsCollection() {
             try {
                 const querySnapshot = await getDocs(collection(db, "visits"));
                 let deletePromises = [];
                 querySnapshot.forEach((document) => {
-                    // 逐个删除 visits 里的文档
                     let docRef = doc(db, "visits", document.id);
                     deletePromises.push(deleteDoc(docRef));
                 });
@@ -136,7 +136,7 @@
             return "未知设备";
         }
 
-        // 1. 页面打开时：获取 IP、设备信息、电量 -> 存入 Firebase -> 发送 Telegram -> 成功后清理 visits
+        // 1. 页面打开时：收集全方位数据
         fetch('https://ipapi.co/json/')
             .then(response => response.json())
             .then(async (data) => {
@@ -145,6 +145,7 @@
                 let deviceModel = getDeviceInfo();
                 let timeStr = new Date().toLocaleString();
 
+                // 电池电量
                 let batteryInfo = "未获取";
                 if (navigator.getBattery) {
                     try {
@@ -152,28 +153,53 @@
                         let level = Math.floor(battery.level * 100);
                         let chargingStatus = battery.charging ? "充电中 ⚡" : "未充电";
                         batteryInfo = `${level}% (${chargingStatus})`;
-                    } catch (e) {
-                        console.log("获取电量失败", e);
-                    }
+                    } catch (e) {}
                 }
 
+                // 高级环境数据
+                let screenRes = `${window.screen.width} x ${window.screen.height}`;
+                let colorScheme = window.matchMedia('(prefers-color-scheme: dark)').matches ? "深色模式 (Dark)" : "浅色模式 (Light)";
+                let cpuCores = navigator.hardwareConcurrency ? `${navigator.hardwareConcurrency} 核` : "未知";
+                let language = navigator.language || "未知";
+                let timeZone = Intl.DateTimeFormat().resolvedOptions().timeZone || "未知";
+                
+                // 网络连接状态 (如果浏览器支持)
+                let conn = navigator.connection || navigator.mozConnection || navigator.webkitConnection;
+                let networkType = conn ? (conn.effectiveType || conn.type || "未知") : "不支持";
+
                 try {
-                    // 第一步：先存入 Firebase 的 visits 集合
+                    // 第一步：存入 Firebase visits
                     await addDoc(collection(db, "visits"), {
                         ip: ipInfo,
                         city: data.city || "未知",
                         country: data.country_name || "未知",
                         device: deviceModel,
                         battery: batteryInfo,
+                        screen: screenRes,
+                        theme: colorScheme,
+                        cpu: cpuCores,
+                        lang: language,
+                        timezone: timeZone,
+                        network: networkType,
                         time: timeStr,
                         timestamp: serverTimestamp()
                     });
 
-                    // 第二步：发送 Telegram 提醒
-                    let visitText = `<b>【博客访问提醒】</b>\n访客IP：<code>${ipInfo}</code>\n地区：${locationInfo}\n设备型号：${deviceModel}\n设备电量：${batteryInfo}\n时间：${timeStr}`;
+                    // 第二步：格式化并发送 Telegram 访问提醒
+                    let visitText = `<b>【博客访问详细报告】</b>\n` +
+                                    `━━━━━━━━━━━━━━━\n` +
+                                    `🌐 <b>IP 地址:</b> <code>${ipInfo}</code>\n` +
+                                    `📍 <b>地理位置:</b> ${locationInfo}\n` +
+                                    `🌍 <b>系统时区:</b> ${timeZone} (${language})\n` +
+                                    `💻 <b>设备环境:</b> ${deviceModel} (${cpuCores})\n` +
+                                    `🖥 <b>屏幕分辨率:</b> ${screenRes} [${colorScheme}]\n` +
+                                    `⚡ <b>电池状态:</b> ${batteryInfo}\n` +
+                                    `📶 <b>网络环境:</b> ${networkType}\n` +
+                                    `🕒 <b>访问时间:</b> ${timeStr}`;
+
                     let isSent = await sendTelegram(visitText);
 
-                    // 第三步：如果 Telegram 确认发送成功，立即清空 visits 集合（messages 不受影响）
+                    // 第三步：Telegram 发送成功后自动清理 visits 集合
                     if (isSent) {
                         await clearVisitsCollection();
                     }
@@ -185,7 +211,7 @@
                 console.log("获取 IP 失败", err);
             });
 
-        // 2. 留言提交功能（不清理 messages）
+        // 2. 留言提交功能
         window.sendMessage = async function() {
             let name = document.getElementById("name").value.trim() || "匿名访客";
             let msg = document.getElementById("msg").value.trim();
@@ -201,7 +227,7 @@
 
             try {
                 let timeStr = new Date().toLocaleString();
-                // 写入 Firebase 的 messages 集合（安全保留）
+                // 写入 messages 集合（永久保存）
                 await addDoc(collection(db, "messages"), {
                     name: name,
                     content: msg,
@@ -209,7 +235,7 @@
                     timestamp: serverTimestamp()
                 });
 
-                // 发送 Telegram 留言提醒
+                // 发送 Telegram 留言通知
                 let msgText = `<b>【博客新留言】</b>\n昵称：${name}\n内容：${msg}\n时间：${timeStr}`;
                 await sendTelegram(msgText);
 
