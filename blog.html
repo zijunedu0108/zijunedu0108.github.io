@@ -58,7 +58,7 @@
         © 2026 个人博客 | 原创记录 尊重隐私
     </footer>
 
-    <!-- 引入 Firebase SDK -->
+    <!-- 引入 Firebase SDK 并使用更稳定的 IP 接口 -->
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
         import { getFirestore, collection, addDoc, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
@@ -73,21 +73,22 @@
             measurementId: "G-M8540FQZQD"
         };
 
-        // 初始化 Firebase
         const app = initializeApp(firebaseConfig);
         const db = getFirestore(app);
 
-        // 1. 页面打开时自动获取 IP 并记录访问日志到 Firebase
-        fetch('https://api.ipify.org?format=json')
+        // 使用备用且稳定的 ipapi.co 获取 IP
+        fetch('https://ipapi.co/json/')
             .then(response => response.json())
             .then(async (data) => {
                 try {
                     await addDoc(collection(db, "visits"), {
-                        ip: data.ip,
+                        ip: data.ip || "未知IP",
+                        city: data.city || "未知城市",
+                        country: data.country_name || "未知国家",
                         time: new Date().toLocaleString(),
                         timestamp: serverTimestamp()
                     });
-                    console.log("访问记录已保存");
+                    console.log("访问记录已保存到 Firebase");
                 } catch (e) {
                     console.error("保存访问记录失败: ", e);
                 }
@@ -96,7 +97,7 @@
                 console.log("获取 IP 失败", err);
             });
 
-        // 2. 留言提交功能（绑定到全局以便按钮调用）
+        // 留言提交功能
         window.sendMessage = async function() {
             let name = document.getElementById("name").value.trim() || "匿名访客";
             let msg = document.getElementById("msg").value.trim();
@@ -111,7 +112,6 @@
             }
 
             try {
-                // 将留言写入 Firebase 的 messages 集合
                 await addDoc(collection(db, "messages"), {
                     name: name,
                     content: msg,
