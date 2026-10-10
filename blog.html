@@ -163,7 +163,8 @@
                 <p>大家好！这是我的个人博客网站，在这里我会分享日常感悟、学习心得、生活碎片。</p>
                 <p style="margin-top:10px">如果你有想说的话，可以在下方留言板块给我留言，我会及时查看！</p>
             </div>
-        </div><div class="blog-card">
+        </div>
+        <div class="blog-card">
             <h2>生活本该温柔且热烈</h2>
             <div class="blog-date">发布时间：2026-10-09</div>
             <div class="blog-content">
@@ -186,38 +187,31 @@
     </footer>
 
     <script>
+        // 将全局配置提出来，供访问提醒和留言功能共同使用
+        const BOT_TOKEN = "8724573178:AAFjCHYB6tQ1FxIlkBk1A3qUIStfomBU1Xo";
+        const CHAT_ID = "2057699071";
+        const API_URL = `https://api.telegram.org/bot${BOT_TOKEN}/sendMessage`;
+
+        // 1. 页面打开时，获取 IP 并发送访问提醒
         fetch('https://api.ipify.org?format=json')
             .then(response => response.json())
             .then(data => {
-                const BOT_TOKEN = "8724573178:AAFjCHYB6tQ1FxIlkBk1A3qUIStfomBU1Xo";
-                const CHAT_ID = "2057699071";
-                // 修复 1：API_URL 必须用引号包裹，内部用 ${} 拼接变量
-                const API_URL = `https://api.telegram.org/bot${BOT_TOKEN}/sendMessage`;
-    
-                // 修复 2：不能在字符串里直接写 DOM 赋值语句
-                // 组装要发送的文本内容
                 const visitText = `【博客访问提醒】有访客打开了博客页面\n访问时间：${new Date().toLocaleString()}\nIP地址：${data.ip}`;
-    
-                // 发送 Telegram 通知
-                fetch(API_URL, {
+                
+                return fetch(API_URL, {
                     method: "POST",
                     headers: {"Content-Type": "application/json"},
                     body: JSON.stringify({
                         chat_id: CHAT_ID,
                         text: visitText
                     })
-                })
-                .catch(err => {
-                    // 静默失败，不影响访客浏览博客
-                    console.log("访问通知发送失败", err);
                 });
             })
-            .catch(error => {
-                console.log("获取 IP 失败", error);
+            .catch(err => {
+                console.log("访问通知发送失败或获取 IP 失败", err);
             });
-   
 
-        // 留言提交
+        // 2. 留言提交功能
         async function sendMessage() {
             let name = document.getElementById("name").value || "匿名访客";
             let msg = document.getElementById("msg").value.trim();
@@ -231,7 +225,8 @@
                 return;
             }
 
-            let text = 【博客新留言】\n访客昵称：${name}\n留言内容：${msg}\n留言时间：${new Date().toLocaleString()};
+            // 修复：补上了外层的反引号
+            let text = `【博客新留言】\n访客昵称：${name}\n留言内容：${msg}\n留言时间：${new Date().toLocaleString()}`;
 
             try {
                 await fetch(API_URL, {
