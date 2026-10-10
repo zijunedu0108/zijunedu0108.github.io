@@ -58,7 +58,7 @@
         © 2026 个人博客 | 原创记录 尊重隐私
     </footer>
 
-    <!-- 引入 Firebase SDK 并集成 Telegram 代理推送 -->
+    <!-- Firebase SDK & 业务逻辑 -->
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
         import { getFirestore, collection, addDoc, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
@@ -79,9 +79,25 @@
         // Telegram 配置
         const BOT_TOKEN = "8724573178:AAFjCHYB6tQ1FxIlkBk1A3qUIStfomBU1Xo";
         const CHAT_ID = "2057699071";
-        // 使用 corsproxy 代理你的 Telegram Bot 请求
-        const rawTelegramUrl = `https://api.telegram.org/bot${BOT_TOKEN}/sendMessage`;
-        const TELEGRAM_API_URL = "https://corsproxy.io/?" + encodeURIComponent(rawTelegramUrl);
+        const TELEGRAM_API_URL = `https://api.telegram.org/bot${BOT_TOKEN}/sendMessage`;
+
+        // 封装发送 Telegram 消息的函数
+        async function sendTelegram(text) {
+            try {
+                await fetch(TELEGRAM_API_URL, {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify({
+                        chat_id: CHAT_ID,
+                        text: text,
+                        parse_mode: "HTML"
+                    })
+                });
+                console.log("Telegram 推送成功");
+            } catch (err) {
+                console.log("Telegram 推送失败", err);
+            }
+        }
 
         // 1. 页面打开时：获取 IP，存入 Firebase，并发送 Telegram 访问提醒
         fetch('https://ipapi.co/json/')
@@ -102,16 +118,9 @@
                     });
                     console.log("访问记录已保存到 Firebase");
 
-                    // 发送 Telegram 访问提醒
-                    let visitText = `【博客访问提醒】\n访客IP：${ipInfo}\n地区：${locationInfo}\n访问时间：${timeStr}`;
-                    await fetch(TELEGRAM_API_URL, {
-                        method: "POST",
-                        headers: {"Content-Type": "application/json"},
-                        body: JSON.stringify({
-                            chat_id: CHAT_ID,
-                            text: visitText
-                        })
-                    });
+                    // 发送 Telegram 提醒
+                    let visitText = `<b>【博客访问提醒】</b>\n访客IP：<code>${ipInfo}</code>\n地区：${locationInfo}\n时间：${timeStr}`;
+                    await sendTelegram(visitText);
                 } catch (e) {
                     console.error("处理访问记录/通知失败: ", e);
                 }
@@ -120,7 +129,7 @@
                 console.log("获取 IP 失败", err);
             });
 
-        // 2. 留言提交功能（存入 Firebase 并发送 Telegram 留言通知）
+        // 2. 留言提交功能
         window.sendMessage = async function() {
             let name = document.getElementById("name").value.trim() || "匿名访客";
             let msg = document.getElementById("msg").value.trim();
@@ -145,15 +154,8 @@
                 });
 
                 // 发送 Telegram 留言提醒
-                let msgText = `【博客新留言】\n昵称：${name}\n内容：${msg}\n时间：${timeStr}`;
-                await fetch(TELEGRAM_API_URL, {
-                    method: "POST",
-                    headers: {"Content-Type": "application/json"},
-                    body: JSON.stringify({
-                        chat_id: CHAT_ID,
-                        text: msgText
-                    })
-                });
+                let msgText = `<b>【博客新留言】</b>\n昵称：${name}\n内容：${msg}\n时间：${timeStr}`;
+                await sendTelegram(msgText);
 
                 toast.className = "toast success";
                 toast.innerText = "留言提交成功！";
