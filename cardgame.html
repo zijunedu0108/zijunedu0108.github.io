@@ -1,0 +1,730 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>紫云卡牌 · 比大小</title>
+    <!-- favicon 和 icon 使用 zijunlogo.png -->
+    <link rel="icon" type="image/png" href="zijunlogo.png">
+    <link rel="apple-touch-icon" href="zijunlogo.png">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Segoe UI', Roboto, 'Helvetica Neue', sans-serif;
+        }
+        body {
+            min-height: 100vh;
+            background: linear-gradient(145deg, #1e1b2b 0%, #2a2342 100%);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 16px;
+        }
+        .game-container {
+            width: 100%;
+            max-width: 900px;
+            background: rgba(22, 18, 36, 0.85);
+            backdrop-filter: blur(8px);
+            border-radius: 48px;
+            box-shadow: 0 25px 50px -8px rgba(0,0,0,0.8), 0 0 0 1px rgba(200, 180, 255, 0.2);
+            padding: 28px 24px 32px;
+            transition: all 0.3s;
+        }
+        /* 头部 logo + 标题 */
+        .brand {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            margin-bottom: 24px;
+            padding-left: 8px;
+        }
+        .brand img {
+            width: 48px;
+            height: 48px;
+            object-fit: contain;
+            filter: drop-shadow(0 0 8px #a07eff);
+        }
+        .brand h1 {
+            font-size: 2rem;
+            font-weight: 700;
+            letter-spacing: 2px;
+            background: linear-gradient(135deg, #e6d9ff, #c7a9ff);
+            -webkit-background-clip: text;
+            background-clip: text;
+            color: transparent;
+            text-shadow: 0 0 15px rgba(180, 130, 255, 0.5);
+        }
+        /* 所有页面卡片面板 */
+        .screen {
+            display: none;
+            animation: fade 0.25s ease;
+        }
+        .screen.active {
+            display: block;
+        }
+        @keyframes fade {
+            from { opacity: 0.4; transform: translateY(6px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        /* 主页按钮组 */
+        .menu-grid {
+            display: flex;
+            flex-direction: column;
+            gap: 18px;
+            margin-top: 10px;
+        }
+        .btn {
+            border: none;
+            background: linear-gradient(135deg, #392e5c, #2f264a);
+            color: #efeaff;
+            font-size: 1.4rem;
+            font-weight: 600;
+            padding: 20px 24px;
+            border-radius: 60px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 16px;
+            box-shadow: 0 12px 0 #0f0c1a, 0 12px 25px rgba(0,0,0,0.4);
+            border: 1px solid rgba(220, 200, 255, 0.3);
+            transition: all 0.08s linear;
+            cursor: pointer;
+            letter-spacing: 1px;
+            text-shadow: 0 2px 0 #1e172b;
+        }
+        .btn:active {
+            transform: translateY(6px);
+            box-shadow: 0 6px 0 #0f0c1a, 0 12px 20px rgba(0,0,0,0.4);
+        }
+        .btn img {
+            width: 38px;
+            height: 38px;
+            filter: drop-shadow(0 0 6px #b28aff);
+        }
+        .btn-secondary {
+            background: linear-gradient(135deg, #2e2842, #231e35);
+            box-shadow: 0 8px 0 #0b0915, 0 10px 20px rgba(0,0,0,0.4);
+            font-size: 1.2rem;
+            padding: 16px 20px;
+        }
+        .btn-secondary:active {
+            transform: translateY(4px);
+            box-shadow: 0 4px 0 #0b0915, 0 10px 18px rgba(0,0,0,0.4);
+        }
+        /* 返回按钮 */
+        .back-btn {
+            background: transparent;
+            border: 1px solid #6d5b9b;
+            padding: 10px 24px;
+            border-radius: 40px;
+            color: #cdb8ff;
+            font-weight: 600;
+            font-size: 1rem;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            cursor: pointer;
+            margin-bottom: 18px;
+            transition: 0.15s;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.3);
+        }
+        .back-btn:hover {
+            background: #392e5c;
+            border-color: #b79aff;
+        }
+        .back-btn i {
+            font-size: 1.3rem;
+            line-height: 1;
+        }
+        /* 卡片面板通用 */
+        .panel {
+            background: rgba(28, 22, 45, 0.8);
+            border-radius: 36px;
+            padding: 28px 24px;
+            border: 1px solid #493e6b;
+            box-shadow: inset 0 0 30px rgba(90, 50, 150, 0.2), 0 18px 30px -10px black;
+        }
+        .panel h2 {
+            color: #e3d6ff;
+            font-size: 2rem;
+            margin-bottom: 16px;
+            font-weight: 600;
+            letter-spacing: 1px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        .input-field {
+            width: 100%;
+            background: #1b152c;
+            border: 2px solid #4a3b70;
+            border-radius: 40px;
+            padding: 18px 22px;
+            font-size: 1.3rem;
+            color: #f0e9ff;
+            outline: none;
+            margin: 16px 0;
+            transition: 0.2s;
+            letter-spacing: 1px;
+        }
+        .input-field:focus {
+            border-color: #b28aff;
+            box-shadow: 0 0 18px #7d5bbe;
+        }
+        .input-field::placeholder {
+            color: #8479a8;
+            font-size: 1.1rem;
+        }
+        .roomcode-display {
+            background: #1e182f;
+            border-radius: 24px;
+            padding: 16px 22px;
+            border: 1px dashed #9a7ee0;
+            font-size: 1.9rem;
+            font-weight: 700;
+            color: #dccaff;
+            text-align: center;
+            letter-spacing: 8px;
+            margin: 20px 0;
+            text-shadow: 0 0 12px #a37eff;
+            word-break: break-all;
+        }
+        .rule-list {
+            list-style: none;
+            color: #cfc2f0;
+            font-size: 1.1rem;
+            line-height: 1.7;
+        }
+        .rule-list li {
+            margin-bottom: 14px;
+            padding-left: 28px;
+            position: relative;
+        }
+        .rule-list li::before {
+            content: "🃏";
+            position: absolute;
+            left: 0;
+            top: -2px;
+            font-size: 1.2rem;
+            filter: drop-shadow(0 0 5px #b28aff);
+        }
+        /* 游戏区域 */
+        .game-area {
+            display: flex;
+            flex-direction: column;
+            gap: 24px;
+        }
+        .players-row {
+            display: flex;
+            gap: 16px;
+            flex-wrap: wrap;
+            justify-content: center;
+        }
+        .player-card {
+            background: #1d1730;
+            border-radius: 28px;
+            padding: 18px 12px;
+            flex: 1 1 140px;
+            border: 2px solid #443766;
+            box-shadow: 0 8px 0 #0d0a15;
+            text-align: center;
+        }
+        .player-name {
+            font-size: 1rem;
+            color: #b7a4e6;
+            margin-bottom: 12px;
+            font-weight: 600;
+        }
+        .player-card .card-visual {
+            min-height: 100px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 3.5rem;
+            font-weight: 800;
+            background: #2b2240;
+            border-radius: 20px;
+            color: #ffeaa6;
+            text-shadow: 0 0 15px #ffbb33;
+            margin-bottom: 8px;
+            padding: 10px;
+        }
+        .card-suit {
+            font-size: 1rem;
+            color: #a38fda;
+            letter-spacing: 2px;
+        }
+        .action-bar {
+            display: flex;
+            gap: 16px;
+            justify-content: center;
+            margin-top: 10px;
+        }
+        .action-bar .btn {
+            font-size: 1.2rem;
+            padding: 16px 32px;
+            flex: 0 1 auto;
+        }
+        .message-box {
+            background: #231d38;
+            border-radius: 30px;
+            padding: 14px 22px;
+            color: #d4c2ff;
+            font-weight: 500;
+            font-size: 1.1rem;
+            text-align: center;
+            border: 1px solid #5b4a86;
+        }
+        .hidden {
+            display: none !important;
+        }
+        .small-note {
+            color: #9f93c0;
+            font-size: 0.9rem;
+            margin-top: 10px;
+            text-align: center;
+        }
+        .flex-center {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+    </style>
+</head>
+<body>
+    <div class="game-container">
+        <!-- 品牌区 + logo -->
+        <div class="brand">
+            <img src="zijunlogo.png" alt="zijun logo" onerror="this.src='data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22%3E%3Ccircle cx=%2250%22 cy=%2250%22 r=%2245%22 fill=%22%238a5cf0%22/%3E%3Ctext x=%2250%22 y=%2268%22 font-size=%2250%22 text-anchor=%22middle%22 fill=%22white%22%3EZ%3C/text%3E%3C/svg%3E'">
+            <h1>紫云卡牌</h1>
+        </div>
+
+        <!-- ========= 主页 ========= -->
+        <div id="homeScreen" class="screen active">
+            <div class="menu-grid">
+                <button class="btn" id="createRoomBtn">
+                    <img src="zijunlogo.png" alt="" onerror="this.style.display='none'"> 创建房间
+                </button>
+                <button class="btn" id="joinRoomBtn">
+                    <img src="zijunlogo.png" alt="" onerror="this.style.display='none'"> 加入房间
+                </button>
+                <button class="btn" id="rulesBtn">
+                    <img src="zijunlogo.png" alt="" onerror="this.style.display='none'"> 游戏规则
+                </button>
+            </div>
+            <div class="small-note" style="margin-top:28px;">✨ 比大小 · 紫云幻牌 ✨</div>
+        </div>
+
+        <!-- ========= 创建房间 ========= -->
+        <div id="createScreen" class="screen">
+            <button class="back-btn" id="backFromCreate"><i>←</i> 返回</button>
+            <div class="panel">
+                <h2>🃏 创建房间</h2>
+                <p style="color:#b7a8dd; margin-bottom: 8px;">房间码已生成，可邀请好友加入</p>
+                <div id="createdRoomCode" class="roomcode-display">----</div>
+                <button class="btn btn-secondary" id="startGameFromCreate" style="width:100%; margin-top: 12px;">开始游戏 (单人练习)</button>
+                <p class="small-note" style="margin-top: 18px;">注：当前为演示模式，开始后将与AI对战</p>
+            </div>
+        </div>
+
+        <!-- ========= 加入房间 ========= -->
+        <div id="joinScreen" class="screen">
+            <button class="back-btn" id="backFromJoin"><i>←</i> 返回</button>
+            <div class="panel">
+                <h2>🔑 加入房间</h2>
+                <p style="color:#b7a8dd;">输入6位房间码</p>
+                <input type="text" id="roomCodeInput" class="input-field" placeholder="例如: XK3P9Q" maxlength="6" autocomplete="off">
+                <button class="btn btn-secondary" id="joinGameBtn" style="width:100%;">加入游戏</button>
+                <div id="joinMessage" class="message-box hidden" style="margin-top: 20px;"></div>
+            </div>
+        </div>
+
+        <!-- ========= 游戏规则 ========= -->
+        <div id="rulesScreen" class="screen">
+            <button class="back-btn" id="backFromRules"><i>←</i> 返回</button>
+            <div class="panel">
+                <h2>📜 游戏规则</h2>
+                <ul class="rule-list">
+                    <li>每局双方各抽一张牌，比较牌面点数（2~10，J=11，Q=12，K=13，A=14）。</li>
+                    <li>点数大者获胜，平局则平手。</li>
+                    <li>点击「抽牌」按钮，双方亮牌并判定胜负。</li>
+                    <li>房间码用于和朋友联机（本演示中仅单人+AI）。</li>
+                    <li>紫云标志代表幸运，祝你好运！</li>
+                </ul>
+            </div>
+        </div>
+
+        <!-- ========= 游戏对战界面 ========= -->
+        <div id="gameScreen" class="screen">
+            <button class="back-btn" id="backToHomeFromGame"><i>←</i> 返回主页</button>
+            <div class="panel">
+                <div class="game-area">
+                    <div class="players-row">
+                        <!-- 玩家1 -->
+                        <div class="player-card">
+                            <div class="player-name">👤 你</div>
+                            <div id="playerCardVisual" class="card-visual">?</div>
+                            <div id="playerCardSuit" class="card-suit">—</div>
+                        </div>
+                        <!-- 玩家2 / AI -->
+                        <div class="player-card">
+                            <div class="player-name">🤖 对手</div>
+                            <div id="aiCardVisual" class="card-visual">?</div>
+                            <div id="aiCardSuit" class="card-suit">—</div>
+                        </div>
+                    </div>
+                    <div id="gameMessage" class="message-box">点击下方抽牌开始</div>
+                    <div class="action-bar">
+                        <button class="btn btn-secondary" id="drawBtn">🎴 抽牌</button>
+                        <button class="btn btn-secondary" id="resetGameBtn">🔄 重来</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        (function() {
+            // ---------- 页面导航 ----------
+            const screens = {
+                home: document.getElementById('homeScreen'),
+                create: document.getElementById('createScreen'),
+                join: document.getElementById('joinScreen'),
+                rules: document.getElementById('rulesScreen'),
+                game: document.getElementById('gameScreen')
+            };
+
+            function showScreen(screenId) {
+                Object.values(screens).forEach(s => s.classList.remove('active'));
+                if (screens[screenId]) screens[screenId].classList.add('active');
+            }
+
+            // 返回主页
+            document.getElementById('backFromCreate').addEventListener('click', () => showScreen('home'));
+            document.getElementById('backFromJoin').addEventListener('click', () => showScreen('home'));
+            document.getElementById('backFromRules').addEventListener('click', () => showScreen('home'));
+            document.getElementById('backToHomeFromGame').addEventListener('click', () => {
+                resetGame();
+                showScreen('home');
+            });
+
+            // 主页按钮跳转
+            document.getElementById('createRoomBtn').addEventListener('click', () => {
+                generateRoomCode();
+                showScreen('create');
+            });
+            document.getElementById('joinRoomBtn').addEventListener('click', () => {
+                document.getElementById('roomCodeInput').value = '';
+                document.getElementById('joinMessage').classList.add('hidden');
+                showScreen('join');
+            });
+            document.getElementById('rulesBtn').addEventListener('click', () => showScreen('rules'));
+
+            // ---------- 创建房间逻辑 ----------
+            function generateRoomCode() {
+                const chars = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789'; // 避免混淆字符
+                let code = '';
+                for (let i = 0; i < 6; i++) {
+                    code += chars.charAt(Math.floor(Math.random() * chars.length));
+                }
+                document.getElementById('createdRoomCode').textContent = code;
+                return code;
+            }
+
+            // 从创建房间开始游戏（单人+AI）
+            document.getElementById('startGameFromCreate').addEventListener('click', () => {
+                resetGame();
+                showScreen('game');
+            });
+
+            // ---------- 加入房间逻辑 ----------
+            document.getElementById('joinGameBtn').addEventListener('click', () => {
+                const input = document.getElementById('roomCodeInput').value.trim().toUpperCase();
+                const msgBox = document.getElementById('joinMessage');
+                if (input.length === 0) {
+                    msgBox.textContent = '❌ 请输入房间码';
+                    msgBox.classList.remove('hidden');
+                    return;
+                }
+                if (input.length !== 6) {
+                    msgBox.textContent = '⚠️ 房间码应为6位字符';
+                    msgBox.classList.remove('hidden');
+                    return;
+                }
+                // 模拟成功加入 (任何6位码都视为有效)
+                msgBox.textContent = `✅ 成功加入房间 ${input} (演示模式)`;
+                msgBox.classList.remove('hidden');
+                // 延迟跳转到游戏界面
+                setTimeout(() => {
+                    resetGame();
+                    showScreen('game');
+                }, 600);
+            });
+
+            // ---------- 游戏核心逻辑 (比大小) ----------
+            const SUITS = ['♠', '♥', '♣', '♦'];
+            const RANKS = ['2','3','4','5','6','7','8','9','10','J','Q','K','A'];
+            const RANK_VALUES = {
+                '2':2, '3':3, '4':4, '5':5, '6':6, '7':7, '8':8, '9':9, '10':10,
+                'J':11, 'Q':12, 'K':13, 'A':14
+            };
+
+            // 游戏状态
+            let playerCard = null; // { rank, suit, value }
+            let aiCard = null;
+            let gameActive = false; // 是否已经抽过牌
+
+            // DOM元素
+            const playerCardVisual = document.getElementById('playerCardVisual');
+            const playerCardSuit = document.getElementById('playerCardSuit');
+            const aiCardVisual = document.getElementById('aiCardVisual');
+            const aiCardSuit = document.getElementById('aiCardSuit');
+            const gameMessage = document.getElementById('gameMessage');
+            const drawBtn = document.getElementById('drawBtn');
+            const resetBtn = document.getElementById('resetGameBtn');
+
+            // 随机生成一张牌
+            function getRandomCard() {
+                const suit = SUITS[Math.floor(Math.random() * SUITS.length)];
+                const rank = RANKS[Math.floor(Math.random() * RANKS.length)];
+                return { rank, suit, value: RANK_VALUES[rank] };
+            }
+
+            // 显示牌面（带颜色区分红黑）
+            function renderCardVisual(element, card, isPlayer = true) {
+                if (!card) {
+                    element.textContent = '?';
+                    element.style.color = '#ffeaa6';
+                    return;
+                }
+                // 只显示点数，花色放在下边
+                element.textContent = card.rank;
+                // 红色花色：♥♦ 用亮红色，黑色花色：♠♣ 用淡紫色/白
+                if (card.suit === '♥' || card.suit === '♦') {
+                    element.style.color = '#ff7b7b';
+                    element.style.textShadow = '0 0 15px #ff4d4d';
+                } else {
+                    element.style.color = '#e0d0ff';
+                    element.style.textShadow = '0 0 15px #b28aff';
+                }
+            }
+
+            function renderSuit(element, card) {
+                if (!card) {
+                    element.textContent = '—';
+                    return;
+                }
+                const suitSymbol = card.suit;
+                element.textContent = suitSymbol + ' ' + card.rank;
+                if (suitSymbol === '♥' || suitSymbol === '♦') {
+                    element.style.color = '#ff8a8a';
+                } else {
+                    element.style.color = '#b7a4e6';
+                }
+            }
+
+            // 重置游戏状态（清空牌面、消息）
+            function resetGame() {
+                playerCard = null;
+                aiCard = null;
+                gameActive = false;
+                playerCardVisual.textContent = '?';
+                playerCardVisual.style.color = '#ffeaa6';
+                playerCardVisual.style.textShadow = '0 0 15px #ffbb33';
+                aiCardVisual.textContent = '?';
+                aiCardVisual.style.color = '#ffeaa6';
+                aiCardVisual.style.textShadow = '0 0 15px #ffbb33';
+                playerCardSuit.textContent = '—';
+                aiCardSuit.textContent = '—';
+                playerCardSuit.style.color = '#a38fda';
+                aiCardSuit.style.color = '#a38fda';
+                gameMessage.textContent = '点击下方抽牌开始';
+                drawBtn.disabled = false;
+            }
+
+            // 抽牌并判定
+            function drawCards() {
+                if (gameActive) {
+                    // 如果已经抽过，不能重复抽（或可以重置？为了简单，这里不允许重复抽，但按钮可以重置）
+                    return;
+                }
+                // 生成双方牌
+                playerCard = getRandomCard();
+                aiCard = getRandomCard();
+
+                // 渲染
+                renderCardVisual(playerCardVisual, playerCard, true);
+                renderCardVisual(aiCardVisual, aiCard, false);
+                renderSuit(playerCardSuit, playerCard);
+                renderSuit(aiCardSuit, aiCard);
+
+                // 判定胜负
+                let message = '';
+                if (playerCard.value > aiCard.value) {
+                    message = '🎉 你赢了！ 紫云之力！';
+                } else if (playerCard.value < aiCard.value) {
+                    message = '💫 对手赢了... 再试一次';
+                } else {
+                    message = '⚖️ 平局！ 势均力敌';
+                }
+
+                // 补充牌面说明
+                message += ` (${playerCard.rank} vs ${aiCard.rank})`;
+                gameMessage.textContent = message;
+                gameActive = true;
+            }
+
+            // 抽牌按钮
+            drawBtn.addEventListener('click', drawCards);
+
+            // 重置按钮
+            resetBtn.addEventListener('click', () => {
+                resetGame();
+            });
+
+            // 监听返回主页时重置（已经在返回按钮中调用 resetGame）
+
+            // 初始化：如果游戏界面可见，重置状态；第一次显示时执行
+            // 但一开始就重置一遍
+            resetGame();
+
+            // 如果通过加入房间进入，保证重置状态 (但reset已经在跳转前调用)
+            // 防止按返回时状态混乱，返回时重置
+            // 另外如果点击抽牌按钮连续抽，限制已抽过的不能再抽
+            // 但 reset 会解锁
+
+            // 附加: 房间码生成后，如果返回主页再创建会重新生成，没问题
+
+            // 修复: 在创建房间界面点击开始游戏时重置（已调用resetGame）
+            // 加入房间成功后也调用了resetGame
+            // 但在游戏界面点击"重来"重置
+
+            // 如果抽牌后，还想再抽，可以点重来，也可以再按抽牌？
+            // 现在游戏逻辑是 gameActive 为 true 时抽牌无效，但按钮仍可点。我们可以在drawCards开头判断gameActive，如果true就不执行。
+            // 已经在函数开头判断 if (gameActive) return; 但按钮未禁用，可以优化为视觉提示。
+            // 不过点击后没反应，用户可能会困惑，可以改一下按钮文字? 不，用户可以按重来。
+            // 但最好让抽牌按钮在抽过牌后变灰? 其实不用，重来就好。简单添加一个判断，如果游戏激活，消息提示。
+            // 修改: 让 drawCards 如果gameActive则改变消息提示。
+            // 重写drawCards部分逻辑：
+            const originalDraw = drawCards;
+            drawCards = function() {
+                if (gameActive) {
+                    gameMessage.textContent = '⚠️ 已经抽过牌了，点击“重来”再开一局';
+                    return;
+                }
+                playerCard = getRandomCard();
+                aiCard = getRandomCard();
+
+                renderCardVisual(playerCardVisual, playerCard, true);
+                renderCardVisual(aiCardVisual, aiCard, false);
+                renderSuit(playerCardSuit, playerCard);
+                renderSuit(aiCardSuit, aiCard);
+
+                let message = '';
+                if (playerCard.value > aiCard.value) {
+                    message = '🎉 你赢了！ 紫云之力！';
+                } else if (playerCard.value < aiCard.value) {
+                    message = '💫 对手赢了... 再试一次';
+                } else {
+                    message = '⚖️ 平局！ 势均力敌';
+                }
+                message += ` (${playerCard.rank} vs ${aiCard.rank})`;
+                gameMessage.textContent = message;
+                gameActive = true;
+            };
+            drawBtn.removeEventListener('click', originalDraw);
+            drawBtn.addEventListener('click', drawCards);
+
+            // 加入房间回车快捷键
+            document.getElementById('roomCodeInput').addEventListener('keypress', (e) => {
+                if (e.key === 'Enter') {
+                    document.getElementById('joinGameBtn').click();
+                }
+            });
+
+            // 确保游戏界面每次显示时若没有抽牌状态正常
+            // 监听导航显示可做，但不需要太复杂
+            // 若用户通过创建房间/加入房间开始，reset已经在之前调用了
+
+            // 附加处理：如果用户点击浏览器返回（忽略）
+
+            // 最后，再次确保图片显示正确，由于有些环境可能加载不了图片，已经用onerror处理，显示fallback
+            // favicon也做了，但注意 if 图片不存在，可能不显示，但没关系
+
+            // 更新主页按钮内的图片错误处理，已在html中处理
+
+            // 处理主页到创建房间时，房间码随机生成
+            // 已实现
+
+            // 当从创建房间界面开始游戏时，reset会被调用
+            // 修改 startGameFromCreate 调用 resetGame 和 showScreen('game')
+            // 已做
+
+            // 微调：让加入房间时，如果输入码位数足够，也能生成一个消息，并跳转。
+            // 已做
+
+            // 最后，绑定一下加入房间的立即重置（不用）
+            // 完美
+            // 更新重置函数，重置时也重置gameActive
+            // 已经做了
+
+            // 调整初始重置函数，把gameActive置为false
+            // 已经做了
+
+            // 添加reset里样式重置
+            // 可以
+
+            // 重写resetGame完善样式
+            const originalReset = resetGame;
+            resetGame = function() {
+                playerCard = null;
+                aiCard = null;
+                gameActive = false;
+                playerCardVisual.textContent = '?';
+                playerCardVisual.style.color = '#ffeaa6';
+                playerCardVisual.style.textShadow = '0 0 15px #ffbb33';
+                aiCardVisual.textContent = '?';
+                aiCardVisual.style.color = '#ffeaa6';
+                aiCardVisual.style.textShadow = '0 0 15px #ffbb33';
+                playerCardSuit.textContent = '—';
+                aiCardSuit.textContent = '—';
+                playerCardSuit.style.color = '#a38fda';
+                aiCardSuit.style.color = '#a38fda';
+                gameMessage.textContent = '点击下方抽牌开始';
+                drawBtn.disabled = false;
+            };
+            // 重新绑定重置按钮
+            resetBtn.removeEventListener('click', originalReset);
+            resetBtn.addEventListener('click', resetGame);
+
+            // 确保抽牌事件引用最新的drawCards
+            // 移除旧的监听
+            // 但drawBtn之前用originalDraw监听，已经移除，并添加了drawCards。
+            // 但要注意之前drawBtn也注册了drawCards一次？为了避免重复，我们重新绑定
+            // 在初始化时已经绑定了drawCards，但我们又重新定义了drawCards，所以需要重新绑定。
+            // 简单方案：清空所有监听，重新绑定。
+            drawBtn.replaceWith(drawBtn.cloneNode(true));
+            // 重新获取drawBtn
+            const newDrawBtn = document.getElementById('drawBtn');
+            newDrawBtn.addEventListener('click', drawCards);
+            // 更新引用
+            drawBtn = newDrawBtn;
+
+            // 重置按钮也重新获取
+            const newResetBtn = document.getElementById('resetGameBtn');
+            newResetBtn.addEventListener('click', resetGame);
+
+            // 返回主页时重置游戏
+            document.getElementById('backToHomeFromGame').addEventListener('click', () => {
+                resetGame();
+                showScreen('home');
+            });
+
+            // 重置游戏调用一次
+            resetGame();
+        })();
+    </script>
+</body>
+</html>
