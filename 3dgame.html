@@ -242,8 +242,8 @@
     <script type="importmap">
         {
             "imports": {
-                "three": "https://unpkg.com/three@0.128.0/build/three.module.js",
-                "three/addons/": "https://unpkg.com/three@0.128.0/examples/jsm/"
+                "three": "https://unpkg.com/three@0.160.0/build/three.module.js",
+                "three/addons/": "https://unpkg.com/three@0.160.0/examples/jsm/"
             }
         }
     </script>
@@ -254,16 +254,16 @@
 
         // ==================== 游戏配置 ====================
         const CONFIG = {
-            laneWidth: 3,              // 每条跑道宽度
-            laneCount: 3,              // 跑道数量
-            baseSpeed: 0.35,           // 基础前进速度
-            boostMultiplier: 1.8,      // 加速倍率
-            jumpForce: 0.42,           // 跳跃力度
-            gravity: 0.018,            // 重力
-            playerGroundY: 0.8,        // 玩家站立时的Y坐标
-            spawnDistance: 120,        // 生成物体的距离
-            despawnDistance: 30,       // 回收距离
-            coinValue: 10,             // 每个金币的分数
+            laneWidth: 3,
+            laneCount: 3,
+            baseSpeed: 0.35,
+            boostMultiplier: 1.8,
+            jumpForce: 0.42,
+            gravity: 0.018,
+            playerGroundY: 0.8,
+            spawnDistance: 120,
+            despawnDistance: 30,
+            coinValue: 10,
         };
 
         // ==================== 全局变量 ====================
@@ -272,34 +272,27 @@
         let mixer, walkAction, idleAction, jumpAction;
         let clock = new THREE.Clock();
         
-        // 游戏状态
-        let gameState = 'loading'; // loading, menu, playing, gameover
+        let gameState = 'loading';
         let score = 0;
         let distance = 0;
         let currentSpeed = CONFIG.baseSpeed;
         let isBoosting = false;
         let isJumping = false;
         let jumpVelocity = 0;
-        let currentLane = 1; // 0=左, 1=中, 2=右
+        let currentLane = 1;
         let targetX = 0;
         let playerY = CONFIG.playerGroundY;
         
-        // 障碍物和金币池
         let obstacles = [];
         let coins = [];
-        let environmentObjects = [];
         
-        // 键盘状态
         const keys = { left: false, right: false, space: false, shift: false };
         
-        // 模型是否加载完成
         let modelLoaded = false;
         let usingFallbackModel = false;
         
-        // 赛道段管理
         let lastSpawnZ = 0;
         const SEGMENT_LENGTH = 15;
-        let segments = [];
 
         // ==================== 初始化场景 ====================
         function initScene() {
@@ -307,12 +300,10 @@
             scene.background = new THREE.Color(0x0a0a1a);
             scene.fog = new THREE.Fog(0x0a0a1a, 40, 100);
 
-            // 相机
             camera = new THREE.PerspectiveCamera(70, window.innerWidth / window.innerHeight, 0.1, 500);
             camera.position.set(0, 5, 10);
             camera.lookAt(0, 2, -20);
 
-            // 渲染器
             renderer = new THREE.WebGLRenderer({ antialias: true });
             renderer.setSize(window.innerWidth, window.innerHeight);
             renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
@@ -320,26 +311,17 @@
             renderer.shadowMap.type = THREE.PCFSoftShadowMap;
             document.body.appendChild(renderer.domElement);
 
-            // 灯光
             setupLights();
-            
-            // 创建玩家（先用占位模型）
             createPlayer();
-            
-            // 创建赛道环境
             createEnvironment();
-            
-            // 尝试加载外部模型
             loadPlayerModel();
         }
 
         // ==================== 灯光设置 ====================
         function setupLights() {
-            // 环境光
             const ambient = new THREE.AmbientLight(0x404060);
             scene.add(ambient);
             
-            // 主光源 - 从前方照射
             const mainLight = new THREE.DirectionalLight(0xffffff, 1.2);
             mainLight.position.set(5, 20, 10);
             mainLight.castShadow = true;
@@ -354,12 +336,10 @@
             mainLight.shadow.bias = -0.0005;
             scene.add(mainLight);
             
-            // 跟随玩家的光源
             const playerLight = new THREE.PointLight(0x00aaff, 0.8, 20);
             playerLight.position.set(0, 5, 0);
             scene.add(playerLight);
             
-            // 赛道边缘的霓虹灯效果
             const neonLight1 = new THREE.PointLight(0x00ffcc, 0.5, 40);
             neonLight1.position.set(-8, 5, -20);
             scene.add(neonLight1);
@@ -369,29 +349,60 @@
             scene.add(neonLight2);
         }
 
-        // ==================== 创建玩家 ====================
+        // ==================== 创建玩家（使用兼容的几何体） ====================
         function createPlayer() {
-            // 创建一个容器作为玩家
             player = new THREE.Group();
             player.position.set(0, CONFIG.playerGroundY, 0);
             scene.add(player);
             
-            // 先用一个简单的胶囊体作为占位
-            const bodyGeo = new THREE.CapsuleGeometry(0.35, 0.8, 8, 16);
+            // ✅ 修复：使用 CylinderGeometry + SphereGeometry 组合成胶囊体
+            // 因为 r128 没有 CapsuleGeometry
+            const placeholder = new THREE.Group();
+            placeholder.name = 'placeholder';
+            
+            // 身体（圆柱）
+            const bodyGeo = new THREE.CylinderGeometry(0.35, 0.35, 0.8, 16);
             const bodyMat = new THREE.MeshStandardMaterial({ 
                 color: 0x00aaff, 
                 emissive: 0x004466,
                 roughness: 0.3,
                 metalness: 0.6
             });
-            const placeholder = new THREE.Mesh(bodyGeo, bodyMat);
-            placeholder.castShadow = true;
-            placeholder.receiveShadow = true;
-            placeholder.position.y = 0.9;
-            placeholder.name = 'placeholder';
+            const body = new THREE.Mesh(bodyGeo, bodyMat);
+            body.position.y = 0.9;
+            body.castShadow = true;
+            body.receiveShadow = true;
+            placeholder.add(body);
+            
+            // 上半球
+            const topGeo = new THREE.SphereGeometry(0.35, 16, 16, 0, Math.PI * 2, 0, Math.PI / 2);
+            const topMat = new THREE.MeshStandardMaterial({ 
+                color: 0x00aaff, 
+                emissive: 0x004466,
+                roughness: 0.3,
+                metalness: 0.6
+            });
+            const top = new THREE.Mesh(topGeo, topMat);
+            top.position.y = 1.3;
+            top.castShadow = true;
+            placeholder.add(top);
+            
+            // 下半球
+            const bottomGeo = new THREE.SphereGeometry(0.35, 16, 16, 0, Math.PI * 2, Math.PI / 2, Math.PI / 2);
+            const bottomMat = new THREE.MeshStandardMaterial({ 
+                color: 0x00aaff, 
+                emissive: 0x004466,
+                roughness: 0.3,
+                metalness: 0.6
+            });
+            const bottom = new THREE.Mesh(bottomGeo, bottomMat);
+            bottom.position.y = 0.5;
+            bottom.castShadow = true;
+            placeholder.add(bottom);
+            
             player.add(placeholder);
             
-            // 添加一个光环
+            // 光环
             const ringGeo = new THREE.TorusGeometry(0.7, 0.05, 16, 32);
             const ringMat = new THREE.MeshStandardMaterial({ color: 0x00ffcc, emissive: 0x00ffcc, emissiveIntensity: 0.5 });
             const ring = new THREE.Mesh(ringGeo, ringMat);
@@ -404,9 +415,6 @@
         // ==================== 加载外部角色模型 ====================
         function loadPlayerModel() {
             const loader = new GLTFLoader();
-            
-            // 使用 Three.js 官方示例中的 Soldier 模型（免费、带骨骼动画）
-            // 这是一个很好的跑酷角色，有走路、跑步、待机动画
             const modelUrl = 'https://threejs.org/examples/models/gltf/Soldier.glb';
             
             loader.load(
@@ -415,17 +423,14 @@
                     console.log('✅ 角色模型加载成功');
                     modelLoaded = true;
                     
-                    // 移除占位模型
                     const placeholder = player.getObjectByName('placeholder');
                     if (placeholder) player.remove(placeholder);
                     
-                    // 添加实际模型
                     playerModel = gltf.scene;
                     playerModel.scale.set(0.9, 0.9, 0.9);
                     playerModel.position.y = 0;
-                    playerModel.rotation.y = Math.PI; // 让角色面向前方
+                    playerModel.rotation.y = Math.PI;
                     
-                    // 开启阴影
                     playerModel.traverse((node) => {
                         if (node.isMesh) {
                             node.castShadow = true;
@@ -435,11 +440,9 @@
                     
                     player.add(playerModel);
                     
-                    // 设置动画
                     if (gltf.animations && gltf.animations.length > 0) {
                         mixer = new THREE.AnimationMixer(playerModel);
                         
-                        // 查找动画
                         const walkClip = THREE.AnimationClip.findByName(gltf.animations, 'Walk');
                         const runClip = THREE.AnimationClip.findByName(gltf.animations, 'Run');
                         const idleClip = THREE.AnimationClip.findByName(gltf.animations, 'Idle');
@@ -453,7 +456,7 @@
                         if (runClip) {
                             walkAction = mixer.clipAction(runClip);
                             walkAction.play();
-                            walkAction.paused = true; // 默认暂停，移动时播放
+                            walkAction.paused = true;
                         } else if (walkClip) {
                             walkAction = mixer.clipAction(walkClip);
                             walkAction.play();
@@ -467,12 +470,10 @@
                         console.log('✅ 动画加载完成');
                     }
                     
-                    // 更新加载提示
                     document.getElementById('loadingText').textContent = '✅ 角色模型加载完成！';
                     document.getElementById('loadingText').style.color = '#00ffcc';
                 },
                 (progress) => {
-                    // 加载进度
                     if (progress.total > 0) {
                         const percent = Math.round((progress.loaded / progress.total) * 100);
                         document.getElementById('loadingText').textContent = `正在加载角色模型... ${percent}%`;
@@ -483,85 +484,14 @@
                     usingFallbackModel = true;
                     document.getElementById('loadingText').textContent = '⚠️ 外部模型加载失败，使用默认角色';
                     document.getElementById('loadingText').style.color = '#ffaa00';
-                    
-                    // 保持使用占位模型，让它更好看一些
-                    enhanceFallbackModel();
                 }
             );
         }
 
-        // 增强默认模型
-        function enhanceFallbackModel() {
-            const placeholder = player.getObjectByName('placeholder');
-            if (placeholder) {
-                // 做成一个更酷的机器人样子
-                player.remove(placeholder);
-                
-                const group = new THREE.Group();
-                
-                // 身体
-                const bodyGeo = new THREE.CylinderGeometry(0.35, 0.4, 0.9, 8);
-                const bodyMat = new THREE.MeshStandardMaterial({ color: 0x00aaff, emissive: 0x004466, roughness: 0.3, metalness: 0.7 });
-                const body = new THREE.Mesh(bodyGeo, bodyMat);
-                body.position.y = 0.95;
-                body.castShadow = true;
-                group.add(body);
-                
-                // 头
-                const headGeo = new THREE.SphereGeometry(0.3, 16, 16);
-                const headMat = new THREE.MeshStandardMaterial({ color: 0x00ddff, emissive: 0x0066aa, roughness: 0.2, metalness: 0.8 });
-                const head = new THREE.Mesh(headGeo, headMat);
-                head.position.y = 1.55;
-                head.castShadow = true;
-                group.add(head);
-                
-                // 眼睛
-                const eyeGeo = new THREE.SphereGeometry(0.06, 8, 8);
-                const eyeMat = new THREE.MeshStandardMaterial({ color: 0xff00ff, emissive: 0xff00ff });
-                const eyeL = new THREE.Mesh(eyeGeo, eyeMat);
-                eyeL.position.set(-0.12, 1.6, 0.25);
-                group.add(eyeL);
-                const eyeR = new THREE.Mesh(eyeGeo, eyeMat);
-                eyeR.position.set(0.12, 1.6, 0.25);
-                group.add(eyeR);
-                
-                // 手臂
-                const armGeo = new THREE.CylinderGeometry(0.08, 0.08, 0.7, 8);
-                const armMat = new THREE.MeshStandardMaterial({ color: 0x0088cc, emissive: 0x003366 });
-                const armL = new THREE.Mesh(armGeo, armMat);
-                armL.position.set(-0.5, 1.0, 0);
-                armL.rotation.z = 0.3;
-                armL.castShadow = true;
-                group.add(armL);
-                const armR = new THREE.Mesh(armGeo, armMat);
-                armR.position.set(0.5, 1.0, 0);
-                armR.rotation.z = -0.3;
-                armR.castShadow = true;
-                group.add(armR);
-                
-                // 腿
-                const legGeo = new THREE.CylinderGeometry(0.1, 0.1, 0.7, 8);
-                const legMat = new THREE.MeshStandardMaterial({ color: 0x0066aa, emissive: 0x002244 });
-                const legL = new THREE.Mesh(legGeo, legMat);
-                legL.position.set(-0.15, 0.35, 0);
-                legL.castShadow = true;
-                group.add(legL);
-                const legR = new THREE.Mesh(legGeo, legMat);
-                legR.position.set(0.15, 0.35, 0);
-                legR.castShadow = true;
-                group.add(legR);
-                
-                group.name = 'placeholder';
-                player.add(group);
-            }
-        }
-
         // ==================== 创建环境 ====================
         function createEnvironment() {
-            // 地面 - 跑道
             const trackWidth = CONFIG.laneWidth * CONFIG.laneCount;
             
-            // 主跑道
             const trackGeo = new THREE.PlaneGeometry(trackWidth + 2, 2000);
             const trackMat = new THREE.MeshStandardMaterial({ 
                 color: 0x1a1a2e,
@@ -575,7 +505,6 @@
             track.receiveShadow = true;
             scene.add(track);
             
-            // 跑道分隔线
             for (let i = 0; i <= CONFIG.laneCount; i++) {
                 const lineX = -trackWidth/2 + i * CONFIG.laneWidth;
                 const lineGeo = new THREE.BoxGeometry(0.08, 0.02, 2000);
@@ -588,11 +517,9 @@
                 });
                 const line = new THREE.Mesh(lineGeo, lineMat);
                 line.position.set(lineX, 0.02, -900);
-                line.receiveShadow = false;
                 scene.add(line);
             }
             
-            // 两侧的边界墙
             const wallHeight = 1.5;
             const wallGeo = new THREE.BoxGeometry(0.3, wallHeight, 2000);
             const wallMat = new THREE.MeshStandardMaterial({ 
@@ -614,7 +541,6 @@
             wallR.receiveShadow = true;
             scene.add(wallR);
             
-            // 边界墙上的霓虹灯条
             const neonGeo = new THREE.BoxGeometry(0.15, 0.1, 2000);
             const neonMat = new THREE.MeshStandardMaterial({ color: 0x00ffcc, emissive: 0x00ffcc, emissiveIntensity: 1 });
             
@@ -626,7 +552,6 @@
             neonR.position.set(trackWidth/2 + 0.5, wallHeight - 0.2, -900);
             scene.add(neonR);
             
-            // 两侧的装饰柱子
             for (let i = 0; i < 60; i++) {
                 const z = -i * 30;
                 const side = i % 2 === 0 ? -1 : 1;
@@ -642,7 +567,6 @@
                 pillar.castShadow = true;
                 scene.add(pillar);
                 
-                // 柱子顶部的发光球
                 const orbGeo = new THREE.SphereGeometry(0.3, 8, 8);
                 const orbMat = new THREE.MeshStandardMaterial({ 
                     color: side > 0 ? 0xff66aa : 0x00ffcc, 
@@ -660,11 +584,9 @@
             const trackWidth = CONFIG.laneWidth * CONFIG.laneCount;
             const segmentZ = lastSpawnZ - SEGMENT_LENGTH;
             
-            // 随机生成障碍物或金币
             const rand = Math.random();
             
             if (rand < 0.4) {
-                // 生成障碍物（红色方块，需要躲避）
                 const lane = Math.floor(Math.random() * CONFIG.laneCount);
                 const x = -trackWidth/2 + lane * CONFIG.laneWidth + CONFIG.laneWidth/2;
                 
@@ -683,7 +605,6 @@
                 scene.add(obstacle);
                 obstacles.push(obstacle);
                 
-                // 障碍物周围加个警告光环
                 const warnGeo = new THREE.TorusGeometry(0.9, 0.05, 8, 16);
                 const warnMat = new THREE.MeshStandardMaterial({ color: 0xff0000, emissive: 0xff0000, emissiveIntensity: 0.8 });
                 const warn = new THREE.Mesh(warnGeo, warnMat);
@@ -693,13 +614,10 @@
                 scene.add(warn);
                 obstacles.push(warn);
             } else if (rand < 0.8) {
-                // 生成金币
                 const lane = Math.floor(Math.random() * CONFIG.laneCount);
                 const x = -trackWidth/2 + lane * CONFIG.laneWidth + CONFIG.laneWidth/2;
-                
                 createCoin(x, 0.8, segmentZ);
             } else {
-                // 生成一排金币
                 const lane = Math.floor(Math.random() * CONFIG.laneCount);
                 const x = -trackWidth/2 + lane * CONFIG.laneWidth + CONFIG.laneWidth/2;
                 for (let i = 0; i < 3; i++) {
@@ -782,7 +700,6 @@
                 }
             });
             
-            // 按钮事件
             document.getElementById('startBtn').addEventListener('click', startGame);
             document.getElementById('restartBtn').addEventListener('click', restartGame);
         }
@@ -793,7 +710,6 @@
             isJumping = true;
             jumpVelocity = CONFIG.jumpForce;
             
-            // 播放跳跃动画
             if (jumpAction) {
                 jumpAction.reset();
                 jumpAction.play();
@@ -814,7 +730,6 @@
             document.getElementById('startScreen').style.display = 'none';
             gameState = 'playing';
             
-            // 重置状态
             score = 0;
             distance = 0;
             currentSpeed = CONFIG.baseSpeed;
@@ -825,27 +740,21 @@
             jumpVelocity = 0;
             isBoosting = false;
             
-            // 重置玩家位置
             player.position.set(0, CONFIG.playerGroundY, 0);
             
-            // 清除所有物体
             obstacles.forEach(o => scene.remove(o));
             coins.forEach(c => scene.remove(c));
             obstacles = [];
             coins = [];
             
-            // 重置生成位置
             lastSpawnZ = -30;
             
-            // 生成初始赛道
             for (let i = 0; i < 20; i++) {
                 spawnSegment();
             }
             
-            // 更新UI
             updateHUD();
             
-            // 播放动画
             if (walkAction) {
                 walkAction.paused = false;
                 walkAction.setEffectiveTimeScale(1);
@@ -862,14 +771,12 @@
         function gameOver() {
             gameState = 'gameover';
             
-            // 播放待机动画
             if (walkAction) walkAction.paused = true;
             if (idleAction) {
                 idleAction.paused = false;
                 idleAction.play();
             }
             
-            // 显示结束界面
             document.getElementById('finalDistance').textContent = `${Math.floor(distance)}m`;
             document.getElementById('finalScore').textContent = score;
             document.getElementById('gameOver').style.display = 'block';
@@ -887,15 +794,12 @@
         function updateGame(delta) {
             if (gameState !== 'playing') return;
             
-            // 加速
             isBoosting = keys.shift;
             const targetSpeed = isBoosting ? CONFIG.baseSpeed * CONFIG.boostMultiplier : CONFIG.baseSpeed;
             currentSpeed += (targetSpeed - currentSpeed) * 0.1;
             
-            // 距离
             distance += currentSpeed;
             
-            // 玩家左右移动
             if (keys.left && currentLane > 0) {
                 currentLane--;
                 keys.left = false;
@@ -905,13 +809,9 @@
                 keys.right = false;
             }
             
-            // 目标X坐标
             targetX = -CONFIG.laneWidth + currentLane * CONFIG.laneWidth;
-            
-            // 平滑移动
             player.position.x += (targetX - player.position.x) * 0.15;
             
-            // 跳跃物理
             if (isJumping) {
                 jumpVelocity -= CONFIG.gravity;
                 playerY += jumpVelocity;
@@ -921,7 +821,6 @@
                     isJumping = false;
                     jumpVelocity = 0;
                     
-                    // 落地恢复跑步动画
                     if (walkAction && gameState === 'playing') {
                         walkAction.paused = false;
                     }
@@ -930,51 +829,40 @@
             
             player.position.y = playerY;
             
-            // 玩家向前移动（实际上世界向后移动，但这里我们移动玩家前方的物体）
-            // 移动所有物体
             const moveZ = currentSpeed;
             
-            // 移动障碍物
             for (let i = obstacles.length - 1; i >= 0; i--) {
                 const obs = obstacles[i];
                 obs.position.z += moveZ;
                 
-                // 碰撞检测（只检测障碍物，不检测警告光环）
                 if (obs.userData.type === 'obstacle') {
                     const dx = Math.abs(player.position.x - obs.position.x);
                     const dz = Math.abs(player.position.z - obs.position.z);
                     const dy = Math.abs(player.position.y - obs.position.y);
                     
                     if (dx < 1.0 && dz < 1.0 && dy < 1.2) {
-                        // 撞到障碍物！
                         gameOver();
                         return;
                     }
                 }
                 
-                // 回收
                 if (obs.position.z > CONFIG.despawnDistance) {
                     scene.remove(obs);
                     obstacles.splice(i, 1);
                 }
             }
             
-            // 移动金币
             for (let i = coins.length - 1; i >= 0; i--) {
                 const coin = coins[i];
                 coin.position.z += moveZ;
                 coin.rotation.z += 0.05;
-                
-                // 上下浮动
                 coin.position.y = coin.userData.originalY + Math.sin(performance.now() * 0.003 + coin.userData.phase) * 0.15;
                 
-                // 收集检测
                 const dx = Math.abs(player.position.x - coin.position.x);
                 const dz = Math.abs(player.position.z - coin.position.z);
                 const dy = Math.abs(player.position.y - coin.position.y);
                 
                 if (dx < 1.0 && dz < 1.0 && dy < 1.5) {
-                    // 收集金币
                     score += CONFIG.coinValue;
                     scene.remove(coin);
                     coins.splice(i, 1);
@@ -982,33 +870,27 @@
                     continue;
                 }
                 
-                // 回收
                 if (coin.position.z > CONFIG.despawnDistance) {
                     scene.remove(coin);
                     coins.splice(i, 1);
                 }
             }
             
-            // 生成新赛道段
             while (lastSpawnZ > -CONFIG.spawnDistance) {
                 spawnSegment();
             }
             
-            // 更新 HUD
             updateHUD();
             
-            // 更新动画
             if (mixer) {
                 mixer.update(delta);
             }
             
-            // 更新相机位置（跟随玩家）
             const camTargetX = player.position.x * 0.3;
             camera.position.x += (camTargetX - camera.position.x) * 0.05;
             camera.position.y = 5 + player.position.y * 0.3;
             camera.lookAt(player.position.x * 0.5, 2, -15);
             
-            // 光环动画
             const ring = player.getObjectByName('ring');
             if (ring) {
                 ring.rotation.z += 0.02;
@@ -1039,7 +921,6 @@
         setupControls();
         animate();
 
-        // 如果5秒后模型还没加载完成，也允许开始游戏
         setTimeout(() => {
             if (!modelLoaded && !usingFallbackModel) {
                 document.getElementById('loadingText').textContent = '模型加载较慢，可以先开始游戏';
@@ -1048,7 +929,6 @@
         }, 5000);
 
         console.log('🎮 3D跑酷游戏已启动！');
-        console.log('💡 提示：可以替换 loadPlayerModel() 中的模型URL来导入你自己的角色模型');
     </script>
 </body>
 </html>
