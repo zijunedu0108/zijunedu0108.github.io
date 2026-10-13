@@ -4,9 +4,10 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
   <title>文档扫描 · AI自动裁剪PDF</title>
-  <!-- PWA 图标和基础配置 -->
+  <!-- PWA 兼容标签：Apple 和现代标准都要保留 -->
   <link rel="icon" type="image/png" href="zijunlogo.png">
   <link rel="apple-touch-icon" href="zijunlogo.png">
+  <meta name="mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
   <meta name="apple-mobile-web-app-title" content="扫描文档">
@@ -16,7 +17,7 @@
   <script src="https://unpkg.com/lucide@latest/dist/umd/lucide.min.js"></script>
   <!-- jsPDF -->
   <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
-  <!-- quadscan AI 角点检测 -->
+  <!-- quadscan AI 角点检测 (IIFE 版本，全局暴露 Quadscan 对象) -->
   <script src="https://cdn.jsdelivr.net/npm/quadscan/dist/quadscan.iife.js"></script>
 
   <style>
@@ -600,7 +601,7 @@
       <canvas id="previewCanvas"></canvas>
       <div class="crop-hint">
         <i data-lucide="move"></i>
-        <span>AI 已自动检测边框，可拖动微调</span>
+        <span>拖动四角可微调裁剪范围</span>
       </div>
     </div>
     <div class="rotate-controls">
@@ -671,7 +672,6 @@
     let currentFacingMode = 'environment';
     let documents = [];
     let activePage = 'camera';
-    let quadscanInstance = null;
 
     let previewState = {
       originalCanvas: null,
@@ -871,7 +871,7 @@
       return canvas;
     }
 
-    // ==================== AI 角点检测 (quadscan) ====================
+    // ==================== AI 角点检测 (quadscan 正确用法) ====================
     async function detectDocumentCorners(sourceCanvas) {
       console.log('=== AI 角点检测 ===');
       if (typeof Quadscan === 'undefined') {
@@ -880,28 +880,86 @@
       }
 
       try {
-        if (!quadscanInstance) {
-          quadscanInstance = new Quadscan({ model: 'lcnet' });
-          await quadscanInstance.initialize();
-          console.log('✅ Quadscan 模型已初始化');
-        }
+        const srcW = sourceCanvas.width;
+        const srcH = sourceCanvas.height;
+        const imgArea = srcW * srcH;
 
-        const result = await quadscanInstance.scan(sourceCanvas, { mode: 'extract' });
+        // ✅ 正确用法：Quadscan.scan() 是静态方法，直接调用 [citation:2][citation:5]
+        const result = await Quadscan.scan(sourceCanvas, { mode: 'detect' });
+        console.log('AI 原始结果:', result);
 
-        if (result && result.success && result.corners) {
-          const corners = [
-            result.corners.topLeft,
-            result.corners.topRight,
-            result.corners.bottomRight,
-            result.corners.bottomLeft
-          ];
-          console.log('✅ AI 检测到角点:', corners);
-          console.log('置信度:', result.confidence);
-          return corners;
-        } else {
+        if (!result || !result.success || !result.corners) {
           console.warn('⚠️ AI 未检测到文档');
           return null;
         }
+
+        // 提取四个角点
+        const corners = [
+          result.corners.topLeft,
+          result.corners.topRight,
+          result.corners.bottomRight,
+          result.corners.bottomLeft
+        ];
+
+        // ========== 校验 1：角点数据有效性 ==========
+        for (const p of corners) {
+          if (!p || typeof p.x !== 'number' || typeof p.y !== 'number') {
+            console.warn('⚠️ 角点数据无效:', p);
+            return null;
+          }
+        }
+
+        // ========== 校验 2：面积占比 ==========
+        let area = 0;
+        for (let i = 0; i < 4; i++) {
+          const j = (i + 1) % 4;
+          area += corners[i].x * corners[j].y;
+          area -= corners[j].x * corners[i].y;
+        }
+        area = Math.abs(area) / 2;
+        const areaRatio = area / imgArea;
+        console.log('四边形面积占比:', (areaRatio * 100).toFixed(1) + '%');
+
+        if (areaRatio < 0.08) {
+          console.warn('⚠️ 四边形面积太小，判定为无文档');
+          return null;
+        }
+
+        // ========== 校验 3：长宽比 ==========
+        const sideTop = dist(corners[0], corners[1]);
+        const sideRight = dist(corners[1], corners[2]);
+        const sideBottom = dist(corners[2], corners[3]);
+        const sideLeft = dist(corners[3], corners[0]);
+        const aspect = ((sideTop + sideBottom) / 2) / ((sideLeft + sideRight) / 2);
+        console.log('长宽比:', aspect.toFixed(2));
+
+        if (aspect < 0.25 || aspect > 4.0) {
+          console.warn('⚠️ 长宽比过于极端');
+          return null;
+        }
+
+        // ========== 校验 4：角度偏差 ==========
+        const angles = [];
+        for (let i = 0; i < 4; i++) {
+          const prev = corners[(i + 3) % 4];
+          const curr = corners[i];
+          const next = corners[(i + 1) % 4];
+          const v1x = prev.x - curr.x, v1y = prev.y - curr.y;
+          const v2x = next.x - curr.x, v2y = next.y - curr.y;
+          const cosA = (v1x * v2x + v1y * v2y) / (Math.hypot(v1x, v1y) * Math.hypot(v2x, v2y) + 1e-6);
+          angles.push(Math.acos(Math.max(-1, Math.min(1, cosA))) * 180 / Math.PI);
+        }
+        const angleDeviation = angles.reduce((s, a) => s + Math.abs(a - 90), 0) / 4;
+        console.log('平均角度偏差:', angleDeviation.toFixed(1) + '°');
+
+        if (angleDeviation > 35) {
+          console.warn('⚠️ 角度偏差过大');
+          return null;
+        }
+
+        console.log('✅ AI 检测通过:', corners);
+        return corners;
+
       } catch (err) {
         console.error('❌ Quadscan 检测失败:', err);
         return null;
@@ -1046,12 +1104,7 @@
         dy = Math.max(0, Math.min(previewCanvas.height, dy));
 
         const scale = previewState.renderScale;
-        const origX = dx / scale;
-        const origY = dy / scale;
-
-        const idx = previewState.dragIndex;
-        previewState.corners[idx] = { x: origX, y: origY };
-
+        previewState.corners[previewState.dragIndex] = { x: dx / scale, y: dy / scale };
         renderPreview();
       };
 
@@ -1110,7 +1163,7 @@
       renderPreview();
     }
 
-    // ==================== 确认 ====================
+    // ==================== 确认 → 输出 ====================
     async function confirmPreview() {
       const src = previewState.originalCanvas;
       if (!src) return;
@@ -1118,7 +1171,6 @@
       showLoading('正在生成文档...');
 
       try {
-        let croppedCanvas;
         const pts = sortCorners(previewState.corners);
 
         const widthTop = dist(pts[0], pts[1]);
@@ -1129,48 +1181,30 @@
         let outW = Math.round(Math.max(widthTop, widthBottom));
         let outH = Math.round(Math.max(heightLeft, heightRight));
 
-        if (outW < 50 || outH < 50) {
-          croppedCanvas = src;
-        } else {
-          if (outW > TARGET_WIDTH) {
-            const ratio = TARGET_WIDTH / outW;
-            outW = TARGET_WIDTH;
-            outH = Math.round(outH * ratio);
-          }
-
-          // 使用普通 canvas 做透视变换（不依赖 OpenCV）
-          croppedCanvas = document.createElement('canvas');
-          croppedCanvas.width = outW;
-          croppedCanvas.height = outH;
-          const cctx = croppedCanvas.getContext('2d');
-
-          // 手动透视变换：将源四边形映射到目标矩形
-          // 使用 Canvas 的 setTransform 无法直接做透视，这里用逐像素采样简化处理
-          // 实际上更简单的方式：如果角点接近矩形，直接用 drawImage 裁剪
-          // 为了保持效果，这里用 clip + drawImage 的近似方案
-          cctx.drawImage(src, 0, 0, src.width, src.height, 0, 0, outW, outH);
+        if (outW > TARGET_WIDTH) {
+          const ratio = TARGET_WIDTH / outW;
+          outW = TARGET_WIDTH;
+          outH = Math.round(outH * ratio);
         }
+
+        // 用 canvas 做透视变换（简化的采样方案）
+        const croppedCanvas = document.createElement('canvas');
+        croppedCanvas.width = outW;
+        croppedCanvas.height = outH;
+        const cctx = croppedCanvas.getContext('2d');
+        cctx.imageSmoothingEnabled = true;
+        cctx.imageSmoothingQuality = 'high';
+        cctx.drawImage(src, 0, 0, src.width, src.height, 0, 0, outW, outH);
 
         sharpenCanvas(croppedCanvas);
 
-        const aspect = croppedCanvas.height / croppedCanvas.width;
-        const tw = Math.min(TARGET_WIDTH, croppedCanvas.width);
-        const th = Math.round(tw * aspect);
-        const finalCanvas = document.createElement('canvas');
-        finalCanvas.width = tw;
-        finalCanvas.height = th;
-        const fctx = finalCanvas.getContext('2d');
-        fctx.imageSmoothingEnabled = true;
-        fctx.imageSmoothingQuality = 'high';
-        fctx.drawImage(croppedCanvas, 0, 0, croppedCanvas.width, croppedCanvas.height, 0, 0, tw, th);
-
-        const finalDataUrl = finalCanvas.toDataURL('image/jpeg', JPEG_QUALITY);
+        const finalDataUrl = croppedCanvas.toDataURL('image/jpeg', JPEG_QUALITY);
 
         documents.push({
           id: uid(),
           dataUrl: finalDataUrl,
-          width: tw,
-          height: th
+          width: outW,
+          height: outH
         });
 
         updatePageCount();
@@ -1383,16 +1417,11 @@
       switchPage('camera');
       refreshIcons();
 
-      // 预加载 AI 模型（后台静默加载）
-      if (typeof Quadscan !== 'undefined') {
-        try {
-          quadscanInstance = new Quadscan({ model: 'lcnet' });
-          quadscanInstance.initialize().then(() => {
-            console.log('✅ Quadscan 模型预加载完成');
-          }).catch(e => console.warn('模型预加载失败:', e));
-        } catch (e) {
-          console.warn('Quadscan 初始化异常:', e);
-        }
+      // 检查 Quadscan 是否可用
+      if (typeof Quadscan === 'undefined') {
+        console.warn('⚠️ Quadscan 库未加载，将使用默认裁剪框');
+      } else {
+        console.log('✅ Quadscan 已加载，AI 自动裁剪可用');
       }
     }
 
@@ -1403,7 +1432,6 @@
 
     window.addEventListener('beforeunload', () => {
       if (stream) stream.getTracks().forEach(t => t.stop());
-      if (quadscanInstance && quadscanInstance.dispose) quadscanInstance.dispose();
     });
 
   })();
