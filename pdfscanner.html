@@ -11,8 +11,12 @@
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
   <meta name="apple-mobile-web-app-title" content="扫描文档">
   <meta name="theme-color" content="#0a84ff">
+
+  <!-- OpenCV.js -->
+  <script async src="https://docs.opencv.org/4.8.0/opencv.js" onload="onOpenCvReady()"></script>
   <!-- jsPDF -->
   <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+
   <style>
     * {
       box-sizing: border-box;
@@ -574,15 +578,19 @@
 </div>
 
 <script>
+  // ==================== OpenCV 加载回调 ====================
+  let cvReady = false;
+  function onOpenCvReady() {
+    cvReady = true;
+    console.log('OpenCV.js 加载完成');
+  }
+
   (function() {
     // ==================== 全局状态 ====================
     let stream = null;
     let currentFacingMode = 'environment';
-    // 已确认的文档页
-    let documents = []; // { id, originalDataUrl, dataUrl, rotation, width, height }
-    // 当前预览中的临时图片
+    let documents = []; // { id, dataUrl, width, height }
     let currentPreview = null; // { dataUrl, width, height, rotation }
-    // 当前页面
     let activePage = 'camera';
 
     const TARGET_WIDTH = 1000;
@@ -657,7 +665,6 @@
       exportPdfBtn.disabled = documents.length === 0;
     }
 
-    // 切换页面
     function switchPage(pageName) {
       activePage = pageName;
       pageCamera.classList.toggle('hidden', pageName !== 'camera');
@@ -695,7 +702,6 @@
       await startCamera(currentFacingMode);
     }
 
-    // 点击对焦
     function handleFocusTap(e) {
       e.preventDefault();
       const rect = cameraContainer.getBoundingClientRect();
@@ -720,118 +726,204 @@
       window._focusTimer = setTimeout(() => focusIndicator.classList.remove('active'), 1500);
     }
 
-    // ==================== 图像处理：自动沿纸张边框裁剪 + 锐化 ====================
-    async function processCapturedImage(sourceCanvas) {
-      const srcW = sourceCanvas.width;
-      const srcH = sourceCanvas.height;
-      const srcCtx = sourceCanvas.getContext('2d');
-      const srcData = srcCtx.getImageData(0, 0, srcW, srcH).data;
+    // ==================== 图像处理辅助函数 ====================
+    function dist(p1, p2) {
+      return Math.hypot(p1.x - p2.x, p1.y - p2.y);
+    }
 
-      // ---- 1. 灰度 ----
-      const gray = new Float32Array(srcW * srcH);
-      for (let i = 0; i < srcData.length; i += 4) {
-        gray[i / 4] = 0.299 * srcData[i] + 0.587 * srcData[i + 1] + 0.114 * srcData[i + 2];
-      }
+    function sortCorners(pts) {
+      const sorted = [...pts];
+      sorted.sort((a, b) => (a.x + a.y) - (b.x + b.y));
+      const tl = sorted[0];
+      const br = sorted[3];
+      const remaining = [sorted[1], sorted[2]];
+      remaining.sort((a, b) => (a.x - a.y) - (b.x - b.y));
+      const bl = remaining[0];
+      const tr = remaining[1];
+      return [tl, tr, br, bl];
+    }
 
-      // ---- 2. 计算行/列亮度 ----
-      const rowB = new Float32Array(srcH);
-      const colB = new Float32Array(srcW);
-      for (let y = 0; y < srcH; y++) {
-        let s = 0;
-        for (let x = 0; x < srcW; x++) s += gray[y * srcW + x];
-        rowB[y] = s / srcW;
-      }
-      for (let x = 0; x < srcW; x++) {
-        let s = 0;
-        for (let y = 0; y < srcH; y++) s += gray[y * srcW + x];
-        colB[x] = s / srcH;
-      }
+    function fallbackCropCanvas(sourceCanvas) {
+      const w = sourceCanvas.width;
+      const h = sourceCanvas.height;
+      const canvas = document.createElement('canvas');
+      canvas.width = Math.floor(w * 0.8);
+      canvas.height = Math.floor(h * 0.8);
+      const ctx = canvas.getContext('2d');
+      ctx.drawImage(sourceCanvas,
+        Math.floor(w * 0.1), Math.floor(h * 0.1),
+        canvas.width, canvas.height,
+        0, 0, canvas.width, canvas.height);
+      return canvas;
+    }
 
-      // ---- 3. 自适应阈值检测纸张边界 ----
-      const avg = rowB.reduce((a, b) => a + b, 0) / srcH;
-      const th = Math.max(25, avg * 0.6);
-
-      let top = 0, bottom = srcH - 1, left = 0, right = srcW - 1;
-      while (top < srcH && rowB[top] < th) top++;
-      while (bottom > top && rowB[bottom] < th) bottom--;
-      while (left < srcW && colB[left] < th) left++;
-      while (right > left && colB[right] < th) right--;
-
-      // 回退保护
-      if (right - left < srcW * 0.25 || bottom - top < srcH * 0.25) {
-        left = Math.floor(srcW * 0.08);
-        right = Math.floor(srcW * 0.92);
-        top = Math.floor(srcH * 0.08);
-        bottom = Math.floor(srcH * 0.92);
-      }
-
-      // 内缩一点避免噪点
-      const m = 0.015;
-      const cw = right - left;
-      const ch = bottom - top;
-      left = Math.max(0, Math.floor(left + cw * m));
-      right = Math.min(srcW, Math.ceil(right - cw * m));
-      top = Math.max(0, Math.floor(top + ch * m));
-      bottom = Math.min(srcH, Math.ceil(bottom - ch * m));
-
-      const cropW = right - left;
-      const cropH = bottom - top;
-
-      // ---- 4. 裁剪到临时 canvas ----
-      const tmp = document.createElement('canvas');
-      tmp.width = cropW;
-      tmp.height = cropH;
-      const tmpCtx = tmp.getContext('2d');
-      tmpCtx.drawImage(sourceCanvas, left, top, cropW, cropH, 0, 0, cropW, cropH);
-
-      // ---- 5. 锐化 (卷积核: 0 -1 0 / -1 5 -1 / 0 -1 0) ----
-      const imgData = tmpCtx.getImageData(0, 0, cropW, cropH);
+    function sharpenCanvas(canvas) {
+      const w = canvas.width, h = canvas.height;
+      const ctx = canvas.getContext('2d');
+      const imgData = ctx.getImageData(0, 0, w, h);
       const d = imgData.data;
       const orig = new Uint8ClampedArray(d);
-      for (let y = 1; y < cropH - 1; y++) {
-        for (let x = 1; x < cropW - 1; x++) {
-          const i = (y * cropW + x) * 4;
+      for (let y = 1; y < h - 1; y++) {
+        for (let x = 1; x < w - 1; x++) {
+          const i = (y * w + x) * 4;
           for (let c = 0; c < 3; c++) {
             let v = 5 * orig[i + c]
-                  - orig[((y - 1) * cropW + x) * 4 + c]
-                  - orig[((y + 1) * cropW + x) * 4 + c]
-                  - orig[(y * cropW + (x - 1)) * 4 + c]
-                  - orig[(y * cropW + (x + 1)) * 4 + c];
+                  - orig[((y - 1) * w + x) * 4 + c]
+                  - orig[((y + 1) * w + x) * 4 + c]
+                  - orig[(y * w + (x - 1)) * 4 + c]
+                  - orig[(y * w + (x + 1)) * 4 + c];
             d[i + c] = Math.min(255, Math.max(0, v));
           }
         }
       }
-      tmpCtx.putImageData(imgData, 0, 0);
-
-      // ---- 6. 缩放到目标宽度 ----
-      const aspect = cropH / cropW;
-      const tw = Math.min(TARGET_WIDTH, cropW);
-      const th2 = Math.round(tw * aspect);
-
-      const final = document.createElement('canvas');
-      final.width = tw;
-      final.height = th2;
-      const finalCtx = final.getContext('2d');
-      finalCtx.imageSmoothingEnabled = true;
-      finalCtx.imageSmoothingQuality = 'high';
-      finalCtx.drawImage(tmp, 0, 0, cropW, cropH, 0, 0, tw, th2);
-
-      return final.toDataURL('image/jpeg', JPEG_QUALITY);
+      ctx.putImageData(imgData, 0, 0);
+      return canvas;
     }
 
-    // ==================== 拍照 -> 进入预览页 ====================
+    function finalResize(canvas) {
+      const aspect = canvas.height / canvas.width;
+      const tw = Math.min(TARGET_WIDTH, canvas.width);
+      const th = Math.round(tw * aspect);
+      const out = document.createElement('canvas');
+      out.width = tw;
+      out.height = th;
+      const ctx = out.getContext('2d');
+      ctx.imageSmoothingEnabled = true;
+      ctx.imageSmoothingQuality = 'high';
+      ctx.drawImage(canvas, 0, 0, canvas.width, canvas.height, 0, 0, tw, th);
+      return out.toDataURL('image/jpeg', JPEG_QUALITY);
+    }
+
+    // ==================== OpenCV 自动裁剪 ====================
+    async function processCapturedImage(sourceCanvas) {
+      if (!cvReady) {
+        console.warn('OpenCV 未就绪，使用备用裁剪');
+        const fallback = fallbackCropCanvas(sourceCanvas);
+        const sharpened = sharpenCanvas(fallback);
+        return finalResize(sharpened);
+      }
+
+      const srcW = sourceCanvas.width;
+      const srcH = sourceCanvas.height;
+
+      let src = cv.imread(sourceCanvas);
+      let gray = new cv.Mat();
+      let blurred = new cv.Mat();
+      let edges = new cv.Mat();
+      let contours = new cv.MatVector();
+      let hierarchy = new cv.Mat();
+      let bestQuad = null;
+
+      try {
+        cv.cvtColor(src, gray, cv.COLOR_RGBA2GRAY);
+        cv.GaussianBlur(gray, blurred, new cv.Size(5, 5), 0, 0, cv.BORDER_DEFAULT);
+        cv.Canny(blurred, edges, 60, 180);
+
+        let kernel = cv.Mat.ones(3, 3, cv.CV_8U);
+        cv.dilate(edges, edges, kernel, new cv.Point(-1, -1), 1);
+        kernel.delete();
+
+        cv.findContours(edges, contours, hierarchy, cv.RETR_EXTERNAL, cv.CHAIN_APPROX_SIMPLE);
+
+        let maxArea = 0;
+        const imgArea = srcW * srcH;
+
+        for (let i = 0; i < contours.size(); i++) {
+          let cnt = contours.get(i);
+          let area = cv.contourArea(cnt);
+          if (area < imgArea * 0.15) { cnt.delete(); continue; }
+
+          let peri = cv.arcLength(cnt, true);
+          let approx = new cv.Mat();
+          cv.approxPolyDP(cnt, approx, 0.02 * peri, true);
+
+          if (approx.rows === 4 && area > maxArea) {
+            if (bestQuad) bestQuad.delete();
+            bestQuad = approx.clone();
+            maxArea = area;
+          }
+          approx.delete();
+          cnt.delete();
+        }
+
+        let outputCanvas = document.createElement('canvas');
+
+        if (bestQuad && maxArea > imgArea * 0.2) {
+          const pts = [];
+          for (let i = 0; i < 4; i++) {
+            pts.push({
+              x: bestQuad.data32S[i * 2],
+              y: bestQuad.data32S[i * 2 + 1]
+            });
+          }
+          const sorted = sortCorners(pts);
+
+          const widthTop = dist(sorted[0], sorted[1]);
+          const widthBottom = dist(sorted[3], sorted[2]);
+          const heightLeft = dist(sorted[0], sorted[3]);
+          const heightRight = dist(sorted[1], sorted[2]);
+
+          let outW = Math.round(Math.max(widthTop, widthBottom));
+          let outH = Math.round(Math.max(heightLeft, heightRight));
+
+          if (outW > TARGET_WIDTH) {
+            const ratio = TARGET_WIDTH / outW;
+            outW = TARGET_WIDTH;
+            outH = Math.round(outH * ratio);
+          }
+
+          let srcTri = cv.matFromArray(4, 1, cv.CV_32FC2, [
+            sorted[0].x, sorted[0].y,
+            sorted[1].x, sorted[1].y,
+            sorted[2].x, sorted[2].y,
+            sorted[3].x, sorted[3].y
+          ]);
+          let dstTri = cv.matFromArray(4, 1, cv.CV_32FC2, [
+            0, 0, outW, 0, outW, outH, 0, outH
+          ]);
+
+          let M = cv.getPerspectiveTransform(srcTri, dstTri);
+          let warped = new cv.Mat();
+          cv.warpPerspective(src, warped, M, new cv.Size(outW, outH),
+            cv.INTER_LINEAR, cv.BORDER_CONSTANT, new cv.Scalar());
+
+          outputCanvas.width = outW;
+          outputCanvas.height = outH;
+          cv.imshow(outputCanvas, warped);
+
+          srcTri.delete(); dstTri.delete(); M.delete(); warped.delete();
+          bestQuad.delete();
+        } else {
+          outputCanvas = fallbackCropCanvas(sourceCanvas);
+        }
+
+        const sharpened = sharpenCanvas(outputCanvas);
+        return finalResize(sharpened);
+
+      } catch (err) {
+        console.error('OpenCV 处理失败:', err);
+        const fallback = fallbackCropCanvas(sourceCanvas);
+        const sharpened = sharpenCanvas(fallback);
+        return finalResize(sharpened);
+      } finally {
+        src.delete(); gray.delete(); blurred.delete();
+        edges.delete(); contours.delete(); hierarchy.delete();
+        if (bestQuad) bestQuad.delete();
+      }
+    }
+
+    // ==================== 拍照 → 预览 ====================
     async function captureAndPreview() {
       if (!video.videoWidth || !video.videoHeight) {
         showToast('相机未准备好', 'error');
         return;
       }
-      showLoading('正在拍照并自动裁剪...');
+      showLoading('正在自动裁剪...');
       try {
         captureCanvas.width = video.videoWidth;
         captureCanvas.height = video.videoHeight;
         captureCtx.drawImage(video, 0, 0, captureCanvas.width, captureCanvas.height);
 
-        // 稍微延迟以让 UI 更新
         await new Promise(r => setTimeout(r, 80));
 
         const processedDataUrl = await processCapturedImage(captureCanvas);
@@ -839,7 +931,6 @@
         img.src = processedDataUrl;
         await new Promise(r => { img.onload = r; });
 
-        // 记录预览数据
         currentPreview = {
           dataUrl: processedDataUrl,
           width: img.width,
@@ -847,11 +938,8 @@
           rotation: 0
         };
 
-        // 显示预览
         previewImage.src = processedDataUrl;
-        previewImage.style.transform = 'rotate(0deg)';
         previewWrapper.style.transform = 'rotate(0deg)';
-
         switchPage('preview');
       } catch (err) {
         console.error('拍照处理失败:', err);
@@ -861,24 +949,21 @@
       }
     }
 
-    // ==================== 预览页：旋转 ====================
+    // ==================== 预览页操作 ====================
     function rotatePreview(deg) {
       if (!currentPreview) return;
       currentPreview.rotation = ((currentPreview.rotation + deg) % 360 + 360) % 360;
       previewWrapper.style.transform = `rotate(${currentPreview.rotation}deg)`;
     }
 
-    // ==================== 预览页：确认使用 ====================
     async function confirmPreview() {
       if (!currentPreview) return;
       showLoading('正在保存...');
       try {
-        // 如果有旋转，需要重新渲染成新图片
         let finalDataUrl = currentPreview.dataUrl;
         const rot = currentPreview.rotation;
 
         if (rot !== 0) {
-          // 将旋转后的图渲染到 canvas
           const img = new Image();
           img.src = currentPreview.dataUrl;
           await new Promise(r => { img.onload = r; });
@@ -912,7 +997,6 @@
         updateExportState();
         renderManageList();
 
-        // 清理预览
         currentPreview = null;
         showToast('已添加第 ' + documents.length + ' 页', 'success');
         switchPage('manage');
@@ -924,14 +1008,13 @@
       }
     }
 
-    // ==================== 预览页：放弃 ====================
     function discardPreview() {
       currentPreview = null;
       showToast('已放弃，请重新拍摄');
       switchPage('camera');
     }
 
-    // ==================== 多页管理列表渲染 ====================
+    // ==================== 多页管理 ====================
     function renderManageList() {
       if (documents.length === 0) {
         manageList.innerHTML = `
@@ -962,12 +1045,10 @@
       });
       manageList.innerHTML = html;
 
-      // 绑定删除按钮
       manageList.querySelectorAll('[data-action="delete"]').forEach(btn => {
         btn.addEventListener('click', (e) => {
           e.stopPropagation();
-          const id = btn.dataset.id;
-          deleteDocument(id);
+          deleteDocument(btn.dataset.id);
         });
       });
 
@@ -994,8 +1075,6 @@
 
       try {
         const { jsPDF } = window.jspdf;
-
-        // 以第一页确定方向
         const first = documents[0];
         const isPortrait = first.height >= first.width;
         const pdf = new jsPDF({
@@ -1050,19 +1129,16 @@
 
     // ==================== 事件绑定 ====================
     function bindEvents() {
-      // 相机
       cameraContainer.addEventListener('click', handleFocusTap);
       switchCameraBtn.addEventListener('click', (e) => { e.stopPropagation(); toggleCamera(); });
       captureBtn.addEventListener('click', (e) => { e.stopPropagation(); captureAndPreview(); });
       goToManageBtn.addEventListener('click', (e) => { e.stopPropagation(); goToManage(); });
 
-      // 预览
       rotateLeftBtn.addEventListener('click', () => rotatePreview(-90));
       rotateRightBtn.addEventListener('click', () => rotatePreview(90));
       discardBtn.addEventListener('click', discardPreview);
       confirmBtn.addEventListener('click', confirmPreview);
 
-      // 管理页
       addMoreBtn.addEventListener('click', goToCamera);
       exportPdfBtn.addEventListener('click', exportPdf);
     }
@@ -1074,7 +1150,6 @@
       updatePageCount();
       updateExportState();
       renderManageList();
-      // 默认显示相机页
       switchPage('camera');
     }
 
