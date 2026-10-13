@@ -1,0 +1,489 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+    <title>3D 探索游戏 - Three.js</title>
+    <style>
+        body { margin: 0; overflow: hidden; font-family: 'Arial', sans-serif; }
+        #info {
+            position: absolute;
+            top: 20px;
+            left: 20px;
+            color: white;
+            background: rgba(0,0,0,0.6);
+            padding: 10px 20px;
+            border-radius: 30px;
+            pointer-events: none;
+            z-index: 100;
+            backdrop-filter: blur(5px);
+            border: 1px solid rgba(255,255,255,0.2);
+        }
+        #score {
+            position: absolute;
+            top: 20px;
+            right: 20px;
+            color: #ffd700;
+            font-size: 24px;
+            font-weight: bold;
+            text-shadow: 0 0 10px rgba(255,215,0,0.5);
+            background: rgba(0,0,0,0.6);
+            padding: 10px 25px;
+            border-radius: 30px;
+            backdrop-filter: blur(5px);
+            border: 1px solid rgba(255,215,0,0.3);
+            z-index: 100;
+        }
+        #controls {
+            position: absolute;
+            bottom: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+            color: rgba(255,255,255,0.8);
+            background: rgba(0,0,0,0.5);
+            padding: 8px 20px;
+            border-radius: 30px;
+            font-size: 14px;
+            backdrop-filter: blur(5px);
+            border: 1px solid rgba(255,255,255,0.2);
+            z-index: 100;
+        }
+    </style>
+</head>
+<body>
+    <div id="info">✨ 3D 收集游戏 ✨</div>
+    <div id="score">🏆 0</div>
+    <div id="controls">鼠标拖动旋转视角 | 滚轮缩放</div>
+
+    <!-- 引入 Three.js 核心库和辅助库 -->
+    <script type="importmap">
+        {
+            "imports": {
+                "three": "https://unpkg.com/three@0.128.0/build/three.module.js",
+                "three/addons/": "https://unpkg.com/three@0.128.0/examples/jsm/"
+            }
+        }
+    </script>
+
+    <script type="module">
+        import * as THREE from 'three';
+        import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
+        import { CSS2DRenderer, CSS2DObject } from 'three/addons/renderers/CSS2DRenderer.js';
+
+        // --- 初始化场景、相机、渲染器 ---
+        const scene = new THREE.Scene();
+        scene.background = new THREE.Color(0x0a0a20); // 深空蓝黑
+        
+        // 添加一些雾效，增加景深感
+        scene.fog = new THREE.FogExp2(0x0a0a20, 0.002);
+
+        const camera = new THREE.PerspectiveCamera(45, window.innerWidth / window.innerHeight, 0.1, 1000);
+        camera.position.set(15, 10, 25);
+        camera.lookAt(0, 0, 0);
+
+        // WebGL 渲染器
+        const renderer = new THREE.WebGLRenderer({ antialias: true });
+        renderer.setSize(window.innerWidth, window.innerHeight);
+        renderer.shadowMap.enabled = true; // 开启阴影效果
+        renderer.shadowMap.type = THREE.PCFSoftShadowMap;
+        renderer.shadowMap.bias = 0.0001;
+        document.body.appendChild(renderer.domElement);
+
+        // CSS2 渲染器用于显示漂浮文字（得分提示），但暂时不用，我们直接操作DOM得分
+
+        // --- 轨道控制器 (允许玩家自由观察3D世界) ---
+        const controls = new OrbitControls(camera, renderer.domElement);
+        controls.enableDamping = true;      // 启用惯性
+        controls.dampingFactor = 0.05;
+        controls.autoRotate = false;
+        controls.enableZoom = true;
+        controls.target.set(0, 2, 0);
+        controls.maxPolarAngle = Math.PI / 2; // 限制不能看到地下
+        controls.minDistance = 5;
+        controls.maxDistance = 60;
+
+        // --- 灯光系统 ---
+        
+        // 环境光提供基础照明
+        const ambientLight = new THREE.AmbientLight(0x404060);
+        scene.add(ambientLight);
+
+        // 主光源 - 产生阴影和立体感
+        const mainLight = new THREE.DirectionalLight(0xffffff, 1);
+        mainLight.position.set(10, 20, 10);
+        mainLight.castShadow = true;
+        mainLight.receiveShadow = true;
+        mainLight.shadow.mapSize.width = 1024;
+        mainLight.shadow.mapSize.height = 1024;
+        const d = 30;
+        mainLight.shadow.camera.left = -d;
+        mainLight.shadow.camera.right = d;
+        mainLight.shadow.camera.top = d;
+        mainLight.shadow.camera.bottom = -d;
+        mainLight.shadow.camera.near = 1;
+        mainLight.shadow.camera.far = 50;
+        mainLight.shadow.bias = -0.0005;
+        scene.add(mainLight);
+
+        // 添加一些彩色辅助光源，使场景更生动
+        const light1 = new THREE.PointLight(0xff44aa, 0.6, 30);
+        light1.position.set(10, 5, 10);
+        scene.add(light1);
+
+        const light2 = new THREE.PointLight(0x44aaff, 0.6, 30);
+        light2.position.set(-10, 5, -10);
+        scene.add(light2);
+
+        // 底部补光
+        const fillLight = new THREE.PointLight(0x88aaff, 0.3);
+        fillLight.position.set(0, -5, 0);
+        scene.add(fillLight);
+
+        // --- 创建地面和背景元素 ---
+
+        // 一个带有网格纹理的圆形地面，增强空间感
+        const groundGeometry = new THREE.CircleGeometry(40, 64);
+        const groundMaterial = new THREE.MeshStandardMaterial({ 
+            color: 0x1a1a3a, 
+            roughness: 0.7, 
+            metalness: 0.1,
+            emissive: new THREE.Color(0x111133)
+        });
+        const ground = new THREE.Mesh(groundGeometry, groundMaterial);
+        ground.rotation.x = -Math.PI / 2;
+        ground.position.y = -0.01;
+        ground.receiveShadow = true;
+        scene.add(ground);
+
+        // 添加一个发光网格辅助线（视觉上更炫酷）
+        const gridHelper = new THREE.GridHelper(80, 40, 0x44aaff, 0x3366cc);
+        gridHelper.position.y = 0;
+        scene.add(gridHelper);
+
+        // 添加随机分布的星星（小粒子）
+        const starsGeometry = new THREE.BufferGeometry();
+        const starsCount = 2000;
+        const starsPositions = new Float32Array(starsCount * 3);
+        for (let i = 0; i < starsCount * 3; i += 3) {
+            starsPositions[i] = (Math.random() - 0.5) * 400;
+            starsPositions[i+1] = (Math.random() - 0.5) * 200;
+            starsPositions[i+2] = (Math.random() - 0.5) * 400 - 100;
+        }
+        starsGeometry.setAttribute('position', new THREE.BufferAttribute(starsPositions, 3));
+        const starsMaterial = new THREE.PointsMaterial({ color: 0xffffff, size: 0.3, transparent: true, opacity: 0.8 });
+        const stars = new THREE.Points(starsGeometry, starsMaterial);
+        scene.add(stars);
+
+        // --- 游戏核心元素：可收集的物品 ---
+        const items = []; // 存储所有物品对象的数组
+        const itemCount = 15; // 物品数量
+        
+        // 物品的颜色列表
+        const colors = [0xff3333, 0x33ff33, 0x33aaff, 0xff33aa, 0xffaa33, 0xaa33ff, 0x33ffaa, 0xff6633];
+        
+        // 创建物品的函数
+        function createItem() {
+            // 随机位置 (在圆形范围内)
+            const angle = Math.random() * Math.PI * 2;
+            const radius = 8 + Math.random() * 18; // 半径 8~26
+            const x = Math.cos(angle) * radius;
+            const z = Math.sin(angle) * radius;
+            const y = 1 + Math.random() * 3; // 高度 1~4
+
+            // 随机颜色和形状（球体或环面或立方体）
+            const color = colors[Math.floor(Math.random() * colors.length)];
+            let geometry;
+            const shapeType = Math.random();
+            if (shapeType < 0.5) {
+                geometry = new THREE.SphereGeometry(0.8, 16, 16);
+            } else if (shapeType < 0.8) {
+                geometry = new THREE.TorusGeometry(0.8, 0.3, 16, 32);
+            } else {
+                geometry = new THREE.BoxGeometry(1.2, 1.2, 1.2);
+            }
+
+            const material = new THREE.MeshStandardMaterial({
+                color: color,
+                emissive: color,
+                emissiveIntensity: 0.5,
+                roughness: 0.2,
+                metalness: 0.3
+            });
+
+            const mesh = new THREE.Mesh(geometry, material);
+            mesh.position.set(x, y, z);
+            mesh.castShadow = true;
+            mesh.receiveShadow = true;
+
+            // 添加一个微小的光晕效果（点光源跟随物品，但为了性能不每个都加）
+            // 用一个小粒子环绕代替? 算了，简单点，让物品自发光就够了
+
+            // 存储一些元数据用于动画
+            mesh.userData = {
+                originalY: y,
+                speed: 0.5 + Math.random() * 0.5,
+                rotateSpeed: 0.01 + Math.random() * 0.02,
+                phase: Math.random() * Math.PI * 2,
+                collected: false,
+                color: color
+            };
+
+            scene.add(mesh);
+            items.push(mesh);
+        }
+
+        // 生成所有物品
+        for (let i = 0; i < itemCount; i++) {
+            createItem();
+        }
+
+        // --- 玩家角色（一艘小飞船或者一个小球，代表玩家）---
+        const playerGeometry = new THREE.ConeGeometry(1.2, 2, 8);
+        const playerMaterial = new THREE.MeshStandardMaterial({ 
+            color: 0x00ffff, 
+            emissive: 0x0066aa,
+            emissiveIntensity: 0.8,
+            metalness: 0.8,
+            roughness: 0.2
+        });
+        const player = new THREE.Mesh(playerGeometry, playerMaterial);
+        player.position.set(0, 2, 0);
+        player.castShadow = true;
+        player.receiveShadow = true;
+        // 让锥体旋转一下，更像飞船
+        player.rotation.x = Math.PI / 2;
+        player.rotation.z = Math.PI / 4;
+        scene.add(player);
+
+        // 给玩家加一个光环环绕效果
+        const ringGeometry = new THREE.TorusGeometry(1.8, 0.08, 16, 32);
+        const ringMaterial = new THREE.MeshStandardMaterial({ color: 0x00aaff, emissive: 0x0044aa });
+        const ring = new THREE.Mesh(ringGeometry, ringMaterial);
+        ring.rotation.x = Math.PI / 2;
+        ring.rotation.y = Math.PI / 4;
+        ring.position.y = 0;
+        player.add(ring); // 作为玩家的子元素，跟随移动
+
+        // 玩家周围的小粒子（代表引擎光环）
+        const glowParticlesGeo = new THREE.BufferGeometry();
+        const glowCount = 30;
+        const glowPositions = new Float32Array(glowCount * 3);
+        for (let i = 0; i < glowCount * 3; i += 3) {
+            const rad = 2.0 + Math.random() * 0.5;
+            const theta = Math.random() * Math.PI * 2;
+            const phi = Math.random() * Math.PI * 2;
+            glowPositions[i] = Math.sin(theta) * Math.cos(phi) * rad;
+            glowPositions[i+1] = Math.sin(theta) * Math.sin(phi) * rad;
+            glowPositions[i+2] = Math.cos(theta) * rad;
+        }
+        glowParticlesGeo.setAttribute('position', new THREE.BufferAttribute(glowPositions, 3));
+        const glowParticlesMat = new THREE.PointsMaterial({ color: 0x44aaff, size: 0.15, transparent: true, blending: THREE.AdditiveBlending });
+        const glowParticles = new THREE.Points(glowParticlesGeo, glowParticlesMat);
+        player.add(glowParticles);
+
+        // --- 游戏状态 ---
+        let score = 0;
+        const scoreElement = document.getElementById('score');
+        
+        // 用于碰撞检测的玩家位置（简化，直接使用player.position）
+        // 为了检测收集，我们需要在每一帧检查玩家和物品的距离
+
+        // 简单的键盘控制（为了增加一点互动性，但主要用鼠标旋转视角）
+        // 但我们不做复杂的移动，因为游戏核心是观察和收集？但是收集需要移动，所以我们让玩家可以移动
+        // 添加键盘监听，用 WASD 或方向键移动玩家
+        const keyState = {
+            w: false, a: false, s: false, d: false,
+            up: false, down: false, left: false, right: false
+        };
+
+        window.addEventListener('keydown', (e) => {
+            switch(e.code) {
+                case 'KeyW': keyState.w = true; e.preventDefault(); break;
+                case 'KeyA': keyState.a = true; e.preventDefault(); break;
+                case 'KeyS': keyState.s = true; e.preventDefault(); break;
+                case 'KeyD': keyState.d = true; e.preventDefault(); break;
+                case 'ArrowUp': keyState.up = true; e.preventDefault(); break;
+                case 'ArrowDown': keyState.down = true; e.preventDefault(); break;
+                case 'ArrowLeft': keyState.left = true; e.preventDefault(); break;
+                case 'ArrowRight': keyState.right = true; e.preventDefault(); break;
+            }
+        });
+
+        window.addEventListener('keyup', (e) => {
+            switch(e.code) {
+                case 'KeyW': keyState.w = false; e.preventDefault(); break;
+                case 'KeyA': keyState.a = false; e.preventDefault(); break;
+                case 'KeyS': keyState.s = false; e.preventDefault(); break;
+                case 'KeyD': keyState.d = false; e.preventDefault(); break;
+                case 'ArrowUp': keyState.up = false; e.preventDefault(); break;
+                case 'ArrowDown': keyState.down = false; e.preventDefault(); break;
+                case 'ArrowLeft': keyState.left = false; e.preventDefault(); break;
+                case 'ArrowRight': keyState.right = false; e.preventDefault(); break;
+            }
+        });
+
+        // 移动速度
+        const moveSpeed = 0.15;
+
+        // --- 收集物品时的效果（小粒子爆炸）---
+        function createCollectEffect(position, color) {
+            const particleCount = 20;
+            const geometry = new THREE.BufferGeometry();
+            const positions = new Float32Array(particleCount * 3);
+            const velocities = [];
+            
+            for (let i = 0; i < particleCount; i++) {
+                positions[i*3] = position.x;
+                positions[i*3+1] = position.y;
+                positions[i*3+2] = position.z;
+                
+                const vel = new THREE.Vector3(
+                    (Math.random() - 0.5) * 0.3,
+                    (Math.random() - 0.5) * 0.3,
+                    (Math.random() - 0.5) * 0.3
+                );
+                velocities.push(vel);
+            }
+            
+            geometry.setAttribute('position', new THREE.BufferAttribute(positions, 3));
+            const material = new THREE.PointsMaterial({ color: color, size: 0.2, blending: THREE.AdditiveBlending, transparent: true });
+            const particles = new THREE.Points(geometry, material);
+            scene.add(particles);
+            
+            // 动画并移除
+            let life = 1.0;
+            const animateParticles = () => {
+                life -= 0.02;
+                if (life <= 0) {
+                    scene.remove(particles);
+                    geometry.dispose();
+                    material.dispose();
+                    return;
+                }
+                const positionsAttr = geometry.attributes.position;
+                const posArray = positionsAttr.array;
+                for (let i = 0; i < particleCount; i++) {
+                    posArray[i*3] += velocities[i].x;
+                    posArray[i*3+1] += velocities[i].y;
+                    posArray[i*3+2] += velocities[i].z;
+                    velocities[i].y -= 0.005; // 轻微重力
+                }
+                positionsAttr.needsUpdate = true;
+                material.opacity = life;
+                requestAnimationFrame(animateParticles);
+            };
+            animateParticles();
+        }
+
+        // --- 动画循环 ---
+        let clock = new THREE.Clock();
+
+        function animate() {
+            const delta = clock.getDelta();
+            const elapsedTime = performance.now() * 0.001; // seconds
+
+            // 1. 根据键盘移动玩家
+            if (keyState.w || keyState.up) {
+                player.position.z -= moveSpeed;
+            }
+            if (keyState.s || keyState.down) {
+                player.position.z += moveSpeed;
+            }
+            if (keyState.a || keyState.left) {
+                player.position.x -= moveSpeed;
+            }
+            if (keyState.d || keyState.right) {
+                player.position.x += moveSpeed;
+            }
+
+            // 限制玩家移动范围 (在半径28内)
+            const limit = 28;
+            const dist = Math.sqrt(player.position.x * player.position.x + player.position.z * player.position.z);
+            if (dist > limit) {
+                player.position.x = (player.position.x / dist) * limit;
+                player.position.z = (player.position.z / dist) * limit;
+            }
+
+            // 玩家轻微浮动
+            player.position.y = 2 + Math.sin(elapsedTime * 3) * 0.2;
+            // 玩家自转
+            player.rotation.y += 0.01;
+            // 光环旋转
+            if (ring) {
+                ring.rotation.z += 0.02;
+                ring.rotation.x = Math.PI / 2 + Math.sin(elapsedTime * 2) * 0.1;
+            }
+
+            // 2. 物品动画 (上下浮动和旋转)
+            items.forEach(item => {
+                if (!item.userData.collected) {
+                    // 上下浮动
+                    item.position.y = item.userData.originalY + Math.sin(elapsedTime * item.userData.speed + item.userData.phase) * 0.5;
+                    // 旋转
+                    item.rotation.y += item.userData.rotateSpeed;
+                    item.rotation.x += item.userData.rotateSpeed * 0.5;
+                }
+            });
+
+            // 3. 碰撞检测：玩家与物品
+            items.forEach(item => {
+                if (item.userData.collected) return;
+                
+                const dx = player.position.x - item.position.x;
+                const dy = player.position.y - item.position.y;
+                const dz = player.position.z - item.position.z;
+                const distSq = dx*dx + dy*dy + dz*dz;
+                
+                if (distSq < 3.5 * 3.5) { // 大约3.5单位距离内收集
+                    // 收集！
+                    item.userData.collected = true;
+                    scene.remove(item);
+                    
+                    // 更新得分
+                    score += 10;
+                    scoreElement.textContent = `🏆 ${score}`;
+                    
+                    // 粒子效果
+                    createCollectEffect(item.position, item.userData.color);
+                    
+                    // 可以添加一个音效？没有音频文件，跳过。
+                }
+            });
+
+            // 4. 更新星星旋转，增加动感
+            stars.rotation.y += 0.0001;
+
+            // 5. 更新控制器
+            controls.update();
+
+            // 6. 渲染
+            renderer.render(scene, camera);
+
+            requestAnimationFrame(animate);
+        }
+
+        // 启动动画
+        animate();
+
+        // --- 窗口大小自适应 ---
+        window.addEventListener('resize', onWindowResize, false);
+        function onWindowResize() {
+            camera.aspect = window.innerWidth / window.innerHeight;
+            camera.updateProjectionMatrix();
+            renderer.setSize(window.innerWidth, window.innerHeight);
+        }
+
+        // 提示：可以使用键盘 WASD 或方向键移动蓝色飞船，收集发光物品得分。
+        // 但为了简单，我们只用了鼠标旋转视角，键盘移动是额外的。
+        // 更新一下提示文字
+        document.getElementById('controls').innerHTML = '鼠标拖动旋转 | 滚轮缩放 | WASD/方向键移动飞船';
+
+        // 初始化时显示得分
+        scoreElement.textContent = `🏆 0`;
+
+        // 小技巧：为了让玩家更容易发现物品，给物品添加微小的光环？已经通过emissive实现了。
+        console.log('3D游戏已启动！使用WASD或方向键移动蓝色飞船收集彩色物品。');
+
+    </script>
+</body>
+</html>
