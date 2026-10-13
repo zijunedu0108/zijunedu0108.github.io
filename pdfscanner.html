@@ -12,6 +12,8 @@
   <meta name="apple-mobile-web-app-title" content="扫描文档">
   <meta name="theme-color" content="#0a84ff">
 
+  <!-- Lucide 图标库 -->
+  <script src="https://unpkg.com/lucide@latest/dist/umd/lucide.min.js"></script>
   <!-- OpenCV.js -->
   <script async src="https://docs.opencv.org/4.8.0/opencv.js" onload="onOpenCvReady()"></script>
   <!-- jsPDF -->
@@ -47,6 +49,14 @@
       overflow: hidden;
       position: relative;
     }
+
+    /* Lucide 图标基础样式 */
+    [data-lucide] {
+      width: 20px;
+      height: 20px;
+      stroke-width: 2;
+    }
+
     /* ========== 页面切换 ========== */
     .page {
       position: absolute;
@@ -62,6 +72,7 @@
       pointer-events: none;
       transform: scale(0.95);
     }
+
     /* ========== 相机页面 ========== */
     .camera-container {
       position: relative;
@@ -113,7 +124,7 @@
     .camera-top-bar {
       position: absolute;
       top: 0; left: 0; right: 0;
-      padding: 12px 16px;
+      padding: calc(12px + env(safe-area-inset-top)) 16px 12px;
       display: flex;
       justify-content: space-between;
       align-items: center;
@@ -123,11 +134,19 @@
     .page-count-badge {
       background: rgba(10,132,255,0.9);
       color: white;
-      padding: 4px 12px;
+      padding: 5px 12px;
       border-radius: 20px;
       font-size: 13px;
       font-weight: 600;
+      display: flex;
+      align-items: center;
+      gap: 5px;
     }
+    .page-count-badge [data-lucide] {
+      width: 14px;
+      height: 14px;
+    }
+
     /* 相机底部控制 */
     .camera-bottom-bar {
       background: #1c1c1e;
@@ -156,9 +175,7 @@
     }
     .btn:active { background: #3a3a3c; transform: scale(0.96); }
     .btn:disabled { opacity: 0.4; pointer-events: none; }
-    .btn-icon { font-size: 18px; line-height: 1; }
-    .btn-primary { background: #0a84ff; color: white; font-weight: 600; }
-    .btn-primary:active { background: #0070e0; }
+
     .capture-btn {
       width: 72px;
       height: 72px;
@@ -183,6 +200,43 @@
     }
     .capture-btn:active .capture-btn-inner { background: #e0e0e0; }
 
+    .icon-circle-btn {
+      width: 56px;
+      height: 56px;
+      border-radius: 50%;
+      background: #2c2c2e;
+      border: none;
+      color: white;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      transition: background 0.15s, transform 0.1s;
+      position: relative;
+      box-shadow: 0 2px 6px rgba(0,0,0,0.3);
+    }
+    .icon-circle-btn:active { background: #3a3a3c; transform: scale(0.94); }
+    .icon-circle-btn [data-lucide] { width: 24px; height: 24px; }
+
+    /* 管理页小红点 */
+    .badge-dot {
+      position: absolute;
+      top: -2px;
+      right: -2px;
+      min-width: 20px;
+      height: 20px;
+      border-radius: 10px;
+      background: #ff453a;
+      color: white;
+      font-size: 11px;
+      font-weight: 700;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 0 5px;
+      border: 2px solid #1c1c1e;
+    }
+
     /* ========== 预览编辑页面 ========== */
     .preview-header {
       padding: calc(16px + env(safe-area-inset-top)) 16px 12px;
@@ -192,75 +246,118 @@
       font-weight: 600;
       background: #1c1c1e;
       flex-shrink: 0;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+    }
+    .preview-header [data-lucide] {
+      width: 18px; height: 18px;
+      color: #0a84ff;
     }
     .preview-body {
       flex: 1;
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      justify-content: center;
-      padding: 12px;
+      position: relative;
       background: #111;
       min-height: 0;
       overflow: hidden;
-    }
-    .preview-image-wrapper {
-      position: relative;
-      max-width: 100%;
-      max-height: 100%;
       display: flex;
       align-items: center;
       justify-content: center;
-      transition: transform 0.25s ease;
+      touch-action: none;
     }
-    #previewImage {
+    #previewCanvas {
       max-width: 100%;
       max-height: 100%;
-      object-fit: contain;
-      border-radius: 8px;
-      box-shadow: 0 4px 20px rgba(0,0,0,0.5);
+      display: block;
+      touch-action: none;
     }
-    .crop-badge {
+
+    /* 四角拖拽手柄 */
+    .corner-handle {
       position: absolute;
-      top: 10px;
-      left: 10px;
-      background: rgba(10,132,255,0.9);
-      color: white;
-      padding: 4px 10px;
-      border-radius: 20px;
-      font-size: 11px;
-      font-weight: 600;
+      width: 44px;
+      height: 44px;
+      border-radius: 50%;
+      background: rgba(10,132,255,0.25);
+      border: 2px solid #0a84ff;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      touch-action: none;
+      cursor: move;
+      transform: translate(-50%, -50%);
+      box-shadow: 0 2px 12px rgba(0,0,0,0.5);
+      z-index: 10;
     }
+    .corner-handle::after {
+      content: '';
+      width: 14px;
+      height: 14px;
+      border-radius: 50%;
+      background: #0a84ff;
+      box-shadow: 0 0 10px rgba(10,132,255,0.8);
+    }
+    .corner-handle.dragging {
+      background: rgba(10,132,255,0.5);
+      transform: translate(-50%, -50%) scale(1.15);
+    }
+
+    /* 裁剪提示条 */
+    .crop-hint {
+      position: absolute;
+      top: 12px;
+      left: 50%;
+      transform: translateX(-50%);
+      background: rgba(0,0,0,0.75);
+      color: white;
+      padding: 8px 16px;
+      border-radius: 20px;
+      font-size: 12px;
+      backdrop-filter: blur(8px);
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      z-index: 5;
+      pointer-events: none;
+    }
+    .crop-hint [data-lucide] {
+      width: 14px; height: 14px;
+      color: #0a84ff;
+    }
+
     .rotate-controls {
       display: flex;
-      gap: 20px;
+      gap: 12px;
       justify-content: center;
-      padding: 16px;
+      padding: 12px 16px;
       background: #1c1c1e;
       flex-shrink: 0;
     }
     .rotate-btn {
+      flex: 1;
       background: #2c2c2e;
       border: none;
       color: white;
-      padding: 14px 28px;
-      border-radius: 16px;
-      font-size: 15px;
+      padding: 12px 20px;
+      border-radius: 14px;
+      font-size: 14px;
       font-weight: 500;
       display: flex;
       align-items: center;
+      justify-content: center;
       gap: 8px;
       cursor: pointer;
       transition: background 0.15s, transform 0.1s;
       box-shadow: 0 2px 8px rgba(0,0,0,0.3);
     }
-    .rotate-btn:active { background: #3a3a3c; transform: scale(0.96); }
-    .rotate-btn .icon { font-size: 20px; }
+    .rotate-btn:active { background: #3a3a3c; transform: scale(0.97); }
+    .rotate-btn [data-lucide] { width: 18px; height: 18px; }
 
     .preview-actions {
       display: flex;
       gap: 12px;
-      padding: 16px 20px calc(20px + env(safe-area-inset-bottom));
+      padding: 12px 20px calc(20px + env(safe-area-inset-bottom));
       background: #1c1c1e;
       flex-shrink: 0;
     }
@@ -270,11 +367,13 @@
       font-size: 16px;
       font-weight: 600;
       border-radius: 16px;
+      gap: 8px;
     }
     .btn-confirm { background: #0a84ff; color: white; }
     .btn-confirm:active { background: #0070e0; }
     .btn-cancel { background: #2c2c2e; color: #ff453a; }
     .btn-cancel:active { background: #3a3a3c; }
+    .btn-cancel [data-lucide] { color: #ff453a; }
 
     /* ========== 多页管理页面 ========== */
     .manage-header {
@@ -348,13 +447,12 @@
       flex-shrink: 0;
     }
     .icon-btn {
-      width: 36px;
-      height: 36px;
+      width: 38px;
+      height: 38px;
       border-radius: 50%;
       background: #3a3a3c;
       border: none;
       color: white;
-      font-size: 16px;
       display: flex;
       align-items: center;
       justify-content: center;
@@ -362,7 +460,10 @@
       transition: background 0.15s;
     }
     .icon-btn:active { background: #4a4a4c; }
+    .icon-btn [data-lucide] { width: 18px; height: 18px; }
     .icon-btn.delete { color: #ff453a; }
+    .icon-btn.delete [data-lucide] { color: #ff453a; }
+
     .empty-state {
       text-align: center;
       color: #8e8e93;
@@ -370,9 +471,14 @@
       font-size: 15px;
     }
     .empty-state .big-icon {
-      font-size: 48px;
+      display: flex;
+      justify-content: center;
       margin-bottom: 16px;
-      opacity: 0.5;
+      color: #3a3a3c;
+    }
+    .empty-state .big-icon [data-lucide] {
+      width: 64px; height: 64px;
+      stroke-width: 1.5;
     }
 
     .manage-bottom {
@@ -416,6 +522,8 @@
     }
     .export-btn:active { background: #0066cc; transform: scale(0.98); }
     .export-btn:disabled { opacity: 0.4; background: #3a3a3c; box-shadow: none; pointer-events: none; }
+    .export-btn [data-lucide] { width: 22px; height: 22px; }
+
     .add-more-btn {
       width: 100%;
       padding: 15px;
@@ -433,6 +541,7 @@
       transition: background 0.15s;
     }
     .add-more-btn:active { background: #3a3a3c; }
+    .add-more-btn [data-lucide] { width: 18px; height: 18px; }
 
     /* Toast */
     .toast {
@@ -453,7 +562,11 @@
       pointer-events: none;
       white-space: nowrap;
       max-width: 90vw;
+      display: flex;
+      align-items: center;
+      gap: 8px;
     }
+    .toast [data-lucide] { width: 18px; height: 18px; flex-shrink: 0; }
     .toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
     .toast.error { background: #ff453a; }
     .toast.success { background: #30d158; }
@@ -469,6 +582,7 @@
       z-index: 9998;
       flex-direction: column;
       gap: 16px;
+      backdrop-filter: blur(4px);
     }
     .loading-overlay.show { display: flex; }
     .spinner {
@@ -502,42 +616,59 @@
         <div class="camera-hint" id="cameraHint">点击画面对焦</div>
       </div>
       <div class="camera-top-bar">
-        <span class="page-count-badge" id="pageCountBadge">已拍 0 页</span>
+        <span class="page-count-badge">
+          <i data-lucide="file-text"></i>
+          <span id="pageCountBadge">已拍 0 页</span>
+        </span>
       </div>
     </div>
     <div class="camera-bottom-bar">
-      <button class="btn" id="switchCameraBtn" style="width:56px;height:56px;border-radius:50%;padding:0;">
-        <span class="btn-icon" style="font-size:22px;">🔄</span>
+      <button class="icon-circle-btn" id="switchCameraBtn" title="切换摄像头">
+        <i data-lucide="refresh-cw"></i>
       </button>
-      <button class="capture-btn" id="captureBtn">
+      <button class="capture-btn" id="captureBtn" title="拍照">
         <div class="capture-btn-inner"></div>
       </button>
-      <button class="btn" id="goToManageBtn" style="width:56px;height:56px;border-radius:50%;padding:0;position:relative;">
-        <span class="btn-icon" style="font-size:22px;">📁</span>
+      <button class="icon-circle-btn" id="goToManageBtn" title="我的扫描">
+        <i data-lucide="folder-open"></i>
+        <span class="badge-dot" id="manageBadge" style="display:none;">0</span>
       </button>
     </div>
   </div>
 
-  <!-- ========== 页面2: 预览编辑 ========== -->
+  <!-- ========== 页面2: 预览编辑（可拖拽角点） ========== -->
   <div class="page hidden" id="pagePreview">
-    <div class="preview-header">调整文档</div>
-    <div class="preview-body">
-      <div class="preview-image-wrapper" id="previewWrapper">
-        <img id="previewImage" alt="预览">
-        <div class="crop-badge">✨ 已自动裁剪</div>
+    <div class="preview-header">
+      <i data-lucide="scan-line"></i>
+      <span>调整文档边框</span>
+    </div>
+    <div class="preview-body" id="previewBody">
+      <canvas id="previewCanvas"></canvas>
+      <div class="crop-hint">
+        <i data-lucide="move"></i>
+        <span>拖动四角可微调裁剪范围</span>
       </div>
+      <!-- 四个角手柄动态生成 -->
     </div>
     <div class="rotate-controls">
       <button class="rotate-btn" id="rotateLeftBtn">
-        <span class="icon">↺</span> 左转
+        <i data-lucide="rotate-ccw"></i>
+        <span>左转 90°</span>
       </button>
       <button class="rotate-btn" id="rotateRightBtn">
-        <span class="icon">↻</span> 右转
+        <i data-lucide="rotate-cw"></i>
+        <span>右转 90°</span>
       </button>
     </div>
     <div class="preview-actions">
-      <button class="btn btn-cancel" id="discardBtn">放弃重拍</button>
-      <button class="btn btn-confirm" id="confirmBtn">确定使用</button>
+      <button class="btn btn-cancel" id="discardBtn">
+        <i data-lucide="trash-2"></i>
+        <span>放弃重拍</span>
+      </button>
+      <button class="btn btn-confirm" id="confirmBtn">
+        <i data-lucide="check"></i>
+        <span>确定使用</span>
+      </button>
     </div>
   </div>
 
@@ -551,17 +682,19 @@
     </div>
     <div class="manage-list" id="manageList">
       <div class="empty-state">
-        <div class="big-icon">📄</div>
+        <div class="big-icon"><i data-lucide="file-stack"></i></div>
         <div>还没有扫描任何文档</div>
       </div>
     </div>
     <div class="manage-bottom">
       <button class="add-more-btn" id="addMoreBtn">
-        <span>📸</span> 继续拍摄下一张
+        <i data-lucide="camera"></i>
+        <span>继续拍摄下一张</span>
       </button>
       <input type="text" class="filename-input" id="filenameInput" placeholder="输入文档名称" value="扫描文档">
       <button class="export-btn" id="exportPdfBtn" disabled>
-        <span>📥</span> 下载导出 PDF
+        <i data-lucide="download"></i>
+        <span>下载导出 PDF</span>
       </button>
     </div>
   </div>
@@ -569,7 +702,10 @@
 </div>
 
 <!-- Toast -->
-<div class="toast" id="toast">提示</div>
+<div class="toast" id="toast">
+  <i data-lucide="info" id="toastIcon"></i>
+  <span id="toastText">提示</span>
+</div>
 
 <!-- Loading 遮罩 -->
 <div class="loading-overlay" id="loadingOverlay">
@@ -590,8 +726,20 @@
     let stream = null;
     let currentFacingMode = 'environment';
     let documents = []; // { id, dataUrl, width, height }
-    let currentPreview = null; // { dataUrl, width, height, rotation }
     let activePage = 'camera';
+
+    // 预览页状态
+    let previewState = {
+      originalCanvas: null,   // 原始尺寸的完整图片（未裁剪，仅旋转过）
+      displayCanvas: null,    // 屏幕上展示的 canvas
+      corners: [],            // [{x, y}] 4 个角点在 originalCanvas 坐标系中的位置
+      dragIndex: -1,
+      rotation: 0,            // 0, 90, 180, 270
+      renderScale: 1,         // display canvas -> original canvas 的缩放比
+      originalWidth: 0,
+      originalHeight: 0,
+      autoDetected: false     // 是否成功自动检测到角点
+    };
 
     const TARGET_WIDTH = 1000;
     const JPEG_QUALITY = 0.92;
@@ -606,13 +754,16 @@
     const focusIndicator = document.getElementById('focusIndicator');
     const cameraHint = document.getElementById('cameraHint');
     const pageCountBadge = document.getElementById('pageCountBadge');
+    const manageBadge = document.getElementById('manageBadge');
 
     const switchCameraBtn = document.getElementById('switchCameraBtn');
     const captureBtn = document.getElementById('captureBtn');
     const goToManageBtn = document.getElementById('goToManageBtn');
 
-    const previewImage = document.getElementById('previewImage');
-    const previewWrapper = document.getElementById('previewWrapper');
+    const previewBody = document.getElementById('previewBody');
+    const previewCanvas = document.getElementById('previewCanvas');
+    const previewCtx = previewCanvas.getContext('2d');
+
     const rotateLeftBtn = document.getElementById('rotateLeftBtn');
     const rotateRightBtn = document.getElementById('rotateRightBtn');
     const discardBtn = document.getElementById('discardBtn');
@@ -625,6 +776,8 @@
     const exportPdfBtn = document.getElementById('exportPdfBtn');
 
     const toastEl = document.getElementById('toast');
+    const toastText = document.getElementById('toastText');
+    const toastIcon = document.getElementById('toastIcon');
     const loadingOverlay = document.getElementById('loadingOverlay');
     const loadingText = document.getElementById('loadingText');
 
@@ -632,12 +785,33 @@
     const captureCanvas = document.createElement('canvas');
     const captureCtx = captureCanvas.getContext('2d');
 
+    // ==================== 初始化 Lucide 图标 ====================
+    function refreshIcons() {
+      if (window.lucide && typeof lucide.createIcons === 'function') {
+        lucide.createIcons();
+      }
+    }
+    // 页面加载后立即初始化一次
+    document.addEventListener('DOMContentLoaded', refreshIcons);
+    // 兜底：如果 DOM 已加载完
+    setTimeout(refreshIcons, 100);
+    setTimeout(refreshIcons, 500);
+
     // ==================== 工具函数 ====================
     function showToast(msg, type = 'default', duration = 2000) {
-      toastEl.textContent = msg;
+      toastText.textContent = msg;
+      // 切换图标
+      let iconName = 'info';
+      if (type === 'error') iconName = 'alert-circle';
+      else if (type === 'success') iconName = 'check-circle';
+      toastIcon.setAttribute('data-lucide', iconName);
+
       toastEl.className = 'toast show';
       if (type === 'error') toastEl.classList.add('error');
       else if (type === 'success') toastEl.classList.add('success');
+
+      refreshIcons();
+
       clearTimeout(toastEl._timer);
       toastEl._timer = setTimeout(() => {
         toastEl.classList.remove('show');
@@ -659,6 +833,12 @@
     function updatePageCount() {
       pageCountBadge.textContent = `已拍 ${documents.length} 页`;
       manageSubtitle.textContent = `共 ${documents.length} 页`;
+      if (documents.length > 0) {
+        manageBadge.style.display = 'flex';
+        manageBadge.textContent = documents.length > 99 ? '99+' : documents.length;
+      } else {
+        manageBadge.style.display = 'none';
+      }
     }
 
     function updateExportState() {
@@ -670,6 +850,8 @@
       pageCamera.classList.toggle('hidden', pageName !== 'camera');
       pagePreview.classList.toggle('hidden', pageName !== 'preview');
       pageManage.classList.toggle('hidden', pageName !== 'manage');
+      // 页面切换后刷新图标
+      setTimeout(refreshIcons, 50);
     }
 
     // ==================== 相机 ====================
@@ -726,7 +908,7 @@
       window._focusTimer = setTimeout(() => focusIndicator.classList.remove('active'), 1500);
     }
 
-    // ==================== 图像处理辅助函数 ====================
+    // ==================== 图像处理辅助 ====================
     function dist(p1, p2) {
       return Math.hypot(p1.x - p2.x, p1.y - p2.y);
     }
@@ -741,20 +923,6 @@
       const bl = remaining[0];
       const tr = remaining[1];
       return [tl, tr, br, bl];
-    }
-
-    function fallbackCropCanvas(sourceCanvas) {
-      const w = sourceCanvas.width;
-      const h = sourceCanvas.height;
-      const canvas = document.createElement('canvas');
-      canvas.width = Math.floor(w * 0.8);
-      canvas.height = Math.floor(h * 0.8);
-      const ctx = canvas.getContext('2d');
-      ctx.drawImage(sourceCanvas,
-        Math.floor(w * 0.1), Math.floor(h * 0.1),
-        canvas.width, canvas.height,
-        0, 0, canvas.width, canvas.height);
-      return canvas;
     }
 
     function sharpenCanvas(canvas) {
@@ -780,27 +948,11 @@
       return canvas;
     }
 
-    function finalResize(canvas) {
-      const aspect = canvas.height / canvas.width;
-      const tw = Math.min(TARGET_WIDTH, canvas.width);
-      const th = Math.round(tw * aspect);
-      const out = document.createElement('canvas');
-      out.width = tw;
-      out.height = th;
-      const ctx = out.getContext('2d');
-      ctx.imageSmoothingEnabled = true;
-      ctx.imageSmoothingQuality = 'high';
-      ctx.drawImage(canvas, 0, 0, canvas.width, canvas.height, 0, 0, tw, th);
-      return out.toDataURL('image/jpeg', JPEG_QUALITY);
-    }
-
-    // ==================== OpenCV 自动裁剪 ====================
-    async function processCapturedImage(sourceCanvas) {
+    // ==================== OpenCV 自动检测角点 ====================
+    async function detectDocumentCorners(sourceCanvas) {
       if (!cvReady) {
-        console.warn('OpenCV 未就绪，使用备用裁剪');
-        const fallback = fallbackCropCanvas(sourceCanvas);
-        const sharpened = sharpenCanvas(fallback);
-        return finalResize(sharpened);
+        console.warn('OpenCV 未就绪，使用默认角点');
+        return null;
       }
 
       const srcW = sourceCanvas.width;
@@ -817,94 +969,113 @@
       try {
         cv.cvtColor(src, gray, cv.COLOR_RGBA2GRAY);
         cv.GaussianBlur(gray, blurred, new cv.Size(5, 5), 0, 0, cv.BORDER_DEFAULT);
-        cv.Canny(blurred, edges, 60, 180);
 
-        let kernel = cv.Mat.ones(3, 3, cv.CV_8U);
-        cv.dilate(edges, edges, kernel, new cv.Point(-1, -1), 1);
+        // 三路边缘检测
+        let edgesA = new cv.Mat();
+        cv.Canny(blurred, edgesA, 30, 100);
+
+        let edgesB = new cv.Mat();
+        cv.adaptiveThreshold(blurred, edgesB, 255,
+          cv.ADAPTIVE_THRESH_GAUSSIAN_C, cv.THRESH_BINARY_INV, 21, 10);
+
+        let edgesC = new cv.Mat();
+        cv.threshold(blurred, edgesC, 0, 255, cv.THRESH_BINARY + cv.THRESH_OTSU);
+
+        cv.bitwise_or(edgesA, edgesB, edges);
+        cv.bitwise_or(edges, edgesC, edges);
+
+        let kernel = cv.Mat.ones(5, 5, cv.CV_8U);
+        cv.morphologyEx(edges, edges, cv.MORPH_CLOSE, kernel);
+        cv.dilate(edges, edges, kernel, new cv.Point(-1, -1), 2);
         kernel.delete();
+        edgesA.delete(); edgesB.delete(); edgesC.delete();
 
         cv.findContours(edges, contours, hierarchy, cv.RETR_EXTERNAL, cv.CHAIN_APPROX_SIMPLE);
 
-        let maxArea = 0;
+        let maxScore = 0;
         const imgArea = srcW * srcH;
 
         for (let i = 0; i < contours.size(); i++) {
           let cnt = contours.get(i);
           let area = cv.contourArea(cnt);
-          if (area < imgArea * 0.15) { cnt.delete(); continue; }
+          if (area < imgArea * 0.05 || area > imgArea * 0.98) { cnt.delete(); continue; }
 
           let peri = cv.arcLength(cnt, true);
           let approx = new cv.Mat();
           cv.approxPolyDP(cnt, approx, 0.02 * peri, true);
 
-          if (approx.rows === 4 && area > maxArea) {
-            if (bestQuad) bestQuad.delete();
-            bestQuad = approx.clone();
-            maxArea = area;
+          let candidate = null;
+          if (approx.rows >= 4 && approx.rows <= 6) {
+            if (approx.rows === 4) {
+              candidate = approx.clone();
+            } else {
+              let hull = new cv.Mat();
+              cv.convexHull(approx, hull);
+              let approx2 = new cv.Mat();
+              cv.approxPolyDP(hull, approx2, 0.03 * peri, true);
+              if (approx2.rows === 4) candidate = approx2.clone();
+              hull.delete(); approx2.delete();
+            }
+          }
+          if (!candidate) {
+            let rect = cv.minAreaRect(cnt);
+            let pts = cv.RotatedRect.points(rect);
+            let matPts = cv.matFromArray(4, 1, cv.CV_32FC2, [
+              pts[0].x, pts[0].y, pts[1].x, pts[1].y,
+              pts[2].x, pts[2].y, pts[3].x, pts[3].y
+            ]);
+            let intPts = new cv.Mat();
+            matPts.convertTo(intPts, cv.CV_32S);
+            candidate = intPts;
+            matPts.delete();
           }
           approx.delete();
           cnt.delete();
+          if (!candidate) continue;
+
+          const rect = cv.boundingRect(candidate);
+          const aspect = rect.width / rect.height;
+          let aspectScore = (aspect >= 0.6 && aspect <= 1.8)
+            ? 1.0 - Math.abs(aspect - 1.0) * 0.5
+            : 0.2;
+          const areaScore = area / imgArea;
+          const score = areaScore * 0.7 + aspectScore * 0.3;
+
+          if (score > maxScore) {
+            maxScore = score;
+            if (bestQuad) bestQuad.delete();
+            bestQuad = candidate.clone();
+          }
+          candidate.delete();
         }
 
-        let outputCanvas = document.createElement('canvas');
-
-        if (bestQuad && maxArea > imgArea * 0.2) {
+        // 提取 4 个角点
+        if (bestQuad && bestQuad.rows === 4) {
           const pts = [];
+          const isInt = bestQuad.type() === cv.CV_32S;
           for (let i = 0; i < 4; i++) {
-            pts.push({
-              x: bestQuad.data32S[i * 2],
-              y: bestQuad.data32S[i * 2 + 1]
-            });
+            if (isInt) {
+              pts.push({ x: bestQuad.data32S[i * 2], y: bestQuad.data32S[i * 2 + 1] });
+            } else {
+              pts.push({ x: bestQuad.data32F[i * 2], y: bestQuad.data32F[i * 2 + 1] });
+            }
           }
+          // 排序为 [左上, 右上, 右下, 左下]
           const sorted = sortCorners(pts);
-
-          const widthTop = dist(sorted[0], sorted[1]);
-          const widthBottom = dist(sorted[3], sorted[2]);
-          const heightLeft = dist(sorted[0], sorted[3]);
-          const heightRight = dist(sorted[1], sorted[2]);
-
-          let outW = Math.round(Math.max(widthTop, widthBottom));
-          let outH = Math.round(Math.max(heightLeft, heightRight));
-
-          if (outW > TARGET_WIDTH) {
-            const ratio = TARGET_WIDTH / outW;
-            outW = TARGET_WIDTH;
-            outH = Math.round(outH * ratio);
+          // 安全检查：角点必须在图片范围内
+          const valid = sorted.every(p =>
+            p.x >= -50 && p.x <= srcW + 50 &&
+            p.y >= -50 && p.y <= srcH + 50
+          );
+          if (valid) {
+            return sorted;
           }
-
-          let srcTri = cv.matFromArray(4, 1, cv.CV_32FC2, [
-            sorted[0].x, sorted[0].y,
-            sorted[1].x, sorted[1].y,
-            sorted[2].x, sorted[2].y,
-            sorted[3].x, sorted[3].y
-          ]);
-          let dstTri = cv.matFromArray(4, 1, cv.CV_32FC2, [
-            0, 0, outW, 0, outW, outH, 0, outH
-          ]);
-
-          let M = cv.getPerspectiveTransform(srcTri, dstTri);
-          let warped = new cv.Mat();
-          cv.warpPerspective(src, warped, M, new cv.Size(outW, outH),
-            cv.INTER_LINEAR, cv.BORDER_CONSTANT, new cv.Scalar());
-
-          outputCanvas.width = outW;
-          outputCanvas.height = outH;
-          cv.imshow(outputCanvas, warped);
-
-          srcTri.delete(); dstTri.delete(); M.delete(); warped.delete();
-          bestQuad.delete();
-        } else {
-          outputCanvas = fallbackCropCanvas(sourceCanvas);
         }
-
-        const sharpened = sharpenCanvas(outputCanvas);
-        return finalResize(sharpened);
+        return null;
 
       } catch (err) {
-        console.error('OpenCV 处理失败:', err);
-        const fallback = fallbackCropCanvas(sourceCanvas);
-        const sharpened = sharpenCanvas(fallback);
-        return finalResize(sharpened);
+        console.error('OpenCV 检测失败:', err);
+        return null;
       } finally {
         src.delete(); gray.delete(); blurred.delete();
         edges.delete(); contours.delete(); hierarchy.delete();
@@ -912,106 +1083,386 @@
       }
     }
 
-    // ==================== 拍照 → 预览 ====================
-    async function captureAndPreview() {
-      if (!video.videoWidth || !video.videoHeight) {
-        showToast('相机未准备好', 'error');
-        return;
+    // ==================== 预览页初始化：自动检测 + 绘制 ====================
+    async function initPreview(sourceCanvas) {
+      // 存储原始 canvas（用于最终裁剪）
+      previewState.originalCanvas = sourceCanvas;
+      previewState.originalWidth = sourceCanvas.width;
+      previewState.originalHeight = sourceCanvas.height;
+      previewState.rotation = 0;
+
+      // 尝试自动检测角点
+      let corners = await detectDocumentCorners(sourceCanvas);
+      previewState.autoDetected = !!corners;
+
+      if (!corners) {
+        // 没检测到 → 使用内缩 10% 的默认矩形
+        const w = sourceCanvas.width;
+        const h = sourceCanvas.height;
+        const m = 0.1;
+        corners = [
+          { x: w * m, y: h * m },
+          { x: w * (1 - m), y: h * m },
+          { x: w * (1 - m), y: h * (1 - m) },
+          { x: w * m, y: h * (1 - m) }
+        ];
       }
-      showLoading('正在自动裁剪...');
-      try {
-        captureCanvas.width = video.videoWidth;
-        captureCanvas.height = video.videoHeight;
-        captureCtx.drawImage(video, 0, 0, captureCanvas.width, captureCanvas.height);
+      previewState.corners = corners.map(p => ({ x: p.x, y: p.y }));
 
-        await new Promise(r => setTimeout(r, 80));
-
-        const processedDataUrl = await processCapturedImage(captureCanvas);
-        const img = new Image();
-        img.src = processedDataUrl;
-        await new Promise(r => { img.onload = r; });
-
-        currentPreview = {
-          dataUrl: processedDataUrl,
-          width: img.width,
-          height: img.height,
-          rotation: 0
-        };
-
-        previewImage.src = processedDataUrl;
-        previewWrapper.style.transform = 'rotate(0deg)';
-        switchPage('preview');
-      } catch (err) {
-        console.error('拍照处理失败:', err);
-        showToast('处理失败，请重试', 'error');
-      } finally {
-        hideLoading();
-      }
+      // 渲染到预览 canvas
+      renderPreview();
     }
 
-    // ==================== 预览页操作 ====================
+    // ==================== 渲染预览（画图 + 角点 + 多边形边框） ====================
+    function renderPreview() {
+      const srcCanvas = previewState.originalCanvas;
+      if (!srcCanvas) return;
+
+      const bodyRect = previewBody.getBoundingClientRect();
+      const maxW = bodyRect.width - 24;
+      const maxH = bodyRect.height - 24;
+
+      const srcW = previewState.originalWidth;
+      const srcH = previewState.originalHeight;
+
+      // 计算适应屏幕的缩放
+      const scale = Math.min(maxW / srcW, maxH / srcH);
+      const displayW = Math.round(srcW * scale);
+      const displayH = Math.round(srcH * scale);
+
+      previewCanvas.width = displayW;
+      previewCanvas.height = displayH;
+      previewCanvas.style.width = displayW + 'px';
+      previewCanvas.style.height = displayH + 'px';
+
+      previewState.renderScale = scale;
+      previewState.displayCanvas = previewCanvas;
+
+      // 画底图
+      previewCtx.clearRect(0, 0, displayW, displayH);
+      previewCtx.drawImage(srcCanvas, 0, 0, srcW, srcH, 0, 0, displayW, displayH);
+
+      // 半透明遮罩（覆盖在裁剪区域外）
+      previewCtx.save();
+      previewCtx.fillStyle = 'rgba(0, 0, 0, 0.45)';
+      previewCtx.fillRect(0, 0, displayW, displayH);
+      // 挖出裁剪区域（按显示坐标）
+      previewCtx.globalCompositeOperation = 'destination-out';
+      previewCtx.beginPath();
+      const displayCorners = previewState.corners.map(p => ({
+        x: p.x * scale,
+        y: p.y * scale
+      }));
+      previewCtx.moveTo(displayCorners[0].x, displayCorners[0].y);
+      for (let i = 1; i < 4; i++) {
+        previewCtx.lineTo(displayCorners[i].x, displayCorners[i].y);
+      }
+      previewCtx.closePath();
+      previewCtx.fill();
+      previewCtx.restore();
+
+      // 绘制裁剪边框
+      previewCtx.save();
+      previewCtx.strokeStyle = '#0a84ff';
+      previewCtx.lineWidth = 2;
+      previewCtx.beginPath();
+      previewCtx.moveTo(displayCorners[0].x, displayCorners[0].y);
+      for (let i = 1; i < 4; i++) {
+        previewCtx.lineTo(displayCorners[i].x, displayCorners[i].y);
+      }
+      previewCtx.closePath();
+      previewCtx.stroke();
+      previewCtx.restore();
+
+      // 更新角点手柄位置
+      updateHandles(displayCorners);
+    }
+
+    // ==================== 角点手柄管理 ====================
+    let handleEls = [];
+
+    function updateHandles(displayCorners) {
+      // 第一次创建
+      if (handleEls.length === 0) {
+        for (let i = 0; i < 4; i++) {
+          const el = document.createElement('div');
+          el.className = 'corner-handle';
+          el.dataset.index = i;
+          previewBody.appendChild(el);
+          handleEls.push(el);
+          bindHandleEvents(el);
+        }
+      }
+      // 更新位置
+      handleEls.forEach((el, i) => {
+        // 计算相对于 previewBody 的位置（canvas 居中）
+        const canvasRect = previewCanvas.getBoundingClientRect();
+        const bodyRect = previewBody.getBoundingClientRect();
+        const offsetX = canvasRect.left - bodyRect.left;
+        const offsetY = canvasRect.top - bodyRect.top;
+        el.style.left = (offsetX + displayCorners[i].x) + 'px';
+        el.style.top = (offsetY + displayCorners[i].y) + 'px';
+      });
+    }
+
+    function bindHandleEvents(el) {
+      let dragging = false;
+
+      const onStart = (e) => {
+        e.preventDefault();
+        e.stopPropagation();
+        dragging = true;
+        previewState.dragIndex = parseInt(el.dataset.index, 10);
+        el.classList.add('dragging');
+      };
+
+      const onMove = (e) => {
+        if (!dragging) return;
+        e.preventDefault();
+        const touch = e.touches ? e.touches[0] : e;
+        const bodyRect = previewBody.getBoundingClientRect();
+        const canvasRect = previewCanvas.getBoundingClientRect();
+        const offsetX = canvasRect.left - bodyRect.left;
+        const offsetY = canvasRect.top - bodyRect.top;
+
+        // 屏幕坐标 → canvas 显示坐标
+        let dx = touch.clientX - bodyRect.left - offsetX;
+        let dy = touch.clientY - bodyRect.top - offsetY;
+
+        // 限制在 canvas 范围内
+        dx = Math.max(0, Math.min(previewCanvas.width, dx));
+        dy = Math.max(0, Math.min(previewCanvas.height, dy));
+
+        // 显示坐标 → 原图坐标
+        const scale = previewState.renderScale;
+        const origX = dx / scale;
+        const origY = dy / scale;
+
+        // 更新角点
+        const idx = previewState.dragIndex;
+        previewState.corners[idx] = { x: origX, y: origY };
+
+        // 重绘
+        renderPreview();
+      };
+
+      const onEnd = (e) => {
+        if (!dragging) return;
+        dragging = false;
+        el.classList.remove('dragging');
+        previewState.dragIndex = -1;
+      };
+
+      el.addEventListener('touchstart', onStart, { passive: false });
+      el.addEventListener('touchmove', onMove, { passive: false });
+      el.addEventListener('touchend', onEnd);
+      el.addEventListener('touchcancel', onEnd);
+      el.addEventListener('mousedown', onStart);
+      document.addEventListener('mousemove', onMove);
+      document.addEventListener('mouseup', onEnd);
+    }
+
+    // ==================== 预览页旋转 ====================
     function rotatePreview(deg) {
-      if (!currentPreview) return;
-      currentPreview.rotation = ((currentPreview.rotation + deg) % 360 + 360) % 360;
-      previewWrapper.style.transform = `rotate(${currentPreview.rotation}deg)`;
+      const src = previewState.originalCanvas;
+      if (!src) return;
+
+      const newRot = ((previewState.rotation + deg) % 360 + 360) % 360;
+      const rad = deg * Math.PI / 180;
+
+      // 旋转整个原图
+      const isSwapped = newRot === 90 || newRot === 270;
+      const newW = isSwapped ? src.height : src.width;
+      const newH = isSwapped ? src.width : src.height;
+
+      const rotated = document.createElement('canvas');
+      rotated.width = newW;
+      rotated.height = newH;
+      const rctx = rotated.getContext('2d');
+      rctx.translate(newW / 2, newH / 2);
+      rctx.rotate(rad);
+      rctx.drawImage(src, -src.width / 2, -src.height / 2);
+
+      // 旋转角点
+      const oldW = src.width;
+      const oldH = src.height;
+      const newCorners = previewState.corners.map(p => {
+        // 以中心为原点旋转
+        const cx = p.x - oldW / 2;
+        const cy = p.y - oldH / 2;
+        const nx = cx * Math.cos(rad) - cy * Math.sin(rad);
+        const ny = cx * Math.sin(rad) + cy * Math.cos(rad);
+        // 新中心
+        return { x: nx + newW / 2, y: ny + newH / 2 };
+      });
+
+      // 更新状态
+      previewState.originalCanvas = rotated;
+      previewState.originalWidth = newW;
+      previewState.originalHeight = newH;
+      previewState.rotation = newRot;
+      previewState.corners = newCorners;
+
+      // 重新渲染
+      renderPreview();
     }
 
+    // ==================== 预览页确认 → 执行透视变换 ====================
     async function confirmPreview() {
-      if (!currentPreview) return;
-      showLoading('正在保存...');
+      const src = previewState.originalCanvas;
+      if (!src) return;
+
+      showLoading('正在生成文档...');
+
       try {
-        let finalDataUrl = currentPreview.dataUrl;
-        const rot = currentPreview.rotation;
+        let croppedCanvas;
 
-        if (rot !== 0) {
-          const img = new Image();
-          img.src = currentPreview.dataUrl;
-          await new Promise(r => { img.onload = r; });
+        if (cvReady) {
+          // 使用 OpenCV 透视变换
+          let srcMat = cv.imread(src);
+          const pts = sortCorners(previewState.corners);
 
-          const rad = rot * Math.PI / 180;
-          const isSwapped = rot === 90 || rot === 270;
+          const widthTop = dist(pts[0], pts[1]);
+          const widthBottom = dist(pts[3], pts[2]);
+          const heightLeft = dist(pts[0], pts[3]);
+          const heightRight = dist(pts[1], pts[2]);
 
-          const canvas = document.createElement('canvas');
-          canvas.width = isSwapped ? img.height : img.width;
-          canvas.height = isSwapped ? img.width : img.height;
-          const ctx = canvas.getContext('2d');
-          ctx.translate(canvas.width / 2, canvas.height / 2);
-          ctx.rotate(rad);
-          ctx.drawImage(img, -img.width / 2, -img.height / 2);
+          let outW = Math.round(Math.max(widthTop, widthBottom));
+          let outH = Math.round(Math.max(heightLeft, heightRight));
 
-          finalDataUrl = canvas.toDataURL('image/jpeg', JPEG_QUALITY);
+          if (outW < 50 || outH < 50) {
+            // 角点异常，直接用原始图
+            croppedCanvas = src;
+          } else {
+            if (outW > TARGET_WIDTH) {
+              const ratio = TARGET_WIDTH / outW;
+              outW = TARGET_WIDTH;
+              outH = Math.round(outH * ratio);
+            }
+
+            let srcTri = cv.matFromArray(4, 1, cv.CV_32FC2, [
+              pts[0].x, pts[0].y,
+              pts[1].x, pts[1].y,
+              pts[2].x, pts[2].y,
+              pts[3].x, pts[3].y
+            ]);
+            let dstTri = cv.matFromArray(4, 1, cv.CV_32FC2, [
+              0, 0, outW, 0, outW, outH, 0, outH
+            ]);
+
+            let M = cv.getPerspectiveTransform(srcTri, dstTri);
+            let warped = new cv.Mat();
+            cv.warpPerspective(srcMat, warped, M, new cv.Size(outW, outH),
+              cv.INTER_LINEAR, cv.BORDER_CONSTANT, new cv.Scalar());
+
+            croppedCanvas = document.createElement('canvas');
+            croppedCanvas.width = outW;
+            croppedCanvas.height = outH;
+            cv.imshow(croppedCanvas, warped);
+
+            srcTri.delete(); dstTri.delete(); M.delete(); warped.delete();
+          }
+          srcMat.delete();
+        } else {
+          // 备用：使用多边形裁剪
+          const pts = sortCorners(previewState.corners);
+          const widthTop = dist(pts[0], pts[1]);
+          const widthBottom = dist(pts[3], pts[2]);
+          const heightLeft = dist(pts[0], pts[3]);
+          const heightRight = dist(pts[1], pts[2]);
+          let outW = Math.round(Math.max(widthTop, widthBottom));
+          let outH = Math.round(Math.max(heightLeft, heightRight));
+          if (outW > TARGET_WIDTH) {
+            const ratio = TARGET_WIDTH / outW;
+            outW = TARGET_WIDTH;
+            outH = Math.round(outH * ratio);
+          }
+          croppedCanvas = document.createElement('canvas');
+          croppedCanvas.width = outW;
+          croppedCanvas.height = outH;
+          const cctx = croppedCanvas.getContext('2d');
+          cctx.drawImage(src, 0, 0);
         }
 
-        const img2 = new Image();
-        img2.src = finalDataUrl;
-        await new Promise(r => { img2.onload = r; });
+        // 锐化
+        sharpenCanvas(croppedCanvas);
+
+        // 最终缩放
+        const aspect = croppedCanvas.height / croppedCanvas.width;
+        const tw = Math.min(TARGET_WIDTH, croppedCanvas.width);
+        const th = Math.round(tw * aspect);
+        const finalCanvas = document.createElement('canvas');
+        finalCanvas.width = tw;
+        finalCanvas.height = th;
+        const fctx = finalCanvas.getContext('2d');
+        fctx.imageSmoothingEnabled = true;
+        fctx.imageSmoothingQuality = 'high';
+        fctx.drawImage(croppedCanvas, 0, 0, croppedCanvas.width, croppedCanvas.height, 0, 0, tw, th);
+
+        const finalDataUrl = finalCanvas.toDataURL('image/jpeg', JPEG_QUALITY);
 
         documents.push({
           id: uid(),
           dataUrl: finalDataUrl,
-          width: img2.width,
-          height: img2.height
+          width: tw,
+          height: th
         });
 
         updatePageCount();
         updateExportState();
         renderManageList();
 
-        currentPreview = null;
+        // 清理预览状态
+        previewState.originalCanvas = null;
+        previewState.corners = [];
+
         showToast('已添加第 ' + documents.length + ' 页', 'success');
         switchPage('manage');
       } catch (err) {
-        console.error(err);
-        showToast('保存失败', 'error');
+        console.error('确认失败:', err);
+        showToast('处理失败，请重试', 'error');
       } finally {
         hideLoading();
       }
     }
 
+    // ==================== 放弃预览 ====================
     function discardPreview() {
-      currentPreview = null;
+      previewState.originalCanvas = null;
+      previewState.corners = [];
       showToast('已放弃，请重新拍摄');
       switchPage('camera');
+    }
+
+    // ==================== 拍照 → 进入预览 ====================
+    async function captureAndPreview() {
+      if (!video.videoWidth || !video.videoHeight) {
+        showToast('相机未准备好', 'error');
+        return;
+      }
+      showLoading('正在拍照...');
+      try {
+        captureCanvas.width = video.videoWidth;
+        captureCanvas.height = video.videoHeight;
+        captureCtx.drawImage(video, 0, 0, captureCanvas.width, captureCanvas.height);
+
+        // 复制一份到独立 canvas，避免后续被覆盖
+        const sourceCanvas = document.createElement('canvas');
+        sourceCanvas.width = captureCanvas.width;
+        sourceCanvas.height = captureCanvas.height;
+        sourceCanvas.getContext('2d').drawImage(captureCanvas, 0, 0);
+
+        // 初始化预览（含自动检测角点）
+        showLoading('正在检测文档边缘...');
+        await initPreview(sourceCanvas);
+
+        switchPage('preview');
+      } catch (err) {
+        console.error('拍照失败:', err);
+        showToast('拍照失败，请重试', 'error');
+      } finally {
+        hideLoading();
+      }
     }
 
     // ==================== 多页管理 ====================
@@ -1019,11 +1470,12 @@
       if (documents.length === 0) {
         manageList.innerHTML = `
           <div class="empty-state">
-            <div class="big-icon">📄</div>
+            <div class="big-icon"><i data-lucide="file-stack"></i></div>
             <div>还没有扫描任何文档</div>
           </div>`;
         updateExportState();
         updatePageCount();
+        refreshIcons();
         return;
       }
       let html = '';
@@ -1038,12 +1490,15 @@
               <div class="meta">${doc.width} × ${doc.height}</div>
             </div>
             <div class="page-card-actions">
-              <button class="icon-btn delete" data-action="delete" data-id="${doc.id}">🗑️</button>
+              <button class="icon-btn delete" data-action="delete" data-id="${doc.id}">
+                <i data-lucide="trash-2"></i>
+              </button>
             </div>
           </div>
         `;
       });
       manageList.innerHTML = html;
+      refreshIcons();
 
       manageList.querySelectorAll('[data-action="delete"]').forEach(btn => {
         btn.addEventListener('click', (e) => {
@@ -1090,7 +1545,7 @@
           if (i > 0) pdf.addPage();
           const doc = documents[i];
           const imgAspect = doc.height / doc.width;
-          const margin = 0.08;
+          const margin = 0.05;
           const availW = a4W * (1 - margin * 2);
           const availH = a4H * (1 - margin * 2);
 
@@ -1141,6 +1596,20 @@
 
       addMoreBtn.addEventListener('click', goToCamera);
       exportPdfBtn.addEventListener('click', exportPdf);
+
+      // 窗口大小变化时重新渲染预览
+      window.addEventListener('resize', () => {
+        if (activePage === 'preview' && previewState.originalCanvas) {
+          renderPreview();
+        }
+      });
+      window.addEventListener('orientationchange', () => {
+        setTimeout(() => {
+          if (activePage === 'preview' && previewState.originalCanvas) {
+            renderPreview();
+          }
+        }, 300);
+      });
     }
 
     // ==================== 初始化 ====================
@@ -1151,6 +1620,7 @@
       updateExportState();
       renderManageList();
       switchPage('camera');
+      refreshIcons();
     }
 
     init().catch(err => {
