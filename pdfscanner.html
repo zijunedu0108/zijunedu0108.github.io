@@ -1,12 +1,18 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="zh-CN">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
-  <title>文档扫描 · 自动锐化裁剪PDF</title>
-  <!-- 使用 jsPDF 和 PDF 相关库 -->
+  <title>文档扫描 · 自动裁剪PDF</title>
+  <!-- PWA 图标和基础配置 -->
+  <link rel="icon" type="image/png" href="zijunlogo.png">
+  <link rel="apple-touch-icon" href="zijunlogo.png">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <meta name="apple-mobile-web-app-title" content="扫描文档">
+  <meta name="theme-color" content="#0a84ff">
+  <!-- jsPDF -->
   <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
-  <!-- 用于图像处理 (锐化/裁剪) 使用 canvas 原生 API, 无需额外库 -->
   <style>
     * {
       box-sizing: border-box;
@@ -23,207 +29,380 @@
       align-items: center;
       min-height: 100vh;
       margin: 0;
-      padding: 10px;
+      padding: 0;
+      overflow: hidden;
     }
     .app {
       width: 100%;
-      max-width: 400px;
-      background: #2c2c2c;
-      border-radius: 28px;
-      box-shadow: 0 20px 40px rgba(0, 0, 0, 0.6);
-      overflow: hidden;
+      max-width: 430px;
+      height: 100vh;
+      max-height: 100vh;
+      background: #1c1c1e;
       display: flex;
       flex-direction: column;
+      overflow: hidden;
+      position: relative;
     }
-    /* 相机预览区域 */
+    /* ========== 页面切换 ========== */
+    .page {
+      position: absolute;
+      top: 0; left: 0; right: 0; bottom: 0;
+      display: flex;
+      flex-direction: column;
+      background: #1c1c1e;
+      transition: transform 0.3s ease, opacity 0.3s ease;
+      overflow: hidden;
+    }
+    .page.hidden {
+      opacity: 0;
+      pointer-events: none;
+      transform: scale(0.95);
+    }
+    /* ========== 相机页面 ========== */
     .camera-container {
       position: relative;
+      flex: 1;
       background: #000;
-      aspect-ratio: 3 / 4;
-      width: 100%;
       overflow: hidden;
       display: flex;
       align-items: center;
       justify-content: center;
+      min-height: 0;
     }
     #video {
       width: 100%;
       height: 100%;
       object-fit: cover;
       display: block;
-      transition: filter 0.1s;
     }
     .overlay {
       position: absolute;
-      top: 0;
-      left: 0;
-      width: 100%;
-      height: 100%;
+      top: 0; left: 0; width: 100%; height: 100%;
       pointer-events: none;
       display: flex;
       flex-direction: column;
       align-items: center;
       justify-content: center;
-      color: white;
-      text-shadow: 0 2px 8px rgba(0,0,0,0.7);
-      font-size: 0.9rem;
-      background: rgba(0,0,0,0.2);
     }
     .focus-indicator {
       position: absolute;
       width: 80px;
       height: 80px;
-      border: 2px solid rgba(255,255,255,0.8);
+      border: 2px solid rgba(255,255,255,0.9);
       border-radius: 8px;
       pointer-events: none;
       opacity: 0;
       transition: opacity 0.2s;
-      box-shadow: 0 0 0 2px rgba(0,0,0,0.3);
+      box-shadow: 0 0 0 2px rgba(0,0,0,0.3), inset 0 0 20px rgba(255,255,255,0.1);
     }
-    .focus-indicator.active {
-      opacity: 1;
+    .focus-indicator.active { opacity: 1; }
+    .camera-hint {
+      position: absolute;
+      bottom: 16px;
+      background: rgba(0,0,0,0.6);
+      color: white;
+      padding: 8px 16px;
+      border-radius: 20px;
+      font-size: 13px;
+      backdrop-filter: blur(8px);
     }
-    /* 控制栏 */
-    .control-bar {
+    .camera-top-bar {
+      position: absolute;
+      top: 0; left: 0; right: 0;
+      padding: 12px 16px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      background: linear-gradient(to bottom, rgba(0,0,0,0.6), transparent);
+      z-index: 5;
+    }
+    .page-count-badge {
+      background: rgba(10,132,255,0.9);
+      color: white;
+      padding: 4px 12px;
+      border-radius: 20px;
+      font-size: 13px;
+      font-weight: 600;
+    }
+    /* 相机底部控制 */
+    .camera-bottom-bar {
+      background: #1c1c1e;
+      padding: 20px 20px calc(20px + env(safe-area-inset-bottom));
       display: flex;
       align-items: center;
       justify-content: space-between;
-      padding: 12px 16px;
-      background: #1e1e1e;
-      border-bottom: 1px solid #3a3a3a;
+      gap: 12px;
+      flex-shrink: 0;
     }
     .btn {
-      background: #3a3a3a;
+      background: #2c2c2e;
       border: none;
       color: white;
       font-size: 15px;
       font-weight: 500;
-      padding: 10px 16px;
+      padding: 12px 18px;
       border-radius: 30px;
       display: flex;
       align-items: center;
       justify-content: center;
       gap: 6px;
       cursor: pointer;
-      transition: background 0.15s, opacity 0.15s;
+      transition: background 0.15s, transform 0.1s;
       box-shadow: 0 2px 6px rgba(0,0,0,0.3);
-      min-width: 70px;
     }
-    .btn:active {
-      background: #555;
-      transform: scale(0.97);
+    .btn:active { background: #3a3a3c; transform: scale(0.96); }
+    .btn:disabled { opacity: 0.4; pointer-events: none; }
+    .btn-icon { font-size: 18px; line-height: 1; }
+    .btn-primary { background: #0a84ff; color: white; font-weight: 600; }
+    .btn-primary:active { background: #0070e0; }
+    .capture-btn {
+      width: 72px;
+      height: 72px;
+      border-radius: 50%;
+      background: white;
+      border: 5px solid #0a84ff;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      transition: transform 0.1s;
+      flex-shrink: 0;
+      box-shadow: 0 4px 16px rgba(10,132,255,0.4);
     }
-    .btn:disabled {
-      opacity: 0.4;
-      pointer-events: none;
+    .capture-btn:active { transform: scale(0.92); }
+    .capture-btn-inner {
+      width: 54px;
+      height: 54px;
+      border-radius: 50%;
+      background: white;
+      transition: background 0.1s;
     }
-    .btn-primary {
-      background: #0a84ff;
+    .capture-btn:active .capture-btn-inner { background: #e0e0e0; }
+
+    /* ========== 预览编辑页面 ========== */
+    .preview-header {
+      padding: calc(16px + env(safe-area-inset-top)) 16px 12px;
+      text-align: center;
       color: white;
+      font-size: 17px;
+      font-weight: 600;
+      background: #1c1c1e;
+      flex-shrink: 0;
+    }
+    .preview-body {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      padding: 12px;
+      background: #111;
+      min-height: 0;
+      overflow: hidden;
+    }
+    .preview-image-wrapper {
+      position: relative;
+      max-width: 100%;
+      max-height: 100%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transition: transform 0.25s ease;
+    }
+    #previewImage {
+      max-width: 100%;
+      max-height: 100%;
+      object-fit: contain;
+      border-radius: 8px;
+      box-shadow: 0 4px 20px rgba(0,0,0,0.5);
+    }
+    .crop-badge {
+      position: absolute;
+      top: 10px;
+      left: 10px;
+      background: rgba(10,132,255,0.9);
+      color: white;
+      padding: 4px 10px;
+      border-radius: 20px;
+      font-size: 11px;
       font-weight: 600;
     }
-    .btn-primary:active {
-      background: #0070e0;
-    }
-    .btn-danger {
-      background: #ff453a;
-    }
-    .btn-danger:active {
-      background: #d9362e;
-    }
-    .btn-icon {
-      font-size: 18px;
-      line-height: 1;
-    }
-    /* 缩略图列表 */
-    .thumbnail-strip {
+    .rotate-controls {
       display: flex;
-      gap: 8px;
-      padding: 12px 16px;
-      overflow-x: auto;
-      background: #252525;
-      border-bottom: 1px solid #3a3a3a;
-      min-height: 80px;
+      gap: 20px;
+      justify-content: center;
+      padding: 16px;
+      background: #1c1c1e;
+      flex-shrink: 0;
+    }
+    .rotate-btn {
+      background: #2c2c2e;
+      border: none;
+      color: white;
+      padding: 14px 28px;
+      border-radius: 16px;
+      font-size: 15px;
+      font-weight: 500;
+      display: flex;
       align-items: center;
-      scrollbar-width: thin;
-      scrollbar-color: #555 #252525;
+      gap: 8px;
+      cursor: pointer;
+      transition: background 0.15s, transform 0.1s;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.3);
     }
-    .thumbnail-strip::-webkit-scrollbar {
-      height: 4px;
+    .rotate-btn:active { background: #3a3a3c; transform: scale(0.96); }
+    .rotate-btn .icon { font-size: 20px; }
+
+    .preview-actions {
+      display: flex;
+      gap: 12px;
+      padding: 16px 20px calc(20px + env(safe-area-inset-bottom));
+      background: #1c1c1e;
+      flex-shrink: 0;
     }
-    .thumbnail-strip::-webkit-scrollbar-thumb {
-      background: #555;
-      border-radius: 4px;
+    .preview-actions .btn {
+      flex: 1;
+      padding: 16px;
+      font-size: 16px;
+      font-weight: 600;
+      border-radius: 16px;
     }
-    .thumbnail-item {
+    .btn-confirm { background: #0a84ff; color: white; }
+    .btn-confirm:active { background: #0070e0; }
+    .btn-cancel { background: #2c2c2e; color: #ff453a; }
+    .btn-cancel:active { background: #3a3a3c; }
+
+    /* ========== 多页管理页面 ========== */
+    .manage-header {
+      padding: calc(16px + env(safe-area-inset-top)) 20px 12px;
+      background: #1c1c1e;
+      color: white;
+      font-size: 22px;
+      font-weight: 700;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      flex-shrink: 0;
+    }
+    .manage-header .sub {
+      font-size: 13px;
+      color: #8e8e93;
+      font-weight: 400;
+      margin-top: 2px;
+    }
+    .manage-list {
+      flex: 1;
+      overflow-y: auto;
+      padding: 12px 16px;
+      background: #1c1c1e;
+      min-height: 0;
+      -webkit-overflow-scrolling: touch;
+    }
+    .manage-list::-webkit-scrollbar { width: 4px; }
+    .manage-list::-webkit-scrollbar-thumb { background: #3a3a3c; border-radius: 4px; }
+    .page-card {
+      display: flex;
+      align-items: center;
+      gap: 14px;
+      background: #2c2c2e;
+      border-radius: 16px;
+      padding: 12px;
+      margin-bottom: 10px;
       position: relative;
-      flex: 0 0 auto;
-      width: 60px;
-      height: 80px;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.2);
+    }
+    .page-card-img {
+      width: 64px;
+      height: 84px;
       border-radius: 8px;
       overflow: hidden;
       background: #111;
-      border: 1px solid #444;
-      box-shadow: 0 2px 6px rgba(0,0,0,0.4);
+      flex-shrink: 0;
     }
-    .thumbnail-item img {
+    .page-card-img img {
       width: 100%;
       height: 100%;
       object-fit: cover;
     }
-    .thumbnail-item .page-num {
-      position: absolute;
-      bottom: 2px;
-      right: 4px;
-      background: rgba(0,0,0,0.7);
+    .page-card-info {
+      flex: 1;
+      min-width: 0;
+    }
+    .page-card-info .title {
       color: white;
-      font-size: 10px;
-      padding: 2px 6px;
-      border-radius: 20px;
+      font-size: 15px;
       font-weight: 600;
+      margin-bottom: 4px;
     }
-    .empty-thumbnail {
-      color: #888;
-      font-size: 14px;
-      margin: 0 auto;
-      font-style: italic;
-      width: 100%;
+    .page-card-info .meta {
+      color: #8e8e93;
+      font-size: 12px;
+    }
+    .page-card-actions {
+      display: flex;
+      gap: 8px;
+      flex-shrink: 0;
+    }
+    .icon-btn {
+      width: 36px;
+      height: 36px;
+      border-radius: 50%;
+      background: #3a3a3c;
+      border: none;
+      color: white;
+      font-size: 16px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      transition: background 0.15s;
+    }
+    .icon-btn:active { background: #4a4a4c; }
+    .icon-btn.delete { color: #ff453a; }
+    .empty-state {
       text-align: center;
+      color: #8e8e93;
+      padding: 60px 20px;
+      font-size: 15px;
     }
-    /* 底部区域 */
-    .bottom-panel {
-      padding: 16px;
-      background: #1e1e1e;
+    .empty-state .big-icon {
+      font-size: 48px;
+      margin-bottom: 16px;
+      opacity: 0.5;
+    }
+
+    .manage-bottom {
+      padding: 16px 20px calc(20px + env(safe-area-inset-bottom));
+      background: #1c1c1e;
       display: flex;
       flex-direction: column;
-      gap: 14px;
+      gap: 12px;
+      flex-shrink: 0;
+      border-top: 1px solid #2c2c2e;
     }
     .filename-input {
-      background: #2c2c2c;
-      border: 1px solid #3f3f3f;
+      background: #2c2c2e;
+      border: 1px solid #3a3a3c;
       border-radius: 14px;
       padding: 14px 16px;
       font-size: 16px;
       color: white;
       outline: none;
       transition: border 0.2s;
+      width: 100%;
     }
-    .filename-input:focus {
-      border-color: #0a84ff;
-    }
-    .filename-input::placeholder {
-      color: #7a7a7a;
-    }
+    .filename-input:focus { border-color: #0a84ff; }
+    .filename-input::placeholder { color: #7a7a7a; }
     .export-btn {
       width: 100%;
       padding: 18px;
       border-radius: 18px;
-      font-size: 18px;
+      font-size: 17px;
       font-weight: 700;
       background: #0a84ff;
       color: white;
       border: none;
-      box-shadow: 0 8px 20px rgba(10, 132, 255, 0.3);
+      box-shadow: 0 6px 20px rgba(10, 132, 255, 0.35);
       transition: background 0.15s, transform 0.1s;
       cursor: pointer;
       display: flex;
@@ -231,139 +410,265 @@
       justify-content: center;
       gap: 10px;
     }
-    .export-btn:active {
-      background: #0066cc;
-      transform: scale(0.98);
+    .export-btn:active { background: #0066cc; transform: scale(0.98); }
+    .export-btn:disabled { opacity: 0.4; background: #3a3a3c; box-shadow: none; pointer-events: none; }
+    .add-more-btn {
+      width: 100%;
+      padding: 15px;
+      border-radius: 16px;
+      font-size: 16px;
+      font-weight: 600;
+      background: #2c2c2e;
+      color: #0a84ff;
+      border: 1.5px dashed #0a84ff;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      transition: background 0.15s;
     }
-    .export-btn:disabled {
-      opacity: 0.5;
-      background: #3a3a3a;
-      box-shadow: none;
-      pointer-events: none;
-    }
-    .status-msg {
-      font-size: 13px;
-      color: #ffaa33;
-      text-align: center;
-      min-height: 20px;
-      padding: 4px 0;
-    }
+    .add-more-btn:active { background: #3a3a3c; }
+
+    /* Toast */
     .toast {
       position: fixed;
-      top: 20px;
+      top: calc(20px + env(safe-area-inset-top));
       left: 50%;
-      transform: translateX(-50%);
+      transform: translateX(-50%) translateY(-10px);
       background: #0a84ff;
       color: white;
       padding: 12px 24px;
       border-radius: 40px;
       font-weight: 500;
-      z-index: 999;
+      font-size: 14px;
+      z-index: 9999;
       opacity: 0;
-      transition: opacity 0.2s;
+      transition: opacity 0.25s, transform 0.25s;
       box-shadow: 0 8px 24px rgba(0,0,0,0.5);
       pointer-events: none;
       white-space: nowrap;
+      max-width: 90vw;
     }
-    .toast.show {
-      opacity: 1;
+    .toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
+    .toast.error { background: #ff453a; }
+    .toast.success { background: #30d158; }
+
+    /* 加载遮罩 */
+    .loading-overlay {
+      position: fixed;
+      top: 0; left: 0; right: 0; bottom: 0;
+      background: rgba(0,0,0,0.7);
+      display: none;
+      align-items: center;
+      justify-content: center;
+      z-index: 9998;
+      flex-direction: column;
+      gap: 16px;
+    }
+    .loading-overlay.show { display: flex; }
+    .spinner {
+      width: 44px;
+      height: 44px;
+      border: 4px solid rgba(255,255,255,0.15);
+      border-top-color: #0a84ff;
+      border-radius: 50%;
+      animation: spin 0.8s linear infinite;
+    }
+    @keyframes spin { to { transform: rotate(360deg); } }
+    .loading-text { color: white; font-size: 15px; font-weight: 500; }
+
+    /* 安全区域兼容 */
+    @supports(padding: max(0px)) {
+      .camera-bottom-bar { padding-bottom: max(20px, env(safe-area-inset-bottom)); }
+      .preview-actions { padding-bottom: max(20px, env(safe-area-inset-bottom)); }
+      .manage-bottom { padding-bottom: max(20px, env(safe-area-inset-bottom)); }
     }
   </style>
 </head>
 <body>
 <div class="app" id="app">
-  <!-- 相机预览区 -->
-  <div class="camera-container" id="cameraContainer">
-    <video id="video" playsinline autoplay muted></video>
-    <div class="overlay" id="overlay">
-      <div class="focus-indicator" id="focusIndicator"></div>
-      <div id="hintText" style="position: absolute; bottom: 20px; background: rgba(0,0,0,0.5); padding: 6px 12px; border-radius: 20px;">点击画面对焦</div>
+
+  <!-- ========== 页面1: 相机拍摄 ========== -->
+  <div class="page" id="pageCamera">
+    <div class="camera-container" id="cameraContainer">
+      <video id="video" playsinline autoplay muted></video>
+      <div class="overlay">
+        <div class="focus-indicator" id="focusIndicator"></div>
+        <div class="camera-hint" id="cameraHint">点击画面对焦</div>
+      </div>
+      <div class="camera-top-bar">
+        <span class="page-count-badge" id="pageCountBadge">已拍 0 页</span>
+      </div>
+    </div>
+    <div class="camera-bottom-bar">
+      <button class="btn" id="switchCameraBtn" style="width:56px;height:56px;border-radius:50%;padding:0;">
+        <span class="btn-icon" style="font-size:22px;">🔄</span>
+      </button>
+      <button class="capture-btn" id="captureBtn">
+        <div class="capture-btn-inner"></div>
+      </button>
+      <button class="btn" id="goToManageBtn" style="width:56px;height:56px;border-radius:50%;padding:0;position:relative;">
+        <span class="btn-icon" style="font-size:22px;">📁</span>
+      </button>
     </div>
   </div>
 
-  <!-- 拍摄控制栏 -->
-  <div class="control-bar">
-    <button class="btn" id="switchCameraBtn" title="切换摄像头">
-      <span class="btn-icon">🔄</span> 切换
-    </button>
-    <button class="btn btn-primary" id="captureBtn" style="padding: 12px 28px; font-size: 16px;">
-      <span class="btn-icon">📸</span> 拍照
-    </button>
-    <button class="btn" id="clearAllBtn" style="background: #3a3a3a;">
-      <span class="btn-icon">🗑️</span> 清空
-    </button>
+  <!-- ========== 页面2: 预览编辑 ========== -->
+  <div class="page hidden" id="pagePreview">
+    <div class="preview-header">调整文档</div>
+    <div class="preview-body">
+      <div class="preview-image-wrapper" id="previewWrapper">
+        <img id="previewImage" alt="预览">
+        <div class="crop-badge">✨ 已自动裁剪</div>
+      </div>
+    </div>
+    <div class="rotate-controls">
+      <button class="rotate-btn" id="rotateLeftBtn">
+        <span class="icon">↺</span> 左转
+      </button>
+      <button class="rotate-btn" id="rotateRightBtn">
+        <span class="icon">↻</span> 右转
+      </button>
+    </div>
+    <div class="preview-actions">
+      <button class="btn btn-cancel" id="discardBtn">放弃重拍</button>
+      <button class="btn btn-confirm" id="confirmBtn">确定使用</button>
+    </div>
   </div>
 
-  <!-- 缩略图预览条 -->
-  <div class="thumbnail-strip" id="thumbnailStrip">
-    <div class="empty-thumbnail">还没有扫描任何文档</div>
+  <!-- ========== 页面3: 多页管理/导出 ========== -->
+  <div class="page hidden" id="pageManage">
+    <div class="manage-header">
+      <div>
+        <div>我的扫描</div>
+        <div class="sub" id="manageSubtitle">共 0 页</div>
+      </div>
+    </div>
+    <div class="manage-list" id="manageList">
+      <div class="empty-state">
+        <div class="big-icon">📄</div>
+        <div>还没有扫描任何文档</div>
+      </div>
+    </div>
+    <div class="manage-bottom">
+      <button class="add-more-btn" id="addMoreBtn">
+        <span>📸</span> 继续拍摄下一张
+      </button>
+      <input type="text" class="filename-input" id="filenameInput" placeholder="输入文档名称" value="扫描文档">
+      <button class="export-btn" id="exportPdfBtn" disabled>
+        <span>📥</span> 下载导出 PDF
+      </button>
+    </div>
   </div>
 
-  <!-- 底部面板 -->
-  <div class="bottom-panel">
-    <input type="text" class="filename-input" id="filenameInput" placeholder="输入文档名称" value="扫描文档">
-    <button class="export-btn" id="exportPdfBtn" disabled>
-      <span>📄</span> 下载导出 PDF
-    </button>
-    <div class="status-msg" id="statusMsg"></div>
-  </div>
 </div>
 
 <!-- Toast -->
 <div class="toast" id="toast">提示</div>
 
+<!-- Loading 遮罩 -->
+<div class="loading-overlay" id="loadingOverlay">
+  <div class="spinner"></div>
+  <div class="loading-text" id="loadingText">处理中...</div>
+</div>
+
 <script>
   (function() {
-    // -------------------- 全局变量 --------------------
+    // ==================== 全局状态 ====================
     let stream = null;
-    let video = document.getElementById('video');
-    let currentFacingMode = 'environment'; // 默认后置
-    let capturedImages = []; // 存储 { dataUrl, width, height }
+    let currentFacingMode = 'environment';
+    // 已确认的文档页
+    let documents = []; // { id, originalDataUrl, dataUrl, rotation, width, height }
+    // 当前预览中的临时图片
+    let currentPreview = null; // { dataUrl, width, height, rotation }
+    // 当前页面
+    let activePage = 'camera';
 
-    // DOM 元素
+    const TARGET_WIDTH = 1000;
+    const JPEG_QUALITY = 0.92;
+
+    // ==================== DOM 引用 ====================
+    const pageCamera = document.getElementById('pageCamera');
+    const pagePreview = document.getElementById('pagePreview');
+    const pageManage = document.getElementById('pageManage');
+
+    const video = document.getElementById('video');
     const cameraContainer = document.getElementById('cameraContainer');
     const focusIndicator = document.getElementById('focusIndicator');
-    const hintText = document.getElementById('hintText');
+    const cameraHint = document.getElementById('cameraHint');
+    const pageCountBadge = document.getElementById('pageCountBadge');
+
     const switchCameraBtn = document.getElementById('switchCameraBtn');
     const captureBtn = document.getElementById('captureBtn');
-    const clearAllBtn = document.getElementById('clearAllBtn');
-    const thumbnailStrip = document.getElementById('thumbnailStrip');
+    const goToManageBtn = document.getElementById('goToManageBtn');
+
+    const previewImage = document.getElementById('previewImage');
+    const previewWrapper = document.getElementById('previewWrapper');
+    const rotateLeftBtn = document.getElementById('rotateLeftBtn');
+    const rotateRightBtn = document.getElementById('rotateRightBtn');
+    const discardBtn = document.getElementById('discardBtn');
+    const confirmBtn = document.getElementById('confirmBtn');
+
+    const manageList = document.getElementById('manageList');
+    const manageSubtitle = document.getElementById('manageSubtitle');
+    const addMoreBtn = document.getElementById('addMoreBtn');
     const filenameInput = document.getElementById('filenameInput');
     const exportPdfBtn = document.getElementById('exportPdfBtn');
-    const statusMsg = document.getElementById('statusMsg');
+
     const toastEl = document.getElementById('toast');
+    const loadingOverlay = document.getElementById('loadingOverlay');
+    const loadingText = document.getElementById('loadingText');
 
     // 用于拍照的 canvas
     const captureCanvas = document.createElement('canvas');
     const captureCtx = captureCanvas.getContext('2d');
 
-    // 图像处理参数
-    const TARGET_WIDTH = 1000;        // 裁剪后图片宽度基准 (保持清晰且不过大)
-    const JPEG_QUALITY = 0.92;        // 导出质量
-
-    // -------------------- 工具函数 --------------------
-    function showToast(message, duration = 2000) {
-      toastEl.textContent = message;
-      toastEl.classList.add('show');
+    // ==================== 工具函数 ====================
+    function showToast(msg, type = 'default', duration = 2000) {
+      toastEl.textContent = msg;
+      toastEl.className = 'toast show';
+      if (type === 'error') toastEl.classList.add('error');
+      else if (type === 'success') toastEl.classList.add('success');
       clearTimeout(toastEl._timer);
       toastEl._timer = setTimeout(() => {
         toastEl.classList.remove('show');
       }, duration);
     }
 
-    function setStatus(msg, isError = false) {
-      statusMsg.textContent = msg;
-      statusMsg.style.color = isError ? '#ff453a' : '#ffaa33';
+    function showLoading(text = '处理中...') {
+      loadingText.textContent = text;
+      loadingOverlay.classList.add('show');
+    }
+    function hideLoading() {
+      loadingOverlay.classList.remove('show');
     }
 
-    function updateExportButtonState() {
-      exportPdfBtn.disabled = capturedImages.length === 0;
+    function uid() {
+      return Date.now().toString(36) + Math.random().toString(36).slice(2, 8);
     }
 
-    // -------------------- 初始化相机 --------------------
+    function updatePageCount() {
+      pageCountBadge.textContent = `已拍 ${documents.length} 页`;
+      manageSubtitle.textContent = `共 ${documents.length} 页`;
+    }
+
+    function updateExportState() {
+      exportPdfBtn.disabled = documents.length === 0;
+    }
+
+    // 切换页面
+    function switchPage(pageName) {
+      activePage = pageName;
+      pageCamera.classList.toggle('hidden', pageName !== 'camera');
+      pagePreview.classList.toggle('hidden', pageName !== 'preview');
+      pageManage.classList.toggle('hidden', pageName !== 'manage');
+    }
+
+    // ==================== 相机 ====================
     async function startCamera(facingMode) {
       if (stream) {
-        stream.getTracks().forEach(track => track.stop());
+        stream.getTracks().forEach(t => t.stop());
         stream = null;
       }
       try {
@@ -378,392 +683,408 @@
         stream = await navigator.mediaDevices.getUserMedia(constraints);
         video.srcObject = stream;
         await video.play();
-        // 更新提示
-        hintText.textContent = '点击画面对焦';
+        cameraHint.textContent = '点击画面对焦';
       } catch (err) {
         console.error('相机启动失败:', err);
-        showToast('无法访问相机，请检查权限');
-        setStatus('相机启动失败', true);
+        showToast('无法访问相机，请检查权限', 'error');
       }
     }
 
-    // 切换摄像头
     async function toggleCamera() {
-      currentFacingMode = (currentFacingMode === 'environment') ? 'user' : 'environment';
+      currentFacingMode = currentFacingMode === 'environment' ? 'user' : 'environment';
       await startCamera(currentFacingMode);
     }
 
-    // -------------------- 对焦逻辑 (点击画面) --------------------
+    // 点击对焦
     function handleFocusTap(e) {
       e.preventDefault();
       const rect = cameraContainer.getBoundingClientRect();
       const x = e.clientX - rect.left;
       const y = e.clientY - rect.top;
-
-      // 显示对焦指示器
       focusIndicator.style.left = (x - 40) + 'px';
       focusIndicator.style.top = (y - 40) + 'px';
       focusIndicator.classList.add('active');
 
-      // 尝试对焦 (部分设备支持)
       if (stream) {
         const track = stream.getVideoTracks()[0];
-        if (track && track.getCapabilities && track.getCapabilities().focusMode) {
-          const capabilities = track.getCapabilities();
-          if (capabilities.focusMode && capabilities.focusMode.includes('manual')) {
-            // 计算对焦区域（从点击位置映射到0-1）
-            const focusX = x / rect.width;
-            const focusY = y / rect.height;
-            // 这里简单触发一次自动对焦，更复杂的点对焦需要 advanced constraints
-            // 为了兼容性，我们只触发自动对焦
-          }
+        if (track && track.getCapabilities) {
+          try {
+            const caps = track.getCapabilities();
+            if (caps.focusMode && caps.focusMode.includes('continuous')) {
+              track.applyConstraints({ advanced: [{ focusMode: 'continuous' }] }).catch(() => {});
+            }
+          } catch (_) {}
         }
-        // 大多数移动端浏览器在点击时自动对焦，我们只需要触发一下
-        // 通过应用高级约束来请求对焦
-        try {
-          const constraints = { advanced: [{ focusMode: 'continuous' }] };
-          track.applyConstraints(constraints).catch(() => {});
-        } catch (err) {}
       }
-
-      // 2秒后隐藏对焦框
       clearTimeout(window._focusTimer);
-      window._focusTimer = setTimeout(() => {
-        focusIndicator.classList.remove('active');
-      }, 1500);
+      window._focusTimer = setTimeout(() => focusIndicator.classList.remove('active'), 1500);
     }
 
-    // -------------------- 图像处理：自动裁剪成文档比例 + 锐化 --------------------
+    // ==================== 图像处理：自动沿纸张边框裁剪 + 锐化 ====================
     async function processCapturedImage(sourceCanvas) {
-      // 1. 获取源图像数据
-      const srcWidth = sourceCanvas.width;
-      const srcHeight = sourceCanvas.height;
+      const srcW = sourceCanvas.width;
+      const srcH = sourceCanvas.height;
       const srcCtx = sourceCanvas.getContext('2d');
-      const srcImageData = srcCtx.getImageData(0, 0, srcWidth, srcHeight);
-      const srcData = srcImageData.data;
+      const srcData = srcCtx.getImageData(0, 0, srcW, srcH).data;
 
-      // 2. 自动裁剪：检测文档边界（简化版：使用边缘检测和投影，保持核心区域）
-      //   对于演示，采用智能裁剪：去除黑边，假设文档占据中心区域，并保持宽高比接近A4 (1:1.414)
-      //   实际项目中可接入 opencv 或更复杂算法，这里实现一个相对稳健的裁剪：基于亮度投影去掉黑色边缘。
-
-      // 转灰度并计算每行/列的亮度平均值（用于检测边缘）
-      const gray = new Float32Array(srcWidth * srcHeight);
+      // ---- 1. 灰度 ----
+      const gray = new Float32Array(srcW * srcH);
       for (let i = 0; i < srcData.length; i += 4) {
-        const r = srcData[i];
-        const g = srcData[i + 1];
-        const b = srcData[i + 2];
-        const idx = i / 4;
-        gray[idx] = 0.299 * r + 0.587 * g + 0.114 * b;
+        gray[i / 4] = 0.299 * srcData[i] + 0.587 * srcData[i + 1] + 0.114 * srcData[i + 2];
       }
 
-      // 计算行和列的亮度均值
-      const rowBrightness = new Float32Array(srcHeight);
-      const colBrightness = new Float32Array(srcWidth);
-      for (let y = 0; y < srcHeight; y++) {
-        let sum = 0;
-        for (let x = 0; x < srcWidth; x++) {
-          sum += gray[y * srcWidth + x];
-        }
-        rowBrightness[y] = sum / srcWidth;
+      // ---- 2. 计算行/列亮度 ----
+      const rowB = new Float32Array(srcH);
+      const colB = new Float32Array(srcW);
+      for (let y = 0; y < srcH; y++) {
+        let s = 0;
+        for (let x = 0; x < srcW; x++) s += gray[y * srcW + x];
+        rowB[y] = s / srcW;
       }
-      for (let x = 0; x < srcWidth; x++) {
-        let sum = 0;
-        for (let y = 0; y < srcHeight; y++) {
-          sum += gray[y * srcWidth + x];
-        }
-        colBrightness[x] = sum / srcHeight;
+      for (let x = 0; x < srcW; x++) {
+        let s = 0;
+        for (let y = 0; y < srcH; y++) s += gray[y * srcW + x];
+        colB[x] = s / srcH;
       }
 
-      // 使用阈值寻找文档区域 (亮度高于整体平均亮度一定比例)
-      const avgBrightness = rowBrightness.reduce((a, b) => a + b, 0) / srcHeight;
-      const threshold = Math.max(30, avgBrightness * 0.65); // 自适应阈值
+      // ---- 3. 自适应阈值检测纸张边界 ----
+      const avg = rowB.reduce((a, b) => a + b, 0) / srcH;
+      const th = Math.max(25, avg * 0.6);
 
-      let top = 0, bottom = srcHeight - 1, left = 0, right = srcWidth - 1;
+      let top = 0, bottom = srcH - 1, left = 0, right = srcW - 1;
+      while (top < srcH && rowB[top] < th) top++;
+      while (bottom > top && rowB[bottom] < th) bottom--;
+      while (left < srcW && colB[left] < th) left++;
+      while (right > left && colB[right] < th) right--;
 
-      // 从上往下找第一个亮度超过阈值的行
-      while (top < srcHeight && rowBrightness[top] < threshold) top++;
-      while (bottom > top && rowBrightness[bottom] < threshold) bottom--;
-      while (left < srcWidth && colBrightness[left] < threshold) left++;
-      while (right > left && colBrightness[right] < threshold) right--;
-
-      // 如果检测到的区域太小，则回退到中央80%区域
-      if (right - left < srcWidth * 0.3 || bottom - top < srcHeight * 0.3) {
-        left = Math.floor(srcWidth * 0.1);
-        right = Math.floor(srcWidth * 0.9);
-        top = Math.floor(srcHeight * 0.1);
-        bottom = Math.floor(srcHeight * 0.9);
+      // 回退保护
+      if (right - left < srcW * 0.25 || bottom - top < srcH * 0.25) {
+        left = Math.floor(srcW * 0.08);
+        right = Math.floor(srcW * 0.92);
+        top = Math.floor(srcH * 0.08);
+        bottom = Math.floor(srcH * 0.92);
       }
 
-      // 稍微向内收缩，避免边缘噪声
-      const margin = 0.02;
-      const cropLeft = Math.max(0, left + Math.floor((right - left) * margin));
-      const cropRight = Math.min(srcWidth, right - Math.floor((right - left) * margin));
-      const cropTop = Math.max(0, top + Math.floor((bottom - top) * margin));
-      const cropBottom = Math.min(srcHeight, bottom - Math.floor((bottom - top) * margin));
+      // 内缩一点避免噪点
+      const m = 0.015;
+      const cw = right - left;
+      const ch = bottom - top;
+      left = Math.max(0, Math.floor(left + cw * m));
+      right = Math.min(srcW, Math.ceil(right - cw * m));
+      top = Math.max(0, Math.floor(top + ch * m));
+      bottom = Math.min(srcH, Math.ceil(bottom - ch * m));
 
-      const cropWidth = cropRight - cropLeft;
-      const cropHeight = cropBottom - cropTop;
+      const cropW = right - left;
+      const cropH = bottom - top;
 
-      // 保持文档比例 (A4 比例约 1:1.414)，如果比例偏差过大，则调整为标准A4比例
-      // 但为了让用户体验更自然，我们保留原始比例但限制最大宽高比。
-      // 更合理的：裁剪为固定比例 1:1.414 可能会裁掉内容，所以这里不强制，但稍微归一化。
-      // 最终目标：生成一个宽度为 TARGET_WIDTH 的图像，高度按比例。
-      
-      // 3. 将裁剪区域绘制到临时 canvas
-      const tempCanvas = document.createElement('canvas');
-      tempCanvas.width = cropWidth;
-      tempCanvas.height = cropHeight;
-      const tempCtx = tempCanvas.getContext('2d');
-      tempCtx.drawImage(sourceCanvas, cropLeft, cropTop, cropWidth, cropHeight, 0, 0, cropWidth, cropHeight);
+      // ---- 4. 裁剪到临时 canvas ----
+      const tmp = document.createElement('canvas');
+      tmp.width = cropW;
+      tmp.height = cropH;
+      const tmpCtx = tmp.getContext('2d');
+      tmpCtx.drawImage(sourceCanvas, left, top, cropW, cropH, 0, 0, cropW, cropH);
 
-      // 4. 锐化处理 (卷积核: 0 -1 0; -1 5 -1; 0 -1 0)
-      const sharpCanvas = document.createElement('canvas');
-      sharpCanvas.width = cropWidth;
-      sharpCanvas.height = cropHeight;
-      const sharpCtx = sharpCanvas.getContext('2d');
-      sharpCtx.drawImage(tempCanvas, 0, 0);
-
-      const imageData = sharpCtx.getImageData(0, 0, cropWidth, cropHeight);
-      const data = imageData.data;
-      const w = cropWidth;
-      const h = cropHeight;
-      // 克隆一份原始数据用于计算 (避免修改影响)
-      const original = new Uint8ClampedArray(data);
-
-      // 锐化卷积 (忽略边缘像素)
-      for (let y = 1; y < h - 1; y++) {
-        for (let x = 1; x < w - 1; x++) {
-          const idx = (y * w + x) * 4;
-          for (let c = 0; c < 3; c++) { // R,G,B
-            const val = 5 * original[idx + c]
-                      - original[((y - 1) * w + x) * 4 + c]
-                      - original[((y + 1) * w + x) * 4 + c]
-                      - original[(y * w + (x - 1)) * 4 + c]
-                      - original[(y * w + (x + 1)) * 4 + c];
-            data[idx + c] = Math.min(255, Math.max(0, val));
+      // ---- 5. 锐化 (卷积核: 0 -1 0 / -1 5 -1 / 0 -1 0) ----
+      const imgData = tmpCtx.getImageData(0, 0, cropW, cropH);
+      const d = imgData.data;
+      const orig = new Uint8ClampedArray(d);
+      for (let y = 1; y < cropH - 1; y++) {
+        for (let x = 1; x < cropW - 1; x++) {
+          const i = (y * cropW + x) * 4;
+          for (let c = 0; c < 3; c++) {
+            let v = 5 * orig[i + c]
+                  - orig[((y - 1) * cropW + x) * 4 + c]
+                  - orig[((y + 1) * cropW + x) * 4 + c]
+                  - orig[(y * cropW + (x - 1)) * 4 + c]
+                  - orig[(y * cropW + (x + 1)) * 4 + c];
+            d[i + c] = Math.min(255, Math.max(0, v));
           }
-          // Alpha 不变
         }
       }
-      sharpCtx.putImageData(imageData, 0, 0);
+      tmpCtx.putImageData(imgData, 0, 0);
 
-      // 5. 调整尺寸到目标宽度，同时保持比例
-      const aspectRatio = cropHeight / cropWidth;
-      const targetWidth = Math.min(TARGET_WIDTH, cropWidth); // 如果原图小于目标宽度则不放大
-      const targetHeight = Math.round(targetWidth * aspectRatio);
+      // ---- 6. 缩放到目标宽度 ----
+      const aspect = cropH / cropW;
+      const tw = Math.min(TARGET_WIDTH, cropW);
+      const th2 = Math.round(tw * aspect);
 
-      const finalCanvas = document.createElement('canvas');
-      finalCanvas.width = targetWidth;
-      finalCanvas.height = targetHeight;
-      const finalCtx = finalCanvas.getContext('2d');
-      // 高质量下采样
+      const final = document.createElement('canvas');
+      final.width = tw;
+      final.height = th2;
+      const finalCtx = final.getContext('2d');
       finalCtx.imageSmoothingEnabled = true;
       finalCtx.imageSmoothingQuality = 'high';
-      finalCtx.drawImage(sharpCanvas, 0, 0, cropWidth, cropHeight, 0, 0, targetWidth, targetHeight);
+      finalCtx.drawImage(tmp, 0, 0, cropW, cropH, 0, 0, tw, th2);
 
-      // 6. 转为 dataURL (jpeg)
-      return finalCanvas.toDataURL('image/jpeg', JPEG_QUALITY);
+      return final.toDataURL('image/jpeg', JPEG_QUALITY);
     }
 
-    // -------------------- 拍照并处理 --------------------
-    async function captureAndProcess() {
+    // ==================== 拍照 -> 进入预览页 ====================
+    async function captureAndPreview() {
       if (!video.videoWidth || !video.videoHeight) {
-        showToast('相机未准备好');
+        showToast('相机未准备好', 'error');
         return;
       }
-
-      // 拍摄原始帧到 canvas
-      const vw = video.videoWidth;
-      const vh = video.videoHeight;
-      captureCanvas.width = vw;
-      captureCanvas.height = vh;
-      captureCtx.drawImage(video, 0, 0, vw, vh);
-
-      setStatus('处理中...');
-      showToast('处理中...', 800);
-
+      showLoading('正在拍照并自动裁剪...');
       try {
+        captureCanvas.width = video.videoWidth;
+        captureCanvas.height = video.videoHeight;
+        captureCtx.drawImage(video, 0, 0, captureCanvas.width, captureCanvas.height);
+
+        // 稍微延迟以让 UI 更新
+        await new Promise(r => setTimeout(r, 80));
+
         const processedDataUrl = await processCapturedImage(captureCanvas);
-        
-        // 获取图像尺寸用于显示（缩略图）
         const img = new Image();
         img.src = processedDataUrl;
-        await new Promise((resolve) => { img.onload = resolve; });
-        
-        capturedImages.push({
+        await new Promise(r => { img.onload = r; });
+
+        // 记录预览数据
+        currentPreview = {
           dataUrl: processedDataUrl,
           width: img.width,
-          height: img.height
-        });
+          height: img.height,
+          rotation: 0
+        };
 
-        // 更新缩略图
-        renderThumbnails();
-        updateExportButtonState();
-        setStatus(`已添加 ${capturedImages.length} 页`);
-        showToast('已拍摄并优化');
+        // 显示预览
+        previewImage.src = processedDataUrl;
+        previewImage.style.transform = 'rotate(0deg)';
+        previewWrapper.style.transform = 'rotate(0deg)';
+
+        switchPage('preview');
       } catch (err) {
-        console.error('图像处理错误:', err);
-        setStatus('处理失败', true);
-        showToast('处理失败，请重试');
+        console.error('拍照处理失败:', err);
+        showToast('处理失败，请重试', 'error');
+      } finally {
+        hideLoading();
       }
     }
 
-    // -------------------- 渲染缩略图列表 --------------------
-    function renderThumbnails() {
-      if (capturedImages.length === 0) {
-        thumbnailStrip.innerHTML = '<div class="empty-thumbnail">还没有扫描任何文档</div>';
+    // ==================== 预览页：旋转 ====================
+    function rotatePreview(deg) {
+      if (!currentPreview) return;
+      currentPreview.rotation = ((currentPreview.rotation + deg) % 360 + 360) % 360;
+      previewWrapper.style.transform = `rotate(${currentPreview.rotation}deg)`;
+    }
+
+    // ==================== 预览页：确认使用 ====================
+    async function confirmPreview() {
+      if (!currentPreview) return;
+      showLoading('正在保存...');
+      try {
+        // 如果有旋转，需要重新渲染成新图片
+        let finalDataUrl = currentPreview.dataUrl;
+        const rot = currentPreview.rotation;
+
+        if (rot !== 0) {
+          // 将旋转后的图渲染到 canvas
+          const img = new Image();
+          img.src = currentPreview.dataUrl;
+          await new Promise(r => { img.onload = r; });
+
+          const rad = rot * Math.PI / 180;
+          const isSwapped = rot === 90 || rot === 270;
+
+          const canvas = document.createElement('canvas');
+          canvas.width = isSwapped ? img.height : img.width;
+          canvas.height = isSwapped ? img.width : img.height;
+          const ctx = canvas.getContext('2d');
+          ctx.translate(canvas.width / 2, canvas.height / 2);
+          ctx.rotate(rad);
+          ctx.drawImage(img, -img.width / 2, -img.height / 2);
+
+          finalDataUrl = canvas.toDataURL('image/jpeg', JPEG_QUALITY);
+        }
+
+        const img2 = new Image();
+        img2.src = finalDataUrl;
+        await new Promise(r => { img2.onload = r; });
+
+        documents.push({
+          id: uid(),
+          dataUrl: finalDataUrl,
+          width: img2.width,
+          height: img2.height
+        });
+
+        updatePageCount();
+        updateExportState();
+        renderManageList();
+
+        // 清理预览
+        currentPreview = null;
+        showToast('已添加第 ' + documents.length + ' 页', 'success');
+        switchPage('manage');
+      } catch (err) {
+        console.error(err);
+        showToast('保存失败', 'error');
+      } finally {
+        hideLoading();
+      }
+    }
+
+    // ==================== 预览页：放弃 ====================
+    function discardPreview() {
+      currentPreview = null;
+      showToast('已放弃，请重新拍摄');
+      switchPage('camera');
+    }
+
+    // ==================== 多页管理列表渲染 ====================
+    function renderManageList() {
+      if (documents.length === 0) {
+        manageList.innerHTML = `
+          <div class="empty-state">
+            <div class="big-icon">📄</div>
+            <div>还没有扫描任何文档</div>
+          </div>`;
+        updateExportState();
+        updatePageCount();
         return;
       }
       let html = '';
-      capturedImages.forEach((item, index) => {
+      documents.forEach((doc, i) => {
         html += `
-          <div class="thumbnail-item">
-            <img src="${item.dataUrl}" alt="文档页 ${index + 1}">
-            <span class="page-num">${index + 1}</span>
+          <div class="page-card" data-id="${doc.id}">
+            <div class="page-card-img">
+              <img src="${doc.dataUrl}" alt="第${i + 1}页">
+            </div>
+            <div class="page-card-info">
+              <div class="title">第 ${i + 1} 页</div>
+              <div class="meta">${doc.width} × ${doc.height}</div>
+            </div>
+            <div class="page-card-actions">
+              <button class="icon-btn delete" data-action="delete" data-id="${doc.id}">🗑️</button>
+            </div>
           </div>
         `;
       });
-      thumbnailStrip.innerHTML = html;
-      // 滚动到最右侧显示最新
-      thumbnailStrip.scrollLeft = thumbnailStrip.scrollWidth;
+      manageList.innerHTML = html;
+
+      // 绑定删除按钮
+      manageList.querySelectorAll('[data-action="delete"]').forEach(btn => {
+        btn.addEventListener('click', (e) => {
+          e.stopPropagation();
+          const id = btn.dataset.id;
+          deleteDocument(id);
+        });
+      });
+
+      updateExportState();
+      updatePageCount();
     }
 
-    // -------------------- 清空所有文档 --------------------
-    function clearAllDocuments() {
-      if (capturedImages.length === 0) return;
-      if (confirm('确定要删除所有扫描的页面吗？')) {
-        capturedImages = [];
-        renderThumbnails();
-        updateExportButtonState();
-        setStatus('已清空');
-        showToast('已清空');
-      }
+    function deleteDocument(id) {
+      const idx = documents.findIndex(d => d.id === id);
+      if (idx === -1) return;
+      documents.splice(idx, 1);
+      renderManageList();
+      showToast('已删除该页', 'default', 1200);
     }
 
-    // -------------------- 导出PDF --------------------
-    async function exportToPdf() {
-      if (capturedImages.length === 0) {
-        showToast('没有可导出的页面');
+    // ==================== 导出 PDF ====================
+    async function exportPdf() {
+      if (documents.length === 0) {
+        showToast('没有可导出的页面', 'error');
         return;
       }
-
       const fileName = filenameInput.value.trim() || '扫描文档';
-      setStatus('正在生成PDF...');
-      exportPdfBtn.disabled = true; // 防止重复点击
+      showLoading('正在生成 PDF...');
 
       try {
         const { jsPDF } = window.jspdf;
-        // 使用第一张图片的宽高比来确定PDF页面方向
-        const firstImg = capturedImages[0];
-        const aspectRatio = firstImg.height / firstImg.width;
-        // 默认使用 A4 尺寸，但根据图片方向调整 (portrait or landscape)
-        // A4: 595.28 x 841.89 pt
-        const a4Width = 595.28;
-        const a4Height = 841.89;
-        
-        // 判断页面方向: 如果图片高>宽，则纵向；否则横向
-        const isPortrait = aspectRatio >= 1;
-        const pdfWidth = isPortrait ? a4Width : a4Height;
-        const pdfHeight = isPortrait ? a4Height : a4Width;
 
+        // 以第一页确定方向
+        const first = documents[0];
+        const isPortrait = first.height >= first.width;
         const pdf = new jsPDF({
           orientation: isPortrait ? 'portrait' : 'landscape',
           unit: 'pt',
           format: 'a4'
         });
 
-        for (let i = 0; i < capturedImages.length; i++) {
+        const a4W = isPortrait ? 595.28 : 841.89;
+        const a4H = isPortrait ? 841.89 : 595.28;
+
+        for (let i = 0; i < documents.length; i++) {
           if (i > 0) pdf.addPage();
-          
-          const imgData = capturedImages[i].dataUrl;
-          // 计算图片在PDF中的尺寸: 适应页面，保持比例，留白边
-          const imgWidth = capturedImages[i].width;
-          const imgHeight = capturedImages[i].height;
-          const imgAspect = imgHeight / imgWidth;
-          
-          // 页面宽高比
-          const pageAspect = pdfHeight / pdfWidth;
-          
-          let displayWidth, displayHeight;
-          // 留出10%边距
-          const margin = 0.1;
-          const availWidth = pdfWidth * (1 - margin * 2);
-          const availHeight = pdfHeight * (1 - margin * 2);
-          
-          if (imgAspect > availHeight / availWidth) {
-            // 高度受限
-            displayHeight = availHeight;
-            displayWidth = displayHeight / imgAspect;
+          const doc = documents[i];
+          const imgAspect = doc.height / doc.width;
+          const margin = 0.08;
+          const availW = a4W * (1 - margin * 2);
+          const availH = a4H * (1 - margin * 2);
+
+          let dw, dh;
+          if (imgAspect > availH / availW) {
+            dh = availH;
+            dw = dh / imgAspect;
           } else {
-            // 宽度受限
-            displayWidth = availWidth;
-            displayHeight = displayWidth * imgAspect;
+            dw = availW;
+            dh = dw * imgAspect;
           }
-          
-          const x = (pdfWidth - displayWidth) / 2;
-          const y = (pdfHeight - displayHeight) / 2;
-          
-          pdf.addImage(imgData, 'JPEG', x, y, displayWidth, displayHeight);
+          const x = (a4W - dw) / 2;
+          const y = (a4H - dh) / 2;
+          pdf.addImage(doc.dataUrl, 'JPEG', x, y, dw, dh);
         }
 
-        // 下载PDF
         pdf.save(`${fileName}.pdf`);
-        setStatus(`已导出: ${fileName}.pdf`);
-        showToast('PDF已保存');
+        showToast('PDF 已保存', 'success');
       } catch (err) {
-        console.error('PDF导出失败:', err);
-        setStatus('导出失败', true);
-        showToast('导出失败，请重试');
+        console.error('导出失败:', err);
+        showToast('导出失败，请重试', 'error');
       } finally {
-        exportPdfBtn.disabled = false;
+        hideLoading();
       }
     }
 
-    // -------------------- 事件绑定 --------------------
-    function bindEvents() {
-      // 点击画面对焦
-      cameraContainer.addEventListener('click', handleFocusTap);
-      // 切换摄像头
-      switchCameraBtn.addEventListener('click', (e) => {
-        e.stopPropagation();
-        toggleCamera();
-      });
-      // 拍照
-      captureBtn.addEventListener('click', (e) => {
-        e.stopPropagation();
-        captureAndProcess();
-      });
-      // 清空
-      clearAllBtn.addEventListener('click', (e) => {
-        e.stopPropagation();
-        clearAllDocuments();
-      });
-      // 导出PDF
-      exportPdfBtn.addEventListener('click', exportToPdf);
-      // 输入框焦点时不上滑
-      filenameInput.addEventListener('touchstart', (e) => e.stopPropagation());
+    // ==================== 页面导航 ====================
+    function goToManage() {
+      renderManageList();
+      switchPage('manage');
     }
 
-    // -------------------- 初始化 --------------------
+    function goToCamera() {
+      switchPage('camera');
+    }
+
+    // ==================== 事件绑定 ====================
+    function bindEvents() {
+      // 相机
+      cameraContainer.addEventListener('click', handleFocusTap);
+      switchCameraBtn.addEventListener('click', (e) => { e.stopPropagation(); toggleCamera(); });
+      captureBtn.addEventListener('click', (e) => { e.stopPropagation(); captureAndPreview(); });
+      goToManageBtn.addEventListener('click', (e) => { e.stopPropagation(); goToManage(); });
+
+      // 预览
+      rotateLeftBtn.addEventListener('click', () => rotatePreview(-90));
+      rotateRightBtn.addEventListener('click', () => rotatePreview(90));
+      discardBtn.addEventListener('click', discardPreview);
+      confirmBtn.addEventListener('click', confirmPreview);
+
+      // 管理页
+      addMoreBtn.addEventListener('click', goToCamera);
+      exportPdfBtn.addEventListener('click', exportPdf);
+    }
+
+    // ==================== 初始化 ====================
     async function init() {
-      // 请求相机权限并启动
       await startCamera(currentFacingMode);
       bindEvents();
-      // 初始状态
-      updateExportButtonState();
-      setStatus('点击“拍照”开始扫描');
+      updatePageCount();
+      updateExportState();
+      renderManageList();
+      // 默认显示相机页
+      switchPage('camera');
     }
 
     init().catch(err => {
       console.error('初始化失败:', err);
-      showToast('初始化失败，请刷新重试');
+      showToast('初始化失败，请刷新页面', 'error');
     });
 
-    // 清理资源 (页面关闭时)
     window.addEventListener('beforeunload', () => {
-      if (stream) {
-        stream.getTracks().forEach(track => track.stop());
-      }
+      if (stream) stream.getTracks().forEach(t => t.stop());
     });
 
   })();
