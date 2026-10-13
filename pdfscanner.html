@@ -14,10 +14,10 @@
 
   <!-- Lucide 图标库 -->
   <script src="https://unpkg.com/lucide@latest/dist/umd/lucide.min.js"></script>
-  <!-- OpenCV.js -->
-  <script async src="https://docs.opencv.org/4.8.0/opencv.js" onload="onOpenCvReady()"></script>
   <!-- jsPDF -->
   <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+  <!-- OpenCV.js - 使用 jsDelivr CDN，马来西亚访问稳定 -->
+  <script async src="https://cdn.jsdelivr.net/npm/@techstark/opencv-js@4.10.0-release.1/dist/opencv.js"></script>
 
   <style>
     * {
@@ -320,6 +320,7 @@
       gap: 6px;
       z-index: 5;
       pointer-events: none;
+      white-space: nowrap;
     }
     .crop-hint [data-lucide] {
       width: 14px; height: 14px;
@@ -714,12 +715,24 @@
 </div>
 
 <script>
-  // ==================== OpenCV 加载回调 ====================
+  // ==================== OpenCV 加载状态 ====================
   let cvReady = false;
-  function onOpenCvReady() {
-    cvReady = true;
-    console.log('OpenCV.js 加载完成');
+
+  // 轮询检查 OpenCV 是否真正就绪（WASM 初始化完成后 cv.Mat 才可用）
+  function checkCvReady() {
+    if (typeof cv !== 'undefined' && cv.Mat) {
+      cvReady = true;
+      console.log('✅ OpenCV.js 已就绪');
+      // 可选：更新提示
+      const el = document.getElementById('loadingText');
+      if (el && el.textContent === '正在加载识别引擎...') {
+        el.textContent = '识别引擎已就绪';
+      }
+    } else {
+      setTimeout(checkCvReady, 150);
+    }
   }
+  checkCvReady();
 
   (function() {
     // ==================== 全局状态 ====================
@@ -730,15 +743,15 @@
 
     // 预览页状态
     let previewState = {
-      originalCanvas: null,   // 原始尺寸的完整图片（未裁剪，仅旋转过）
-      displayCanvas: null,    // 屏幕上展示的 canvas
-      corners: [],            // [{x, y}] 4 个角点在 originalCanvas 坐标系中的位置
+      originalCanvas: null,
+      displayCanvas: null,
+      corners: [],
       dragIndex: -1,
-      rotation: 0,            // 0, 90, 180, 270
-      renderScale: 1,         // display canvas -> original canvas 的缩放比
+      rotation: 0,
+      renderScale: 1,
       originalWidth: 0,
       originalHeight: 0,
-      autoDetected: false     // 是否成功自动检测到角点
+      autoDetected: false
     };
 
     const TARGET_WIDTH = 1000;
@@ -785,22 +798,19 @@
     const captureCanvas = document.createElement('canvas');
     const captureCtx = captureCanvas.getContext('2d');
 
-    // ==================== 初始化 Lucide 图标 ====================
+    // ==================== Lucide 图标 ====================
     function refreshIcons() {
       if (window.lucide && typeof lucide.createIcons === 'function') {
         lucide.createIcons();
       }
     }
-    // 页面加载后立即初始化一次
     document.addEventListener('DOMContentLoaded', refreshIcons);
-    // 兜底：如果 DOM 已加载完
     setTimeout(refreshIcons, 100);
     setTimeout(refreshIcons, 500);
 
     // ==================== 工具函数 ====================
     function showToast(msg, type = 'default', duration = 2000) {
       toastText.textContent = msg;
-      // 切换图标
       let iconName = 'info';
       if (type === 'error') iconName = 'alert-circle';
       else if (type === 'success') iconName = 'check-circle';
@@ -850,7 +860,6 @@
       pageCamera.classList.toggle('hidden', pageName !== 'camera');
       pagePreview.classList.toggle('hidden', pageName !== 'preview');
       pageManage.classList.toggle('hidden', pageName !== 'manage');
-      // 页面切换后刷新图标
       setTimeout(refreshIcons, 50);
     }
 
@@ -950,29 +959,34 @@
 
     // ==================== OpenCV 自动检测角点 ====================
     async function detectDocumentCorners(sourceCanvas) {
-      if (!cvReady) {
-        console.warn('OpenCV 未就绪，使用默认角点');
+      console.log('=== 自动裁剪诊断 ===');
+      console.log('cvReady:', cvReady);
+      console.log('typeof cv:', typeof cv);
+
+      if (!cvReady || typeof cv === 'undefined' || !cv.Mat) {
+        console.warn('❌ OpenCV 未就绪，跳过自动检测');
         return null;
       }
 
       const srcW = sourceCanvas.width;
       const srcH = sourceCanvas.height;
+      console.log('图像尺寸:', srcW, 'x', srcH);
 
-      let src = cv.imread(sourceCanvas);
-      let gray = new cv.Mat();
-      let blurred = new cv.Mat();
-      let edges = new cv.Mat();
-      let contours = new cv.MatVector();
-      let hierarchy = new cv.Mat();
-      let bestQuad = null;
-
+      let src, gray, blurred, edges, contours, hierarchy;
       try {
+        src = cv.imread(sourceCanvas);
+        gray = new cv.Mat();
+        blurred = new cv.Mat();
+        edges = new cv.Mat();
+        contours = new cv.MatVector();
+        hierarchy = new cv.Mat();
+
         cv.cvtColor(src, gray, cv.COLOR_RGBA2GRAY);
         cv.GaussianBlur(gray, blurred, new cv.Size(5, 5), 0, 0, cv.BORDER_DEFAULT);
 
-        // 三路边缘检测
+        // 三路边缘检测合并
         let edgesA = new cv.Mat();
-        cv.Canny(blurred, edgesA, 30, 100);
+        cv.Canny(blurred, edgesA, 20, 80);
 
         let edgesB = new cv.Mat();
         cv.adaptiveThreshold(blurred, edgesB, 255,
@@ -984,28 +998,37 @@
         cv.bitwise_or(edgesA, edgesB, edges);
         cv.bitwise_or(edges, edgesC, edges);
 
+        console.log('合并后边缘像素数:', cv.countNonZero(edges));
+
         let kernel = cv.Mat.ones(5, 5, cv.CV_8U);
         cv.morphologyEx(edges, edges, cv.MORPH_CLOSE, kernel);
         cv.dilate(edges, edges, kernel, new cv.Point(-1, -1), 2);
         kernel.delete();
         edgesA.delete(); edgesB.delete(); edgesC.delete();
 
+        console.log('形态学处理后边缘像素数:', cv.countNonZero(edges));
+
         cv.findContours(edges, contours, hierarchy, cv.RETR_EXTERNAL, cv.CHAIN_APPROX_SIMPLE);
+        console.log('轮廓数量:', contours.size());
 
         let maxScore = 0;
+        let bestQuad = null;
         const imgArea = srcW * srcH;
 
         for (let i = 0; i < contours.size(); i++) {
           let cnt = contours.get(i);
           let area = cv.contourArea(cnt);
-          if (area < imgArea * 0.05 || area > imgArea * 0.98) { cnt.delete(); continue; }
-
           let peri = cv.arcLength(cnt, true);
           let approx = new cv.Mat();
           cv.approxPolyDP(cnt, approx, 0.02 * peri, true);
 
+          console.log(`轮廓${i}: 面积=${area.toFixed(0)} (${(area/imgArea*100).toFixed(1)}%), 顶点=${approx.rows}`);
+
+          // 面积过滤放宽到 2%
+          if (area < imgArea * 0.02) { approx.delete(); cnt.delete(); continue; }
+
           let candidate = null;
-          if (approx.rows >= 4 && approx.rows <= 6) {
+          if (approx.rows >= 3 && approx.rows <= 10) {
             if (approx.rows === 4) {
               candidate = approx.clone();
             } else {
@@ -1035,11 +1058,13 @@
 
           const rect = cv.boundingRect(candidate);
           const aspect = rect.width / rect.height;
-          let aspectScore = (aspect >= 0.6 && aspect <= 1.8)
-            ? 1.0 - Math.abs(aspect - 1.0) * 0.5
+          let aspectScore = (aspect >= 0.4 && aspect <= 2.5)
+            ? 1.0 - Math.abs(aspect - 1.0) * 0.3
             : 0.2;
           const areaScore = area / imgArea;
           const score = areaScore * 0.7 + aspectScore * 0.3;
+
+          console.log(`  → 候选得分=${score.toFixed(3)} (面积分=${areaScore.toFixed(2)}, 长宽分=${aspectScore.toFixed(2)})`);
 
           if (score > maxScore) {
             maxScore = score;
@@ -1049,7 +1074,8 @@
           candidate.delete();
         }
 
-        // 提取 4 个角点
+        console.log('最终 maxScore:', maxScore);
+
         if (bestQuad && bestQuad.rows === 4) {
           const pts = [];
           const isInt = bestQuad.type() === cv.CV_32S;
@@ -1060,43 +1086,41 @@
               pts.push({ x: bestQuad.data32F[i * 2], y: bestQuad.data32F[i * 2 + 1] });
             }
           }
-          // 排序为 [左上, 右上, 右下, 左下]
+          console.log('原始角点:', pts);
           const sorted = sortCorners(pts);
-          // 安全检查：角点必须在图片范围内
-          const valid = sorted.every(p =>
-            p.x >= -50 && p.x <= srcW + 50 &&
-            p.y >= -50 && p.y <= srcH + 50
-          );
-          if (valid) {
-            return sorted;
-          }
+          console.log('排序后角点:', sorted);
+          bestQuad.delete();
+          return sorted;
         }
+
+        console.log('❌ 未找到合适的四边形');
         return null;
 
       } catch (err) {
-        console.error('OpenCV 检测失败:', err);
+        console.error('❌ OpenCV 处理异常:', err);
         return null;
       } finally {
-        src.delete(); gray.delete(); blurred.delete();
-        edges.delete(); contours.delete(); hierarchy.delete();
-        if (bestQuad) bestQuad.delete();
+        if (src) src.delete();
+        if (gray) gray.delete();
+        if (blurred) blurred.delete();
+        if (edges) edges.delete();
+        if (contours) contours.delete();
+        if (hierarchy) hierarchy.delete();
       }
     }
 
-    // ==================== 预览页初始化：自动检测 + 绘制 ====================
+    // ==================== 预览页初始化 ====================
     async function initPreview(sourceCanvas) {
-      // 存储原始 canvas（用于最终裁剪）
       previewState.originalCanvas = sourceCanvas;
       previewState.originalWidth = sourceCanvas.width;
       previewState.originalHeight = sourceCanvas.height;
       previewState.rotation = 0;
 
-      // 尝试自动检测角点
       let corners = await detectDocumentCorners(sourceCanvas);
       previewState.autoDetected = !!corners;
 
       if (!corners) {
-        // 没检测到 → 使用内缩 10% 的默认矩形
+        console.log('使用默认内缩矩形');
         const w = sourceCanvas.width;
         const h = sourceCanvas.height;
         const m = 0.1;
@@ -1106,14 +1130,15 @@
           { x: w * (1 - m), y: h * (1 - m) },
           { x: w * m, y: h * (1 - m) }
         ];
+      } else {
+        console.log('✅ 使用自动检测的角点');
       }
       previewState.corners = corners.map(p => ({ x: p.x, y: p.y }));
 
-      // 渲染到预览 canvas
       renderPreview();
     }
 
-    // ==================== 渲染预览（画图 + 角点 + 多边形边框） ====================
+    // ==================== 渲染预览 ====================
     function renderPreview() {
       const srcCanvas = previewState.originalCanvas;
       if (!srcCanvas) return;
@@ -1125,7 +1150,6 @@
       const srcW = previewState.originalWidth;
       const srcH = previewState.originalHeight;
 
-      // 计算适应屏幕的缩放
       const scale = Math.min(maxW / srcW, maxH / srcH);
       const displayW = Math.round(srcW * scale);
       const displayH = Math.round(srcH * scale);
@@ -1138,15 +1162,13 @@
       previewState.renderScale = scale;
       previewState.displayCanvas = previewCanvas;
 
-      // 画底图
       previewCtx.clearRect(0, 0, displayW, displayH);
       previewCtx.drawImage(srcCanvas, 0, 0, srcW, srcH, 0, 0, displayW, displayH);
 
-      // 半透明遮罩（覆盖在裁剪区域外）
+      // 半透明遮罩
       previewCtx.save();
       previewCtx.fillStyle = 'rgba(0, 0, 0, 0.45)';
       previewCtx.fillRect(0, 0, displayW, displayH);
-      // 挖出裁剪区域（按显示坐标）
       previewCtx.globalCompositeOperation = 'destination-out';
       previewCtx.beginPath();
       const displayCorners = previewState.corners.map(p => ({
@@ -1161,7 +1183,7 @@
       previewCtx.fill();
       previewCtx.restore();
 
-      // 绘制裁剪边框
+      // 裁剪边框
       previewCtx.save();
       previewCtx.strokeStyle = '#0a84ff';
       previewCtx.lineWidth = 2;
@@ -1174,15 +1196,13 @@
       previewCtx.stroke();
       previewCtx.restore();
 
-      // 更新角点手柄位置
       updateHandles(displayCorners);
     }
 
-    // ==================== 角点手柄管理 ====================
+    // ==================== 角点手柄 ====================
     let handleEls = [];
 
     function updateHandles(displayCorners) {
-      // 第一次创建
       if (handleEls.length === 0) {
         for (let i = 0; i < 4; i++) {
           const el = document.createElement('div');
@@ -1193,9 +1213,7 @@
           bindHandleEvents(el);
         }
       }
-      // 更新位置
       handleEls.forEach((el, i) => {
-        // 计算相对于 previewBody 的位置（canvas 居中）
         const canvasRect = previewCanvas.getBoundingClientRect();
         const bodyRect = previewBody.getBoundingClientRect();
         const offsetX = canvasRect.left - bodyRect.left;
@@ -1225,28 +1243,23 @@
         const offsetX = canvasRect.left - bodyRect.left;
         const offsetY = canvasRect.top - bodyRect.top;
 
-        // 屏幕坐标 → canvas 显示坐标
         let dx = touch.clientX - bodyRect.left - offsetX;
         let dy = touch.clientY - bodyRect.top - offsetY;
 
-        // 限制在 canvas 范围内
         dx = Math.max(0, Math.min(previewCanvas.width, dx));
         dy = Math.max(0, Math.min(previewCanvas.height, dy));
 
-        // 显示坐标 → 原图坐标
         const scale = previewState.renderScale;
         const origX = dx / scale;
         const origY = dy / scale;
 
-        // 更新角点
         const idx = previewState.dragIndex;
         previewState.corners[idx] = { x: origX, y: origY };
 
-        // 重绘
         renderPreview();
       };
 
-      const onEnd = (e) => {
+      const onEnd = () => {
         if (!dragging) return;
         dragging = false;
         el.classList.remove('dragging');
@@ -1262,7 +1275,7 @@
       document.addEventListener('mouseup', onEnd);
     }
 
-    // ==================== 预览页旋转 ====================
+    // ==================== 预览旋转 ====================
     function rotatePreview(deg) {
       const src = previewState.originalCanvas;
       if (!src) return;
@@ -1270,7 +1283,6 @@
       const newRot = ((previewState.rotation + deg) % 360 + 360) % 360;
       const rad = deg * Math.PI / 180;
 
-      // 旋转整个原图
       const isSwapped = newRot === 90 || newRot === 270;
       const newW = isSwapped ? src.height : src.width;
       const newH = isSwapped ? src.width : src.height;
@@ -1283,31 +1295,26 @@
       rctx.rotate(rad);
       rctx.drawImage(src, -src.width / 2, -src.height / 2);
 
-      // 旋转角点
       const oldW = src.width;
       const oldH = src.height;
       const newCorners = previewState.corners.map(p => {
-        // 以中心为原点旋转
         const cx = p.x - oldW / 2;
         const cy = p.y - oldH / 2;
         const nx = cx * Math.cos(rad) - cy * Math.sin(rad);
         const ny = cx * Math.sin(rad) + cy * Math.cos(rad);
-        // 新中心
         return { x: nx + newW / 2, y: ny + newH / 2 };
       });
 
-      // 更新状态
       previewState.originalCanvas = rotated;
       previewState.originalWidth = newW;
       previewState.originalHeight = newH;
       previewState.rotation = newRot;
       previewState.corners = newCorners;
 
-      // 重新渲染
       renderPreview();
     }
 
-    // ==================== 预览页确认 → 执行透视变换 ====================
+    // ==================== 确认 → 透视变换 ====================
     async function confirmPreview() {
       const src = previewState.originalCanvas;
       if (!src) return;
@@ -1318,7 +1325,6 @@
         let croppedCanvas;
 
         if (cvReady) {
-          // 使用 OpenCV 透视变换
           let srcMat = cv.imread(src);
           const pts = sortCorners(previewState.corners);
 
@@ -1331,7 +1337,6 @@
           let outH = Math.round(Math.max(heightLeft, heightRight));
 
           if (outW < 50 || outH < 50) {
-            // 角点异常，直接用原始图
             croppedCanvas = src;
           } else {
             if (outW > TARGET_WIDTH) {
@@ -1364,7 +1369,6 @@
           }
           srcMat.delete();
         } else {
-          // 备用：使用多边形裁剪
           const pts = sortCorners(previewState.corners);
           const widthTop = dist(pts[0], pts[1]);
           const widthBottom = dist(pts[3], pts[2]);
@@ -1384,10 +1388,8 @@
           cctx.drawImage(src, 0, 0);
         }
 
-        // 锐化
         sharpenCanvas(croppedCanvas);
 
-        // 最终缩放
         const aspect = croppedCanvas.height / croppedCanvas.width;
         const tw = Math.min(TARGET_WIDTH, croppedCanvas.width);
         const th = Math.round(tw * aspect);
@@ -1412,7 +1414,6 @@
         updateExportState();
         renderManageList();
 
-        // 清理预览状态
         previewState.originalCanvas = null;
         previewState.corners = [];
 
@@ -1434,7 +1435,7 @@
       switchPage('camera');
     }
 
-    // ==================== 拍照 → 进入预览 ====================
+    // ==================== 拍照 → 预览 ====================
     async function captureAndPreview() {
       if (!video.videoWidth || !video.videoHeight) {
         showToast('相机未准备好', 'error');
@@ -1446,13 +1447,11 @@
         captureCanvas.height = video.videoHeight;
         captureCtx.drawImage(video, 0, 0, captureCanvas.width, captureCanvas.height);
 
-        // 复制一份到独立 canvas，避免后续被覆盖
         const sourceCanvas = document.createElement('canvas');
         sourceCanvas.width = captureCanvas.width;
         sourceCanvas.height = captureCanvas.height;
         sourceCanvas.getContext('2d').drawImage(captureCanvas, 0, 0);
 
-        // 初始化预览（含自动检测角点）
         showLoading('正在检测文档边缘...');
         await initPreview(sourceCanvas);
 
@@ -1597,7 +1596,6 @@
       addMoreBtn.addEventListener('click', goToCamera);
       exportPdfBtn.addEventListener('click', exportPdf);
 
-      // 窗口大小变化时重新渲染预览
       window.addEventListener('resize', () => {
         if (activePage === 'preview' && previewState.originalCanvas) {
           renderPreview();
