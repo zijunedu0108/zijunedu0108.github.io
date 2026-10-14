@@ -1,0 +1,1053 @@
+<!DOCTYPE html>
+<html lang="zh">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>部落冲突 · 完整版</title>
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+      user-select: none;
+      font-family: 'Segoe UI', 'Roboto', system-ui, sans-serif;
+    }
+    body {
+      background: #1f1608;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      min-height: 100vh;
+      touch-action: pan-y pinch-zoom;
+    }
+    #game-container {
+      width: 960px;
+      max-width: 100vw;
+      aspect-ratio: 16 / 10;
+      background: #6b8c3e;
+      border-radius: 28px;
+      box-shadow: 0 24px 36px rgba(0,0,0,0.8), inset 0 0 0 4px #a57c4b, inset 0 0 0 10px #5a3e1a;
+      position: relative;
+      overflow: hidden;
+      display: flex;
+      flex-direction: column;
+    }
+    canvas {
+      display: block;
+      width: 100%;
+      height: 100%;
+      background: #7fa84a;
+      cursor: pointer;
+    }
+    /* UI 层 */
+    .ui-layer {
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      pointer-events: none;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+      padding: 10px 16px;
+    }
+    .top-bar {
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-start;
+      pointer-events: none;
+    }
+    .resources {
+      display: flex;
+      gap: 16px;
+      background: rgba(0, 0, 0, 0.6);
+      backdrop-filter: blur(4px);
+      padding: 6px 20px;
+      border-radius: 60px;
+      border: 2px solid #e6c27a;
+      box-shadow: 0 6px 0 #3d2b0e, inset 0 2px 6px #ffd78c;
+      pointer-events: auto;
+    }
+    .resource-item {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      color: #fff3d1;
+      text-shadow: 2px 2px 0 #3a2a0c;
+      font-weight: bold;
+      font-size: 1.2rem;
+    }
+    .resource-icon {
+      font-size: 1.8rem;
+      filter: drop-shadow(2px 2px 0 #3a2a0c);
+    }
+    .gold .resource-icon { color: #ffc107; }
+    .elixir .resource-icon { color: #e83b9b; }
+    .gems .resource-icon { color: #4ade80; }
+    .buttons-right {
+      display: flex;
+      gap: 10px;
+      pointer-events: auto;
+    }
+    .btn {
+      background: #c99b3b;
+      border: none;
+      border-radius: 40px;
+      padding: 8px 18px;
+      font-weight: bold;
+      color: #2b1d07;
+      font-size: 1rem;
+      box-shadow: 0 6px 0 #7a561e, inset 0 2px 6px #ffeaad;
+      cursor: pointer;
+      transition: all 0.05s ease;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      border: 1px solid #f5d98f;
+      pointer-events: auto;
+    }
+    .btn:active {
+      transform: translateY(4px);
+      box-shadow: 0 2px 0 #7a561e, inset 0 2px 6px #ffeaad;
+    }
+    .btn.small { padding: 6px 14px; font-size: 0.9rem; }
+    .btn.danger {
+      background: #b33e3e;
+      color: #ffe0e0;
+      box-shadow: 0 6px 0 #6b1e1e, inset 0 2px 6px #ffb3b3;
+    }
+    .bottom-bar {
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-end;
+      pointer-events: none;
+    }
+    .build-menu {
+      display: flex;
+      gap: 6px;
+      background: rgba(0, 0, 0, 0.6);
+      backdrop-filter: blur(4px);
+      padding: 8px 14px;
+      border-radius: 60px;
+      border: 2px solid #e6c27a;
+      box-shadow: 0 6px 0 #3d2b0e;
+      pointer-events: auto;
+      flex-wrap: wrap;
+      max-width: 65%;
+    }
+    .build-btn {
+      background: #b3862e;
+      border: none;
+      border-radius: 40px;
+      padding: 6px 12px;
+      font-weight: bold;
+      color: #ffeec2;
+      text-shadow: 1px 1px 0 #4f3a12;
+      font-size: 0.9rem;
+      box-shadow: 0 4px 0 #5e4115, inset 0 2px 6px #fdebb3;
+      cursor: pointer;
+      transition: all 0.05s ease;
+      display: flex;
+      align-items: center;
+      gap: 4px;
+      border: 1px solid #fad67e;
+      white-space: nowrap;
+    }
+    .build-btn:active {
+      transform: translateY(4px);
+      box-shadow: 0 1px 0 #5e4115, inset 0 2px 6px #fdebb3;
+    }
+    .build-btn.selected {
+      background: #f5b342;
+      color: #2b1d07;
+      box-shadow: 0 4px 0 #8f611b, inset 0 2px 10px #fff2c9;
+    }
+    .build-btn:disabled {
+      opacity: 0.5;
+      filter: grayscale(0.6);
+      pointer-events: none;
+    }
+    .info-text {
+      background: rgba(0, 0, 0, 0.6);
+      padding: 6px 16px;
+      border-radius: 30px;
+      color: #ffeac2;
+      font-weight: 500;
+      text-shadow: 1px 1px 0 #1f1506;
+      border: 1px solid #dbb86a;
+      font-size: 0.9rem;
+      pointer-events: auto;
+      max-width: 35%;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+    .toast {
+      position: absolute;
+      top: 25%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      background: rgba(0, 0, 0, 0.85);
+      color: #ffd966;
+      padding: 12px 30px;
+      border-radius: 60px;
+      font-weight: bold;
+      font-size: 1.2rem;
+      border: 2px solid #ffd966;
+      opacity: 0;
+      transition: opacity 0.2s;
+      pointer-events: none;
+      z-index: 200;
+      text-shadow: 2px 2px 0 #000;
+      white-space: nowrap;
+    }
+    .toast.show { opacity: 1; }
+    /* 战斗覆盖层 */
+    .battle-overlay {
+      position: absolute;
+      top: 0; left: 0; width: 100%; height: 100%;
+      pointer-events: none;
+      z-index: 150;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+      padding: 10px 16px;
+    }
+    .battle-top {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      pointer-events: auto;
+    }
+    .battle-stats {
+      display: flex;
+      gap: 16px;
+      background: rgba(0,0,0,0.7);
+      padding: 6px 20px;
+      border-radius: 40px;
+      border: 2px solid #e6c27a;
+      color: #fff3d1;
+      font-weight: bold;
+      font-size: 1.1rem;
+      pointer-events: auto;
+    }
+    .battle-bottom {
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-end;
+      pointer-events: none;
+    }
+    .troop-menu {
+      display: flex;
+      gap: 10px;
+      background: rgba(0,0,0,0.7);
+      padding: 10px 18px;
+      border-radius: 50px;
+      border: 2px solid #e6c27a;
+      pointer-events: auto;
+    }
+    .troop-btn {
+      background: #3f6b3f;
+      border: none;
+      border-radius: 40px;
+      padding: 8px 16px;
+      font-weight: bold;
+      color: #e0ffd0;
+      font-size: 1rem;
+      box-shadow: 0 4px 0 #1e3a1e, inset 0 2px 8px #9fdf9f;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      border: 1px solid #b3e6b3;
+    }
+    .troop-btn:active {
+      transform: translateY(4px);
+      box-shadow: 0 1px 0 #1e3a1e, inset 0 2px 8px #9fdf9f;
+    }
+    .troop-btn:disabled {
+      opacity: 0.5;
+      filter: grayscale(0.6);
+      pointer-events: none;
+    }
+    .end-battle-btn {
+      background: #b33e3e;
+      color: #ffe0e0;
+      box-shadow: 0 6px 0 #6b1e1e, inset 0 2px 6px #ffb3b3;
+      padding: 10px 24px;
+      font-size: 1.1rem;
+      border-radius: 50px;
+      border: 1px solid #ff9f9f;
+      cursor: pointer;
+      font-weight: bold;
+      pointer-events: auto;
+    }
+    .hidden { display: none !important; }
+  </style>
+</head>
+<body>
+<div id="game-container">
+  <canvas id="gameCanvas" width="960" height="600"></canvas>
+
+  <!-- 村庄模式 UI -->
+  <div class="ui-layer" id="villageUI">
+    <div class="top-bar">
+      <div class="resources">
+        <div class="resource-item gold"><span class="resource-icon">🪙</span><span id="goldAmount">1500</span></div>
+        <div class="resource-item elixir"><span class="resource-icon">💧</span><span id="elixirAmount">1500</span></div>
+        <div class="resource-item gems"><span class="resource-icon">💎</span><span id="gemsAmount">80</span></div>
+      </div>
+      <div class="buttons-right">
+        <button class="btn small" id="collectBtn">⛏️ 收集</button>
+        <button class="btn small" id="speedUpBtn">⚡ 加速</button>
+        <button class="btn small danger" id="attackBtn">⚔️ 攻击</button>
+      </div>
+    </div>
+    <div class="bottom-bar">
+      <div class="build-menu" id="buildMenu">
+        <button class="build-btn" data-type="goldMine">⛏️ 金矿</button>
+        <button class="build-btn" data-type="elixirCollector">🧪 圣水</button>
+        <button class="build-btn" data-type="cannon">💣 加农炮</button>
+        <button class="build-btn" data-type="wall">🧱 城墙</button>
+        <button class="build-btn" data-type="barracks">🏕️ 兵营</button>
+        <button class="build-btn" data-type="armyCamp">🏰 营地</button>
+      </div>
+      <div class="info-text" id="infoText">点击空地建造</div>
+    </div>
+  </div>
+
+  <!-- 战斗模式 UI -->
+  <div class="battle-overlay hidden" id="battleUI">
+    <div class="battle-top">
+      <div class="battle-stats">
+        <span>⏳ <span id="battleTimer">3:00</span></span>
+        <span>💥 <span id="destroyPercent">0%</span></span>
+        <span>🪙 <span id="battleGold">0</span></span>
+        <span>💧 <span id="battleElixir">0</span></span>
+      </div>
+      <button class="end-battle-btn" id="endBattleBtn">🏳️ 结束战斗</button>
+    </div>
+    <div class="battle-bottom">
+      <div class="troop-menu" id="troopMenu">
+        <button class="troop-btn" data-troop="barbarian">🗡️ 野蛮人 (50💧)</button>
+        <button class="troop-btn" data-troop="archer">🏹 弓箭手 (75💧)</button>
+        <button class="troop-btn" data-troop="giant">🛡️ 巨人 (200💧)</button>
+      </div>
+      <div class="info-text" id="battleInfo">点击敌方建筑附近部署兵种</div>
+    </div>
+  </div>
+
+  <div class="toast" id="toast"></div>
+</div>
+
+<script>
+  (function(){
+    const canvas = document.getElementById('gameCanvas');
+    const ctx = canvas.getContext('2d');
+    const container = document.getElementById('game-container');
+
+    // ========== 音效 ==========
+    let audioCtx = null;
+    function initAudio() {
+      if (!audioCtx) {
+        try { audioCtx = new (window.AudioContext || window.webkitAudioContext)(); } catch(e) {}
+      }
+      if (audioCtx && audioCtx.state === 'suspended') audioCtx.resume();
+    }
+    function playSound(type) {
+      initAudio();
+      if (!audioCtx) return;
+      const now = audioCtx.currentTime;
+      const osc = audioCtx.createOscillator();
+      const gain = audioCtx.createGain();
+      osc.connect(gain); gain.connect(audioCtx.destination);
+      switch (type) {
+        case 'click':
+          osc.type='triangle'; osc.frequency.setValueAtTime(600,now); osc.frequency.exponentialRampToValueAtTime(900,now+0.08);
+          gain.gain.setValueAtTime(0.12,now); gain.gain.exponentialRampToValueAtTime(0.001,now+0.12);
+          osc.start(now); osc.stop(now+0.12); break;
+        case 'build':
+          osc.type='sawtooth'; osc.frequency.setValueAtTime(300,now); osc.frequency.exponentialRampToValueAtTime(800,now+0.2);
+          gain.gain.setValueAtTime(0.2,now); gain.gain.exponentialRampToValueAtTime(0.001,now+0.3);
+          osc.start(now); osc.stop(now+0.3); break;
+        case 'collect':
+          osc.type='sine'; osc.frequency.setValueAtTime(800,now); osc.frequency.exponentialRampToValueAtTime(1200,now+0.15);
+          gain.gain.setValueAtTime(0.15,now); gain.gain.exponentialRampToValueAtTime(0.001,now+0.2);
+          osc.start(now); osc.stop(now+0.2); break;
+        case 'error':
+          osc.type='sawtooth'; osc.frequency.setValueAtTime(200,now); osc.frequency.exponentialRampToValueAtTime(150,now+0.2);
+          gain.gain.setValueAtTime(0.15,now); gain.gain.exponentialRampToValueAtTime(0.001,now+0.25);
+          osc.start(now); osc.stop(now+0.25); break;
+        case 'speed':
+          osc.type='square'; osc.frequency.setValueAtTime(400,now); osc.frequency.exponentialRampToValueAtTime(1400,now+0.15);
+          gain.gain.setValueAtTime(0.1,now); gain.gain.exponentialRampToValueAtTime(0.001,now+0.2);
+          osc.start(now); osc.stop(now+0.2); break;
+        case 'attack':
+          osc.type='sawtooth'; osc.frequency.setValueAtTime(200,now); osc.frequency.exponentialRampToValueAtTime(400,now+0.3);
+          gain.gain.setValueAtTime(0.25,now); gain.gain.exponentialRampToValueAtTime(0.001,now+0.4);
+          osc.start(now); osc.stop(now+0.4); break;
+        case 'deploy':
+          osc.type='sine'; osc.frequency.setValueAtTime(500,now); osc.frequency.exponentialRampToValueAtTime(1000,now+0.1);
+          gain.gain.setValueAtTime(0.15,now); gain.gain.exponentialRampToValueAtTime(0.001,now+0.15);
+          osc.start(now); osc.stop(now+0.15); break;
+        case 'destroy':
+          osc.type='square'; osc.frequency.setValueAtTime(150,now); osc.frequency.exponentialRampToValueAtTime(60,now+0.25);
+          gain.gain.setValueAtTime(0.3,now); gain.gain.exponentialRampToValueAtTime(0.001,now+0.3);
+          osc.start(now); osc.stop(now+0.3); break;
+        case 'victory':
+          osc.type='triangle'; osc.frequency.setValueAtTime(523,now); osc.frequency.setValueAtTime(659,now+0.1); osc.frequency.setValueAtTime(784,now+0.2);
+          gain.gain.setValueAtTime(0.2,now); gain.gain.exponentialRampToValueAtTime(0.001,now+0.5);
+          osc.start(now); osc.stop(now+0.5); break;
+        default: break;
+      }
+    }
+
+    // ========== 游戏状态 ==========
+    let gold = 1500, elixir = 1500, gems = 80;
+    let buildings = [];
+    let buildingId = 0;
+    const GRID_SIZE = 48;
+    const COLS = Math.floor(canvas.width / GRID_SIZE); // 20
+    const ROWS = Math.floor(canvas.height / GRID_SIZE); // 12
+
+    let selectedBuildType = null;
+    let hoverCol = -1, hoverRow = -1;
+
+    // 建造费用
+    const COSTS = {
+      goldMine: { gold: 150, elixir: 0 },
+      elixirCollector: { gold: 0, elixir: 150 },
+      cannon: { gold: 200, elixir: 0 },
+      wall: { gold: 50, elixir: 0 },
+      barracks: { gold: 300, elixir: 0 },
+      armyCamp: { gold: 250, elixir: 0 }
+    };
+    const PRODUCTION = { goldMine: 6, elixirCollector: 6, cannon: 0, wall: 0, barracks: 0, armyCamp: 0 };
+
+    // 战斗状态
+    let inBattle = false;
+    let battleBuildings = [];       // 敌方建筑
+    let battleTroops = [];          // 我方兵种
+    let battleTimeLeft = 180;       // 秒
+    let battleDestroyedValue = 0;
+    let battleTotalValue = 0;
+    let battleGoldLoot = 0, battleElixirLoot = 0;
+    let battleInterval = null;
+    let battleAnimationId = null;
+    let lastBattleUpdate = 0;
+    let selectedTroop = null;
+    const TROOP_COST = { barbarian: { elixir: 50, hp: 80, dmg: 12, speed: 1.2, range: 30, targetPriority: 'nearest' },
+                         archer: { elixir: 75, hp: 50, dmg: 10, speed: 1.0, range: 120, targetPriority: 'nearest' },
+                         giant: { elixir: 200, hp: 400, dmg: 25, speed: 0.6, range: 35, targetPriority: 'defense' } };
+    let battleSpeed = 1;
+
+    // 初始化村庄
+    function initDefaultBuildings() {
+      // 大本营
+      buildings.push({ id: buildingId++, type: 'townhall', col: 9, row: 5, hp: 800, maxHp: 800, production: 0, lastCollect: performance.now(), stored: 0 });
+      // 金矿
+      buildings.push({ id: buildingId++, type: 'goldMine', col: 6, row: 4, hp: 200, maxHp: 200, production: 6, lastCollect: performance.now(), stored: 0 });
+      buildings.push({ id: buildingId++, type: 'goldMine', col: 6, row: 7, hp: 200, maxHp: 200, production: 6, lastCollect: performance.now(), stored: 0 });
+      // 圣水
+      buildings.push({ id: buildingId++, type: 'elixirCollector', col: 13, row: 4, hp: 200, maxHp: 200, production: 6, lastCollect: performance.now(), stored: 0 });
+      buildings.push({ id: buildingId++, type: 'elixirCollector', col: 13, row: 7, hp: 200, maxHp: 200, production: 6, lastCollect: performance.now(), stored: 0 });
+      // 加农炮
+      buildings.push({ id: buildingId++, type: 'cannon', col: 9, row: 2, hp: 300, maxHp: 300, production: 0, lastCollect: performance.now(), stored: 0 });
+      buildings.push({ id: buildingId++, type: 'cannon', col: 11, row: 8, hp: 300, maxHp: 300, production: 0, lastCollect: performance.now(), stored: 0 });
+      // 兵营
+      buildings.push({ id: buildingId++, type: 'barracks', col: 15, row: 5, hp: 250, maxHp: 250, production: 0, lastCollect: performance.now(), stored: 0 });
+      // 城墙
+      buildings.push({ id: buildingId++, type: 'wall', col: 8, row: 5, hp: 200, maxHp: 200, production: 0, lastCollect: performance.now(), stored: 0 });
+      buildings.push({ id: buildingId++, type: 'wall', col: 10, row: 5, hp: 200, maxHp: 200, production: 0, lastCollect: performance.now(), stored: 0 });
+    }
+
+    function isCellOccupied(col, row) { return buildings.some(b => b.col === col && b.row === row); }
+
+    function getBuildingColor(type) {
+      switch(type) {
+        case 'goldMine': return '#d4a017'; case 'elixirCollector': return '#b33e8c';
+        case 'cannon': return '#5a5a5a'; case 'wall': return '#8b7a5a';
+        case 'townhall': return '#c0a86a'; case 'barracks': return '#7a4a3a';
+        case 'armyCamp': return '#4a6a3a'; default: return '#888';
+      }
+    }
+    function getBuildingIcon(type) {
+      switch(type) {
+        case 'goldMine': return '⛏️'; case 'elixirCollector': return '🧪';
+        case 'cannon': return '💣'; case 'wall': return '🧱';
+        case 'townhall': return '🏛️'; case 'barracks': return '🏕️';
+        case 'armyCamp': return '🏰'; default: return '🏠';
+      }
+    }
+
+    // ========== 绘制村庄 ==========
+    function drawGrid() {
+      ctx.strokeStyle = '#5b8c3a'; ctx.lineWidth = 1;
+      for (let i = 0; i <= COLS; i++) {
+        ctx.beginPath(); ctx.moveTo(i * GRID_SIZE, 0); ctx.lineTo(i * GRID_SIZE, canvas.height); ctx.stroke();
+      }
+      for (let i = 0; i <= ROWS; i++) {
+        ctx.beginPath(); ctx.moveTo(0, i * GRID_SIZE); ctx.lineTo(canvas.width, i * GRID_SIZE); ctx.stroke();
+      }
+    }
+
+    function drawBuildings() {
+      buildings.forEach(b => {
+        const x = b.col * GRID_SIZE, y = b.row * GRID_SIZE, pad = 4, w = GRID_SIZE - pad*2, h = GRID_SIZE - pad*2;
+        ctx.shadowColor = 'rgba(0,0,0,0.5)'; ctx.shadowBlur = 8; ctx.shadowOffsetY = 4;
+        ctx.fillStyle = getBuildingColor(b.type);
+        ctx.beginPath(); ctx.roundRect(x+pad, y+pad, w, h, 10); ctx.fill();
+        ctx.shadowBlur = 4; ctx.shadowOffsetY = 2;
+        ctx.fillStyle = 'rgba(255,255,255,0.2)';
+        ctx.beginPath(); ctx.roundRect(x+pad+2, y+pad+2, w-4, h/2, 8); ctx.fill();
+        ctx.shadowBlur = 0; ctx.shadowOffsetY = 0;
+        ctx.strokeStyle = '#f5e6b0'; ctx.lineWidth = 2;
+        ctx.beginPath(); ctx.roundRect(x+pad, y+pad, w, h, 10); ctx.stroke();
+        ctx.font = '24px "Segoe UI"'; ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
+        ctx.shadowBlur = 6; ctx.shadowColor = 'black'; ctx.fillStyle = 'white';
+        ctx.fillText(getBuildingIcon(b.type), x+GRID_SIZE/2, y+GRID_SIZE/2);
+        if ((b.type === 'goldMine' || b.type === 'elixirCollector') && b.stored > 0) {
+          ctx.font = 'bold 12px "Segoe UI"'; ctx.fillStyle = '#fff3c9'; ctx.shadowBlur = 6;
+          ctx.fillText(`${Math.floor(b.stored)}`, x+GRID_SIZE/2, y+GRID_SIZE-8);
+        }
+        ctx.shadowBlur = 0; ctx.shadowColor = 'transparent';
+      });
+    }
+
+    function drawPlacementPreview() {
+      if (selectedBuildType && hoverCol >= 0 && hoverRow >= 0 && !inBattle) {
+        const x = hoverCol * GRID_SIZE, y = hoverRow * GRID_SIZE;
+        const occupied = isCellOccupied(hoverCol, hoverRow);
+        const canAfford = checkAfford(selectedBuildType);
+        ctx.globalAlpha = 0.6;
+        ctx.fillStyle = (occupied || !canAfford) ? 'rgba(255,0,0,0.5)' : 'rgba(0,255,0,0.5)';
+        ctx.beginPath(); ctx.roundRect(x+2, y+2, GRID_SIZE-4, GRID_SIZE-4, 10); ctx.fill();
+        ctx.globalAlpha = 1;
+        if (!occupied && canAfford) {
+          ctx.font = '24px "Segoe UI"'; ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
+          ctx.shadowBlur = 6; ctx.shadowColor = 'black'; ctx.fillStyle = 'white';
+          ctx.fillText(getBuildingIcon(selectedBuildType), x+GRID_SIZE/2, y+GRID_SIZE/2);
+        }
+      }
+    }
+
+    // 战斗绘制
+    function drawBattleGrid() {
+      ctx.fillStyle = '#2a3a1a'; ctx.fillRect(0, 0, canvas.width, canvas.height);
+      // 网格线
+      ctx.strokeStyle = '#4a5a2a'; ctx.lineWidth = 1;
+      for (let i = 0; i <= COLS; i++) { ctx.beginPath(); ctx.moveTo(i*GRID_SIZE,0); ctx.lineTo(i*GRID_SIZE,canvas.height); ctx.stroke(); }
+      for (let i = 0; i <= ROWS; i++) { ctx.beginPath(); ctx.moveTo(0,i*GRID_SIZE); ctx.lineTo(canvas.width,i*GRID_SIZE); ctx.stroke(); }
+    }
+
+    function drawBattleBuildings() {
+      battleBuildings.forEach(b => {
+        const x = b.col * GRID_SIZE, y = b.row * GRID_SIZE, pad = 4, w = GRID_SIZE - pad*2, h = GRID_SIZE - pad*2;
+        if (b.hp <= 0) return;
+        // 血条背景
+        const hpPercent = b.hp / b.maxHp;
+        ctx.shadowColor = 'rgba(0,0,0,0.5)'; ctx.shadowBlur = 6; ctx.shadowOffsetY = 3;
+        ctx.fillStyle = getBuildingColor(b.type);
+        ctx.beginPath(); ctx.roundRect(x+pad, y+pad, w, h, 8); ctx.fill();
+        ctx.shadowBlur = 0; ctx.shadowOffsetY = 0;
+        // 血条
+        ctx.fillStyle = '#333'; ctx.fillRect(x+pad, y+pad-6, w, 5);
+        ctx.fillStyle = hpPercent > 0.5 ? '#4ade80' : (hpPercent > 0.25 ? '#fbbf24' : '#ef4444');
+        ctx.fillRect(x+pad, y+pad-6, w * hpPercent, 5);
+        // 图标
+        ctx.font = '22px "Segoe UI"'; ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
+        ctx.shadowBlur = 4; ctx.shadowColor = 'black'; ctx.fillStyle = 'white';
+        ctx.fillText(getBuildingIcon(b.type), x+GRID_SIZE/2, y+GRID_SIZE/2);
+        ctx.shadowBlur = 0; ctx.shadowColor = 'transparent';
+      });
+    }
+
+    function drawBattleTroops() {
+      battleTroops.forEach(t => {
+        if (t.hp <= 0) return;
+        const x = t.x, y = t.y;
+        ctx.shadowBlur = 8; ctx.shadowColor = 'rgba(0,0,0,0.6)';
+        ctx.beginPath(); ctx.arc(x, y, 10, 0, Math.PI*2);
+        ctx.fillStyle = t.side === 'attacker' ? '#3b82f6' : '#ef4444';
+        ctx.fill();
+        ctx.strokeStyle = '#fff'; ctx.lineWidth = 2; ctx.stroke();
+        ctx.shadowBlur = 0;
+        // 图标
+        ctx.font = '14px "Segoe UI"'; ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
+        ctx.fillStyle = 'white';
+        const icon = t.type === 'barbarian' ? '🗡️' : (t.type === 'archer' ? '🏹' : '🛡️');
+        ctx.fillText(icon, x, y);
+        // 血条
+        const hpPercent = t.hp / t.maxHp;
+        ctx.fillStyle = '#333'; ctx.fillRect(x-12, y-18, 24, 4);
+        ctx.fillStyle = hpPercent > 0.5 ? '#4ade80' : '#ef4444';
+        ctx.fillRect(x-12, y-18, 24 * hpPercent, 4);
+      });
+    }
+
+    function drawBattle() {
+      drawBattleGrid();
+      drawBattleBuildings();
+      drawBattleTroops();
+      // 部署预览
+      if (selectedTroop && hoverCol >= 0 && hoverRow >= 0) {
+        const x = hoverCol * GRID_SIZE, y = hoverRow * GRID_SIZE;
+        ctx.globalAlpha = 0.5;
+        ctx.fillStyle = 'rgba(0,255,0,0.4)';
+        ctx.beginPath(); ctx.arc(x+GRID_SIZE/2, y+GRID_SIZE/2, 20, 0, Math.PI*2); ctx.fill();
+        ctx.globalAlpha = 1;
+      }
+    }
+
+    // 主循环
+    function draw() {
+      if (!inBattle) {
+        ctx.clearRect(0, 0, canvas.width, canvas.height);
+        ctx.fillStyle = '#7fa84a'; ctx.fillRect(0, 0, canvas.width, canvas.height);
+        drawGrid(); drawBuildings(); drawPlacementPreview();
+      } else {
+        drawBattle();
+      }
+      requestAnimationFrame(draw);
+    }
+
+    CanvasRenderingContext2D.prototype.roundRect = function(x, y, w, h, r) {
+      if (w < 2*r) r = w/2; if (h < 2*r) r = h/2;
+      this.moveTo(x+r, y); this.lineTo(x+w-r, y); this.quadraticCurveTo(x+w, y, x+w, y+r);
+      this.lineTo(x+w, y+h-r); this.quadraticCurveTo(x+w, y+h, x+w-r, y+h);
+      this.lineTo(x+r, y+h); this.quadraticCurveTo(x, y+h, x, y+h-r);
+      this.lineTo(x, y+r); this.quadraticCurveTo(x, y, x+r, y);
+      return this;
+    };
+
+    // ========== 资源生产 ==========
+    function updateResources() {
+      const now = performance.now();
+      buildings.forEach(b => {
+        if (b.type === 'goldMine' || b.type === 'elixirCollector') {
+          const elapsed = (now - b.lastCollect) / 1000;
+          if (elapsed > 0.5) {
+            const prod = b.production * Math.min(elapsed, 5);
+            b.stored = Math.min(b.stored + prod, 400);
+            b.lastCollect = now;
+          }
+        }
+      });
+    }
+    setInterval(updateResources, 500);
+
+    function refreshUI() {
+      document.getElementById('goldAmount').textContent = Math.floor(gold);
+      document.getElementById('elixirAmount').textContent = Math.floor(elixir);
+      document.getElementById('gemsAmount').textContent = gems;
+    }
+    setInterval(refreshUI, 100);
+
+    function checkAfford(type) {
+      const c = COSTS[type]; if (!c) return false;
+      return gold >= c.gold && elixir >= c.elixir;
+    }
+    function deductCost(type) {
+      const c = COSTS[type]; if (!c) return false;
+      if (gold >= c.gold && elixir >= c.elixir) {
+        gold -= c.gold; elixir -= c.elixir; refreshUI(); return true;
+      }
+      return false;
+    }
+
+    function showToast(msg, isError = false) {
+      const toast = document.getElementById('toast');
+      toast.textContent = msg;
+      toast.style.color = isError ? '#ffb3b3' : '#ffd966';
+      toast.classList.add('show');
+      clearTimeout(toast._timeout);
+      toast._timeout = setTimeout(() => toast.classList.remove('show'), 1500);
+    }
+
+    // ========== 村庄操作 ==========
+    function collectAll() {
+      if (inBattle) return;
+      let tg = 0, te = 0;
+      buildings.forEach(b => {
+        if (b.type === 'goldMine' && b.stored > 0) { tg += b.stored; b.stored = 0; b.lastCollect = performance.now(); }
+        else if (b.type === 'elixirCollector' && b.stored > 0) { te += b.stored; b.stored = 0; b.lastCollect = performance.now(); }
+      });
+      if (tg > 0 || te > 0) {
+        gold += Math.floor(tg); elixir += Math.floor(te); refreshUI(); playSound('collect');
+        showToast(`+${Math.floor(tg)} 金币, +${Math.floor(te)} 圣水`);
+      } else { playSound('error'); showToast('没有可收集的资源', true); }
+    }
+
+    function speedUp() {
+      if (inBattle) return;
+      if (gems >= 5) {
+        gems -= 5;
+        buildings.forEach(b => { if (b.type === 'goldMine' || b.type === 'elixirCollector') b.stored = Math.min(b.stored + 80, 400); });
+        refreshUI(); playSound('speed'); showToast('⚡ 加速生产! 消耗5宝石');
+      } else { playSound('error'); showToast('宝石不足 (需要5💎)', true); }
+    }
+
+    // ========== 战斗逻辑 ==========
+    function generateEnemyBase() {
+      const enemy = [];
+      // 敌方大本营
+      enemy.push({ id: 'e0', type: 'townhall', col: 9, row: 5, hp: 600, maxHp: 600, value: 200 });
+      // 资源建筑
+      enemy.push({ id: 'e1', type: 'goldMine', col: 6, row: 4, hp: 150, maxHp: 150, value: 100 });
+      enemy.push({ id: 'e2', type: 'goldMine', col: 6, row: 7, hp: 150, maxHp: 150, value: 100 });
+      enemy.push({ id: 'e3', type: 'elixirCollector', col: 13, row: 4, hp: 150, maxHp: 150, value: 100 });
+      enemy.push({ id: 'e4', type: 'elixirCollector', col: 13, row: 7, hp: 150, maxHp: 150, value: 100 });
+      // 防御
+      enemy.push({ id: 'e5', type: 'cannon', col: 7, row: 2, hp: 250, maxHp: 250, value: 150 });
+      enemy.push({ id: 'e6', type: 'cannon', col: 12, row: 8, hp: 250, maxHp: 250, value: 150 });
+      // 城墙
+      for (let i = 0; i < 4; i++) {
+        enemy.push({ id: `e${7+i}`, type: 'wall', col: 8+i, row: 5, hp: 180, maxHp: 180, value: 50 });
+      }
+      battleBuildings = enemy;
+      battleTotalValue = enemy.reduce((sum, b) => sum + b.value, 0);
+      battleDestroyedValue = 0;
+      battleGoldLoot = 0; battleElixirLoot = 0;
+    }
+
+    function startBattle() {
+      if (inBattle) return;
+      if (buildings.filter(b => b.type === 'barracks' || b.type === 'armyCamp').length === 0) {
+        playSound('error'); showToast('需要至少一个兵营或营地才能攻击', true); return;
+      }
+      inBattle = true;
+      selectedBuildType = null;
+      document.querySelectorAll('.build-btn').forEach(b => b.classList.remove('selected'));
+      document.getElementById('villageUI').classList.add('hidden');
+      document.getElementById('battleUI').classList.remove('hidden');
+      // 生成敌人
+      generateEnemyBase();
+      battleTroops = [];
+      battleTimeLeft = 180;
+      battleDestroyedValue = 0;
+      battleGoldLoot = 0; battleElixirLoot = 0;
+      selectedTroop = null;
+      battleSpeed = 1;
+      // 清空所有兵种按钮选中
+      document.querySelectorAll('.troop-btn').forEach(b => b.disabled = false);
+      playSound('attack');
+      showToast('⚔️ 战斗开始! 部署你的兵种');
+      // 定时器
+      if (battleInterval) clearInterval(battleInterval);
+      battleInterval = setInterval(() => {
+        if (!inBattle) return;
+        battleTimeLeft -= 0.1 * battleSpeed;
+        if (battleTimeLeft <= 0) {
+          battleTimeLeft = 0;
+          endBattle('时间到');
+        }
+        document.getElementById('battleTimer').textContent = formatTime(battleTimeLeft);
+        // 更新摧毁百分比
+        const percent = battleTotalValue > 0 ? Math.floor((battleDestroyedValue / battleTotalValue) * 100) : 0;
+        document.getElementById('destroyPercent').textContent = percent + '%';
+        document.getElementById('battleGold').textContent = battleGoldLoot;
+        document.getElementById('battleElixir').textContent = battleElixirLoot;
+      }, 100);
+    }
+
+    function formatTime(sec) {
+      const m = Math.floor(sec / 60);
+      const s = Math.floor(sec % 60);
+      return `${m}:${s.toString().padStart(2, '0')}`;
+    }
+
+    function endBattle(reason) {
+      if (!inBattle) return;
+      inBattle = false;
+      if (battleInterval) { clearInterval(battleInterval); battleInterval = null; }
+      // 结算奖励
+      gold += battleGoldLoot;
+      elixir += battleElixirLoot;
+      refreshUI();
+      document.getElementById('villageUI').classList.remove('hidden');
+      document.getElementById('battleUI').classList.add('hidden');
+      playSound('victory');
+      const percent = battleTotalValue > 0 ? Math.floor((battleDestroyedValue / battleTotalValue) * 100) : 0;
+      showToast(`战斗结束 (${reason}) 摧毁${percent}% 获得 🪙${battleGoldLoot} 💧${battleElixirLoot}`, false);
+      // 清理战斗状态
+      battleBuildings = [];
+      battleTroops = [];
+      selectedTroop = null;
+    }
+
+    // 部署兵种
+    function deployTroop(troopType, col, row) {
+      if (!inBattle) return;
+      const cost = TROOP_COST[troopType];
+      if (!cost) return;
+      if (elixir < cost.elixir) {
+        playSound('error'); showToast('圣水不足', true); return;
+      }
+      elixir -= cost.elixir;
+      refreshUI();
+      const x = col * GRID_SIZE + GRID_SIZE/2;
+      const y = row * GRID_SIZE + GRID_SIZE/2;
+      battleTroops.push({
+        id: Math.random(),
+        side: 'attacker',
+        type: troopType,
+        x, y,
+        hp: cost.hp, maxHp: cost.hp,
+        dmg: cost.dmg,
+        speed: cost.speed,
+        range: cost.range,
+        targetPriority: cost.targetPriority,
+        target: null,
+        attackCooldown: 0,
+        alive: true
+      });
+      playSound('deploy');
+    }
+
+    // 战斗更新 (每帧)
+    function updateBattle(dt) {
+      if (!inBattle || battleBuildings.length === 0) return;
+
+      // 兵种AI
+      battleTroops.forEach(t => {
+        if (t.hp <= 0) return;
+        t.attackCooldown = Math.max(0, t.attackCooldown - dt);
+
+        // 选择目标
+        if (!t.target || t.target.hp <= 0) {
+          let best = null, bestDist = Infinity;
+          // 优先防御建筑(巨人)
+          const candidates = battleBuildings.filter(b => b.hp > 0);
+          if (t.targetPriority === 'defense') {
+            const defenses = candidates.filter(b => b.type === 'cannon');
+            if (defenses.length > 0) {
+              defenses.forEach(b => {
+                const dx = (b.col * GRID_SIZE + GRID_SIZE/2) - t.x;
+                const dy = (b.row * GRID_SIZE + GRID_SIZE/2) - t.y;
+                const d = Math.sqrt(dx*dx + dy*dy);
+                if (d < bestDist) { bestDist = d; best = b; }
+              });
+            }
+          }
+          if (!best) {
+            candidates.forEach(b => {
+              const dx = (b.col * GRID_SIZE + GRID_SIZE/2) - t.x;
+              const dy = (b.row * GRID_SIZE + GRID_SIZE/2) - t.y;
+              const d = Math.sqrt(dx*dx + dy*dy);
+              if (d < bestDist) { bestDist = d; best = b; }
+            });
+          }
+          t.target = best;
+        }
+
+        if (t.target && t.target.hp > 0) {
+          const tx = t.target.col * GRID_SIZE + GRID_SIZE/2;
+          const ty = t.target.row * GRID_SIZE + GRID_SIZE/2;
+          const dx = tx - t.x, dy = ty - t.y;
+          const dist = Math.sqrt(dx*dx + dy*dy);
+          if (dist > t.range) {
+            // 移动
+            const move = t.speed * dt * 40;
+            t.x += (dx / dist) * move;
+            t.y += (dy / dist) * move;
+          } else {
+            // 攻击
+            if (t.attackCooldown <= 0) {
+              t.target.hp -= t.dmg;
+              t.attackCooldown = 0.8;
+              playSound('click'); // 攻击音效(轻)
+              if (t.target.hp <= 0) {
+                // 建筑被摧毁
+                battleDestroyedValue += t.target.value || 50;
+                if (t.target.type === 'goldMine') battleGoldLoot += 80;
+                if (t.target.type === 'elixirCollector') battleElixirLoot += 80;
+                if (t.target.type === 'townhall') { battleGoldLoot += 150; battleElixirLoot += 150; }
+                playSound('destroy');
+              }
+            }
+          }
+        }
+      });
+
+      // 防御塔攻击
+      battleBuildings.forEach(b => {
+        if (b.hp <= 0) return;
+        if (b.type === 'cannon') {
+          // 攻击范围内最近的兵种
+          let closest = null, minDist = 180; // 攻击范围180像素
+          battleTroops.forEach(t => {
+            if (t.hp <= 0) return;
+            const dx = t.x - (b.col*GRID_SIZE + GRID_SIZE/2);
+            const dy = t.y - (b.row*GRID_SIZE + GRID_SIZE/2);
+            const d = Math.sqrt(dx*dx + dy*dy);
+            if (d < minDist) { minDist = d; closest = t; }
+          });
+          if (closest && Math.random() < 0.03) { // 每帧概率攻击
+            closest.hp -= 20;
+            playSound('click');
+          }
+        }
+      });
+
+      // 移除死亡兵种
+      battleTroops = battleTroops.filter(t => t.hp > 0);
+
+      // 检查是否全部摧毁
+      const aliveBuildings = battleBuildings.filter(b => b.hp > 0);
+      if (aliveBuildings.length === 0) {
+        endBattle('全部摧毁!');
+      }
+    }
+
+    // 战斗循环 (独立于渲染)
+    let lastBattleTime = 0;
+    function battleLoop(now) {
+      if (!inBattle) { requestAnimationFrame(battleLoop); return; }
+      const dt = Math.min((now - lastBattleTime) / 1000, 0.1);
+      lastBattleTime = now;
+      if (dt > 0) {
+        updateBattle(dt * battleSpeed);
+      }
+      requestAnimationFrame(battleLoop);
+    }
+
+    // ========== 事件处理 ==========
+    function getGridFromEvent(e) {
+      const rect = canvas.getBoundingClientRect();
+      const scaleX = canvas.width / rect.width;
+      const scaleY = canvas.height / rect.height;
+      let clientX, clientY;
+      if (e.touches) { clientX = e.touches[0].clientX; clientY = e.touches[0].clientY; e.preventDefault(); }
+      else { clientX = e.clientX; clientY = e.clientY; }
+      const canvasX = (clientX - rect.left) * scaleX;
+      const canvasY = (clientY - rect.top) * scaleY;
+      const col = Math.floor(canvasX / GRID_SIZE);
+      const row = Math.floor(canvasY / GRID_SIZE);
+      return { col: Math.min(col, COLS-1), row: Math.min(row, ROWS-1) };
+    }
+
+    function handleCanvasClick(e) {
+      const { col, row } = getGridFromEvent(e);
+      if (col < 0 || col >= COLS || row < 0 || row >= ROWS) return;
+
+      if (inBattle) {
+        // 战斗模式: 部署兵种
+        if (selectedTroop) {
+          deployTroop(selectedTroop, col, row);
+        } else {
+          showToast('请先选择一个兵种', true);
+        }
+      } else {
+        // 村庄模式: 建造
+        if (!selectedBuildType) return;
+        if (isCellOccupied(col, row)) { playSound('error'); showToast('该位置已被占用', true); return; }
+        if (!checkAfford(selectedBuildType)) { playSound('error'); showToast('资源不足', true); return; }
+        deductCost(selectedBuildType);
+        const now = performance.now();
+        buildings.push({ id: buildingId++, type: selectedBuildType, col, row,
+          hp: selectedBuildType === 'wall' ? 200 : 300,
+          maxHp: selectedBuildType === 'wall' ? 200 : 300,
+          production: PRODUCTION[selectedBuildType] || 0,
+          lastCollect: now, stored: 0 });
+        playSound('build');
+        showToast(`建造 ${getBuildingIcon(selectedBuildType)} 成功`);
+        selectedBuildType = null;
+        document.querySelectorAll('.build-btn').forEach(btn => btn.classList.remove('selected'));
+        document.getElementById('infoText').textContent = '点击空地建造';
+      }
+    }
+
+    function handleMouseMove(e) {
+      const { col, row } = getGridFromEvent(e);
+      hoverCol = col; hoverRow = row;
+    }
+    function handleMouseLeave() { hoverCol = -1; hoverRow = -1; }
+    function handleTouchMove(e) {
+      e.preventDefault();
+      const { col, row } = getGridFromEvent(e);
+      hoverCol = col; hoverRow = row;
+    }
+
+    function initEvents() {
+      canvas.addEventListener('mousemove', handleMouseMove);
+      canvas.addEventListener('mouseleave', handleMouseLeave);
+      canvas.addEventListener('click', handleCanvasClick);
+      canvas.addEventListener('touchstart', (e) => {
+        e.preventDefault();
+        const touch = e.touches[0];
+        const fakeEvent = { clientX: touch.clientX, clientY: touch.clientY, touches: e.touches };
+        const { col, row } = getGridFromEvent(fakeEvent);
+        hoverCol = col; hoverRow = row;
+        handleCanvasClick(fakeEvent);
+      }, { passive: false });
+      canvas.addEventListener('touchmove', handleTouchMove, { passive: false });
+      canvas.addEventListener('touchend', () => { hoverCol = -1; hoverRow = -1; });
+
+      // 建造按钮
+      document.querySelectorAll('.build-btn').forEach(btn => {
+        btn.addEventListener('click', (e) => {
+          if (inBattle) return;
+          initAudio();
+          const type = btn.dataset.type;
+          if (selectedBuildType === type) {
+            selectedBuildType = null; btn.classList.remove('selected');
+            document.getElementById('infoText').textContent = '点击空地建造';
+            playSound('click');
+          } else {
+            if (!checkAfford(type)) { playSound('error'); showToast('资源不足，无法选择', true); return; }
+            document.querySelectorAll('.build-btn').forEach(b => b.classList.remove('selected'));
+            btn.classList.add('selected');
+            selectedBuildType = type;
+            const cost = COSTS[type];
+            let costStr = '';
+            if (cost.gold) costStr += `💰${cost.gold} `;
+            if (cost.elixir) costStr += `💧${cost.elixir}`;
+            document.getElementById('infoText').textContent = `放置: ${btn.textContent.trim()} (${costStr})`;
+            playSound('click');
+          }
+        });
+      });
+
+      // 兵种按钮
+      document.querySelectorAll('.troop-btn').forEach(btn => {
+        btn.addEventListener('click', () => {
+          if (!inBattle) return;
+          initAudio();
+          const troop = btn.dataset.troop;
+          if (selectedTroop === troop) {
+            selectedTroop = null;
+            document.getElementById('battleInfo').textContent = '点击敌方建筑附近部署兵种';
+          } else {
+            selectedTroop = troop;
+            const cost = TROOP_COST[troop];
+            document.getElementById('battleInfo').textContent = `已选: ${btn.textContent.trim()} 消耗💧${cost.elixir}`;
+          }
+          playSound('click');
+        });
+      });
+
+      document.getElementById('collectBtn').addEventListener('click', () => { if (!inBattle) { initAudio(); collectAll(); } });
+      document.getElementById('speedUpBtn').addEventListener('click', () => { if (!inBattle) { initAudio(); speedUp(); } });
+      document.getElementById('attackBtn').addEventListener('click', () => { initAudio(); startBattle(); });
+      document.getElementById('endBattleBtn').addEventListener('click', () => { endBattle('主动结束'); });
+
+      document.body.addEventListener('click', () => initAudio(), { once: true });
+    }
+
+    // ========== 启动 ==========
+    function init() {
+      initDefaultBuildings();
+      refreshUI();
+      draw();
+      initEvents();
+      // 启动战斗循环
+      requestAnimationFrame(battleLoop);
+      lastBattleTime = performance.now();
+      setTimeout(() => showToast('欢迎来到部落冲突! 建造并攻击其他部落!'), 500);
+    }
+    init();
+  })();
+</script>
+</body>
+</html>
