@@ -132,6 +132,7 @@ const screens = ["homeScreen","lobbyScreen","boardScreen"];
 let roomId="", uid="", myName="", myColor="#6558e8", isHost=false, peer=null, hostConn=null;
 let connections=new Map(), members={}, strokes=[], chatHistory=[], currentTool="pen", drawing=false, currentStroke=null, lastPoint=null;
 let redoStacks={}, unreadChat=0;
+let joinAttempt=0, joinRetryTimer=null, joinHandshakeTimer=null, joinConnected=false, joinRetryScheduled=false;
 let canvas=$("canvas"), ctx=canvas.getContext("2d"), dpr=1, canvasW=0, canvasH=0;
 let zoom=1, panX=0, panY=0, activePointers=new Map(), pinchStart=null;
 const palette=["#6558e8","#e34d79","#159f83","#e38b22","#2878d0","#a04fc0","#cf4f38","#478b35","#a66a35","#178caa","#d14eac","#5d6c83"];
@@ -206,10 +207,14 @@ function handleHostMessage(from,msg){
 }
 function handleClientMessage(msg){
   if(msg.type==="welcome"){
+    joinConnected=true;joinRetryScheduled=false;
+    clearTimeout(joinRetryTimer);clearTimeout(joinHandshakeTimer);
     members=msg.members||{};strokes=msg.strokes||[];chatHistory=msg.chatHistory||[];redoStacks=msg.redoStacks||{};roomState=msg.state||"waiting";
     if(members[uid]&&members[uid].color)myColor=members[uid].color;
     updateMemberList();renderChat();
-    if(roomState==="started")loadBoard();return;
+    if(roomState==="started")loadBoard();
+    else if(!isHost)$('lobbyHint').textContent="已连接房主，等待房主开始画画。";
+    return;
   }
   if(msg.type==="members"){members=msg.members||{};updateMemberList();return}
   if(msg.type==="started"){roomState="started";loadBoard();return}
@@ -219,35 +224,80 @@ function handleClientMessage(msg){
   if(msg.type==="strokes"){strokes=msg.strokes||[];redoStacks=msg.redoStacks||redoStacks;renderCanvas();return}
   if(msg.type==="chat"){chatHistory.push(msg.item);if(chatHistory.length>150)chatHistory=chatHistory.slice(-150);if(!$("chatPanel").classList.contains("open")){unreadChat++;$("chatToggle").textContent=unreadChat>9?"9+":String(unreadChat)}renderChat();return}
 }
+function clearJoinTimers(){clearTimeout(joinRetryTimer);clearTimeout(joinHandshakeTimer);joinRetryTimer=null;joinHandshakeTimer=null;}
+function scheduleJoinRetry(reason){
+  if(isHost||joinConnected||joinRetryScheduled)return;
+  joinRetryScheduled=true;clearTimeout(joinHandshakeTimer);
+  if(joinAttempt>=4){
+    $('lobbyHint').textContent="加入失败："+reason+"。请确认房主仍在线、房间号正确，并让双方刷新页面后重试。";
+    toast("无法加入房间："+reason);return;
+  }
+  $('lobbyHint').textContent="连接暂时失败，正在重试（"+(joinAttempt+1)+"/4）…";
+  joinRetryTimer=setTimeout(()=>{
+    joinRetryScheduled=false;
+    if(!peer||peer.destroyed||joinConnected)return;
+    startJoinAttempt();
+  },1000);
+}
+function startJoinAttempt(){
+  if(!peer||peer.destroyed||joinConnected)return;
+  joinAttempt++;
+  const thisAttempt=joinAttempt;
+  $('lobbyHint').textContent="正在连接房主（第 "+thisAttempt+"/4 次尝试）…";
+  let conn;
+  try{
+    conn=peer.connect("together-"+roomId,{reliable:true});
+    hostConn=conn;
+    attachConnection(conn);
+    conn.on("open",()=>{
+      if(thisAttempt!==joinAttempt)return;
+      $('lobbyHint').textContent="数据通道已建立，正在同步房间资料…";
+      clearTimeout(joinHandshakeTimer);
+      joinHandshakeTimer=setTimeout(()=>{
+        if(!joinConnected&&thisAttempt===joinAttempt){
+          try{conn.close()}catch(e){}
+          scheduleJoinRetry("房主没有回应");
+        }
+      },8000);
+    });
+    conn.on("error",()=>{
+      if(!joinConnected&&thisAttempt===joinAttempt)scheduleJoinRetry("数据通道错误");
+    });
+    conn.on("close",()=>{
+      if(!joinConnected&&thisAttempt===joinAttempt)scheduleJoinRetry("连接已关闭");
+    });
+  }catch(e){scheduleJoinRetry("无法建立连接");}
+}
 async function enterRoom(id,host){
   myName=cleanName($("nameInput").value);
   if(!myName){alert("请先填写你的名字。");$("nameInput").focus();return}
   if(typeof Peer==="undefined"){alert("P2P 连接库加载失败，请检查网络后刷新页面。");return}
+  clearJoinTimers();joinAttempt=0;joinConnected=false;joinRetryScheduled=false;
   roomId=id;isHost=host;uid=newId();roomState="waiting";strokes=[];chatHistory=[];members={};connections.clear();
   myColor=palette[Math.floor(Math.random()*palette.length)];
   $("roomCode").textContent=roomId;$("boardRoom").textContent="房间 "+roomId;
   $("lobbyStart").classList.toggle("hidden",!isHost);
-  $("lobbyHint").textContent=isHost?"等朋友加入后，点击「开始画画」，所有人会一起进入白板。":"正在连接房主，请稍候…";
+  $("lobbyHint").textContent=isHost?"正在创建房间并连接信令服务器…":"正在连接房主，请稍候…";
   showScreen("lobbyScreen");
   try{
     if(host){
       peer=new Peer("together-"+roomId);
       peer.on("open",()=>{
         uid=peer.id;members[uid]=memberObj();updateMemberList();
-        $("lobbyHint").textContent="房间已创建。把房间号分享给朋友，等他们加入后即可开始。";
+        $("lobbyHint").textContent="房间已创建并准备就绪。把房间号分享给朋友，等他们加入后即可开始。";
       });
       peer.on("connection",conn=>attachConnection(conn));
-      peer.on("error",err=>{toast(err.type==="unavailable-id"?"房间号冲突，请返回后重新创建。":"P2P 连接错误："+err.type)});
+      peer.on("error",err=>{toast(err.type==="unavailable-id"?"房间号冲突，请返回后重新创建。":"P2P 连接错误："+err.type);$("lobbyHint").textContent="房间连接错误："+err.type+"。请返回后重新创建房间。"});
     }else{
       peer=new Peer();
-      peer.on("open",()=>{
-        uid=peer.id;
-        hostConn=peer.connect("together-"+roomId,{reliable:true});
-        attachConnection(hostConn);
-        const timeout=setTimeout(()=>{if(!hostConn||!hostConn.open)toast("暂时连接不到房主，请确认房间号正确且房主仍在线。")},9000);
-        hostConn.on("open",()=>clearTimeout(timeout));
+      peer.on("open",()=>{uid=peer.id;startJoinAttempt()});
+      peer.on("error",err=>{
+        if(err.type==="peer-unavailable")scheduleJoinRetry("暂时找不到房主");
+        else if(!joinConnected){$('lobbyHint').textContent="P2P 连接错误："+err.type; scheduleJoinRetry("P2P 错误："+err.type)}
       });
-      peer.on("error",err=>{if(err.type==="peer-unavailable")toast("找不到房主，请确认房间号并重试");else toast("P2P 连接错误："+err.type)});
+      peer.on("disconnected",()=>{
+        if(!joinConnected)$('lobbyHint').textContent="信令服务器连接中断，正在尝试恢复…";
+      });
     }
   }catch(e){alert("无法创建 P2P 连接："+e.message)}
 }
