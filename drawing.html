@@ -42,16 +42,21 @@ input:focus{border-color:var(--accent);box-shadow:0 0 0 3px #6558e81a}
 .people{display:flex;flex-direction:column;align-items:flex-end;gap:5px;max-width:58%;max-height:28vh;overflow:auto}
 .person-tag{border-radius:999px;padding:6px 10px;background:#ffffffed;border:1px solid #e8e8ef;box-shadow:0 3px 12px #15152a0a;font-size:12px;font-weight:800;white-space:nowrap;max-width:100%;overflow:hidden;text-overflow:ellipsis}
 #canvas{position:absolute;inset:0;width:100%;height:100%;touch-action:none;background:#fff}
-.toolbar{position:absolute;z-index:6;bottom:calc(12px + env(safe-area-inset-bottom));left:50%;transform:translateX(-50%);display:flex;align-items:center;gap:7px;padding:8px;background:#ffffffed;border:1px solid #e6e7ef;border-radius:19px;box-shadow:0 8px 30px #17172b1a;max-width:calc(100% - 18px)}
-.tool{width:43px;height:43px;border-radius:13px;background:#f5f5fa;color:#51566c;display:grid;place-items:center;font-size:19px;flex-shrink:0}
+.zoom-controls{position:absolute;z-index:6;left:10px;top:calc(62px + env(safe-area-inset-top));display:flex;align-items:center;gap:3px;padding:5px;background:#ffffffed;border:1px solid #e6e7ef;border-radius:13px;box-shadow:0 4px 16px #17172b10}
+.zoom-btn{width:32px;height:32px;border-radius:9px;background:#f5f5fa;color:#454a60;font-size:19px;font-weight:800;display:grid;place-items:center}
+.zoom-btn.reset{font-size:16px}.zoom-controls span{font-size:11px;font-weight:800;min-width:40px;text-align:center;color:#555b72}
+.toolbar{position:absolute;z-index:6;bottom:calc(8px + env(safe-area-inset-bottom));left:50%;transform:translateX(-50%);display:flex;flex-wrap:wrap;align-items:center;justify-content:center;gap:5px;padding:7px;background:#ffffffed;border:1px solid #e6e7ef;border-radius:17px;box-shadow:0 8px 30px #17172b1a;width:calc(100% - 16px);max-width:500px;max-height:calc(100dvh - 120px);overflow-y:auto;overflow-x:hidden;overscroll-behavior:contain}
+.tool{width:36px;height:36px;border-radius:11px;background:#f5f5fa;color:#51566c;display:grid;place-items:center;font-size:17px;flex-shrink:0}
 .tool.active{background:#e9e6ff;color:var(--accent);box-shadow:inset 0 0 0 1px #d5d0ff}
-.tool-label{font-size:9px;font-weight:800;display:block;margin-top:1px}
-.tool-wrap{display:flex;flex-direction:column;align-items:center;gap:2px}
-.size-control{width:72px;display:flex;flex-direction:column;gap:3px;padding:0 4px}.size-control label{font-size:9px;color:var(--muted);font-weight:700}.size-control input{height:18px;padding:0;border:0;box-shadow:none}
+.tool-label{font-size:8px;font-weight:800;display:block;margin-top:1px;white-space:nowrap}
+.tool-wrap{display:flex;flex-direction:column;align-items:center;gap:1px;flex:0 0 39px;min-width:0}
+.size-control{width:74px;display:flex;flex-direction:column;gap:2px;padding:0 3px;flex:0 0 74px}.size-control label{font-size:8px;color:var(--muted);font-weight:700;white-space:nowrap}.size-control input{height:18px;padding:0;border:0;box-shadow:none}
+.palette-pop{position:absolute;z-index:9;left:10px;bottom:calc(82px + env(safe-area-inset-bottom));display:none;grid-template-columns:repeat(6,30px);gap:7px;padding:10px;background:#fffffffa;border:1px solid var(--line);border-radius:16px;box-shadow:0 8px 25px #17172b20}.palette-pop.open{display:grid}.swatch{width:30px;height:30px;border-radius:50%;border:2px solid #ffffff;box-shadow:0 0 0 1px #dfe1eb}.swatch.selected{box-shadow:0 0 0 3px #6558e8}.room-manage{position:absolute;z-index:8;top:calc(62px + env(safe-area-inset-top));right:10px;width:min(300px,calc(100% - 20px));max-height:48vh;overflow:auto;background:#fffffffa;border:1px solid var(--line);border-radius:16px;padding:12px;box-shadow:0 10px 30px #17172b20;display:none}.room-manage.open{display:block}.manage-row{display:flex;align-items:center;gap:8px;padding:8px 0;border-bottom:1px solid #f0f0f5;font-size:12px}.manage-row button{margin-left:auto;background:#fff0f0;color:#b42335;border-radius:8px;padding:6px 8px;font-size:11px}.chat-quick{display:flex;gap:6px;padding:7px 10px 0;flex-wrap:wrap}.chat-quick button{background:#f3f2ff;border-radius:9px;padding:5px 8px}.chat-tools{display:flex;gap:6px}.chat-tools button{background:#f5f5fa;border-radius:8px;padding:5px 8px;font-size:11px}
 .chat-panel{position:absolute;z-index:8;right:10px;bottom:calc(78px + env(safe-area-inset-bottom));width:min(340px,calc(100% - 20px));height:min(55vh,430px);background:#fffffffa;border:1px solid #e6e7ef;border-radius:18px;box-shadow:0 12px 38px #17172b24;display:none;flex-direction:column;overflow:hidden}
 .chat-panel.open{display:flex}.chat-head{display:flex;align-items:center;justify-content:space-between;padding:12px;border-bottom:1px solid var(--line)}.chat-messages{flex:1;overflow:auto;padding:12px;display:flex;flex-direction:column;gap:10px}.chat-empty{font-size:12px;color:var(--muted);text-align:center;margin:auto}.chat-msg{max-width:90%;align-self:flex-start;background:#f3f4fa;border-radius:12px;padding:8px 10px;overflow-wrap:anywhere}.chat-msg.mine{align-self:flex-end;background:#efedff}.chat-meta{font-size:10px;font-weight:800;margin-bottom:3px}.chat-text{font-size:13px;white-space:pre-wrap}.chat-form{display:flex;gap:7px;padding:10px;border-top:1px solid var(--line)}.chat-form input{height:42px;min-width:0}.chat-form .btn{height:42px;padding:0 13px}
 .toast{position:absolute;z-index:10;top:calc(70px + env(safe-area-inset-top));left:50%;transform:translateX(-50%);background:#25263a;color:white;padding:10px 14px;border-radius:12px;font-size:12px;max-width:90%;text-align:center;display:none}
-@media(min-width:700px){.screen:not(#boardScreen){max-width:520px;margin:0 auto}.toolbar{bottom:24px}.people{max-height:35vh}}
+@media(max-width:420px){.toolbar{gap:4px;padding:6px}.tool-wrap{flex-basis:36px}.tool{width:33px;height:33px;font-size:16px}.tool-label{font-size:7px}.size-control{flex-basis:66px;width:66px}.size-control label{font-size:7px}}
+@media(min-width:700px){.screen:not(#boardScreen){max-width:520px;margin:0 auto}.toolbar{bottom:24px;flex-wrap:nowrap;width:auto;max-width:calc(100% - 24px);overflow:visible}.tool-wrap{flex-basis:auto}.tool{width:40px;height:40px}.tool-label{font-size:9px}.size-control{width:72px;flex-basis:72px}.people{max-height:35vh}}
 </style>
 </head>
 <body>
@@ -64,7 +69,7 @@ input:focus{border-color:var(--accent);box-shadow:0 0 0 3px #6558e81a}
     <div style="height:10px"></div>
     <div class="field" style="margin-bottom:10px"><label class="field-label" for="roomInput">房间号码</label><input id="roomInput" maxlength="6" inputmode="numeric" placeholder="输入 6 位房间号"></div>
     <button class="btn secondary" id="joinBtn" style="width:100%">加入房间 →</button>
-    <p class="note">提示：多人实时同步需要先在下方代码中配置 Firebase。此页面可部署到支持 HTTPS 的网站。</p>
+    <p class="note">提示：多人同步使用 PeerJS / WebRTC；请通过 HTTPS 网站打开，并确保房主保持在线。</p>
   </div>
   <div class="footer">一起画画 · 让灵感自由碰撞</div>
 </section>
@@ -83,26 +88,40 @@ input:focus{border-color:var(--accent);box-shadow:0 0 0 3px #6558e81a}
 
 <section class="screen" id="boardScreen">
   <canvas id="canvas"></canvas>
+  <div class="zoom-controls" id="zoomControls">
+    <button class="zoom-btn" id="zoomOut" aria-label="缩小">−</button>
+    <span id="zoomLabel">100%</span>
+    <button class="zoom-btn" id="zoomIn" aria-label="放大">＋</button>
+    <button class="zoom-btn reset" id="zoomReset" aria-label="重置视图">↺</button>
+  </div>
   <div class="board-header">
     <div class="board-left"><button class="board-pill" id="boardBack">← 返回</button><span class="board-pill" id="boardRoom">房间 ------</span></div>
     <div class="people" id="peopleTags"></div>
   </div>
   <div class="toolbar">
     <div class="tool-wrap"><button class="tool active" id="penBtn" aria-label="画笔">✎</button><span class="tool-label">画笔</span></div>
-    <div class="tool-wrap"><button class="tool" id="eraserBtn" aria-label="橡皮擦">▱</button><span class="tool-label">橡皮擦</span></div>
+    <div class="tool-wrap"><button class="tool" id="eraserBtn" aria-label="橡皮擦">▱</button><span class="tool-label">橡皮</span></div>
+    <div class="tool-wrap"><button class="tool" id="highlighterBtn" aria-label="荧光笔">🖍</button><span class="tool-label">荧光笔</span></div>
+    <div class="tool-wrap"><button class="tool" id="colorBtn" aria-label="颜色">🎨</button><span class="tool-label">颜色</span></div>
     <div class="tool-wrap"><button class="tool" id="undoBtn" aria-label="撤回">↶</button><span class="tool-label">撤回</span></div>
+    <div class="tool-wrap"><button class="tool" id="redoBtn" aria-label="重做">↷</button><span class="tool-label">重做</span></div>
+    <div class="tool-wrap"><button class="tool" id="exportBtn" aria-label="导出图片">⬇</button><span class="tool-label">保存图</span></div>
+    <div class="tool-wrap"><button class="tool" id="manageToggle" aria-label="成员管理">♙</button><span class="tool-label">成员</span></div>
     <div class="tool-wrap"><button class="tool" id="chatToggle" aria-label="聊天">☰</button><span class="tool-label">聊天</span></div>
     <div class="size-control"><label for="sizeInput">笔触大小</label><input id="sizeInput" type="range" min="2" max="24" value="5"></div>
   </div>
+  <div class="palette-pop" id="palettePop" aria-label="选择画笔颜色"></div>
+  <div class="room-manage" id="roomManage"><div style="display:flex;align-items:center;justify-content:space-between"><strong>房间成员</strong><button id="manageClose" class="small-btn">关闭</button></div><div id="manageMembers"></div><p class="note" style="margin:8px 0 0">房主可移除成员；成员列表由房主同步。</p></div>
   <div class="chat-panel" id="chatPanel">
-    <div class="chat-head"><strong>房间聊天</strong><button id="chatClose" class="small-btn">关闭 ×</button></div>
+    <div class="chat-head"><strong>房间聊天</strong><div class="chat-tools"><button id="copyChatBtn">复制记录</button><button id="chatClose" class="small-btn">关闭 ×</button></div></div>
     <div id="chatMessages" class="chat-messages"><div class="chat-empty">和房间里的朋友聊聊天吧 👋</div></div>
+    <div class="chat-quick"><button type="button" data-emoji="😀">😀</button><button type="button" data-emoji="😂">😂</button><button type="button" data-emoji="❤️">❤️</button><button type="button" data-emoji="👍">👍</button><button type="button" data-emoji="🎉">🎉</button><button type="button" data-emoji="✨">✨</button></div>
     <form id="chatForm" class="chat-form"><input id="chatInput" maxlength="300" placeholder="输入消息…" autocomplete="off"><button class="btn primary" type="submit">发送</button></form>
   </div>
   <div class="toast" id="toast"></div>
 </section>
 
-<!-- Firebase Realtime Database is used for live room / stroke sync. Replace the config below. -->
+<!-- PeerJS/WebRTC collaborative canvas -->
 <script src="https://unpkg.com/peerjs@1.5.4/dist/peerjs.min.js"></script>
 <script>
 /* P2P mode: PeerJS uses a public signaling service to establish WebRTC data channels.
@@ -112,7 +131,9 @@ const $ = id => document.getElementById(id);
 const screens = ["homeScreen","lobbyScreen","boardScreen"];
 let roomId="", uid="", myName="", myColor="#6558e8", isHost=false, peer=null, hostConn=null;
 let connections=new Map(), members={}, strokes=[], chatHistory=[], currentTool="pen", drawing=false, currentStroke=null, lastPoint=null;
+let redoStacks={}, unreadChat=0;
 let canvas=$("canvas"), ctx=canvas.getContext("2d"), dpr=1, canvasW=0, canvasH=0;
+let zoom=1, panX=0, panY=0, activePointers=new Map(), pinchStart=null;
 const palette=["#6558e8","#e34d79","#159f83","#e38b22","#2878d0","#a04fc0","#cf4f38","#478b35","#a66a35","#178caa","#d14eac","#5d6c83"];
 function showScreen(id){screens.forEach(s=>$(s).classList.toggle("active",s===id));if(id==="boardScreen")setTimeout(resizeCanvas,50)}
 function toast(msg){const t=$("toast");t.textContent=msg;t.style.display="block";clearTimeout(toast.timer);toast.timer=setTimeout(()=>t.style.display="none",2400)}
@@ -129,7 +150,7 @@ function attachConnection(conn){
   conn.on("open",()=>{
     connections.set(conn.peer,conn);
     if(isHost){
-      sendConn(conn,{type:"welcome",members,strokes,chatHistory,state:roomState});
+      sendConn(conn,{type:"welcome",members,strokes,chatHistory,redoStacks,state:roomState});
     }else{
       sendConn(conn,{type:"hello",member:memberObj()});
     }
@@ -160,11 +181,20 @@ function handleHostMessage(from,msg){
   }
   if(msg.type==="stroke"){
     if(!members[from]||!msg.stroke)return;
-    const st=msg.stroke;strokes.push(st);broadcast({type:"stroke",stroke:st},from);return;
+    const st=msg.stroke;strokes.push(st);redoStacks[from]=[];broadcast({type:"stroke",stroke:st},from);return;
   }
-  if(msg.type==="undo"){
-    const idx=strokes.findIndex(s=>s.id===msg.strokeId&&s.uid===from);
-    if(idx>=0){strokes.splice(idx,1);renderCanvas();broadcast({type:"strokes",strokes});}return;
+  if(msg.type==="undo"||msg.type==="redo"){
+    const stack=redoStacks[from]||(redoStacks[from]=[]);
+    if(msg.type==="undo"){
+      const idx=strokes.findIndex(s=>s.id===msg.strokeId&&s.uid===from);
+      if(idx>=0){stack.push(strokes.splice(idx,1)[0]);}
+    }else{
+      const st=stack.pop();if(st)strokes.push(st);
+    }
+    renderCanvas();broadcast({type:"strokes",strokes,redoStacks});return;
+  }
+  if(msg.type==="color"){
+    if(members[from]&&palette.includes(msg.color)){members[from].color=msg.color;broadcast({type:"members",members});updateMemberList();}return;
   }
   if(msg.type==="chat"){
     const m=members[from];if(!m)return;
@@ -176,7 +206,7 @@ function handleHostMessage(from,msg){
 }
 function handleClientMessage(msg){
   if(msg.type==="welcome"){
-    members=msg.members||{};strokes=msg.strokes||[];chatHistory=msg.chatHistory||[];roomState=msg.state||"waiting";
+    members=msg.members||{};strokes=msg.strokes||[];chatHistory=msg.chatHistory||[];redoStacks=msg.redoStacks||{};roomState=msg.state||"waiting";
     if(members[uid]&&members[uid].color)myColor=members[uid].color;
     updateMemberList();renderChat();
     if(roomState==="started")loadBoard();return;
@@ -184,9 +214,10 @@ function handleClientMessage(msg){
   if(msg.type==="members"){members=msg.members||{};updateMemberList();return}
   if(msg.type==="started"){roomState="started";loadBoard();return}
   if(msg.type==="room-closed"){toast("房主已关闭房间");setTimeout(leaveRoom,900);return}
+  if(msg.type==="kick"){toast("你已被房主移出房间");setTimeout(leaveRoom,800);return}
   if(msg.type==="stroke"){strokes.push(msg.stroke);renderCanvas();return}
-  if(msg.type==="strokes"){strokes=msg.strokes||[];renderCanvas();return}
-  if(msg.type==="chat"){chatHistory.push(msg.item);if(chatHistory.length>150)chatHistory=chatHistory.slice(-150);renderChat();return}
+  if(msg.type==="strokes"){strokes=msg.strokes||[];redoStacks=msg.redoStacks||redoStacks;renderCanvas();return}
+  if(msg.type==="chat"){chatHistory.push(msg.item);if(chatHistory.length>150)chatHistory=chatHistory.slice(-150);if(!$("chatPanel").classList.contains("open")){unreadChat++;$("chatToggle").textContent=unreadChat>9?"9+":String(unreadChat)}renderChat();return}
 }
 async function enterRoom(id,host){
   myName=cleanName($("nameInput").value);
@@ -258,7 +289,7 @@ function resizeCanvas(){
 window.addEventListener("resize",resizeCanvas);
 function drawStroke(c){
   if(!c||!c.points||!c.points.length)return;
-  ctx.save();ctx.lineCap="round";ctx.lineJoin="round";ctx.strokeStyle=c.tool==="eraser"?"#fff":(c.color||"#222");ctx.fillStyle=ctx.strokeStyle;ctx.lineWidth=c.size||5;
+  ctx.save();ctx.lineCap="round";ctx.lineJoin="round";ctx.globalAlpha=c.tool==="highlighter"?0.28:1;ctx.strokeStyle=c.tool==="eraser"?"#fff":(c.color||"#222");ctx.fillStyle=ctx.strokeStyle;ctx.lineWidth=c.tool==="highlighter"?Math.max(12,(c.size||5)*2.6):(c.size||5);
   const pts=c.points.map(p=>({x:p.x*canvasW,y:p.y*canvasH}));
   if(pts.length===1){ctx.beginPath();ctx.arc(pts[0].x,pts[0].y,(c.size||5)/2,0,Math.PI*2);ctx.fill()}
   else{ctx.beginPath();ctx.moveTo(pts[0].x,pts[0].y);for(let i=1;i<pts.length;i++)ctx.lineTo(pts[i].x,pts[i].y);ctx.stroke()}
@@ -266,30 +297,117 @@ function drawStroke(c){
 }
 function renderCanvas(){
   if(!ctx||!canvasW||!canvasH)return;
-  ctx.save();ctx.setTransform(dpr,0,0,dpr,0,0);ctx.clearRect(0,0,canvasW,canvasH);ctx.fillStyle="#fff";ctx.fillRect(0,0,canvasW,canvasH);ctx.restore();
-  strokes.forEach(drawStroke);if(currentStroke)drawStroke(currentStroke);
+  ctx.save();ctx.setTransform(1,0,0,1,0,0);ctx.clearRect(0,0,canvas.width,canvas.height);ctx.fillStyle="#fff";ctx.fillRect(0,0,canvas.width,canvas.height);
+  ctx.setTransform(dpr*zoom,0,0,dpr*zoom,dpr*panX,dpr*panY);
+  strokes.forEach(drawStroke);if(currentStroke)drawStroke(currentStroke);ctx.restore();
+  $("zoomLabel").textContent=Math.round(zoom*100)+"%";
 }
-function pointFromEvent(e){const r=canvas.getBoundingClientRect();return{x:Math.max(0,Math.min(1,(e.clientX-r.left)/r.width)),y:Math.max(0,Math.min(1,(e.clientY-r.top)/r.height))}}
+function screenPoint(e){const r=canvas.getBoundingClientRect();return{x:e.clientX-r.left,y:e.clientY-r.top}}
+function pointFromEvent(e){const p=screenPoint(e);return{x:Math.max(0,Math.min(1,(p.x-panX)/(zoom*canvasW))),y:Math.max(0,Math.min(1,(p.y-panY)/(zoom*canvasH)))}}
+function distance(a,b){return Math.hypot(a.x-b.x,a.y-b.y)}
+function midpoint(a,b){return{x:(a.x+b.x)/2,y:(a.y+b.y)/2}}
+function setZoom(nextZoom,anchor){
+  const next=Math.max(1,Math.min(5,nextZoom)),a=anchor||{x:canvasW/2,y:canvasH/2};
+  const worldX=(a.x-panX)/zoom,worldY=(a.y-panY)/zoom;
+  zoom=next;panX=a.x-worldX*zoom;panY=a.y-worldY*zoom;renderCanvas();
+}
+function resetView(){zoom=1;panX=0;panY=0;renderCanvas()}
+$("zoomIn").addEventListener("click",()=>setZoom(zoom*1.25));
+$("zoomOut").addEventListener("click",()=>setZoom(zoom/1.25));
+$("zoomReset").addEventListener("click",resetView);
 canvas.addEventListener("pointerdown",e=>{
   if(!$("boardScreen").classList.contains("active"))return;
-  drawing=true;canvas.setPointerCapture(e.pointerId);lastPoint=pointFromEvent(e);
-  currentStroke={id:newId(),uid,name:myName,color:myColor,tool:currentTool,size:Number($("sizeInput").value),points:[lastPoint],createdAt:Date.now()};renderCanvas();
+  e.preventDefault();canvas.setPointerCapture(e.pointerId);activePointers.set(e.pointerId,screenPoint(e));
+  if(activePointers.size===2){
+    if(drawing){drawing=false;currentStroke=null;renderCanvas()}
+    const pts=[...activePointers.values()],mid=midpoint(pts[0],pts[1]);
+    pinchStart={distance:Math.max(1,distance(pts[0],pts[1])),zoom,worldX:(mid.x-panX)/zoom,worldY:(mid.y-panY)/zoom};
+    return;
+  }
+  if(activePointers.size>2)return;
+  drawing=true;lastPoint=pointFromEvent(e);
+  currentStroke={id:newId(),uid,name:myName,color:myColor,tool:currentTool,size:Number($("sizeInput").value),points:[lastPoint]};renderCanvas();
 });
-canvas.addEventListener("pointermove",e=>{if(!drawing||!currentStroke)return;currentStroke.points.push(pointFromEvent(e));renderCanvas()});
+canvas.addEventListener("pointermove",e=>{
+  if(!activePointers.has(e.pointerId))return;
+  activePointers.set(e.pointerId,screenPoint(e));
+  if(activePointers.size>=2){
+    const pts=[...activePointers.values()];
+    if(pts.length>=2&&pinchStart){
+      const mid=midpoint(pts[0],pts[1]),factor=distance(pts[0],pts[1])/pinchStart.distance;
+      zoom=Math.max(1,Math.min(5,pinchStart.zoom*factor));
+      panX=mid.x-pinchStart.worldX*zoom;panY=mid.y-pinchStart.worldY*zoom;renderCanvas();
+    }
+    return;
+  }
+  if(!drawing||!currentStroke)return;
+  currentStroke.points.push(pointFromEvent(e));renderCanvas();
+});
 function finishStroke(){
-  if(!drawing||!currentStroke)return;drawing=false;const finished=currentStroke;currentStroke=null;lastPoint=null;
-  if(isHost){sendToHost({type:"stroke",stroke:finished});}
-  else{strokes.push(finished);renderCanvas();sendToHost({type:"stroke",stroke:finished});}
+  if(!drawing||!currentStroke)return;
+  drawing=false;const finished=currentStroke;currentStroke=null;lastPoint=null;
+  if(isHost){strokes.push(finished);renderCanvas();broadcast({type:"stroke",stroke:finished})}
+  else{strokes.push(finished);renderCanvas();sendToHost({type:"stroke",stroke:finished})}
 }
-canvas.addEventListener("pointerup",finishStroke);canvas.addEventListener("pointercancel",finishStroke);
-$("penBtn").addEventListener("click",()=>setTool("pen"));$("eraserBtn").addEventListener("click",()=>setTool("eraser"));
-function setTool(tool){currentTool=tool;$("penBtn").classList.toggle("active",tool==="pen");$("eraserBtn").classList.toggle("active",tool==="eraser")}
+function pointerEnd(e){
+  const wasPinch=activePointers.size>=2;
+  if(!wasPinch)finishStroke();
+  activePointers.delete(e.pointerId);
+  if(activePointers.size<2)pinchStart=null;
+  if(wasPinch){drawing=false;currentStroke=null;renderCanvas()}
+}
+canvas.addEventListener("pointerup",pointerEnd);
+canvas.addEventListener("pointercancel",pointerEnd);
+$("penBtn").addEventListener("click",()=>setTool("pen"));$("eraserBtn").addEventListener("click",()=>setTool("eraser"));$("highlighterBtn").addEventListener("click",()=>setTool("highlighter"));
+function setTool(tool){
+  currentTool=tool;
+  $("penBtn").classList.toggle("active",tool==="pen");$("eraserBtn").classList.toggle("active",tool==="eraser");$("highlighterBtn").classList.toggle("active",tool==="highlighter");
+}
+function renderPalette(){
+  const box=$("palettePop");box.innerHTML="";
+  palette.forEach(c=>{const b=document.createElement("button");b.className="swatch"+(c===myColor?" selected":"");b.style.background=c;b.title=c;b.setAttribute("aria-label","选择颜色 "+c);b.addEventListener("click",()=>{
+    myColor=c;if(members[uid]){members[uid].color=c;updateMemberList();if(isHost)broadcast({type:"members",members});else sendToHost({type:"color",color:c});}
+    renderPalette();toast("画笔颜色已更换");
+  });box.appendChild(b)});
+}
+$("colorBtn").addEventListener("click",()=>{renderPalette();$("palettePop").classList.toggle("open")});
 $("undoBtn").addEventListener("click",()=>{
   const last=[...strokes].reverse().find(s=>s.uid===uid);
   if(!last){toast("还没有你画的笔迹可以撤回");return}
-  if(isHost){const idx=strokes.findIndex(s=>s.id===last.id);if(idx>=0)strokes.splice(idx,1);broadcast({type:"strokes",strokes});renderCanvas()}
-  else sendToHost({type:"undo",strokeId:last.id});
+  if(isHost){
+    const idx=strokes.findIndex(s=>s.id===last.id);if(idx>=0)(redoStacks[uid]||(redoStacks[uid]=[])).push(strokes.splice(idx,1)[0]);
+    broadcast({type:"strokes",strokes,redoStacks});renderCanvas();
+  }else sendToHost({type:"undo",strokeId:last.id});
 });
+$("redoBtn").addEventListener("click",()=>{
+  const stack=redoStacks[uid]||[];
+  if(!stack.length){toast("没有可以重做的笔迹");return}
+  if(isHost){strokes.push(stack.pop());broadcast({type:"strokes",strokes,redoStacks});renderCanvas()}
+  else sendToHost({type:"redo"});
+});
+$("exportBtn").addEventListener("click",()=>{
+  try{
+    const out=document.createElement("canvas");out.width=Math.max(1,Math.round(canvasW));out.height=Math.max(1,Math.round(canvasH));
+    const o=out.getContext("2d");o.fillStyle="#fff";o.fillRect(0,0,out.width,out.height);
+    const oldCtx=ctx;ctx=o;strokes.forEach(drawStroke);ctx=oldCtx;
+    const a=document.createElement("a");a.download="together-canvas-"+roomId+".png";a.href=out.toDataURL("image/png");a.click();toast("正在保存 PNG 图片");
+  }catch(e){toast("导出失败，请稍后再试")}
+});
+$("manageToggle").addEventListener("click",()=>{renderManageMembers();$("roomManage").classList.toggle("open")});
+$("manageClose").addEventListener("click",()=>$("roomManage").classList.remove("open"));
+function renderManageMembers(){
+  const box=$("manageMembers");box.innerHTML="";
+  Object.entries(members).forEach(([id,m])=>{
+    const row=document.createElement("div");row.className="manage-row";
+    const dot=document.createElement("span");dot.style.cssText="width:10px;height:10px;border-radius:50%;background:"+(m.color||"#777");dot.textContent="";
+    const name=document.createElement("span");name.textContent=(m.name||"玩家")+(id===uid?"（你）":"")+(m.host?" · 房主":"");
+    row.append(dot,name);
+    if(isHost&&id!==uid){const kick=document.createElement("button");kick.textContent="移除";kick.addEventListener("click",()=>{
+      const conn=connections.get(id);sendConn(conn,{type:"kick"});setTimeout(()=>{if(conn)conn.close()},250);delete members[id];broadcast({type:"members",members});updateMemberList();renderManageMembers();toast("已移除该成员");
+    });row.appendChild(kick)}
+    box.appendChild(row);
+  });
+}
 function renderChat(){
   const box=$("chatMessages");box.innerHTML="";
   if(!chatHistory.length){const empty=document.createElement("div");empty.className="chat-empty";empty.textContent="和房间里的朋友聊聊天吧 👋";box.appendChild(empty);return}
@@ -301,7 +419,12 @@ function renderChat(){
   });
   box.scrollTop=box.scrollHeight;
 }
-$("chatToggle").addEventListener("click",()=>{$("chatPanel").classList.toggle("open");if($("chatPanel").classList.contains("open"))setTimeout(()=>$("chatInput").focus(),50)});
+$("chatToggle").addEventListener("click",()=>{$("chatPanel").classList.toggle("open");if($("chatPanel").classList.contains("open")){unreadChat=0;setTimeout(()=>$("chatInput").focus(),50)}});
+document.querySelectorAll("[data-emoji]").forEach(b=>b.addEventListener("click",()=>{$("chatInput").value+=b.dataset.emoji;$("chatInput").focus()}));
+$("copyChatBtn").addEventListener("click",async()=>{
+  const txt=chatHistory.map(m=>"["+new Date(m.time||Date.now()).toLocaleTimeString([], {hour:"2-digit",minute:"2-digit"})+"] "+(m.name||"玩家")+": "+(m.text||"")).join("\\n");
+  try{await navigator.clipboard.writeText(txt);toast("聊天记录已复制")}catch(e){prompt("复制聊天记录：",txt)}
+});
 $("chatClose").addEventListener("click",()=>$("chatPanel").classList.remove("open"));
 $("chatForm").addEventListener("submit",e=>{
   e.preventDefault();const text=$("chatInput").value.trim();if(!text)return;
