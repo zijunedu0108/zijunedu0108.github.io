@@ -1,0 +1,1160 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>矩阵运算 · 互动演示</title>
+  <!-- Favicon & Navigation Icon -->
+  <link rel="icon" type="image/png" href="zijunlogo.png">
+  <link rel="apple-touch-icon" href="zijunlogo.png">
+  <!-- Font Awesome 图标库 -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+  <style>
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    body {
+      font-family: 'Segoe UI', Roboto, system-ui, -apple-system, sans-serif;
+      background: linear-gradient(145deg, #f8faff 0%, #edf2f9 100%);
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      padding: 20px 16px;
+      margin: 0;
+    }
+
+    .card {
+      max-width: 1200px;
+      width: 100%;
+      background: rgba(255,255,255,0.75);
+      backdrop-filter: blur(8px);
+      border-radius: 48px;
+      box-shadow: 0 25px 40px -12px rgba(0, 20, 40, 0.25), 0 0 0 1px rgba(255,255,255,0.6) inset;
+      padding: 28px 28px 40px;
+      transition: all 0.2s ease;
+    }
+
+    .top-bar {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 16px;
+      flex-wrap: wrap;
+      gap: 12px;
+    }
+
+    .logo-area {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+
+    .logo-area img {
+      width: 42px;
+      height: 42px;
+      border-radius: 14px;
+      object-fit: cover;
+      box-shadow: 0 6px 12px rgba(0,0,0,0.1);
+      transition: transform 0.2s;
+    }
+
+    .logo-area img:hover {
+      transform: scale(1.05);
+    }
+
+    .logo-area h1 {
+      font-size: 1.7rem;
+      font-weight: 600;
+      letter-spacing: -0.02em;
+      color: #1a2e4d;
+    }
+
+    .nav-group {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      align-items: center;
+      margin: 12px 0;
+    }
+
+    .nav-btn {
+      background: #ffffffcc;
+      border: none;
+      border-radius: 60px;
+      padding: 8px 18px;
+      font-size: 0.9rem;
+      font-weight: 500;
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      color: #1e3a5f;
+      cursor: pointer;
+      backdrop-filter: blur(4px);
+      transition: all 0.2s;
+      box-shadow: 0 4px 10px rgba(0,0,0,0.03), 0 0 0 1px rgba(255,255,255,0.9) inset;
+    }
+
+    .nav-btn.active {
+      background: #1e3a5f;
+      color: white;
+      box-shadow: 0 8px 18px -6px #1e3a5f80;
+    }
+
+    .nav-btn:hover:not(.active) {
+      background: #ffffff;
+      box-shadow: 0 8px 16px rgba(0, 30, 60, 0.08);
+      transform: translateY(-1px);
+    }
+
+    .lang-btn {
+      background: #ffffffcc;
+      border: none;
+      border-radius: 60px;
+      padding: 10px 18px;
+      font-size: 1rem;
+      font-weight: 500;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      box-shadow: 0 6px 14px rgba(0,0,0,0.05), 0 0 0 1px rgba(255,255,255,0.9) inset;
+      color: #1e3a5f;
+      cursor: pointer;
+      backdrop-filter: blur(4px);
+      transition: all 0.2s;
+    }
+
+    .lang-btn i {
+      font-size: 1.1rem;
+    }
+
+    .lang-btn:hover {
+      background: #ffffff;
+      box-shadow: 0 10px 20px rgba(0, 30, 60, 0.12);
+      transform: translateY(-1px);
+    }
+
+    .matrices-container {
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      justify-content: center;
+      gap: 16px 12px;
+      margin: 24px 0 16px;
+      min-height: 200px;
+    }
+
+    .matrix-wrapper {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+    }
+
+    .matrix-label {
+      font-size: 1.1rem;
+      font-weight: 600;
+      color: #2b4b72;
+      margin-bottom: 8px;
+      letter-spacing: 0.5px;
+      opacity: 0.8;
+    }
+
+    .matrix {
+      display: inline-grid;
+      gap: 8px;
+      background: #ffffffd9;
+      padding: 16px;
+      border-radius: 28px;
+      box-shadow: 0 12px 28px -10px rgba(0, 30, 70, 0.2), 0 0 0 1px rgba(255,255,255,0.9) inset;
+      backdrop-filter: blur(2px);
+      grid-template-columns: repeat(var(--cols, 3), 1fr);
+    }
+
+    .cell {
+      width: 70px;
+      height: 70px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 1.3rem;
+      font-weight: 500;
+      background: #f4f8ff;
+      border-radius: 18px;
+      color: #1b3b5c;
+      box-shadow: 0 2px 6px rgba(0,0,0,0.02), 0 0 0 1px #ffffff inset;
+      transition: background 0.25s, box-shadow 0.2s, transform 0.1s, color 0.2s;
+    }
+
+    .cell.highlight {
+      background: #ffeaa5 !important;
+      box-shadow: 0 0 0 3px #f7b731, 0 8px 16px -6px #f7b731aa;
+      color: #1e2b3c;
+      transform: scale(1.02);
+    }
+
+    .cell.highlight-blue {
+      background: #a8d8ff !important;
+      box-shadow: 0 0 0 3px #3b82f6, 0 8px 16px -6px #3b82f6aa;
+      color: #0a2540;
+      transform: scale(1.02);
+    }
+
+    .cell.highlight-green {
+      background: #b9f6ca !important;
+      box-shadow: 0 0 0 3px #22c55e, 0 8px 16px -6px #22c55eaa;
+      color: #0a2e1a;
+      transform: scale(1.02);
+    }
+
+    .result-cell {
+      background: #e9f0fe;
+      color: #0e2e4f;
+      font-weight: 500;
+    }
+
+    .result-cell.active-product {
+      background: #d4e2ff;
+      box-shadow: 0 0 0 2px #6c8cff, 0 6px 12px -4px #6c8cffaa;
+    }
+
+    .operator {
+      font-size: 2.2rem;
+      font-weight: 300;
+      color: #6e8db0;
+      margin: 0 2px;
+      padding-bottom: 20px;
+    }
+
+    .controls {
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      justify-content: center;
+      gap: 16px;
+      margin-top: 32px;
+    }
+
+    .btn {
+      background: white;
+      border: none;
+      border-radius: 60px;
+      padding: 14px 30px;
+      font-size: 1.05rem;
+      font-weight: 500;
+      display: inline-flex;
+      align-items: center;
+      gap: 10px;
+      color: #1f3e62;
+      box-shadow: 0 10px 22px -8px rgba(20, 60, 120, 0.2), 0 0 0 1px rgba(255,255,255,0.7) inset;
+      cursor: pointer;
+      transition: all 0.2s ease;
+      backdrop-filter: blur(4px);
+      background: #ffffffd9;
+    }
+
+    .btn i {
+      font-size: 1.2rem;
+    }
+
+    .btn:hover {
+      background: white;
+      box-shadow: 0 16px 28px -10px rgba(20, 60, 120, 0.3);
+      transform: translateY(-2px);
+    }
+
+    .btn:active {
+      transform: translateY(1px);
+      box-shadow: 0 6px 12px -6px rgba(0,0,0,0.2);
+    }
+
+    .btn:disabled {
+      opacity: 0.5;
+      pointer-events: none;
+      filter: grayscale(0.4);
+    }
+
+    .step-indicator {
+      font-size: 1rem;
+      color: #41668b;
+      background: #ffffffb3;
+      padding: 8px 20px;
+      border-radius: 60px;
+      font-weight: 500;
+      letter-spacing: 0.3px;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.02);
+      backdrop-filter: blur(4px);
+    }
+
+    .product-display {
+      font-size: 0.95rem;
+      color: #1b4d7a;
+      background: #ffffffcc;
+      padding: 12px 20px;
+      border-radius: 40px;
+      margin-top: 18px;
+      text-align: center;
+      font-family: 'SF Mono', 'Fira Code', monospace;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.02);
+      min-height: 3.2em;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      flex-wrap: wrap;
+      gap: 6px;
+      backdrop-filter: blur(2px);
+    }
+
+    .product-term {
+      background: #e8f0fe;
+      padding: 4px 10px;
+      border-radius: 30px;
+      color: #0a2e50;
+      font-weight: 500;
+      white-space: nowrap;
+    }
+
+    .product-term.highlight-term {
+      background: #ffeaa5;
+      box-shadow: 0 0 0 2px #f7b731;
+      color: #1f2e3f;
+    }
+
+    .det-adj-section {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 24px;
+      justify-content: center;
+      align-items: flex-start;
+      margin: 20px 0;
+    }
+
+    .det-adj-card {
+      background: #ffffffcc;
+      padding: 24px;
+      border-radius: 28px;
+      box-shadow: 0 12px 28px -10px rgba(0, 30, 70, 0.15);
+      min-width: 200px;
+    }
+
+    .det-adj-card h3 {
+      font-size: 1.2rem;
+      color: #1e3a5f;
+      margin-bottom: 16px;
+    }
+
+    .det-value {
+      font-size: 2rem;
+      font-weight: 600;
+      color: #1e3a5f;
+      text-align: center;
+      padding: 16px;
+      background: #f4f8ff;
+      border-radius: 20px;
+    }
+
+    .adj-matrix-container {
+      display: flex;
+      justify-content: center;
+    }
+
+    /* 步骤说明气泡 */
+    .step-explanation {
+      font-size: 0.95rem;
+      color: #1b4d7a;
+      background: #ffffffcc;
+      padding: 12px 24px;
+      border-radius: 40px;
+      margin: 12px auto 0;
+      text-align: center;
+      max-width: 800px;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.02);
+      line-height: 1.6;
+      min-height: 3.2em;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      flex-wrap: wrap;
+      gap: 6px;
+    }
+
+    .term-highlight {
+      background: #ffeaa5;
+      padding: 2px 8px;
+      border-radius: 12px;
+      font-weight: 600;
+      color: #1e2b3c;
+    }
+
+    .term-blue {
+      background: #a8d8ff;
+      padding: 2px 8px;
+      border-radius: 12px;
+      font-weight: 600;
+      color: #0a2540;
+    }
+
+    .term-green {
+      background: #b9f6ca;
+      padding: 2px 8px;
+      border-radius: 12px;
+      font-weight: 600;
+      color: #0a2e1a;
+    }
+
+    @media (max-width: 750px) {
+      .card { padding: 20px 16px 32px; border-radius: 32px; }
+      .cell { width: 55px; height: 55px; font-size: 1.1rem; border-radius: 14px; }
+      .matrix { padding: 12px; gap: 6px; }
+      .operator { font-size: 1.8rem; padding-bottom: 16px; }
+      .logo-area h1 { font-size: 1.3rem; }
+      .nav-btn { font-size: 0.8rem; padding: 6px 14px; }
+    }
+
+    @media (max-width: 550px) {
+      .matrices-container { gap: 8px 4px; }
+      .cell { width: 45px; height: 45px; font-size: 0.95rem; }
+      .btn { padding: 12px 20px; font-size: 0.95rem; }
+    }
+  </style>
+</head>
+<body>
+  <div class="card">
+    <div class="top-bar">
+      <div class="logo-area">
+        <img src="zijunlogo.png" alt="Zijun logo" id="navIcon">
+        <h1 id="titleText">矩阵运算 · 互动演示</h1>
+      </div>
+      <button class="lang-btn" id="langToggle">
+        <i class="fas fa-globe"></i>
+        <span id="langLabel">中文</span>
+      </button>
+    </div>
+
+    <div class="nav-group" id="navGroup">
+      <button class="nav-btn active" data-mode="mult-3x3-3x3"><i class="fas fa-th"></i> (3×3)×(3×3)</button>
+      <button class="nav-btn" data-mode="det-adj-3x3"><i class="fas fa-calculator"></i> 行列式 & 伴随 (3×3)</button>
+      <button class="nav-btn" data-mode="mult-2x2-2x2"><i class="fas fa-th-large"></i> (2×2)×(2×2)</button>
+      <button class="nav-btn" data-mode="mult-2x2-2x1"><i class="fas fa-arrow-right"></i> (2×2)×(2×1)</button>
+      <button class="nav-btn" data-mode="mult-1x2-2x2"><i class="fas fa-arrow-left"></i> (1×2)×(2×2)</button>
+    </div>
+
+    <div id="matrixDisplayArea"></div>
+
+    <div class="product-display" id="productDisplay">
+      <span class="product-term">选择上方导航开始演示</span>
+    </div>
+
+    <!-- 步骤说明（仅 det/adj 模式显示） -->
+    <div class="step-explanation" id="stepExplanation" style="display: none;"></div>
+
+    <div class="controls" id="controlsArea">
+      <button class="btn" id="prevBtn" disabled><i class="fas fa-chevron-left"></i> <span id="prevText">上一步</span></button>
+      <span class="step-indicator" id="stepIndicator">步骤 0 / 0</span>
+      <button class="btn" id="nextBtn"><span id="nextText">下一步</span> <i class="fas fa-chevron-right"></i></button>
+      <button class="btn" id="resetBtn"><i class="fas fa-undo-alt"></i> <span id="resetText">重置</span></button>
+    </div>
+  </div>
+
+  <script>
+    (function() {
+      // ---------- 国际化文案 ----------
+      const i18n = {
+        zh: {
+          title: '矩阵运算 · 互动演示',
+          labelA: '矩阵 A',
+          labelB: '矩阵 B',
+          labelC: '矩阵 C',
+          prev: '上一步',
+          next: '下一步',
+          reset: '重置',
+          step: (cur, total) => `步骤 ${cur} / ${total}`,
+          langLabel: '中文',
+          detTitle: '行列式',
+          adjTitle: '伴随矩阵',
+          detLabel: 'det(A) =',
+          adjLabel: 'adj(A) =',
+          modeNames: {
+            'mult-3x3-3x3': '(3×3)×(3×3)',
+            'det-adj-3x3': '行列式 & 伴随 (3×3)',
+            'mult-2x2-2x2': '(2×2)×(2×2)',
+            'mult-2x2-2x1': '(2×2)×(2×1)',
+            'mult-1x2-2x2': '(1×2)×(2×2)'
+          },
+          // det/adj 步骤说明
+          detSteps: {
+            0: '点击“下一步”开始演示行列式的计算',
+            1: '第1步：展开第一行元素，计算每个元素对应的余子式。',
+            2: '第2步：计算 a₁₁ 的余子式 M₁₁ = e·i − f·h',
+            3: '第3步：计算 a₁₂ 的余子式 M₁₂ = d·i − f·g',
+            4: '第4步：计算 a₁₃ 的余子式 M₁₃ = d·h − e·g',
+            5: '第5步：计算余子式 C₁₁ = M₁₁, C₁₂ = −M₁₂, C₁₃ = M₁₃',
+            6: '第6步：计算 det(A) = a₁₁·C₁₁ + a₁₂·C₁₂ + a₁₃·C₁₃',
+            7: '行列式计算完成！det(A) = ',
+            8: '伴随矩阵 adj(A) = 余子式矩阵的转置。点击“下一步”查看每个余子式的计算。',
+            9: '第1步：计算 C₁₁ 的余子式 M₁₁ = e·i − f·h',
+            10: '第2步：计算 C₁₂ 的余子式 M₁₂ = d·i − f·g',
+            11: '第3步：计算 C₁₃ 的余子式 M₁₃ = d·h − e·g',
+            12: '第4步：计算 C₂₁ 的余子式 M₂₁ = b·i − c·h',
+            13: '第5步：计算 C₂₂ 的余子式 M₂₂ = a·i − c·g',
+            14: '第6步：计算 C₂₃ 的余子式 M₂₃ = a·h − b·g',
+            15: '第7步：计算 C₃₁ 的余子式 M₃₁ = b·f − c·e',
+            16: '第8步：计算 C₃₂ 的余子式 M₃₂ = a·f − c·d',
+            17: '第9步：计算 C₃₃ 的余子式 M₃₃ = a·e − b·d',
+            18: '第10步：构造余子式矩阵，并转置得到伴随矩阵。',
+            19: '伴随矩阵计算完成！'
+          }
+        },
+        en: {
+          title: 'Matrix Operations',
+          labelA: 'Matrix A',
+          labelB: 'Matrix B',
+          labelC: 'Matrix C',
+          prev: 'Previous',
+          next: 'Next',
+          reset: 'Reset',
+          step: (cur, total) => `Step ${cur} / ${total}`,
+          langLabel: 'English',
+          detTitle: 'Determinant',
+          adjTitle: 'Adjugate',
+          detLabel: 'det(A) =',
+          adjLabel: 'adj(A) =',
+          modeNames: {
+            'mult-3x3-3x3': '(3×3)×(3×3)',
+            'det-adj-3x3': 'Det & Adjugate (3×3)',
+            'mult-2x2-2x2': '(2×2)×(2×2)',
+            'mult-2x2-2x1': '(2×2)×(2×1)',
+            'mult-1x2-2x2': '(1×2)×(2×2)'
+          },
+          detSteps: {
+            0: 'Click "Next" to start demonstrating determinant calculation',
+            1: 'Step 1: Expand along the first row, compute cofactors for each element.',
+            2: 'Step 2: Compute minor M₁₁ = e·i − f·h',
+            3: 'Step 3: Compute minor M₁₂ = d·i − f·g',
+            4: 'Step 4: Compute minor M₁₃ = d·h − e·g',
+            5: 'Step 5: Cofactors C₁₁ = M₁₁, C₁₂ = −M₁₂, C₁₃ = M₁₃',
+            6: 'Step 6: Compute det(A) = a₁₁·C₁₁ + a₁₂·C₁₂ + a₁₃·C₁₃',
+            7: 'Determinant done! det(A) = ',
+            8: 'Adjugate adj(A) = transpose of cofactor matrix. Click "Next" to see each minor.',
+            9: 'Step 1: Compute minor M₁₁ = e·i − f·h',
+            10: 'Step 2: Compute minor M₁₂ = d·i − f·g',
+            11: 'Step 3: Compute minor M₁₃ = d·h − e·g',
+            12: 'Step 4: Compute minor M₂₁ = b·i − c·h',
+            13: 'Step 5: Compute minor M₂₂ = a·i − c·g',
+            14: 'Step 6: Compute minor M₂₃ = a·h − b·g',
+            15: 'Step 7: Compute minor M₃₁ = b·f − c·e',
+            16: 'Step 8: Compute minor M₃₂ = a·f − c·d',
+            17: 'Step 9: Compute minor M₃₃ = a·e − b·d',
+            18: 'Step 10: Construct cofactor matrix, transpose to get adjugate.',
+            19: 'Adjugate done!'
+          }
+        }
+      };
+
+      let currentLang = 'zh';
+      const userLang = navigator.language || navigator.userLanguage;
+      if (!userLang.startsWith('zh')) {
+        currentLang = 'en';
+      }
+
+      let currentMode = 'mult-3x3-3x3';
+
+      // 矩阵数据
+      let currentA = null;
+      let currentB = null;
+      let currentStep = 0;
+      let currentTotalSteps = 0;
+
+      // det/adj 模式专用
+      let detAdjMatrix = null;
+      let detAdjStep = 0;
+      const DET_ADJ_TOTAL_STEPS = 20; // 0-19 共20步
+
+      // ---------- 随机矩阵 ----------
+      function randomMatrix(rows, cols) {
+        const m = [];
+        for (let i = 0; i < rows; i++) {
+          const row = [];
+          for (let j = 0; j < cols; j++) {
+            row.push(Math.floor(Math.random() * 9) + 1);
+          }
+          m.push(row);
+        }
+        return m;
+      }
+
+      // 模式配置
+      const modeConfig = {
+        'mult-3x3-3x3': {
+          aRows: 3, aCols: 3, bRows: 3, bCols: 3,
+          totalSteps: 27,
+          generate: () => ({ A: randomMatrix(3,3), B: randomMatrix(3,3) })
+        },
+        'det-adj-3x3': {
+          totalSteps: DET_ADJ_TOTAL_STEPS,
+          generate: () => ({ A: randomMatrix(3,3), B: null })
+        },
+        'mult-2x2-2x2': {
+          aRows: 2, aCols: 2, bRows: 2, bCols: 2,
+          totalSteps: 8,
+          generate: () => ({ A: randomMatrix(2,2), B: randomMatrix(2,2) })
+        },
+        'mult-2x2-2x1': {
+          aRows: 2, aCols: 2, bRows: 2, bCols: 1,
+          totalSteps: 4,
+          generate: () => ({ A: randomMatrix(2,2), B: randomMatrix(2,1) })
+        },
+        'mult-1x2-2x2': {
+          aRows: 1, aCols: 2, bRows: 2, bCols: 2,
+          totalSteps: 4,
+          generate: () => ({ A: randomMatrix(1,2), B: randomMatrix(2,2) })
+        }
+      };
+
+      // ---------- 更新 UI 文字 ----------
+      function updateUIText() {
+        const t = i18n[currentLang];
+        document.getElementById('titleText').textContent = t.title;
+        document.getElementById('prevText').textContent = t.prev;
+        document.getElementById('nextText').textContent = t.next;
+        document.getElementById('resetText').textContent = t.reset;
+        document.getElementById('langLabel').textContent = t.langLabel;
+
+        document.querySelectorAll('.nav-btn').forEach(btn => {
+          const mode = btn.dataset.mode;
+          const icon = btn.querySelector('i');
+          if (icon && t.modeNames[mode]) {
+            btn.innerHTML = '';
+            btn.appendChild(icon);
+            btn.appendChild(document.createTextNode(' ' + t.modeNames[mode]));
+          }
+        });
+
+        // 刷新当前视图
+        if (currentMode === 'det-adj-3x3') {
+          renderDetAdj(detAdjMatrix);
+          applyDetAdjStep();
+        } else {
+          // 更新矩阵标签和产品展示
+          updateMatrixLabels();
+          updateProductDisplay();
+          updateStepIndicator();
+        }
+      }
+
+      function updateMatrixLabels() {
+        const t = i18n[currentLang];
+        const labels = document.querySelectorAll('.matrix-label');
+        if (labels.length >= 3) {
+          labels[0].textContent = t.labelA;
+          labels[1].textContent = t.labelB;
+          labels[2].textContent = t.labelC;
+        } else if (labels.length === 1) {
+          labels[0].textContent = t.labelA;
+        }
+      }
+
+      document.getElementById('langToggle').addEventListener('click', () => {
+        currentLang = currentLang === 'zh' ? 'en' : 'zh';
+        updateUIText();
+      });
+
+      // ---------- 工具 ----------
+      function toSub(num) {
+        const subs = ['₁','₂','₃','₄','₅','₆','₇','₈','₉'];
+        return subs[num-1] || num;
+      }
+
+      function resetHighlights() {
+        document.querySelectorAll('.cell.highlight').forEach(c => c.classList.remove('highlight'));
+        document.querySelectorAll('.cell.highlight-blue').forEach(c => c.classList.remove('highlight-blue'));
+        document.querySelectorAll('.cell.highlight-green').forEach(c => c.classList.remove('highlight-green'));
+        document.querySelectorAll('.cell.active-product').forEach(c => c.classList.remove('active-product'));
+        document.querySelectorAll('.product-term.highlight-term').forEach(el => el.classList.remove('highlight-term'));
+      }
+
+      function updateStepIndicator() {
+        const t = i18n[currentLang];
+        const indicator = document.getElementById('stepIndicator');
+        if (currentMode === 'det-adj-3x3') {
+          indicator.textContent = t.step(detAdjStep, DET_ADJ_TOTAL_STEPS - 1);
+        } else {
+          indicator.textContent = t.step(currentStep, currentTotalSteps);
+        }
+      }
+
+      function updateButtons() {
+        const prevBtn = document.getElementById('prevBtn');
+        const nextBtn = document.getElementById('nextBtn');
+        if (currentMode === 'det-adj-3x3') {
+          prevBtn.disabled = (detAdjStep <= 0);
+          nextBtn.disabled = (detAdjStep >= DET_ADJ_TOTAL_STEPS - 1);
+        } else {
+          prevBtn.disabled = (currentStep <= 0);
+          nextBtn.disabled = (currentStep >= currentTotalSteps);
+        }
+      }
+
+      // ---------- 矩阵乘法逻辑 ----------
+      function getStepIndices(step) {
+        if (step <= 0 || step > currentTotalSteps) return {};
+        const s = step - 1;
+        const aCols = currentA[0].length;
+        const itemsPerCell = aCols;
+        const cIdx = Math.floor(s / itemsPerCell);
+        const k = s % itemsPerCell;
+        const resultCols = currentB[0].length;
+        const i = Math.floor(cIdx / resultCols);
+        const j = cIdx % resultCols;
+        return { i, j, k };
+      }
+
+      function updateProductDisplay() {
+        if (currentMode === 'det-adj-3x3') return;
+        const display = document.getElementById('productDisplay');
+        const t = i18n[currentLang];
+
+        if (currentStep === 0 || !currentA || !currentB) {
+          display.innerHTML = `<span class="product-term">${currentLang === 'zh' ? '点击"下一步"开始演示' : 'Click "Next" to start'}</span>`;
+          return;
+        }
+
+        const { i, j, k } = getStepIndices(currentStep);
+        if (i === undefined) return;
+
+        const aCols = currentA[0].length;
+        let html = '';
+        for (let kk = 0; kk < aCols; kk++) {
+          const av = currentA[i][kk];
+          const bv = currentB[kk][j];
+          const termStr = `${av}·${bv}`;
+          const isHighlight = (kk === k);
+          html += `<span class="product-term ${isHighlight ? 'highlight-term' : ''}">${termStr}</span>`;
+          if (kk < aCols - 1) html += ' + ';
+        }
+        display.innerHTML = html;
+      }
+
+      function applyHighlights() {
+        resetHighlights();
+        if (currentStep === 0 || currentMode === 'det-adj-3x3') {
+          updateProductDisplay();
+          updateStepIndicator();
+          return;
+        }
+
+        const { i, j, k } = getStepIndices(currentStep);
+        if (i === undefined) return;
+
+        const allMatrixDivs = document.querySelectorAll('.matrix');
+        if (allMatrixDivs.length < 3) return;
+        const matrixAEl = allMatrixDivs[0];
+        const matrixBEl = allMatrixDivs[1];
+        const matrixCEl = allMatrixDivs[2];
+
+        if (matrixAEl) {
+          const aCell = matrixAEl.querySelector(`.cell[data-i="${i}"][data-j="${k}"]`);
+          if (aCell) aCell.classList.add('highlight');
+        }
+        if (matrixBEl) {
+          const bCell = matrixBEl.querySelector(`.cell[data-i="${k}"][data-j="${j}"]`);
+          if (bCell) bCell.classList.add('highlight');
+        }
+        if (matrixCEl) {
+          const cCell = matrixCEl.querySelector(`.cell[data-i="${i}"][data-j="${j}"]`);
+          if (cCell) cCell.classList.add('active-product');
+        }
+
+        updateProductDisplay();
+        updateStepIndicator();
+      }
+
+      // ---------- 渲染乘法 ----------
+      function renderMultiplication(mode) {
+        const config = modeConfig[mode];
+        if (!config) return;
+        const { A, B } = config.generate();
+        currentA = A;
+        currentB = B;
+        currentTotalSteps = config.totalSteps;
+        currentStep = 0;
+
+        const resultRows = A.length;
+        const resultCols = B[0].length;
+        const t = i18n[currentLang];
+
+        const resultMatrix = Array(resultRows).fill().map(() => Array(resultCols).fill(''));
+
+        function matrixHTML(matrix, label, isResult = false) {
+          const rows = matrix.length;
+          const cols = matrix[0].length;
+          let cellsHTML = '';
+          for (let i = 0; i < rows; i++) {
+            for (let j = 0; j < cols; j++) {
+              const val = isResult ? `c${toSub(i+1)}${toSub(j+1)}` : matrix[i][j];
+              const cellClass = isResult ? 'cell result-cell' : 'cell';
+              cellsHTML += `<div class="${cellClass}" data-i="${i}" data-j="${j}">${val}</div>`;
+            }
+          }
+          return `
+            <div class="matrix-wrapper">
+              <div class="matrix-label">${label}</div>
+              <div class="matrix" style="--cols: ${cols};" data-matrix-type="${label}">
+                ${cellsHTML}
+              </div>
+            </div>
+          `;
+        }
+
+        document.getElementById('matrixDisplayArea').innerHTML = `
+          <div class="matrices-container">
+            ${matrixHTML(A, t.labelA)}
+            <div class="operator">×</div>
+            ${matrixHTML(B, t.labelB)}
+            <div class="operator">=</div>
+            ${matrixHTML(resultMatrix, t.labelC, true)}
+          </div>
+        `;
+
+        document.getElementById('stepExplanation').style.display = 'none';
+        document.getElementById('controlsArea').style.display = 'flex';
+        resetHighlights();
+        updateButtons();
+        updateStepIndicator();
+        updateProductDisplay();
+      }
+
+      // ---------- 行列式 & 伴随：渲染基础视图（带高亮框架）----------
+      function renderDetAdj(A) {
+        detAdjMatrix = A;
+        const t = i18n[currentLang];
+        const a = A[0][0], b = A[0][1], c = A[0][2];
+        const d = A[1][0], e = A[1][1], f = A[1][2];
+        const g = A[2][0], h = A[2][1], i = A[2][2];
+
+        const det = a*(e*i - f*h) - b*(d*i - f*g) + c*(d*h - e*g);
+
+        // 计算伴随矩阵
+        const cof = [
+          [e*i - f*h, -(d*i - f*g), d*h - e*g],
+          [-(b*i - c*h), a*i - c*g, -(a*h - b*g)],
+          [b*f - c*e, -(a*f - c*d), a*e - b*d]
+        ];
+        const adj = [
+          [cof[0][0], cof[1][0], cof[2][0]],
+          [cof[0][1], cof[1][1], cof[2][1]],
+          [cof[0][2], cof[1][2], cof[2][2]]
+        ];
+
+        function matrixHTML(matrix, label, highlightMap = {}) {
+          const rows = matrix.length;
+          const cols = matrix[0].length;
+          let cellsHTML = '';
+          for (let i = 0; i < rows; i++) {
+            for (let j = 0; j < cols; j++) {
+              let extraClass = '';
+              if (highlightMap[`${i},${j}`] === 'yellow') extraClass = ' highlight';
+              else if (highlightMap[`${i},${j}`] === 'blue') extraClass = ' highlight-blue';
+              else if (highlightMap[`${i},${j}`] === 'green') extraClass = ' highlight-green';
+              cellsHTML += `<div class="cell${extraClass}" data-i="${i}" data-j="${j}">${matrix[i][j]}</div>`;
+            }
+          }
+          return `
+            <div class="matrix-wrapper">
+              <div class="matrix-label">${label}</div>
+              <div class="matrix" style="--cols: ${cols};">
+                ${cellsHTML}
+              </div>
+            </div>
+          `;
+        }
+
+        // 构造伴随矩阵的高亮映射（后续根据步骤动态添加）
+        // 这里先渲染空高亮
+
+        document.getElementById('matrixDisplayArea').innerHTML = `
+          <div class="matrices-container">
+            ${matrixHTML(A, t.labelA)}
+          </div>
+          <div class="det-adj-section">
+            <div class="det-adj-card">
+              <h3>${t.detTitle}</h3>
+              <div class="det-value" id="detValue">${t.detLabel} ?</div>
+            </div>
+            <div class="det-adj-card">
+              <h3>${t.adjTitle}</h3>
+              <div class="adj-matrix-container" id="adjMatrixContainer">
+                ${matrixHTML(adj, t.adjLabel)}
+              </div>
+            </div>
+          </div>
+        `;
+
+        document.getElementById('controlsArea').style.display = 'flex';
+        document.getElementById('stepExplanation').style.display = 'flex';
+        // 重置步骤
+        detAdjStep = 0;
+        applyDetAdjStep();
+        updateButtons();
+      }
+
+      // 根据 detAdjStep 更新高亮和文字
+      function applyDetAdjStep() {
+        if (!detAdjMatrix) return;
+        const A = detAdjMatrix;
+        const a = A[0][0], b = A[0][1], c = A[0][2];
+        const d = A[1][0], e = A[1][1], f = A[1][2];
+        const g = A[2][0], h = A[2][1], i = A[2][2];
+
+        const t = i18n[currentLang];
+        const step = detAdjStep;
+
+        // 清除所有高亮
+        document.querySelectorAll('.cell').forEach(c => {
+          c.classList.remove('highlight', 'highlight-blue', 'highlight-green');
+        });
+
+        // 找到矩阵容器
+        const matrixDivs = document.querySelectorAll('.matrix');
+        const matrixA = matrixDivs[0];
+        const matrixAdj = matrixDivs[1]; // 伴随矩阵
+
+        // 辅助：给指定格子加类
+        function addClass(matrixEl, row, col, cls) {
+          if (!matrixEl) return;
+          const cell = matrixEl.querySelector(`.cell[data-i="${row}"][data-j="${col}"]`);
+          if (cell) cell.classList.add(cls);
+        }
+
+        // 更新 det 显示
+        const detValueEl = document.getElementById('detValue');
+        const det = a*(e*i - f*h) - b*(d*i - f*g) + c*(d*h - e*g);
+
+        // 步骤说明文字
+        const explanationEl = document.getElementById('stepExplanation');
+        let explanation = '';
+
+        // 计算伴随矩阵的值（用于后续显示）
+        const cof = [
+          [e*i - f*h, -(d*i - f*g), d*h - e*g],
+          [-(b*i - c*h), a*i - c*g, -(a*h - b*g)],
+          [b*f - c*e, -(a*f - c*d), a*e - b*d]
+        ];
+        const adj = [
+          [cof[0][0], cof[1][0], cof[2][0]],
+          [cof[0][1], cof[1][1], cof[2][1]],
+          [cof[0][2], cof[1][2], cof[2][2]]
+        ];
+
+        // 根据步骤设置高亮和说明
+        if (step === 0) {
+          explanation = t.detSteps[0] || '点击下一步开始';
+          detValueEl.textContent = `${t.detLabel} ?`;
+          // 高亮 a11, a12, a13
+          addClass(matrixA, 0, 0, 'highlight');
+          addClass(matrixA, 0, 1, 'highlight');
+          addClass(matrixA, 0, 2, 'highlight');
+        } else if (step === 1) {
+          explanation = t.detSteps[1] || '展开第一行';
+          // 高亮第一行
+          addClass(matrixA, 0, 0, 'highlight');
+          addClass(matrixA, 0, 1, 'highlight');
+          addClass(matrixA, 0, 2, 'highlight');
+          // 同时高亮余子式涉及的元素
+          // M11 涉及 e,f,h,i -> 位置 (1,1),(1,2),(2,1),(2,2)
+          addClass(matrixA, 1, 1, 'highlight-blue');
+          addClass(matrixA, 1, 2, 'highlight-blue');
+          addClass(matrixA, 2, 1, 'highlight-blue');
+          addClass(matrixA, 2, 2, 'highlight-blue');
+        } else if (step === 2) {
+          explanation = t.detSteps[2] || '计算 M₁₁';
+          addClass(matrixA, 1, 1, 'highlight-blue');
+          addClass(matrixA, 1, 2, 'highlight-blue');
+          addClass(matrixA, 2, 1, 'highlight-blue');
+          addClass(matrixA, 2, 2, 'highlight-blue');
+          // 高亮 a11
+          addClass(matrixA, 0, 0, 'highlight');
+        } else if (step === 3) {
+          explanation = t.detSteps[3] || '计算 M₁₂';
+          // M12 涉及 d,f,g,i -> (1,0),(1,2),(2,0),(2,2)
+          addClass(matrixA, 1, 0, 'highlight-blue');
+          addClass(matrixA, 1, 2, 'highlight-blue');
+          addClass(matrixA, 2, 0, 'highlight-blue');
+          addClass(matrixA, 2, 2, 'highlight-blue');
+          addClass(matrixA, 0, 1, 'highlight');
+        } else if (step === 4) {
+          explanation = t.detSteps[4] || '计算 M₁₃';
+          // M13 涉及 d,e,g,h -> (1,0),(1,1),(2,0),(2,1)
+          addClass(matrixA, 1, 0, 'highlight-blue');
+          addClass(matrixA, 1, 1, 'highlight-blue');
+          addClass(matrixA, 2, 0, 'highlight-blue');
+          addClass(matrixA, 2, 1, 'highlight-blue');
+          addClass(matrixA, 0, 2, 'highlight');
+        } else if (step === 5) {
+          explanation = t.detSteps[5] || '计算余子式';
+          // 高亮整个第一行和所有元素
+          addClass(matrixA, 0, 0, 'highlight');
+          addClass(matrixA, 0, 1, 'highlight');
+          addClass(matrixA, 0, 2, 'highlight');
+          // 显示余子式值
+          explanation += ` M₁₁=${e*i - f*h}, M₁₂=${d*i - f*g}, M₁₃=${d*h - e*g}`;
+        } else if (step === 6) {
+          explanation = t.detSteps[6] || '计算 det(A)';
+          detValueEl.textContent = `${t.detLabel} ${det}`;
+          // 高亮所有元素
+          for (let r = 0; r < 3; r++) for (let c = 0; c < 3; c++) addClass(matrixA, r, c, 'highlight');
+        } else if (step === 7) {
+          explanation = (t.detSteps[7] || 'det(A) = ') + det;
+          detValueEl.textContent = `${t.detLabel} ${det}`;
+        } else if (step === 8) {
+          explanation = t.detSteps[8] || '伴随矩阵';
+          // 高亮整个矩阵A
+          for (let r = 0; r < 3; r++) for (let c = 0; c < 3; c++) addClass(matrixA, r, c, 'highlight');
+        } else if (step >= 9 && step <= 17) {
+          // 步骤9~17 计算9个余子式
+          const minorIndex = step - 9; // 0~8
+          const row = Math.floor(minorIndex / 3);
+          const col = minorIndex % 3;
+          // 对应的余子式行列（排除row行和col列）
+          const minorRows = [0,1,2].filter(r => r !== row);
+          const minorCols = [0,1,2].filter(c => c !== col);
+          // 高亮被排除的行和列（灰色？不好，我们用蓝色高亮余子式涉及的元素）
+          // 高亮余子式区域的元素
+          minorRows.forEach(r => {
+            minorCols.forEach(c => {
+              addClass(matrixA, r, c, 'highlight-blue');
+            });
+          });
+          // 高亮当前元素
+          addClass(matrixA, row, col, 'highlight');
+          // 同时高亮伴随矩阵中对应位置
+          addClass(matrixAdj, col, row, 'highlight-green'); // 注意伴随矩阵是转置的，所以位置是(col, row)吗？adj[i][j] = cof[j][i]
+          // 实际上伴随矩阵 adj[col][row]? 对于M_ij，余子式C_ij，伴随矩阵第j行第i列是C_ij。
+          // 所以伴随矩阵位置 (j, i) 对应 C_ij
+          // 这里 row=i, col=j, 所以伴随矩阵位置是 (col, row)
+          // 但是我们的伴随矩阵容器是 matrixAdj，它包含的cell索引是正常的i,j
+          // 所以我们要高亮伴随矩阵的 (col, row) 位置
+          addClass(matrixAdj, col, row, 'highlight-green');
+
+          const minorVal = A[minorRows[0]][minorCols[0]] * A[minorRows[1]][minorCols[1]] 
+                         - A[minorRows[0]][minorCols[1]] * A[minorRows[1]][minorCols[0]];
+          // 注意符号
+          const sign = ((row + col) % 2 === 0) ? 1 : -1;
+          const cofactor = sign * minorVal;
+          explanation = `${t.detSteps[step] || ''} M${toSub(row+1)}${toSub(col+1)} = ${minorVal}, C${toSub(row+1)}${toSub(col+1)} = ${cofactor}`;
+        } else if (step === 18) {
+          explanation = t.detSteps[18] || '构造余子式矩阵并转置';
+          // 高亮整个伴随矩阵
+          for (let r = 0; r < 3; r++) for (let c = 0; c < 3; c++) addClass(matrixAdj, r, c, 'highlight-green');
+          // 高亮矩阵A
+          for (let r = 0; r < 3; r++) for (let c = 0; c < 3; c++) addClass(matrixA, r, c, 'highlight');
+          // 显示伴随矩阵的值
+          explanation += ` adj(A) = [[${adj[0].join(', ')}], [${adj[1].join(', ')}], [${adj[2].join(', ')}]]`;
+        } else if (step === 19) {
+          explanation = t.detSteps[19] || '伴随矩阵计算完成';
+          // 高亮所有
+          for (let r = 0; r < 3; r++) for (let c = 0; c < 3; c++) {
+            addClass(matrixA, r, c, 'highlight');
+            addClass(matrixAdj, r, c, 'highlight-green');
+          }
+          detValueEl.textContent = `${t.detLabel} ${det}`;
+        } else {
+          explanation = '';
+        }
+
+        // 设置说明文字
+        explanationEl.innerHTML = `<span>${explanation}</span>`;
+
+        // 更新步骤指示器
+        updateStepIndicator();
+        // 更新按钮
+        updateButtons();
+
+        // 产品展示区也更新为步骤说明（复用productDisplay）
+        const prodDisplay = document.getElementById('productDisplay');
+        prodDisplay.innerHTML = `<span class="product-term">${explanation}</span>`;
+      }
+
+      // ---------- 下一步/上一步/重置（根据模式分派）----------
+      function goNext() {
+        if (currentMode === 'det-adj-3x3') {
+          if (detAdjStep < DET_ADJ_TOTAL_STEPS - 1) {
+            detAdjStep++;
+            applyDetAdjStep();
+          }
+        } else {
+          if (currentStep < currentTotalSteps) {
+            currentStep++;
+            applyHighlights();
+            updateButtons();
+          }
+        }
+      }
+
+      function goPrev() {
+        if (currentMode === 'det-adj-3x3') {
+          if (detAdjStep > 0) {
+            detAdjStep--;
+            applyDetAdjStep();
+          }
+        } else {
+          if (currentStep > 0) {
+            currentStep--;
+            applyHighlights();
+            updateButtons();
+          }
+        }
+      }
+
+      function reset() {
+        if (currentMode === 'det-adj-3x3') {
+          detAdjStep = 0;
+          applyDetAdjStep();
+        } else {
+          currentStep = 0;
+          applyHighlights();
+          updateButtons();
+        }
+      }
+
+      // ---------- 模式切换 ----------
+      function switchMode(mode) {
+        currentMode = mode;
+        document.querySelectorAll('.nav-btn').forEach(btn => {
+          btn.classList.toggle('active', btn.dataset.mode === mode);
+        });
+
+        if (mode === 'det-adj-3x3') {
+          const A = randomMatrix(3,3);
+          renderDetAdj(A);
+        } else {
+          renderMultiplication(mode);
+        }
+      }
+
+      // ---------- 初始化 ----------
+      function init() {
+        updateUIText();
+
+        document.querySelectorAll('.nav-btn').forEach(btn => {
+          btn.addEventListener('click', (e) => {
+            const mode = e.currentTarget.dataset.mode;
+            if (mode) switchMode(mode);
+          });
+        });
+
+        document.getElementById('nextBtn').addEventListener('click', goNext);
+        document.getElementById('prevBtn').addEventListener('click', goPrev);
+        document.getElementById('resetBtn').addEventListener('click', reset);
+
+        switchMode('mult-3x3-3x3');
+      }
+
+      init();
+    })();
+  </script>
+</body>
+</html>
