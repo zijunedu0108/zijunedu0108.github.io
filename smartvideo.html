@@ -1,0 +1,518 @@
+<!DOCTYPE html>
+<html lang="zh">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>手势控制 YouTube 播放器</title>
+  <style>
+    * { box-sizing: border-box; }
+    body { margin: 0; overflow: hidden; background: #0b0f1a; font-family: system-ui, sans-serif; display: flex; height: 100vh; }
+
+    /* 左侧：YouTube 播放器区域 */
+    #playerArea {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      background: #000;
+      position: relative;
+    }
+    #player { width: 100%; height: 100%; }
+    /* 评论区浮层 */
+    #commentPanel {
+      position: absolute;
+      top: 0; right: 0;
+      width: 380px; height: 100%;
+      background: rgba(8, 12, 22, 0.96);
+      border-left: 1px solid #1e2a3a;
+      display: none;
+      flex-direction: column;
+      z-index: 20;
+    }
+    #commentPanel.open { display: flex; }
+    #commentHeader {
+      padding: 14px 18px;
+      border-bottom: 1px solid #1e2a3a;
+      color: #fff; font-weight: 600; font-size: 16px;
+      display: flex; justify-content: space-between; align-items: center;
+    }
+    #commentCloseHint { font-size: 12px; color: #6b7f9e; font-weight: 400; }
+    #commentBody {
+      flex: 1; overflow-y: auto; padding: 12px 18px;
+      color: #b8c4d9; font-size: 14px; line-height: 1.6;
+    }
+    #commentBody p { margin: 8px 0; padding: 10px; background: #111a28; border-radius: 8px; }
+
+    /* 右侧：骨骼面板 */
+    #skeletonPanel {
+      width: 340px;
+      flex-shrink: 0;
+      background: #050810;
+      border-left: 1px solid #1e2a3a;
+      display: flex;
+      flex-direction: column;
+    }
+    #skeletonHeader {
+      padding: 12px 16px;
+      color: #00ffcc; font-size: 13px; font-weight: 600;
+      border-bottom: 1px solid #1e2a3a;
+      display: flex; justify-content: space-between;
+    }
+    #gestureStatus { color: #8fa0bb; font-weight: 400; font-size: 12px; }
+    #skeletonCanvas { flex: 1; width: 100%; display: block; }
+    #skeletonFooter {
+      padding: 10px 16px;
+      color: #5a6d8a; font-size: 11px; line-height: 1.6;
+      border-top: 1px solid #1e2a3a;
+    }
+
+    /* 启动遮罩 */
+    #startOverlay {
+      position: fixed; inset: 0; display: flex; flex-direction: column;
+      align-items: center; justify-content: center; gap: 16px;
+      background: rgba(5, 8, 18, 0.95); color: #fff; text-align: center;
+      z-index: 100; padding: 24px;
+    }
+    #startOverlay h1 { margin: 0; font-size: 32px; letter-spacing: 1px; }
+    #startOverlay p { margin: 0; max-width: 560px; line-height: 1.8; color: #b8c4d9; }
+    #startOverlay .hint { font-size: 13px; color: #6b7f9e; }
+    #startBtn {
+      margin-top: 8px; padding: 14px 40px; font-size: 18px; border: none; border-radius: 999px;
+      background: linear-gradient(135deg, #00ffcc, #00a3ff); color: #04101a; font-weight: 700;
+      cursor: pointer;
+    }
+    #startBtn:disabled { opacity: 0.5; cursor: wait; }
+    #toast {
+      position: fixed; bottom: 40px; left: 50%; transform: translateX(-50%);
+      background: rgba(0, 255, 204, 0.15); color: #00ffcc;
+      padding: 10px 28px; border-radius: 999px; font-size: 14px;
+      border: 1px solid rgba(0, 255, 204, 0.3);
+      opacity: 0; transition: opacity 0.3s; pointer-events: none; z-index: 200;
+    }
+    #toast.show { opacity: 1; }
+    #statusBar {
+      position: fixed; bottom: 0; left: 0; right: 0; height: 28px;
+      background: #050810; border-top: 1px solid #1e2a3a;
+      display: flex; align-items: center; padding: 0 16px;
+      color: #5a6d8a; font-size: 12px; z-index: 50;
+    }
+  </style>
+</head>
+<body>
+
+  <!-- 左侧播放器 -->
+  <div id="playerArea">
+    <div id="player"></div>
+    <!-- 评论区浮层 -->
+    <div id="commentPanel">
+      <div id="commentHeader">
+        <span>评论区</span>
+        <span id="commentCloseHint">✋ 张手关闭</span>
+      </div>
+      <div id="commentBody">
+        <p>这是模拟评论区。真实评论需要接入 YouTube Data API。</p>
+        <p>👋 张手可以关闭这个面板。</p>
+        <p>✊ 握拳重新打开。</p>
+        <p>👍 比 good 会触发点赞（当前版本仅显示提示）。</p>
+        <p>☝️ 食指上滑 → 下一个视频</p>
+        <p>☝️☝️ 食指连续上滑两次 → 上一个视频</p>
+      </div>
+    </div>
+  </div>
+
+  <!-- 右侧骨骼面板 -->
+  <div id="skeletonPanel">
+    <div id="skeletonHeader">
+      <span>骨骼追踪</span>
+      <span id="gestureStatus">等待手势…</span>
+    </div>
+    <canvas id="skeletonCanvas"></canvas>
+    <div id="skeletonFooter">
+      食指上滑 → 下一视频 · 连续上滑两次 → 上一视频<br>
+      👍 比 good → 点赞 · ✊ 握拳 → 评论区 · ✋ 张手 → 关闭
+    </div>
+  </div>
+
+  <!-- 启动遮罩 -->
+  <div id="startOverlay">
+    <h1>✋ 手势控制 YouTube</h1>
+    <p>
+      举起一只手面对摄像头。<br>
+      <b>食指上滑</b>切换下一个视频，<b>连续上滑两次</b>切回上一个。<br>
+      <b>比 good</b> 点赞，<b>握拳</b>打开评论区，<b>张手</b>关闭。
+    </p>
+    <p class="hint">需要摄像头权限。YouTube 播放器需要播放列表才能切换视频。</p>
+    <button id="startBtn" disabled>加载中…</button>
+  </div>
+
+  <div id="toast"></div>
+  <div id="statusBar">就绪</div>
+
+  <!-- MediaPipe -->
+  <script type="module">
+    import { HandLandmarker, FilesetResolver } from "https://cdn.jsdelivr.net/npm/@mediapipe/tasks-vision@0.10.0";
+
+    // ========== 配置 ==========
+    const PLAYLIST_ID = "YOUR_PLAYLIST_ID"; // ← 替换为你的 YouTube 播放列表 ID
+
+    // ========== DOM ==========
+    const skeletonCanvas = document.getElementById('skeletonCanvas');
+    const sCtx = skeletonCanvas.getContext('2d');
+    const gestureStatus = document.getElementById('gestureStatus');
+    const commentPanel = document.getElementById('commentPanel');
+    const startOverlay = document.getElementById('startOverlay');
+    const startBtn = document.getElementById('startBtn');
+    const toastEl = document.getElementById('toast');
+    const statusBar = document.getElementById('statusBar');
+
+    // ========== 手势状态 ==========
+    const state = {
+      fingerActive: false,
+      fingerX: 0.5,
+      fingerY: 0.5,
+      smoothY: 0.5,
+      // 滑动检测
+      swipeHistory: [],        // { y, t } 最近的位置记录
+      lastSwipeTime: 0,
+      swipeCooldown: 800,      // 两次滑动之间的冷却
+      // 双击上滑计数
+      upSwipeCount: 0,
+      lastUpSwipeTime: 0,
+      doubleSwipeWindow: 700,  // 两次上滑间隔在此窗口内算“两次”
+      // 手势锁
+      lastGesture: '',
+      gestureLockUntil: 0,
+      // 评论区状态
+      commentOpen: false,
+    };
+
+    // ========== MediaPipe ==========
+    let handLandmarker = null;
+    let videoEl = null;
+
+    async function initMediaPipe() {
+      const vision = await FilesetResolver.forVisionTasks(
+        "https://cdn.jsdelivr.net/npm/@mediapipe/tasks-vision@0.10.0/wasm"
+      );
+      handLandmarker = await HandLandmarker.createFromOptions(vision, {
+        baseOptions: {
+          modelAssetPath: "https://storage.googleapis.com/mediapipe-models/hand_landmarker/hand_landmarker/float16/1/hand_landmarker.task"
+        },
+        runningMode: "VIDEO",
+        numHands: 1
+      });
+
+      // 创建隐藏 video 用于摄像头
+      videoEl = document.createElement('video');
+      videoEl.playsInline = true;
+      videoEl.style.display = 'none';
+      document.body.appendChild(videoEl);
+
+      const stream = await navigator.mediaDevices.getUserMedia({ video: { width: 640, height: 480 } });
+      videoEl.srcObject = stream;
+      await videoEl.play();
+
+      // 调整骨骼 canvas 尺寸
+      skeletonCanvas.width = 340;
+      skeletonCanvas.height = skeletonCanvas.clientHeight || 400;
+    }
+
+    // ========== YouTube 播放器 ==========
+    let ytPlayer = null;
+    let ytReady = false;
+
+    function initYouTube() {
+      const tag = document.createElement('script');
+      tag.src = "https://www.youtube.com/iframe_api";
+      document.head.appendChild(tag);
+
+      window.onYouTubeIframeAPIReady = () => {
+        ytPlayer = new YT.Player('player', {
+          height: '100%',
+          width: '100%',
+          playerVars: {
+            listType: 'playlist',
+            list: PLAYLIST_ID,
+            autoplay: 0,
+            controls: 1,
+            rel: 0,
+          },
+          events: {
+            onReady: () => { ytReady = true; statusBar.textContent = 'YouTube 播放器就绪'; },
+            onError: (e) => { statusBar.textContent = '播放器错误: ' + e.data; }
+          }
+        });
+      };
+    }
+
+    // ========== 工具函数 ==========
+    function showToast(msg) {
+      toastEl.textContent = msg;
+      toastEl.classList.add('show');
+      clearTimeout(toastEl._timer);
+      toastEl._timer = setTimeout(() => toastEl.classList.remove('show'), 1500);
+    }
+
+    function distance(a, b) {
+      return Math.hypot(a.x - b.x, a.y - b.y);
+    }
+
+    // 手指弯曲度：指尖到指根距离 / 手指总长度（粗略）
+    // 返回 0~1，越小越弯曲
+    function fingerCurl(landmarks, mcpIdx, tipIdx) {
+      const mcp = landmarks[mcpIdx];
+      const tip = landmarks[tipIdx];
+      // 用手腕到 MCP 的距离作为手大小的参考
+      const wrist = landmarks[0];
+      const handSize = distance(wrist, mcp);
+      if (handSize < 0.01) return 1;
+      return distance(mcp, tip) / handSize;
+    }
+
+    // 判断手势
+    function detectGesture(lm) {
+      const thumbTip = lm[4];
+      const indexTip = lm[8];
+      const middleTip = lm[12];
+      const ringTip = lm[16];
+      const pinkyTip = lm[20];
+
+      // 弯曲度
+      const indexCurl = fingerCurl(lm, 5, 8);
+      const middleCurl = fingerCurl(lm, 9, 12);
+      const ringCurl = fingerCurl(lm, 13, 16);
+      const pinkyCurl = fingerCurl(lm, 17, 20);
+      const thumbCurl = fingerCurl(lm, 1, 4); // 拇指粗略
+
+      // 阈值（需要根据实际摄像头微调）
+      const CURLED = 0.7;   // 小于此值算弯曲
+      const EXTENDED = 1.0; // 大于此值算伸直
+
+      const indexExtended = indexCurl > EXTENDED;
+      const middleExtended = middleCurl > EXTENDED;
+      const ringExtended = ringCurl > EXTENDED;
+      const pinkyExtended = pinkyCurl > EXTENDED;
+
+      // 握拳：四指都弯曲
+      if (indexCurl < CURLED && middleCurl < CURLED && ringCurl < CURLED && pinkyCurl < CURLED) {
+        return 'fist';
+      }
+
+      // 张手：四指都伸直
+      if (indexExtended && middleExtended && ringExtended && pinkyExtended) {
+        return 'open';
+      }
+
+      // 比 good：拇指伸直，其余四指弯曲
+      // 拇指伸直：thumb tip 离 index MCP 较远
+      const thumbExtended = distance(thumbTip, lm[5]) > distance(lm[4], lm[2]) * 1.5;
+      if (thumbExtended && indexCurl < CURLED && middleCurl < CURLED && ringCurl < CURLED && pinkyCurl < CURLED) {
+        return 'thumbs_up';
+      }
+
+      // 食指伸出（用于滑动检测）
+      if (indexExtended && !middleExtended && !ringExtended && !pinkyExtended) {
+        return 'point';
+      }
+
+      return 'none';
+    }
+
+    // ========== 滑动检测 ==========
+    function processSwipe(gesture, lm, now) {
+      if (gesture !== 'point' || !lm) return;
+
+      const indexTip = lm[8];
+      // 镜像：摄像头 x 翻转
+      const nx = 1 - indexTip.x;
+      const ny = indexTip.y;
+
+      state.swipeHistory.push({ y: ny, t: now });
+      // 只保留最近 300ms 的记录
+      while (state.swipeHistory.length > 0 && now - state.swipeHistory[0].t > 300) {
+        state.swipeHistory.shift();
+      }
+
+      if (state.swipeHistory.length < 3) return;
+
+      const oldest = state.swipeHistory[0];
+      const newest = state.swipeHistory[state.swipeHistory.length - 1];
+      const dy = newest.y - oldest.y;
+      const dt = newest.t - oldest.t;
+
+      // 滑动阈值：y 变化超过 0.12，时间不超过 300ms
+      if (Math.abs(dy) < 0.12 || dt > 300 || dt < 30) return;
+
+      // 冷却
+      if (now - state.lastSwipeTime < state.swipeCooldown) return;
+
+      if (dy < 0) {
+        // 向上滑（y 减小）
+        state.lastSwipeTime = now;
+        state.swipeHistory = [];
+
+        // 检查是否在双击窗口内
+        if (state.upSwipeCount > 0 && now - state.lastUpSwipeTime < state.doubleSwipeWindow) {
+          // 两次上滑 → 上一个视频
+          state.upSwipeCount = 0;
+          if (ytReady && ytPlayer && ytPlayer.previousVideo) {
+            ytPlayer.previousVideo();
+            showToast('⏮ 上一个视频');
+          }
+        } else {
+          // 第一次上滑 → 记录，延迟执行“下一个”
+          state.upSwipeCount = 1;
+          state.lastUpSwipeTime = now;
+          // 延迟 doubleSwipeWindow 后，如果没等到第二次上滑，就执行“下一个”
+          setTimeout(() => {
+            if (state.upSwipeCount === 1 && performance.now() - state.lastUpSwipeTime >= state.doubleSwipeWindow - 50) {
+              state.upSwipeCount = 0;
+              if (ytReady && ytPlayer && ytPlayer.nextVideo) {
+                ytPlayer.nextVideo();
+                showToast('⏭ 下一个视频');
+              }
+            }
+          }, state.doubleSwipeWindow);
+        }
+      }
+    }
+
+    // ========== 主检测循环 ==========
+    function detectLoop() {
+      if (!handLandmarker || !videoEl || !videoEl.videoWidth) {
+        requestAnimationFrame(detectLoop);
+        return;
+      }
+
+      const results = handLandmarker.detectForVideo(videoEl, performance.now());
+      const lm = results.landmarks?.[0];
+      const now = performance.now();
+
+      // 清空骨骼 canvas
+      sCtx.clearRect(0, 0, skeletonCanvas.width, skeletonCanvas.height);
+
+      if (lm) {
+        // 绘制骨骼
+        const w = skeletonCanvas.width;
+        const h = skeletonCanvas.height;
+
+        const HAND_CONNECTIONS = [
+          [0,1],[1,2],[2,3],[3,4],
+          [0,5],[5,6],[6,7],[7,8],
+          [5,9],[9,10],[10,11],[11,12],
+          [9,13],[13,14],[14,15],[15,16],
+          [13,17],[17,18],[18,19],[19,20],[0,17]
+        ];
+
+        // 画线
+        for (const [i, j] of HAND_CONNECTIONS) {
+          const p1 = lm[i], p2 = lm[j];
+          sCtx.beginPath();
+          sCtx.moveTo((1 - p1.x) * w, p1.y * h);
+          sCtx.lineTo((1 - p2.x) * w, p2.y * h);
+          sCtx.strokeStyle = 'rgba(0,255,204,0.4)';
+          sCtx.lineWidth = 2;
+          sCtx.stroke();
+        }
+        // 画点
+        for (const p of lm) {
+          sCtx.beginPath();
+          sCtx.arc((1 - p.x) * w, p.y * h, 3, 0, Math.PI * 2);
+          sCtx.fillStyle = 'rgba(0,255,204,0.8)';
+          sCtx.fill();
+        }
+
+        // 手势识别
+        const gesture = detectGesture(lm);
+
+        // 更新指尖位置
+        state.fingerActive = true;
+        state.fingerX = 1 - lm[8].x;
+        state.fingerY = lm[8].y;
+
+        // 手势锁：防止张手/握拳连续触发
+        const locked = now < state.gestureLockUntil;
+
+        if (!locked) {
+          // 握拳 → 打开评论区
+          if (gesture === 'fist' && !state.commentOpen) {
+            state.commentOpen = true;
+            commentPanel.classList.add('open');
+            gestureStatus.textContent = '✊ 打开评论区';
+            state.gestureLockUntil = now + 1200;
+            showToast('✊ 评论区已打开');
+          }
+          // 张手 → 关闭评论区
+          else if (gesture === 'open' && state.commentOpen) {
+            state.commentOpen = false;
+            commentPanel.classList.remove('open');
+            gestureStatus.textContent = '✋ 关闭评论区';
+            state.gestureLockUntil = now + 1200;
+            showToast('✋ 评论区已关闭');
+          }
+          // 比 good → 点赞
+          else if (gesture === 'thumbs_up') {
+            gestureStatus.textContent = '👍 点赞';
+            state.gestureLockUntil = now + 1500;
+            showToast('👍 已点赞（模拟）');
+          }
+        }
+
+        // 滑动检测（始终运行，但受冷却约束）
+        processSwipe(gesture, lm, now);
+
+        // 更新状态文字（如果没有被手势锁覆盖）
+        if (locked) {
+          // 保持当前文字
+        } else if (gesture === 'point') {
+          gestureStatus.textContent = '☝️ 滑动切换';
+        } else if (gesture === 'none') {
+          gestureStatus.textContent = '等待手势…';
+        }
+
+      } else {
+        state.fingerActive = false;
+        gestureStatus.textContent = '未检测到手';
+      }
+
+      requestAnimationFrame(detectLoop);
+    }
+
+    // ========== 启动 ==========
+    startBtn.addEventListener('click', async () => {
+      startBtn.disabled = true;
+      startBtn.textContent = '初始化…';
+      try {
+        await initMediaPipe();
+        initYouTube();
+
+        startOverlay.style.display = 'none';
+        statusBar.textContent = '手势控制已激活';
+
+        // 启动检测
+        requestAnimationFrame(detectLoop);
+
+        // 调整 canvas 高度
+        setTimeout(() => {
+          skeletonCanvas.height = skeletonCanvas.clientHeight;
+        }, 100);
+
+      } catch (err) {
+        console.error(err);
+        startBtn.textContent = '初始化失败：' + err.message;
+        startBtn.disabled = false;
+      }
+    });
+
+    // 初始按钮状态
+    startBtn.textContent = '开始手势控制';
+    startBtn.disabled = false;
+
+    // 窗口大小变化时调整 canvas
+    window.addEventListener('resize', () => {
+      skeletonCanvas.width = 340;
+      skeletonCanvas.height = skeletonCanvas.clientHeight;
+    });
+
+  </script>
+</body>
+</html>
