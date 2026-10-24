@@ -1,0 +1,955 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=yes">
+  <title>Zijun 智能导航</title>
+  <!-- Favicon 和图标 -->
+  <link rel="icon" href="zijunlogo.png" type="image/png">
+  <link rel="apple-touch-icon" href="zijunlogo.png">
+  <!-- 字体与图标库 (Font Awesome 用于图标) -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+      font-family: system-ui, -apple-system, 'Segoe UI', Roboto, 'Helvetica Neue', sans-serif;
+    }
+
+    body {
+      background: #e8ecf1;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      min-height: 100vh;
+      padding: 16px;
+    }
+
+    /* 导航卡片主容器 */
+    .nav-app {
+      max-width: 1280px;
+      width: 100%;
+      background: #ffffff;
+      border-radius: 32px;
+      box-shadow: 0 20px 40px rgba(0, 20, 40, 0.15);
+      overflow: hidden;
+      display: flex;
+      flex-direction: column;
+    }
+
+    /* 头部 */
+    .app-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 16px 24px;
+      background: #ffffff;
+      border-bottom: 1px solid #eef2f6;
+    }
+
+    .logo-area {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+
+    .logo-area img {
+      width: 40px;
+      height: 40px;
+      border-radius: 12px;
+      object-fit: cover;
+      background: #f0f4fa;
+      box-shadow: 0 2px 6px rgba(0, 0, 0, 0.05);
+    }
+
+    .logo-area h1 {
+      font-size: 1.5rem;
+      font-weight: 600;
+      color: #1a2639;
+      letter-spacing: -0.3px;
+    }
+
+    .logo-area h1 span {
+      color: #2e7dff;
+      font-weight: 700;
+    }
+
+    .header-actions {
+      display: flex;
+      gap: 12px;
+      align-items: center;
+    }
+
+    .icon-btn {
+      background: #f5f9ff;
+      border: none;
+      width: 44px;
+      height: 44px;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 1.25rem;
+      color: #2e475d;
+      cursor: pointer;
+      transition: all 0.2s ease;
+    }
+
+    .icon-btn:hover {
+      background: #e2edff;
+      color: #1a6aff;
+      transform: scale(1.02);
+    }
+
+    /* 主体内容区 - 使用弹性布局 */
+    .app-main {
+      display: flex;
+      flex: 1;
+      min-height: 600px;
+      background: #fafcff;
+    }
+
+    /* 左侧面板 (搜索/路线等控件) */
+    .left-panel {
+      width: 380px;
+      background: #ffffff;
+      border-right: 1px solid #eef2f6;
+      display: flex;
+      flex-direction: column;
+      padding: 20px 16px 16px 16px;
+      overflow-y: auto;
+      max-height: 680px;
+    }
+
+    .search-section {
+      margin-bottom: 20px;
+    }
+
+    .search-box {
+      display: flex;
+      align-items: center;
+      background: #f2f6fc;
+      border-radius: 24px;
+      padding: 4px 8px 4px 16px;
+      border: 1px solid transparent;
+      transition: 0.2s;
+    }
+
+    .search-box:focus-within {
+      border-color: #2e7dff;
+      background: #ffffff;
+      box-shadow: 0 0 0 3px rgba(46, 125, 255, 0.1);
+    }
+
+    .search-box i {
+      color: #7a8f9f;
+      font-size: 1rem;
+    }
+
+    .search-box input {
+      flex: 1;
+      border: none;
+      background: transparent;
+      padding: 12px 10px;
+      font-size: 0.95rem;
+      outline: none;
+      color: #1a2639;
+    }
+
+    .search-box input::placeholder {
+      color: #95a9b9;
+    }
+
+    .search-box button {
+      background: #2e7dff;
+      border: none;
+      border-radius: 20px;
+      padding: 8px 18px;
+      color: white;
+      font-weight: 500;
+      font-size: 0.9rem;
+      cursor: pointer;
+      transition: background 0.2s;
+      white-space: nowrap;
+    }
+
+    .search-box button:hover {
+      background: #1a5ae0;
+    }
+
+    /* 路线信息卡片 */
+    .route-card {
+      background: #f8fbff;
+      border-radius: 20px;
+      padding: 18px 16px;
+      margin-bottom: 18px;
+      border: 1px solid #e3ecf5;
+    }
+
+    .route-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 12px;
+    }
+
+    .route-header h3 {
+      font-size: 1rem;
+      font-weight: 600;
+      color: #1a2b3e;
+    }
+
+    .badge {
+      background: #d9eaff;
+      color: #1a6aff;
+      font-size: 0.7rem;
+      font-weight: 600;
+      padding: 4px 10px;
+      border-radius: 30px;
+      letter-spacing: 0.2px;
+    }
+
+    .route-info {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 16px;
+    }
+
+    .route-time {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .route-time i {
+      color: #2e7dff;
+      font-size: 1.1rem;
+    }
+
+    .route-time .value {
+      font-size: 1.5rem;
+      font-weight: 700;
+      color: #0e1e2f;
+    }
+
+    .route-time .unit {
+      font-size: 0.8rem;
+      color: #5e7385;
+      font-weight: 400;
+    }
+
+    .traffic-tag {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      background: #fff1e0;
+      padding: 6px 12px;
+      border-radius: 40px;
+      color: #b85e00;
+      font-size: 0.75rem;
+      font-weight: 600;
+    }
+
+    .traffic-tag i {
+      font-size: 0.8rem;
+    }
+
+    .traffic-tag.slow {
+      background: #ffe6e6;
+      color: #c0392b;
+    }
+
+    .traffic-tag.medium {
+      background: #fff0d9;
+      color: #b85e00;
+    }
+
+    .route-distance {
+      font-size: 0.85rem;
+      color: #5a6f80;
+      display: flex;
+      gap: 12px;
+    }
+
+    .route-distance i {
+      margin-right: 4px;
+      color: #7b93a8;
+    }
+
+    /* 替代路线 */
+    .alternatives {
+      margin-bottom: 18px;
+    }
+
+    .section-title {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 12px;
+    }
+
+    .section-title h3 {
+      font-size: 0.95rem;
+      font-weight: 600;
+      color: #1d2e40;
+    }
+
+    .section-title a {
+      color: #2e7dff;
+      font-size: 0.8rem;
+      font-weight: 500;
+      text-decoration: none;
+      cursor: pointer;
+    }
+
+    .alt-item {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      background: #ffffff;
+      border: 1px solid #e9f0f7;
+      border-radius: 16px;
+      padding: 12px 14px;
+      margin-bottom: 8px;
+      transition: 0.15s;
+      cursor: pointer;
+    }
+
+    .alt-item:hover {
+      border-color: #b8d3ff;
+      background: #f9fcff;
+    }
+
+    .alt-item .alt-left {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+
+    .alt-item .alt-left i {
+      color: #2e7dff;
+      font-size: 1rem;
+    }
+
+    .alt-left .alt-info .alt-name {
+      font-size: 0.9rem;
+      font-weight: 500;
+      color: #1a2b3e;
+    }
+
+    .alt-left .alt-info .alt-desc {
+      font-size: 0.75rem;
+      color: #7b8f9f;
+      display: flex;
+      gap: 8px;
+      margin-top: 4px;
+    }
+
+    .alt-right {
+      font-weight: 600;
+      color: #2e7dff;
+      font-size: 0.9rem;
+    }
+
+    /* 加油站 & 餐厅 快捷入口 */
+    .quick-actions {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 12px;
+      margin-bottom: 20px;
+    }
+
+    .qa-btn {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      gap: 6px;
+      background: #ffffff;
+      border: 1px solid #e2ebf3;
+      border-radius: 18px;
+      padding: 14px 8px;
+      cursor: pointer;
+      transition: 0.2s;
+    }
+
+    .qa-btn i {
+      font-size: 1.6rem;
+      color: #2e7dff;
+    }
+
+    .qa-btn span {
+      font-size: 0.8rem;
+      font-weight: 500;
+      color: #2e4052;
+    }
+
+    .qa-btn:hover {
+      background: #f0f7ff;
+      border-color: #aac8ff;
+    }
+
+    /* 附近推荐列表 */
+    .nearby-list {
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+    }
+
+    .nearby-item {
+      display: flex;
+      align-items: center;
+      gap: 14px;
+      background: #ffffff;
+      border-radius: 16px;
+      padding: 10px 12px;
+      border: 1px solid #edf2f8;
+      transition: 0.15s;
+      cursor: pointer;
+    }
+
+    .nearby-item:hover {
+      background: #f7fbff;
+      border-color: #cde0ff;
+    }
+
+    .nearby-icon {
+      width: 44px;
+      height: 44px;
+      background: #e9f1ff;
+      border-radius: 14px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: #2e7dff;
+      font-size: 1.2rem;
+    }
+
+    .nearby-info {
+      flex: 1;
+    }
+
+    .nearby-info h4 {
+      font-size: 0.9rem;
+      font-weight: 600;
+      color: #1d2e3f;
+    }
+
+    .nearby-info p {
+      font-size: 0.7rem;
+      color: #7d92a4;
+      display: flex;
+      gap: 10px;
+      margin-top: 3px;
+    }
+
+    .nearby-distance {
+      font-size: 0.75rem;
+      font-weight: 600;
+      color: #5a7b9a;
+    }
+
+    /* 右侧地图区域 (模拟) */
+    .map-panel {
+      flex: 1;
+      background: #e4ecf5;
+      position: relative;
+      overflow: hidden;
+      display: flex;
+      flex-direction: column;
+      min-height: 600px;
+      background-image: 
+        linear-gradient(rgba(200, 220, 240, 0.3) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(200, 220, 240, 0.3) 1px, transparent 1px);
+      background-size: 40px 40px;
+      background-color: #d9e4f0;
+    }
+
+    /* 模拟地图上的道路 */
+    .road-horizontal {
+      position: absolute;
+      top: 45%;
+      left: 0;
+      width: 100%;
+      height: 16px;
+      background: #cfddee;
+      border-radius: 8px;
+      border: 1px solid #b6c9dd;
+      box-shadow: inset 0 1px 3px rgba(255, 255, 255, 0.7);
+    }
+
+    .road-vertical {
+      position: absolute;
+      left: 40%;
+      top: 0;
+      width: 16px;
+      height: 100%;
+      background: #cfddee;
+      border-radius: 8px;
+      border: 1px solid #b6c9dd;
+      box-shadow: inset 1px 0 3px rgba(255, 255, 255, 0.7);
+    }
+
+    .road-diagonal {
+      position: absolute;
+      top: 20%;
+      left: 10%;
+      width: 80%;
+      height: 12px;
+      background: #c2d4e8;
+      transform: rotate(25deg);
+      border-radius: 8px;
+      border: 1px solid #aec2d8;
+    }
+
+    .road-diagonal-2 {
+      position: absolute;
+      bottom: 20%;
+      right: 10%;
+      width: 70%;
+      height: 12px;
+      background: #c2d4e8;
+      transform: rotate(-15deg);
+      border-radius: 8px;
+      border: 1px solid #aec2d8;
+    }
+
+    /* 标记点 (POI) */
+    .map-marker {
+      position: absolute;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      z-index: 10;
+    }
+
+    .marker-icon {
+      background: #ffffff;
+      width: 40px;
+      height: 40px;
+      border-radius: 50% 50% 50% 0;
+      transform: rotate(-45deg);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      box-shadow: 0 6px 14px rgba(0, 0, 0, 0.15);
+      border: 2px solid white;
+    }
+
+    .marker-icon i {
+      transform: rotate(45deg);
+      font-size: 1.2rem;
+      color: #2e7dff;
+    }
+
+    .marker-icon.gas i {
+      color: #f39c12;
+    }
+
+    .marker-icon.food i {
+      color: #e74c3c;
+    }
+
+    .marker-icon.home i {
+      color: #27ae60;
+    }
+
+    .marker-label {
+      background: rgba(0, 0, 0, 0.7);
+      backdrop-filter: blur(4px);
+      color: white;
+      font-size: 0.7rem;
+      padding: 2px 8px;
+      border-radius: 20px;
+      margin-top: 6px;
+      white-space: nowrap;
+      font-weight: 500;
+      letter-spacing: 0.2px;
+      box-shadow: 0 2px 6px rgba(0,0,0,0.2);
+    }
+
+    /* 具体位置 */
+    .marker-home {
+      top: 30%;
+      left: 15%;
+    }
+
+    .marker-work {
+      top: 60%;
+      left: 70%;
+    }
+
+    .marker-gas {
+      top: 18%;
+      left: 65%;
+    }
+
+    .marker-food {
+      top: 75%;
+      left: 25%;
+    }
+
+    .marker-food2 {
+      top: 50%;
+      left: 85%;
+    }
+
+    /* 地图上的路线路径 (模拟) */
+    .route-path {
+      position: absolute;
+      top: 32%;
+      left: 18%;
+      width: 58%;
+      height: 40px;
+      border-bottom: 5px dashed #2e7dff;
+      border-radius: 0 0 40px 40px;
+      transform: rotate(8deg);
+      opacity: 0.6;
+      z-index: 5;
+      pointer-events: none;
+    }
+
+    .route-path-2 {
+      position: absolute;
+      top: 60%;
+      left: 68%;
+      width: 20%;
+      height: 30px;
+      border-bottom: 5px dashed #ff8c42;
+      border-radius: 0 0 40px 40px;
+      transform: rotate(-12deg);
+      opacity: 0.6;
+      z-index: 5;
+    }
+
+    /* 地图控件 */
+    .map-controls {
+      position: absolute;
+      bottom: 20px;
+      right: 20px;
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+      z-index: 20;
+    }
+
+    .map-control-btn {
+      background: white;
+      border: none;
+      width: 48px;
+      height: 48px;
+      border-radius: 16px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 1.2rem;
+      color: #2e4052;
+      box-shadow: 0 6px 18px rgba(0, 0, 0, 0.12);
+      cursor: pointer;
+      transition: 0.2s;
+    }
+
+    .map-control-btn:hover {
+      background: #f2f8ff;
+      color: #1a6aff;
+    }
+
+    /* 比例尺/信息 */
+    .map-scale {
+      position: absolute;
+      bottom: 20px;
+      left: 20px;
+      background: rgba(255, 255, 255, 0.85);
+      backdrop-filter: blur(8px);
+      padding: 6px 14px;
+      border-radius: 30px;
+      font-size: 0.7rem;
+      font-weight: 500;
+      color: #2e4b66;
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+      z-index: 20;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .map-scale i {
+      color: #2e7dff;
+    }
+
+    /* 滚动条美化 */
+    .left-panel::-webkit-scrollbar {
+      width: 5px;
+    }
+
+    .left-panel::-webkit-scrollbar-track {
+      background: #f0f4fa;
+      border-radius: 10px;
+    }
+
+    .left-panel::-webkit-scrollbar-thumb {
+      background: #bdd1e8;
+      border-radius: 10px;
+    }
+
+    /* 响应式 */
+    @media (max-width: 900px) {
+      .app-main {
+        flex-direction: column;
+      }
+
+      .left-panel {
+        width: 100%;
+        border-right: none;
+        border-bottom: 1px solid #eef2f6;
+        max-height: 500px;
+      }
+
+      .map-panel {
+        min-height: 400px;
+      }
+
+      .logo-area h1 {
+        font-size: 1.2rem;
+      }
+    }
+
+    @media (max-width: 500px) {
+      .quick-actions {
+        grid-template-columns: 1fr 1fr;
+      }
+
+      .search-box button {
+        padding: 8px 12px;
+        font-size: 0.8rem;
+      }
+
+      .app-header {
+        padding: 12px 16px;
+      }
+
+      .logo-area img {
+        width: 34px;
+        height: 34px;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="nav-app">
+    <!-- 头部: 图标+标题 -->
+    <header class="app-header">
+      <div class="logo-area">
+        <img src="zijunlogo.png" alt="Zijun Logo" onerror="this.src='data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22%3E%3Crect width=%22100%22 height=%22100%22 rx=%2220%22 fill=%22%232e7dff%22/%3E%3Ctext x=%2250%22 y=%2268%22 font-size=%2258%22 text-anchor=%22middle%22 fill=%22white%22 font-weight=%22bold%22%3EZ%3C/text%3E%3C/svg%3E'">
+        <h1>Zijun <span>导航</span></h1>
+      </div>
+      <div class="header-actions">
+        <button class="icon-btn" aria-label="搜索"><i class="fas fa-search"></i></button>
+        <button class="icon-btn" aria-label="设置"><i class="fas fa-sliders-h"></i></button>
+      </div>
+    </header>
+
+    <!-- 主体 -->
+    <div class="app-main">
+      <!-- 左侧控制区 -->
+      <div class="left-panel">
+        <!-- 搜索框 -->
+        <div class="search-section">
+          <div class="search-box">
+            <i class="fas fa-map-marker-alt"></i>
+            <input type="text" placeholder="搜索地点、地址或类别" value="公司">
+            <button>路线</button>
+          </div>
+        </div>
+
+        <!-- 当前路线信息 (时间, 堵车) -->
+        <div class="route-card">
+          <div class="route-header">
+            <h3>推荐路线</h3>
+            <span class="badge">最快</span>
+          </div>
+          <div class="route-info">
+            <div class="route-time">
+              <i class="fas fa-clock"></i>
+              <span class="value">23</span>
+              <span class="unit">分钟</span>
+            </div>
+            <div class="traffic-tag medium">
+              <i class="fas fa-traffic-light"></i> 轻微拥堵
+            </div>
+          </div>
+          <div class="route-distance">
+            <span><i class="fas fa-road"></i> 12.8 km</span>
+            <span><i class="fas fa-toll"></i> 收费 ¥15</span>
+            <span><i class="fas fa-gas-pump"></i> 剩余 320km</span>
+          </div>
+        </div>
+
+        <!-- 替代路线 -->
+        <div class="alternatives">
+          <div class="section-title">
+            <h3>替代路线</h3>
+            <a>查看全部</a>
+          </div>
+          <div class="alt-item">
+            <div class="alt-left">
+              <i class="fas fa-route"></i>
+              <div class="alt-info">
+                <div class="alt-name">避开高速</div>
+                <div class="alt-desc">
+                  <span><i class="fas fa-clock"></i> 28分钟</span>
+                  <span><i class="fas fa-road"></i> 14.2 km</span>
+                </div>
+              </div>
+            </div>
+            <div class="alt-right">+5min</div>
+          </div>
+          <div class="alt-item">
+            <div class="alt-left">
+              <i class="fas fa-tree"></i>
+              <div class="alt-info">
+                <div class="alt-name">风景路线</div>
+                <div class="alt-desc">
+                  <span><i class="fas fa-clock"></i> 35分钟</span>
+                  <span><i class="fas fa-road"></i> 16.5 km</span>
+                </div>
+              </div>
+            </div>
+            <div class="alt-right">+12min</div>
+          </div>
+        </div>
+
+        <!-- 加油站 & 餐厅 快捷按钮 -->
+        <div class="quick-actions">
+          <div class="qa-btn">
+            <i class="fas fa-gas-pump"></i>
+            <span>加油站</span>
+          </div>
+          <div class="qa-btn">
+            <i class="fas fa-utensils"></i>
+            <span>餐厅</span>
+          </div>
+        </div>
+
+        <!-- 附近推荐 (加油站和餐厅列表) -->
+        <div class="section-title">
+          <h3>附近推荐</h3>
+          <a>更多</a>
+        </div>
+        <div class="nearby-list">
+          <!-- 加油站 -->
+          <div class="nearby-item">
+            <div class="nearby-icon">
+              <i class="fas fa-gas-pump"></i>
+            </div>
+            <div class="nearby-info">
+              <h4>中石化加油站</h4>
+              <p><span><i class="fas fa-clock"></i> 24小时</span> <span><i class="fas fa-star"></i> 4.8</span></p>
+            </div>
+            <div class="nearby-distance">350m</div>
+          </div>
+          <!-- 餐厅 -->
+          <div class="nearby-item">
+            <div class="nearby-icon">
+              <i class="fas fa-utensils"></i>
+            </div>
+            <div class="nearby-info">
+              <h4>老四川餐厅</h4>
+              <p><span><i class="fas fa-clock"></i> 营业中</span> <span><i class="fas fa-star"></i> 4.6</span></p>
+            </div>
+            <div class="nearby-distance">200m</div>
+          </div>
+          <!-- 另一个加油站 -->
+          <div class="nearby-item">
+            <div class="nearby-icon">
+              <i class="fas fa-gas-pump"></i>
+            </div>
+            <div class="nearby-info">
+              <h4>Shell 加油站</h4>
+              <p><span><i class="fas fa-clock"></i> 24小时</span> <span><i class="fas fa-star"></i> 4.5</span></p>
+            </div>
+            <div class="nearby-distance">600m</div>
+          </div>
+          <!-- 咖啡/简餐 -->
+          <div class="nearby-item">
+            <div class="nearby-icon">
+              <i class="fas fa-coffee"></i>
+            </div>
+            <div class="nearby-info">
+              <h4>Zijun 咖啡</h4>
+              <p><span><i class="fas fa-clock"></i> 营业中</span> <span><i class="fas fa-star"></i> 4.9</span></p>
+            </div>
+            <div class="nearby-distance">150m</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- 右侧地图区域 (模拟) -->
+      <div class="map-panel">
+        <!-- 模拟道路网络 -->
+        <div class="road-horizontal"></div>
+        <div class="road-vertical"></div>
+        <div class="road-diagonal"></div>
+        <div class="road-diagonal-2"></div>
+
+        <!-- 路线路径模拟 -->
+        <div class="route-path"></div>
+        <div class="route-path-2"></div>
+
+        <!-- 地图标记 -->
+        <!-- 家 -->
+        <div class="map-marker marker-home">
+          <div class="marker-icon home">
+            <i class="fas fa-home"></i>
+          </div>
+          <div class="marker-label">我的位置</div>
+        </div>
+        <!-- 公司 -->
+        <div class="map-marker marker-work">
+          <div class="marker-icon">
+            <i class="fas fa-building"></i>
+          </div>
+          <div class="marker-label">公司</div>
+        </div>
+        <!-- 加油站 -->
+        <div class="map-marker marker-gas">
+          <div class="marker-icon gas">
+            <i class="fas fa-gas-pump"></i>
+          </div>
+          <div class="marker-label">中石化</div>
+        </div>
+        <!-- 餐厅 -->
+        <div class="map-marker marker-food">
+          <div class="marker-icon food">
+            <i class="fas fa-utensils"></i>
+          </div>
+          <div class="marker-label">老四川</div>
+        </div>
+        <!-- 另一餐厅 -->
+        <div class="map-marker marker-food2">
+          <div class="marker-icon food">
+            <i class="fas fa-coffee"></i>
+          </div>
+          <div class="marker-label">咖啡</div>
+        </div>
+
+        <!-- 地图上的控件 -->
+        <div class="map-controls">
+          <button class="map-control-btn" aria-label="定位"><i class="fas fa-location-arrow"></i></button>
+          <button class="map-control-btn" aria-label="图层"><i class="fas fa-layer-group"></i></button>
+          <button class="map-control-btn" aria-label="路况"><i class="fas fa-traffic-light"></i></button>
+        </div>
+
+        <!-- 比例尺/状态栏 -->
+        <div class="map-scale">
+          <i class="fas fa-traffic-light"></i> 路况：畅通
+          <span style="width:1px; height:14px; background:#ccdae8;"></span>
+          <i class="fas fa-map-marked-alt"></i> 缩放 1:2000
+        </div>
+      </div>
+    </div>
+  </div>
+</body>
+</html>
