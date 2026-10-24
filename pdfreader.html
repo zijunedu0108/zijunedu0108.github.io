@@ -1,0 +1,541 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+<title>PDF 阅读 · 画笔 & 高亮</title>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/2.16.105/pdf.min.js"></script>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
+  html, body {
+    height: 100%; overflow: hidden;
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+    background: #f1f3f5;
+    -webkit-user-select: none; user-select: none;
+  }
+  body { display: flex; flex-direction: column; }
+
+  /* ===== 工具栏 ===== */
+  .toolbar {
+    background: #fff;
+    padding: 6px 10px;
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 6px;
+    box-shadow: 0 1px 6px rgba(0,0,0,.12);
+    z-index: 20;
+    border-bottom: 1px solid #e9ecef;
+    padding-top: calc(6px + env(safe-area-inset-top));
+    min-height: 52px;
+  }
+  .toolbar-group {
+    display: flex; align-items: center; gap: 4px;
+    background: #f8f9fa; padding: 2px 6px;
+    border-radius: 24px; border: 1px solid #e9ecef;
+    flex-shrink: 0;
+  }
+  .tool-btn {
+    background: transparent; border: none;
+    width: 38px; height: 38px; border-radius: 50%;
+    cursor: pointer; font-size: 1rem; color: #343a40;
+    display: inline-flex; align-items: center; justify-content: center;
+    transition: all .15s;
+  }
+  .tool-btn i { font-size: 1.05rem; pointer-events: none; }
+  .tool-btn:hover { background: #e9ecef; }
+  .tool-btn.active { background: #0d6efd; color: #fff; box-shadow: 0 2px 6px rgba(13,110,253,.4); }
+  .tool-btn:active { transform: scale(.92); }
+
+  input[type="color"] {
+    width: 34px; height: 34px; border: 2px solid #ced4da;
+    border-radius: 50%; cursor: pointer; padding: 2px; background: #fff;
+    -webkit-appearance: none; appearance: none;
+  }
+  input[type="color"]::-webkit-color-swatch-wrapper { padding: 0; }
+  input[type="color"]::-webkit-color-swatch { border: none; border-radius: 50%; }
+
+  input[type="range"] {
+    width: 90px; accent-color: #0d6efd; cursor: pointer;
+    height: 24px;
+  }
+  .size-value { font-size: .8rem; font-weight: 600; color: #0d6efd; min-width: 24px; text-align: center; }
+
+  .file-upload-wrapper {
+    display: inline-flex; align-items: center; gap: 6px;
+    background: #0d6efd; color: #fff;
+    padding: 8px 14px; border-radius: 24px;
+    cursor: pointer; font-weight: 500; font-size: .85rem;
+    border: none; flex-shrink: 0;
+  }
+  .file-upload-wrapper:active { background: #0b5ed7; }
+  #fileInput { display: none; }
+
+  .spacer { flex: 1; min-width: 4px; }
+  .status {
+    font-size: .72rem; color: #6c757d;
+    background: #f8f9fa; padding: 4px 10px;
+    border-radius: 24px; white-space: nowrap;
+    max-width: 130px; overflow: hidden; text-overflow: ellipsis;
+  }
+
+  /* ===== 阅读容器 ===== */
+  .viewer-container {
+    flex: 1;
+    overflow-y: auto;
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+    display: flex; flex-direction: column; align-items: center;
+    padding: 10px 6px calc(20px + env(safe-area-inset-bottom));
+    background: #e9ecef;
+    position: relative;
+    touch-action: pan-y pan-x;
+  }
+  .pdf-page-wrapper {
+    position: relative;
+    margin: 0 auto 14px;
+    box-shadow: 0 4px 14px rgba(0,0,0,.15);
+    background: #fff; border-radius: 3px;
+    overflow: hidden; line-height: 0;
+    max-width: 100%;
+  }
+  .pdf-canvas, .annotation-canvas {
+    display: block; max-width: 100%;
+  }
+  .annotation-canvas {
+    position: absolute; top: 0; left: 0;
+    width: 100%; height: 100%;
+    pointer-events: auto;
+    touch-action: none;
+    z-index: 5;
+  }
+  .empty-message {
+    display: flex; flex-direction: column; align-items: center; justify-content: center;
+    height: 70%; color: #868e96; text-align: center; gap: 12px; font-size: 1rem; padding: 20px;
+  }
+  .empty-message i { font-size: 3.5rem; color: #adb5bd; }
+  .empty-message small { font-size: .85rem; color: #adb5bd; }
+  .hidden { display: none !important; }
+
+  /* 小屏优化 */
+  @media (max-width: 520px) {
+    .toolbar { gap: 4px; padding: 4px 6px; }
+    .toolbar-group { padding: 2px 4px; gap: 2px; }
+    .tool-btn { width: 34px; height: 34px; }
+    .tool-btn i { font-size: .95rem; }
+    input[type="color"] { width: 30px; height: 30px; }
+    input[type="range"] { width: 70px; }
+    .file-upload-wrapper { padding: 7px 12px; font-size: .8rem; }
+    .file-upload-wrapper i { font-size: .9rem; }
+    .status { font-size: .68rem; max-width: 100px; padding: 3px 8px; }
+  }
+  @media (max-width: 380px) {
+    .status { display: none; }
+    input[type="range"] { width: 56px; }
+  }
+
+  /* 撤销按钮 */
+  .undo-btn { background: #fff3cd; color: #856404; }
+  .undo-btn:hover { background: #ffe69c; }
+</style>
+</head>
+<body>
+
+<div class="toolbar">
+  <label class="file-upload-wrapper" for="fileInput">
+    <i class="fas fa-folder-open"></i><span>导入</span>
+  </label>
+  <input type="file" id="fileInput" accept=".pdf,application/pdf">
+
+  <div class="toolbar-group">
+    <button id="penTool" class="tool-btn active" title="画笔"><i class="fas fa-pen"></i></button>
+    <button id="highlightTool" class="tool-btn" title="高亮"><i class="fas fa-highlighter"></i></button>
+    <button id="undoBtn" class="tool-btn undo-btn" title="撤销"><i class="fas fa-undo-alt"></i></button>
+    <button id="clearTool" class="tool-btn" title="清除全部"><i class="fas fa-trash-alt"></i></button>
+  </div>
+
+  <div class="toolbar-group">
+    <input type="color" id="colorPicker" value="#ff4d4d">
+    <input type="range" id="sizeSlider" min="1" max="30" value="4">
+    <span id="sizeValue" class="size-value">4</span>
+  </div>
+
+  <div class="spacer"></div>
+  <div class="status" id="statusText"><i class="fas fa-file-pdf"></i> 未加载</div>
+</div>
+
+<div class="viewer-container" id="viewerContainer">
+  <div class="empty-message" id="emptyMessage">
+    <i class="fas fa-file-pdf"></i>
+    <div>点击「导入」开始阅读</div>
+    <small>支持画笔 & 高亮标注</small>
+  </div>
+</div>
+
+<script>
+(function() {
+  pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/2.16.105/pdf.worker.min.js';
+
+  const fileInput = document.getElementById('fileInput');
+  const viewerContainer = document.getElementById('viewerContainer');
+  const emptyMessage = document.getElementById('emptyMessage');
+  const penToolBtn = document.getElementById('penTool');
+  const highlightToolBtn = document.getElementById('highlightTool');
+  const clearToolBtn = document.getElementById('clearTool');
+  const undoBtn = document.getElementById('undoBtn');
+  const colorPicker = document.getElementById('colorPicker');
+  const sizeSlider = document.getElementById('sizeSlider');
+  const sizeValue = document.getElementById('sizeValue');
+  const statusText = document.getElementById('statusText');
+
+  let currentTool = 'pen';
+  let currentColor = '#ff4d4d';
+  let currentSize = 4;
+  let currentPdfDoc = null;
+  const pageWrappers = [];
+
+  let isDrawing = false;
+  let lastX = 0, lastY = 0;
+  let highlightStartX = 0, highlightStartY = 0;
+  let highlightPreviewActive = false;
+  let highlightSnapshot = null; // 用于高亮实时预览
+
+  // 撤销栈：每个页面一个数组，存该页所有标注操作的快照
+  const undoStacks = new Map(); // key: pageNum, value: [ImageData...]
+
+  // ====== 工具切换 ======
+  penToolBtn.addEventListener('click', () => setTool('pen'));
+  highlightToolBtn.addEventListener('click', () => setTool('highlight'));
+
+  function setTool(tool) {
+    currentTool = tool;
+    penToolBtn.classList.toggle('active', tool === 'pen');
+    highlightToolBtn.classList.toggle('active', tool === 'highlight');
+    pageWrappers.forEach(pw => {
+      pw.annoCanvas.style.cursor = tool === 'pen' ? 'crosshair' : 'cell';
+    });
+  }
+
+  // ====== 撤销 ======
+  undoBtn.addEventListener('click', () => {
+    if (pageWrappers.length === 0) return;
+    // 找最近有内容的页面，从后往前
+    let done = false;
+    for (let i = pageWrappers.length - 1; i >= 0; i--) {
+      const pw = pageWrappers[i];
+      const stack = undoStacks.get(pw.pageNum);
+      if (stack && stack.length > 0) {
+        const prev = stack.pop();
+        pw.ctx.putImageData(prev, 0, 0);
+        done = true;
+        break;
+      }
+    }
+    if (!done) alert('没有可撤销的标注');
+  });
+
+  // ====== 清除全部 ======
+  clearToolBtn.addEventListener('click', () => {
+    if (pageWrappers.length === 0) return;
+    if (confirm('确定清除所有页面的标注吗？')) {
+      pageWrappers.forEach(pw => {
+        pw.ctx.clearRect(0, 0, pw.annoCanvas.width, pw.annoCanvas.height);
+      });
+      undoStacks.clear();
+    }
+  });
+
+  colorPicker.addEventListener('input', e => currentColor = e.target.value);
+  sizeSlider.addEventListener('input', e => {
+    currentSize = parseInt(e.target.value, 10);
+    sizeValue.textContent = currentSize;
+  });
+
+  // ====== 文件加载 ======
+  fileInput.addEventListener('change', async (e) => {
+    const file = e.target.files[0];
+    if (!file) return;
+    clearAllPages();
+    emptyMessage.classList.add('hidden');
+
+    try {
+      const arrayBuffer = await file.arrayBuffer();
+      currentPdfDoc = await pdfjsLib.getDocument({ data: arrayBuffer }).promise;
+      statusText.innerHTML = `<i class="fas fa-file-pdf"></i> ${file.name.slice(0, 12)} (${currentPdfDoc.numPages}页)`;
+      await renderAllPages();
+      setTool('pen');
+    } catch (err) {
+      console.error(err);
+      alert('无法加载 PDF');
+      emptyMessage.classList.remove('hidden');
+      statusText.innerHTML = `<i class="fas fa-exclamation-triangle"></i> 失败`;
+    }
+    fileInput.value = '';
+  });
+
+  function clearAllPages() {
+    pageWrappers.length = 0;
+    undoStacks.clear();
+    viewerContainer.querySelectorAll('.pdf-page-wrapper').forEach(el => el.remove());
+    if (currentPdfDoc) { currentPdfDoc.destroy(); currentPdfDoc = null; }
+  }
+
+  // 计算页面显示宽度（适配手机）
+  function getPageWidth() {
+    // 容器可视宽度
+    const containerW = viewerContainer.clientWidth;
+    // 左右留边距，手机上更紧凑
+    const padding = window.innerWidth < 520 ? 12 : 40;
+    return Math.max(280, Math.min(containerW - padding, 1000));
+  }
+
+  async function renderAllPages() {
+    if (!currentPdfDoc) return;
+    viewerContainer.querySelectorAll('.pdf-page-wrapper').forEach(el => el.remove());
+    pageWrappers.length = 0;
+    undoStacks.clear();
+
+    const targetWidth = getPageWidth();
+
+    for (let pageNum = 1; pageNum <= currentPdfDoc.numPages; pageNum++) {
+      try {
+        const page = await currentPdfDoc.getPage(pageNum);
+        const baseViewport = page.getViewport({ scale: 1 });
+        const scale = targetWidth / baseViewport.width;
+        const viewport = page.getViewport({ scale });
+
+        const wrapper = document.createElement('div');
+        wrapper.className = 'pdf-page-wrapper';
+        wrapper.style.width = viewport.width + 'px';
+        wrapper.style.height = viewport.height + 'px';
+
+        const canvas = document.createElement('canvas');
+        canvas.className = 'pdf-canvas';
+        canvas.width = viewport.width;
+        canvas.height = viewport.height;
+
+        const annoCanvas = document.createElement('canvas');
+        annoCanvas.className = 'annotation-canvas';
+        annoCanvas.width = viewport.width;
+        annoCanvas.height = viewport.height;
+        const annoCtx = annoCanvas.getContext('2d');
+
+        wrapper.appendChild(canvas);
+        wrapper.appendChild(annoCanvas);
+        viewerContainer.appendChild(wrapper);
+
+        await page.render({ canvasContext: canvas.getContext('2d'), viewport }).promise;
+
+        const pageInfo = {
+          wrapper, canvas, annoCanvas,
+          ctx: annoCtx, pageNum, viewport
+        };
+        pageWrappers.push(pageInfo);
+        undoStacks.set(pageNum, []);
+        attachDrawingEvents(pageInfo);
+      } catch (err) {
+        console.error(`第 ${pageNum} 页渲染失败`, err);
+      }
+    }
+    setTool(currentTool);
+  }
+
+  // ====== 绘制事件核心（含触摸坐标修正） ======
+  function attachDrawingEvents(pageInfo) {
+    const canvas = pageInfo.annoCanvas;
+    const ctx = pageInfo.ctx;
+    const pageNum = pageInfo.pageNum;
+
+    // 坐标换算：canvas 像素坐标
+    function getCoords(e) {
+      const rect = canvas.getBoundingClientRect();
+      // 触摸/鼠标位置
+      const clientX = e.touches ? e.touches[0].clientX : e.clientX;
+      const clientY = e.touches ? e.touches[0].clientY : e.clientY;
+      // canvas 像素尺寸 / CSS显示尺寸 比例
+      const scaleX = canvas.width / rect.width;
+      const scaleY = canvas.height / rect.height;
+      return {
+        x: (clientX - rect.left) * scaleX,
+        y: (clientY - rect.top) * scaleY
+      };
+    }
+
+    // 保存快照（用于撤销）
+    function pushUndo() {
+      const stack = undoStacks.get(pageNum);
+      if (stack) {
+        // 限制栈长度，防止内存过大
+        if (stack.length > 30) stack.shift();
+        stack.push(ctx.getImageData(0, 0, canvas.width, canvas.height));
+      }
+    }
+
+    // ===== 画笔 =====
+    function penStart(e) {
+      if (currentTool !== 'pen') return;
+      e.preventDefault();
+      pushUndo();
+      isDrawing = true;
+      const { x, y } = getCoords(e);
+      lastX = x; lastY = y;
+      ctx.beginPath();
+      ctx.arc(x, y, currentSize / 2, 0, Math.PI * 2);
+      ctx.fillStyle = currentColor;
+      ctx.fill();
+      ctx.beginPath();
+      ctx.moveTo(x, y);
+      ctx.lineWidth = currentSize;
+      ctx.lineCap = 'round';
+      ctx.lineJoin = 'round';
+      ctx.strokeStyle = currentColor;
+    }
+    function penMove(e) {
+      if (!isDrawing || currentTool !== 'pen') return;
+      e.preventDefault();
+      const { x, y } = getCoords(e);
+      ctx.lineTo(x, y);
+      ctx.stroke();
+      lastX = x; lastY = y;
+    }
+    function penEnd(e) {
+      if (currentTool !== 'pen') return;
+      e.preventDefault();
+      if (isDrawing) { ctx.closePath(); isDrawing = false; }
+    }
+
+    // ===== 高亮（带实时预览） =====
+    function highlightStart(e) {
+      if (currentTool !== 'highlight') return;
+      e.preventDefault();
+      pushUndo();
+      isDrawing = true;
+      const { x, y } = getCoords(e);
+      highlightStartX = x; highlightStartY = y;
+      // 保存当前画布快照（用于实时预览时清除临时矩形）
+      highlightSnapshot = ctx.getImageData(0, 0, canvas.width, canvas.height);
+      highlightPreviewActive = true;
+    }
+    function highlightMove(e) {
+      if (!isDrawing || currentTool !== 'highlight' || !highlightPreviewActive) return;
+      e.preventDefault();
+      const { x, y } = getCoords(e);
+      // 恢复快照，再画临时矩形，避免叠加
+      ctx.putImageData(highlightSnapshot, 0, 0);
+      ctx.save();
+      ctx.globalAlpha = 0.3;
+      ctx.fillStyle = currentColor;
+      const rectX = Math.min(highlightStartX, x);
+      const rectY = Math.min(highlightStartY, y);
+      const rectW = Math.abs(x - highlightStartX);
+      const rectH = Math.abs(y - highlightStartY);
+      if (rectW > 1 && rectH > 1) {
+        ctx.fillRect(rectX, rectY, rectW, rectH);
+      }
+      ctx.restore();
+    }
+    function highlightEnd(e) {
+      if (currentTool !== 'highlight' || !isDrawing) return;
+      e.preventDefault();
+      isDrawing = false;
+      highlightPreviewActive = false;
+      const { x, y } = getCoords(e);
+      // 恢复快照，画最终高亮（正式不透明度 0.4）
+      ctx.putImageData(highlightSnapshot, 0, 0);
+      ctx.save();
+      ctx.globalAlpha = 0.4;
+      ctx.fillStyle = currentColor;
+      const rectX = Math.min(highlightStartX, x);
+      const rectY = Math.min(highlightStartY, y);
+      const rectW = Math.abs(x - highlightStartX);
+      const rectH = Math.abs(y - highlightStartY);
+      if (rectW > 1 && rectH > 1) {
+        ctx.fillRect(rectX, rectY, rectW, rectH);
+      }
+      ctx.restore();
+      highlightSnapshot = null;
+    }
+
+    function cancelDrawing() {
+      if (isDrawing) {
+        if (currentTool === 'pen') ctx.closePath();
+        if (currentTool === 'highlight' && highlightSnapshot) {
+          ctx.putImageData(highlightSnapshot, 0, 0);
+          highlightSnapshot = null;
+        }
+        isDrawing = false;
+        highlightPreviewActive = false;
+      }
+    }
+
+    // ===== 鼠标事件 =====
+    canvas.addEventListener('mousedown', (e) => {
+      if (currentTool === 'pen') penStart(e);
+      else if (currentTool === 'highlight') highlightStart(e);
+    });
+    canvas.addEventListener('mousemove', (e) => {
+      if (currentTool === 'pen') penMove(e);
+      else if (currentTool === 'highlight') highlightMove(e);
+    });
+    canvas.addEventListener('mouseup', (e) => {
+      if (currentTool === 'pen') penEnd(e);
+      else if (currentTool === 'highlight') highlightEnd(e);
+    });
+    canvas.addEventListener('mouseleave', cancelDrawing);
+
+    // ===== 触摸事件（passive:false 才能 preventDefault）=====
+    canvas.addEventListener('touchstart', (e) => {
+      if (currentTool === 'pen') penStart(e);
+      else if (currentTool === 'highlight') highlightStart(e);
+    }, { passive: false });
+
+    canvas.addEventListener('touchmove', (e) => {
+      if (currentTool === 'pen') penMove(e);
+      else if (currentTool === 'highlight') highlightMove(e);
+    }, { passive: false });
+
+    canvas.addEventListener('touchend', (e) => {
+      if (currentTool === 'pen') penEnd(e);
+      else if (currentTool === 'highlight') highlightEnd(e);
+    }, { passive: false });
+
+    canvas.addEventListener('touchcancel', cancelDrawing);
+  }
+
+  // 防止双指缩放（iOS Safari 需要 gesture 事件）
+  document.addEventListener('gesturestart', e => e.preventDefault());
+  document.addEventListener('gesturechange', e => e.preventDefault());
+
+  // 窗口尺寸改变：手机上横竖屏切换时重绘（会丢失标注，提示用户）
+  let resizeTimer = null;
+  window.addEventListener('resize', () => {
+    if (!currentPdfDoc) return;
+    clearTimeout(resizeTimer);
+    resizeTimer = setTimeout(() => {
+      // 只在宽度变化较大时重绘，避免键盘弹出触发
+      const newW = getPageWidth();
+      const firstPage = pageWrappers[0];
+      if (firstPage && Math.abs(firstPage.viewport.width - newW) > 40) {
+        if (confirm('屏幕尺寸变化，需要重新渲染页面（标注会丢失），是否继续？')) {
+          renderAllPages().then(() => {
+            // 如果之前有工具，重置状态
+            setTool(currentTool);
+          });
+        }
+      }
+    }, 400);
+  });
+
+  // 禁用双击缩放（部分安卓）
+  let lastTouchEnd = 0;
+  document.addEventListener('touchend', (e) => {
+    const now = Date.now();
+    if (now - lastTouchEnd <= 300) e.preventDefault();
+    lastTouchEnd = now;
+  }, { passive: false });
+
+})();
+</script>
+</body>
+</html>
