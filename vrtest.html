@@ -1,0 +1,484 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>VR 手部交互 · 现实世界融合</title>
+  <style>
+    body {
+      margin: 0;
+      overflow: hidden;
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+      background: black;
+      color: white;
+      -webkit-user-select: none;
+      user-select: none;
+      touch-action: none;
+    }
+    #video-background {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100vw;
+      height: 100vh;
+      object-fit: cover;
+      z-index: 0;
+      transform: scaleX(-1); /* 镜像翻转，让动作更自然 */
+    }
+    #overlay-canvas {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100vw;
+      height: 100vh;
+      z-index: 10;
+      pointer-events: none; /* 让鼠标/触摸穿透到UI，但canvas只渲染 */
+    }
+    /* 悬浮UI容器 — 将UI放置在3D感的位置 */
+    .ui-container {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100vw;
+      height: 100vh;
+      z-index: 20;
+      pointer-events: none; /* 默认穿透，但UI元素本身可交互 */
+    }
+    .floating-panel {
+      position: absolute;
+      background: rgba(30, 30, 40, 0.65);
+      backdrop-filter: blur(20px);
+      -webkit-backdrop-filter: blur(20px);
+      border-radius: 32px;
+      border: 1px solid rgba(255, 255, 255, 0.2);
+      box-shadow: 0 30px 60px rgba(0, 0, 0, 0.5), 0 0 0 1px rgba(255, 255, 255, 0.05) inset;
+      color: white;
+      pointer-events: auto; /* 面板本身可以接收事件 */
+      transition: transform 0.1s ease, box-shadow 0.2s ease, border-color 0.2s ease;
+      cursor: pointer;
+      will-change: transform;
+    }
+    /* 各个面板的位置及风格 */
+    .panel-1 {
+      top: 15%;
+      left: 10%;
+      width: 180px;
+      height: 180px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      transform: rotateY(5deg) rotateX(3deg) translateZ(20px);
+    }
+    .panel-2 {
+      top: 50%;
+      right: 8%;
+      width: 160px;
+      height: 220px;
+      transform: translateY(-50%) rotateY(-8deg) rotateX(2deg) translateZ(35px);
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+    }
+    .panel-3 {
+      bottom: 12%;
+      left: 20%;
+      width: 220px;
+      height: 100px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transform: rotateY(3deg) rotateX(-2deg) translateZ(15px);
+    }
+    .panel-4 {
+      bottom: 20%;
+      right: 20%;
+      width: 120px;
+      height: 120px;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transform: translateZ(30px);
+      font-size: 32px;
+      font-weight: bold;
+    }
+    .panel-icon {
+      font-size: 48px;
+      margin-bottom: 8px;
+      filter: drop-shadow(0 4px 12px rgba(0,0,0,0.4));
+    }
+    .panel-label {
+      font-size: 16px;
+      font-weight: 500;
+      letter-spacing: 0.5px;
+      opacity: 0.9;
+    }
+    .panel-2 .panel-label {
+      font-size: 14px;
+      text-align: center;
+      padding: 0 12px;
+    }
+    .panel-3 .panel-label {
+      font-size: 20px;
+      font-weight: 600;
+    }
+    /* 高亮状态：当手部接近或交互时 */
+    .floating-panel.highlight {
+      border-color: rgba(0, 200, 255, 0.9);
+      box-shadow: 0 0 30px rgba(0, 200, 255, 0.6), 0 0 0 2px rgba(0, 200, 255, 0.3) inset;
+      transform: scale(1.03) rotateY(0deg) rotateX(0deg) translateZ(40px) !important;
+      transition: all 0.15s ease;
+    }
+    /* 手部骨骼绘制canvas（在overlay上绘制） */
+    .loading-indicator {
+      position: fixed;
+      bottom: 30px;
+      left: 50%;
+      transform: translateX(-50%);
+      background: rgba(0, 0, 0, 0.7);
+      backdrop-filter: blur(10px);
+      padding: 12px 24px;
+      border-radius: 40px;
+      color: white;
+      font-size: 16px;
+      z-index: 100;
+      border: 1px solid rgba(255,255,255,0.2);
+      transition: opacity 0.5s ease;
+      pointer-events: none;
+      letter-spacing: 0.5px;
+    }
+    /* 简单的UI指引 */
+    .hint {
+      position: fixed;
+      top: 30px;
+      left: 50%;
+      transform: translateX(-50%);
+      background: rgba(0,0,0,0.5);
+      backdrop-filter: blur(8px);
+      padding: 8px 20px;
+      border-radius: 40px;
+      font-size: 14px;
+      color: rgba(255,255,255,0.8);
+      border: 1px solid rgba(255,255,255,0.15);
+      z-index: 100;
+      pointer-events: none;
+      white-space: nowrap;
+    }
+    @media (max-width: 600px) {
+      .panel-1 { width: 130px; height: 130px; left: 5%; top: 10%; }
+      .panel-2 { width: 120px; height: 170px; right: 5%; }
+      .panel-3 { width: 160px; height: 80px; left: 10%; }
+      .panel-4 { width: 90px; height: 90px; right: 10%; font-size: 24px; }
+      .panel-icon { font-size: 36px; }
+      .panel-label { font-size: 12px; }
+      .panel-3 .panel-label { font-size: 16px; }
+    }
+  </style>
+</head>
+<body>
+  <!-- 现实世界背景视频 -->
+  <video id="video-background" autoplay playsinline muted></video>
+  
+  <!-- 覆盖画布，用于绘制手部骨骼（视觉反馈） -->
+  <canvas id="overlay-canvas"></canvas>
+  
+  <!-- 悬浮UI层 -->
+  <div class="ui-container">
+    <div id="panel1" class="floating-panel panel-1">
+      <div class="panel-icon">🎛️</div>
+      <div class="panel-label">调节</div>
+    </div>
+    <div id="panel2" class="floating-panel panel-2">
+      <div class="panel-icon">📱</div>
+      <div class="panel-label">信息面板<br>现实融合</div>
+    </div>
+    <div id="panel3" class="floating-panel panel-3">
+      <div class="panel-icon">⚡</div>
+      <div class="panel-label">手势控制</div>
+    </div>
+    <div id="panel4" class="floating-panel panel-4">
+      <span>👆</span>
+    </div>
+  </div>
+  
+  <!-- 状态提示 -->
+  <div id="loading" class="loading-indicator">启动摄像头并加载手部追踪...</div>
+  <div class="hint">用手势靠近悬浮UI即可交互 ✨</div>
+
+  <!-- 引入 MediaPipe Hands -->
+  <script src="https://cdn.jsdelivr.net/npm/@mediapipe/hands@0.4.1646424915/hands.js" crossorigin="anonymous"></script>
+  <script src="https://cdn.jsdelivr.net/npm/@mediapipe/camera_utils@0.3.1640029074/camera_utils.js" crossorigin="anonymous"></script>
+  
+  <script>
+    (function() {
+      // ---------- 获取DOM元素 ----------
+      const videoElement = document.getElementById('video-background');
+      const canvasElement = document.getElementById('overlay-canvas');
+      const canvasCtx = canvasElement.getContext('2d');
+      const loadingEl = document.getElementById('loading');
+      const panels = [
+        document.getElementById('panel1'),
+        document.getElementById('panel2'),
+        document.getElementById('panel3'),
+        document.getElementById('panel4')
+      ];
+
+      // 面板的中心坐标 (用于距离检测)，会根据实际布局动态计算
+      let panelCenters = [];
+      
+      // 更新面板中心点的函数 (在窗口大小变化时也会调用)
+      function updatePanelCenters() {
+        panelCenters = panels.map(panel => {
+          const rect = panel.getBoundingClientRect();
+          return {
+            x: rect.left + rect.width / 2,
+            y: rect.top + rect.height / 2,
+            width: rect.width,
+            height: rect.height,
+            el: panel
+          };
+        });
+        // 初始不添加高亮
+        panelCenters.forEach(p => p.el.classList.remove('highlight'));
+      }
+      
+      // 初始化 & resize 时更新
+      window.addEventListener('resize', () => {
+        updatePanelCenters();
+      });
+      
+      // 稍后也会在摄像头就绪后调用
+      
+      // ---------- 状态存储 ----------
+      let handsData = null;        // 存储最新手部关键点
+      let lastHighlightState = panels.map(() => false); // 每个面板的高亮状态
+      
+      // 用于平滑的上一帧手部位置 (可选)
+      let smoothHandPositions = null;
+      
+      // ---------- 调整画布大小 ----------
+      function resizeCanvas() {
+        canvasElement.width = window.innerWidth;
+        canvasElement.height = window.innerHeight;
+      }
+      window.addEventListener('resize', resizeCanvas);
+      resizeCanvas();
+
+      // ---------- 绘制手部骨骼 (镜像显示，但坐标已翻转) ----------
+      // 注意：视频已被CSS镜像，但手部坐标是从未镜像的视频帧来的。为了视觉一致，我们需要在绘制时也镜像x坐标。
+      // 因为 canvas 本身没有镜像，所以我们绘制时做镜像: x_draw = canvas.width - x_raw
+      function drawHands(landmarksList) {
+        // 清除画布
+        canvasCtx.clearRect(0, 0, canvasElement.width, canvasElement.height);
+        
+        if (!landmarksList || landmarksList.length === 0) return;
+        
+        // 遍历每只手
+        for (const landmarks of landmarksList) {
+          // 绘制关键点 (圆点)
+          canvasCtx.fillStyle = 'rgba(0, 255, 200, 0.9)';
+          canvasCtx.shadowColor = 'rgba(0, 200, 255, 0.8)';
+          canvasCtx.shadowBlur = 15;
+          
+          for (const point of landmarks) {
+            // 镜像x坐标
+            const x = canvasElement.width - (point.x * canvasElement.width);
+            const y = point.y * canvasElement.height;
+            
+            canvasCtx.beginPath();
+            canvasCtx.arc(x, y, 6, 0, 2 * Math.PI);
+            canvasCtx.fill();
+            canvasCtx.shadowBlur = 0; // 只对第一个点有光晕，避免过亮
+          }
+          
+          // 绘制连线 (使用Hands的HAND_CONNECTIONS)
+          canvasCtx.strokeStyle = 'rgba(0, 200, 255, 0.7)';
+          canvasCtx.lineWidth = 3;
+          canvasCtx.shadowBlur = 0;
+          
+          const connections = [
+            [0, 1], [1, 2], [2, 3], [3, 4],     // 拇指
+            [0, 5], [5, 6], [6, 7], [7, 8],     // 食指
+            [5, 9], [9, 10], [10, 11], [11, 12],// 中指
+            [9, 13], [13, 14], [14, 15], [15, 16], // 无名指
+            [13, 17], [17, 18], [18, 19], [19, 20], // 小指
+            [0, 17] // 手掌连接
+          ];
+          
+          for (const [i, j] of connections) {
+            const p1 = landmarks[i];
+            const p2 = landmarks[j];
+            const x1 = canvasElement.width - (p1.x * canvasElement.width);
+            const y1 = p1.y * canvasElement.height;
+            const x2 = canvasElement.width - (p2.x * canvasElement.width);
+            const y2 = p2.y * canvasElement.height;
+            
+            canvasCtx.beginPath();
+            canvasCtx.moveTo(x1, y1);
+            canvasCtx.lineTo(x2, y2);
+            canvasCtx.stroke();
+          }
+        }
+      }
+      
+      // ---------- 检测手部与面板的交互 ----------
+      function checkPanelInteraction(landmarksList) {
+        // 如果没有手，清除所有高亮并返回
+        if (!landmarksList || landmarksList.length === 0) {
+          panelCenters.forEach(p => p.el.classList.remove('highlight'));
+          lastHighlightState = panels.map(() => false);
+          return;
+        }
+        
+        // 获取所有关键点 (所有手)
+        const allPoints = [];
+        for (const landmarks of landmarksList) {
+          // 只使用关键点（排除一些不稳定的点? 但全部使用吧）
+          for (const point of landmarks) {
+            // 镜像x坐标，使得与UI位置匹配 (因为UI没有镜像，而手部坐标是未镜像的)
+            // 注意：video被CSS镜像了，但UI没有镜像，所以为了让手“看起来”和UI在同一坐标系，需要镜像x。
+            const mirroredX = canvasElement.width - (point.x * canvasElement.width);
+            const y = point.y * canvasElement.height;
+            allPoints.push({ x: mirroredX, y: y });
+          }
+        }
+        
+        // 对每个面板，检查是否有任何手部关键点靠近
+        panels.forEach((panel, index) => {
+          const center = panelCenters[index];
+          if (!center) return;
+          
+          // 面板半径 (取宽高的一半，用于距离阈值)
+          const panelRadius = Math.min(center.width, center.height) / 2;
+          // 阈值：面板半径加上一些额外容差，并且考虑手指点距离面板中心的距离
+          const threshold = panelRadius + 50; // 50px 容差
+          
+          let isNear = false;
+          
+          // 遍历所有手部关键点，如果任何一个点与面板中心的距离小于阈值，则视为高亮
+          for (const point of allPoints) {
+            const dx = point.x - center.x;
+            const dy = point.y - center.y;
+            const dist = Math.sqrt(dx*dx + dy*dy);
+            if (dist < threshold) {
+              isNear = true;
+              break;
+            }
+          }
+          
+          // 更新高亮状态 (去抖: 如果状态改变才操作DOM)
+          if (isNear !== lastHighlightState[index]) {
+            if (isNear) {
+              panel.classList.add('highlight');
+            } else {
+              panel.classList.remove('highlight');
+            }
+            lastHighlightState[index] = isNear;
+          }
+        });
+      }
+      
+      // ---------- 初始化 MediaPipe Hands ----------
+      const hands = new Hands({
+        locateFile: (file) => {
+          return `https://cdn.jsdelivr.net/npm/@mediapipe/hands@0.4.1646424915/${file}`;
+        }
+      });
+      
+      hands.setOptions({
+        maxNumHands: 2,
+        modelComplexity: 1,
+        minDetectionConfidence: 0.6,
+        minTrackingConfidence: 0.6
+      });
+      
+      // 当手部结果返回
+      hands.onResults((results) => {
+        // 保存手部关键点数据
+        if (results.multiHandLandmarks && results.multiHandLandmarks.length > 0) {
+          handsData = results.multiHandLandmarks;
+          // 绘制手部骨骼 (并镜像)
+          drawHands(results.multiHandLandmarks);
+          // 检测面板交互
+          checkPanelInteraction(results.multiHandLandmarks);
+        } else {
+          handsData = null;
+          // 清除画布
+          canvasCtx.clearRect(0, 0, canvasElement.width, canvasElement.height);
+          // 清除所有高亮
+          panelCenters.forEach(p => p.el.classList.remove('highlight'));
+          lastHighlightState = panels.map(() => false);
+        }
+      });
+      
+      // ---------- 设置摄像头 ----------
+      const camera = new Camera(videoElement, {
+        onFrame: async () => {
+          // 将视频帧发送给Hands
+          await hands.send({ image: videoElement });
+        },
+        width: 1280,
+        height: 720
+      });
+      
+      // 启动摄像头
+      camera.start().then(() => {
+        // 摄像头启动成功
+        loadingEl.style.opacity = '0';
+        setTimeout(() => {
+          loadingEl.style.display = 'none';
+        }, 500);
+        
+        // 更新面板中心点
+        updatePanelCenters();
+        
+        // 由于初始布局，需要再次更新（字体加载等）
+        setTimeout(updatePanelCenters, 200);
+        setTimeout(updatePanelCenters, 800);
+      }).catch((err) => {
+        console.error('摄像头启动失败:', err);
+        loadingEl.textContent = '无法访问摄像头，请检查权限。';
+      });
+      
+      // 监听窗口大小变化，更新面板中心点
+      window.addEventListener('resize', () => {
+        updatePanelCenters();
+        // 如果手部数据存在，重新检查交互（因为面板位置变了）
+        if (handsData) {
+          checkPanelInteraction(handsData);
+        }
+      });
+      
+      // 定期更新面板中心点（因为某些样式可能延迟应用，比如字体加载）
+      setInterval(() => {
+        updatePanelCenters();
+      }, 2000);
+      
+      // 也可以添加触摸/鼠标交互作为后备，但不是必须
+      
+      // 小彩蛋：点击面板弹出提示
+      panels.forEach((panel, idx) => {
+        panel.addEventListener('click', (e) => {
+          e.stopPropagation();
+          // 简单反馈
+          panel.style.transform = 'scale(0.95)';
+          setTimeout(() => {
+            panel.style.transform = '';
+          }, 150);
+          console.log(`面板 ${idx+1} 被点击 (鼠标/触摸)`);
+        });
+      });
+      
+      // 防止触摸滚动
+      window.addEventListener('touchmove', (e) => {
+        if (e.target === videoElement || e.target === canvasElement) {
+          e.preventDefault();
+        }
+      }, { passive: false });
+      
+    })();
+  </script>
+</body>
+</html>
