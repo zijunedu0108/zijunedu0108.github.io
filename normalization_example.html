@@ -1,0 +1,918 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Database Normalization (UNF to 3NF)</title>
+    <!-- Google Fonts & Icons -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
+    <style>
+        :root {
+            --primary: #2563eb;
+            --primary-light: #eff6ff;
+            --text-main: #1e293b;
+            --text-muted: #64748b;
+            --border: #e2e8f0;
+            --bg-main: #f8fafc;
+            --pk-border: #dc2626;
+            --pk-bg: #fee2e2;
+            --pk-text: #991b1b;
+            --fk-bg: #fef3c7;
+            --fk-text: #92400e;
+            --highlight-bg: #fef08a;
+            --green-bg: #dcfce7;
+            --green-text: #166534;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: var(--bg-main);
+            color: var(--text-main);
+            line-height: 1.6;
+            padding: 2rem 1rem;
+            transition: opacity 0.3s ease;
+        }
+
+        .container {
+            max-width: 1100px;
+            margin: 0 auto;
+            display: flex;
+            flex-direction: column;
+            gap: 2rem;
+        }
+
+        /* 语言切换器 */
+        .lang-switcher {
+            display: flex;
+            justify-content: center;
+            gap: 0.5rem;
+            margin-bottom: 1rem;
+            background: white;
+            padding: 0.5rem;
+            border-radius: 999px;
+            width: fit-content;
+            margin: 0 auto 2rem auto;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.05);
+            border: 1px solid var(--border);
+        }
+
+        .lang-btn {
+            background: transparent;
+            border: none;
+            padding: 0.5rem 1.25rem;
+            border-radius: 999px;
+            font-weight: 600;
+            font-size: 0.9rem;
+            color: var(--text-muted);
+            cursor: pointer;
+            transition: all 0.2s;
+            font-family: inherit;
+        }
+
+        .lang-btn.active {
+            background: var(--primary);
+            color: white;
+        }
+
+        .lang-btn:hover:not(.active) {
+            background: var(--primary-light);
+            color: var(--primary);
+        }
+
+        /* 内容卡片 */
+        .card {
+            background: white;
+            border-radius: 1rem;
+            padding: 2rem;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05), 0 2px 4px -2px rgba(0, 0, 0, 0.05);
+            border: 1px solid var(--border);
+        }
+
+        .card-header {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+            margin-bottom: 1.5rem;
+            border-bottom: 2px solid var(--border);
+            padding-bottom: 1rem;
+        }
+
+        .stage-badge {
+            background: var(--primary);
+            color: white;
+            font-weight: 700;
+            padding: 0.5rem 1rem;
+            border-radius: 0.5rem;
+            font-size: 1.2rem;
+        }
+
+        .card h2 {
+            font-size: 1.4rem;
+            color: var(--text-main);
+        }
+
+        /* 表格样式 */
+        .table-wrapper {
+            overflow-x: auto;
+            margin-bottom: 1.5rem;
+            border-radius: 0.5rem;
+            border: 1px solid var(--border);
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 0.9rem;
+            text-align: left;
+        }
+
+        th {
+            background: #f1f5f9;
+            font-weight: 600;
+            padding: 0.75rem 1rem;
+            border-bottom: 2px solid var(--border);
+            white-space: nowrap;
+        }
+
+        td {
+            padding: 0.75rem 1rem;
+            border-bottom: 1px solid var(--border);
+            vertical-align: top;
+        }
+
+        tr:last-child td {
+            border-bottom: none;
+        }
+
+        /* 高亮 */
+        .pk-col {
+            background-color: var(--pk-bg);
+            border-left: 2px solid var(--pk-border);
+            border-right: 2px solid var(--pk-border);
+            color: var(--pk-text);
+            font-weight: 600;
+        }
+        
+        th.pk-col {
+            text-align: center;
+        }
+
+        .fk-col {
+            background-color: var(--fk-bg);
+            color: var(--fk-text);
+            font-style: italic;
+        }
+
+        .repeating-group {
+            background-color: var(--highlight-bg);
+            font-weight: 500;
+        }
+
+        /* 解释框 */
+        .explanation-box {
+            background: var(--primary-light);
+            border-left: 4px solid var(--primary);
+            padding: 1.25rem;
+            border-radius: 0.5rem;
+            margin-top: 1rem;
+        }
+
+        .explanation-box h4 {
+            color: var(--primary);
+            margin-bottom: 0.5rem;
+            font-size: 1.05rem;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .explanation-box p {
+            margin-bottom: 0.5rem;
+            font-size: 0.95rem;
+        }
+
+        .explanation-box strong {
+            color: var(--text-main);
+        }
+
+        .arrow-down {
+            text-align: center;
+            font-size: 2rem;
+            color: var(--primary);
+            margin: -1rem 0;
+            position: relative;
+            z-index: 10;
+        }
+
+        /* 多表格网格 */
+        .grid-3 {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 1.5rem;
+            margin-top: 1rem;
+        }
+
+        .grid-2 {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
+            gap: 2rem;
+            margin-top: 1rem;
+        }
+
+        .sub-table-title {
+            font-weight: 600;
+            margin-bottom: 0.5rem;
+            font-size: 0.9rem;
+            color: var(--text-main);
+        }
+
+        .new-table-title {
+            color: var(--fk-text);
+        }
+
+        /* 隐藏非活动语言 */
+        .lang-content {
+            display: none;
+        }
+        .lang-content.active {
+            display: flex;
+            flex-direction: column;
+            gap: 2rem;
+        }
+
+        @media (max-width: 600px) {
+            .card { padding: 1.25rem; }
+            .card-header { flex-direction: column; align-items: flex-start; }
+        }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <!-- 语言切换器 -->
+    <div class="lang-switcher">
+        <button class="lang-btn active" data-lang="en">English</button>
+        <button class="lang-btn" data-lang="ms">Melayu</button>
+        <button class="lang-btn" data-lang="zh">中文</button>
+    </div>
+
+    <!-- ======================= 英文内容 ======================= -->
+    <div id="lang-en" class="lang-content active">
+        <h1 style="text-align: center; margin-bottom: 1rem;"><i class="fas fa-database"></i> Normalization Process (UNF to 3NF)</h1>
+        <p style="text-align: center; color: var(--text-muted); margin-bottom: 2rem;">Step-by-step transformation to eliminate redundancy and anomalies</p>
+
+        <!-- UNF -->
+        <div class="card">
+            <div class="card-header">
+                <span class="stage-badge">UNF</span>
+                <h2>Unnormalised Form</h2>
+            </div>
+            <p><strong>Why:</strong> This is the raw table. Book info and categories are crammed into a single cell.</p>
+            
+            <div class="table-wrapper">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>StudentID</th><th>Name</th><th>Class</th><th>BookID</th><th>BookName</th><th>CategoryID</th><th>Category</th><th>BorrowDate</th><th>ReturnDate</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td>S001</td><td>Aina</td><td>6A</td>
+                            <td class="repeating-group">B001, B003</td>
+                            <td class="repeating-group">Python, SQL</td>
+                            <td class="repeating-group">C01, C02</td>
+                            <td class="repeating-group">Programming, Database</td>
+                            <td>10/06/2026</td><td>17/06/2026</td>
+                        </tr>
+                        <tr>
+                            <td>S002</td><td>Amir</td><td>6B</td>
+                            <td>B002</td><td>Computer Networks</td><td>C03</td><td>Networking</td><td>11/06/2026</td><td>18/06/2026</td>
+                        </tr>
+                        <tr>
+                            <td>S003</td><td>Siti</td><td>6A</td>
+                            <td class="repeating-group">B004, B005</td>
+                            <td class="repeating-group">Media Design, HTML</td>
+                            <td class="repeating-group">C04, C01</td>
+                            <td class="repeating-group">Multimedia, Programming</td>
+                            <td>12/06/2026</td><td>19/06/2026</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+            <div class="explanation-box">
+                <h4><i class="fas fa-bullseye"></i> Goal</h4>
+                <p>Eliminate <strong>Repeating Groups</strong>. In 1NF, every cell must contain only a single atomic value.</p>
+            </div>
+        </div>
+
+        <div class="arrow-down"><i class="fas fa-arrow-down"></i></div>
+
+        <!-- 1NF -->
+        <div class="card">
+            <div class="card-header">
+                <span class="stage-badge">1NF</span>
+                <h2>First Normal Form</h2>
+            </div>
+            <p><strong>Why:</strong> Separate comma-separated values into individual rows. Every cell now has one value.</p>
+            
+            <div class="table-wrapper">
+                <table>
+                    <thead>
+                        <tr>
+                            <th class="pk-col">StudentID <i class="fas fa-key"></i></th>
+                            <th class="pk-col">BookID <i class="fas fa-key"></i></th>
+                            <th>Name</th><th>Class</th><th>BookName</th><th>CategoryID</th><th>Category</th><th>BorrowDate</th><th>ReturnDate</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr><td class="pk-col">S001</td><td class="pk-col">B001</td><td>Aina</td><td>6A</td><td>Python</td><td>C01</td><td>Programming</td><td>10/06/2026</td><td>17/06/2026</td></tr>
+                        <tr><td class="pk-col">S001</td><td class="pk-col">B003</td><td>Aina</td><td>6A</td><td>SQL</td><td>C02</td><td>Database</td><td>10/06/2026</td><td>17/06/2026</td></tr>
+                        <tr><td class="pk-col">S002</td><td class="pk-col">B002</td><td>Amir</td><td>6B</td><td>Computer Networks</td><td>C03</td><td>Networking</td><td>11/06/2026</td><td>18/06/2026</td></tr>
+                        <tr><td class="pk-col">S003</td><td class="pk-col">B004</td><td>Siti</td><td>6A</td><td>Media Design</td><td>C04</td><td>Multimedia</td><td>12/06/2026</td><td>19/06/2026</td></tr>
+                        <tr><td class="pk-col">S003</td><td class="pk-col">B005</td><td>Siti</td><td>6A</td><td>HTML Code</td><td>C01</td><td>Programming</td><td>12/06/2026</td><td>19/06/2026</td></tr>
+                    </tbody>
+                </table>
+            </div>
+            <div class="explanation-box">
+                <h4><i class="fas fa-key"></i> Why the Underline (Primary Key)?</h4>
+                <p><strong>From what to what:</strong> Now that data is in single values, neither <code>StudentID</code> nor <code>BookID</code> alone can uniquely identify a row.</p>
+                <p><strong>Composite Key:</strong> You need <code>(StudentID, BookID)</code> together to uniquely identify who borrowed which book. Thus, they are underlined as the <strong>Composite Primary Key</strong>.</p>
+                <p><em>Note: <code>CategoryID</code> is NOT a primary key here because knowing the category doesn't uniquely identify a borrowing record.</em></p>
+            </div>
+        </div>
+
+        <div class="arrow-down"><i class="fas fa-arrow-down"></i></div>
+
+        <!-- 2NF -->
+        <div class="card">
+            <div class="card-header">
+                <span class="stage-badge">2NF</span>
+                <h2>Second Normal Form</h2>
+            </div>
+            <p><strong>Why:</strong> Eliminate <strong>Partial Dependencies</strong>. In 1NF, <code>Name</code> & <code>Class</code> depend ONLY on <code>StudentID</code>. <code>BookName</code>, <code>CategoryID</code>, <code>Category</code> depend ONLY on <code>BookID</code>.</p>
+            
+            <div class="grid-3">
+                <div>
+                    <p class="sub-table-title">STUDENT Table</p>
+                    <div class="table-wrapper">
+                        <table>
+                            <thead><tr><th class="pk-col">StudentID</th><th>Name</th><th>Class</th></tr></thead>
+                            <tbody>
+                                <tr><td class="pk-col">S001</td><td>Aina</td><td>6A</td></tr>
+                                <tr><td class="pk-col">S002</td><td>Amir</td><td>6B</td></tr>
+                                <tr><td class="pk-col">S003</td><td>Siti</td><td>6A</td></tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+                <div>
+                    <p class="sub-table-title">BOOK Table</p>
+                    <div class="table-wrapper">
+                        <table>
+                            <thead><tr><th class="pk-col">BookID</th><th>BookName</th><th>CategoryID</th><th>Category</th></tr></thead>
+                            <tbody>
+                                <tr><td class="pk-col">B001</td><td>Python</td><td>C01</td><td>Programming</td></tr>
+                                <tr><td class="pk-col">B002</td><td>Computer Networks</td><td>C03</td><td>Networking</td></tr>
+                                <tr><td class="pk-col">B003</td><td>SQL</td><td>C02</td><td>Database</td></tr>
+                                <tr><td class="pk-col">B004</td><td>Media Design</td><td>C04</td><td>Multimedia</td></tr>
+                                <tr><td class="pk-col">B005</td><td>HTML Code</td><td>C01</td><td>Programming</td></tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+                <div>
+                    <p class="sub-table-title">BORROWING Table</p>
+                    <div class="table-wrapper">
+                        <table>
+                            <thead><tr><th class="pk-col">StudentID</th><th class="pk-col">BookID</th><th>BorrowDate</th><th>ReturnDate</th></tr></thead>
+                            <tbody>
+                                <tr><td class="pk-col">S001</td><td class="pk-col">B001</td><td>10/06/2026</td><td>17/06/2026</td></tr>
+                                <tr><td class="pk-col">S001</td><td class="pk-col">B003</td><td>10/06/2026</td><td>17/06/2026</td></tr>
+                                <tr><td class="pk-col">S002</td><td class="pk-col">B002</td><td>11/06/2026</td><td>18/06/2026</td></tr>
+                                <tr><td class="pk-col">S003</td><td class="pk-col">B004</td><td>12/06/2026</td><td>19/06/2026</td></tr>
+                                <tr><td class="pk-col">S003</td><td class="pk-col">B005</td><td>12/06/2026</td><td>19/06/2026</td></tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+            <div class="explanation-box">
+                <h4><i class="fas fa-cut"></i> Transformation</h4>
+                <p><strong>From:</strong> One massive table with mixed dependencies.</p>
+                <p><strong>To:</strong> Three clear tables. Attributes follow their respective primary keys (<code>StudentID</code> or <code>BookID</code>), leaving only the truly combined data (dates) in the <code>BORROWING</code> table.</p>
+            </div>
+        </div>
+
+        <div class="arrow-down"><i class="fas fa-arrow-down"></i></div>
+
+        <!-- 3NF -->
+        <div class="card">
+            <div class="card-header">
+                <span class="stage-badge">3NF</span>
+                <h2>Third Normal Form</h2>
+            </div>
+            <p><strong>Why:</strong> Eliminate <strong>Transitive Dependency</strong>. In the 2NF BOOK table, <code>BookID → CategoryID → Category</code>. <code>Category</code> is not directly dependent on <code>BookID</code>, but indirectly via <code>CategoryID</code>.</p>
+            
+            <div class="grid-2">
+                <div>
+                    <p class="sub-table-title new-table-title"><i class="fas fa-plus-circle"></i> NEW: CATEGORY Table</p>
+                    <div class="table-wrapper" style="border-color: #fcd34d;">
+                        <table>
+                            <thead><tr><th class="pk-col" style="background-color: #fef3c7; border-color: #d97706;">CategoryID</th><th>Category</th></tr></thead>
+                            <tbody>
+                                <tr><td class="pk-col" style="background-color: #fef3c7; border-color: #d97706;">C01</td><td>Programming</td></tr>
+                                <tr><td class="pk-col" style="background-color: #fef3c7; border-color: #d97706;">C02</td><td>Database</td></tr>
+                                <tr><td class="pk-col" style="background-color: #fef3c7; border-color: #d97706;">C03</td><td>Networking</td></tr>
+                                <tr><td class="pk-col" style="background-color: #fef3c7; border-color: #d97706;">C04</td><td>Multimedia</td></tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+                <div>
+                    <p class="sub-table-title">Modified: BOOK Table</p>
+                    <div class="table-wrapper">
+                        <table>
+                            <thead><tr><th class="pk-col">BookID</th><th>BookName</th><th class="fk-col">CategoryID (FK)</th></tr></thead>
+                            <tbody>
+                                <tr><td class="pk-col">B001</td><td>Python</td><td class="fk-col">C01</td></tr>
+                                <tr><td class="pk-col">B002</td><td>Computer Networks</td><td class="fk-col">C03</td></tr>
+                                <tr><td class="pk-col">B003</td><td>SQL</td><td class="fk-col">C02</td></tr>
+                                <tr><td class="pk-col">B004</td><td>Media Design</td><td class="fk-col">C04</td></tr>
+                                <tr><td class="pk-col">B005</td><td>HTML Code</td><td class="fk-col">C01</td></tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+            <div class="explanation-box">
+                <h4><i class="fas fa-link"></i> Transformation</h4>
+                <p><strong>From:</strong> A 2NF BOOK table with redundant text values (e.g., "Programming" repeated for every book).</p>
+                <p><strong>To:</strong> A dedicated <code>CATEGORY</code> table where <code>CategoryID</code> is the Primary Key. In the <code>BOOK</code> table, <code>CategoryID</code> becomes a <strong>Foreign Key</strong> referencing the category. This eliminates redundancy and update anomalies.</p>
+            </div>
+        </div>
+    </div>
+
+    <!-- ======================= 马来文内容 ======================= -->
+    <div id="lang-ms" class="lang-content">
+        <h1 style="text-align: center; margin-bottom: 1rem;"><i class="fas fa-database"></i> Proses Penormalan (UNF ke 3NF)</h1>
+        <p style="text-align: center; color: var(--text-muted); margin-bottom: 2rem;">Transformasi langkah demi langkah untuk menghapuskan lebihan data</p>
+
+        <!-- UNF -->
+        <div class="card">
+            <div class="card-header">
+                <span class="stage-badge">UNF</span>
+                <h2>Bentuk Tidak Ternormal</h2>
+            </div>
+            <p><strong>Mengapa:</strong> Ini adalah jadual mentah. Maklumat buku dan kategori disumbatkan ke dalam satu sel.</p>
+            
+            <div class="table-wrapper">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>StudentID</th><th>Name</th><th>Class</th><th>BookID</th><th>BookName</th><th>CategoryID</th><th>Category</th><th>BorrowDate</th><th>ReturnDate</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td>S001</td><td>Aina</td><td>6A</td>
+                            <td class="repeating-group">B001, B003</td>
+                            <td class="repeating-group">Python, SQL</td>
+                            <td class="repeating-group">C01, C02</td>
+                            <td class="repeating-group">Programming, Database</td>
+                            <td>10/06/2026</td><td>17/06/2026</td>
+                        </tr>
+                        <tr>
+                            <td>S002</td><td>Amir</td><td>6B</td>
+                            <td>B002</td><td>Computer Networks</td><td>C03</td><td>Networking</td><td>11/06/2026</td><td>18/06/2026</td>
+                        </tr>
+                        <tr>
+                            <td>S003</td><td>Siti</td><td>6A</td>
+                            <td class="repeating-group">B004, B005</td>
+                            <td class="repeating-group">Media Design, HTML</td>
+                            <td class="repeating-group">C04, C01</td>
+                            <td class="repeating-group">Multimedia, Programming</td>
+                            <td>12/06/2026</td><td>19/06/2026</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+            <div class="explanation-box">
+                <h4><i class="fas fa-bullseye"></i> Matlamat</h4>
+                <p>Hapuskan <strong>Kumpulan Berulang</strong>. Dalam 1NF, setiap sel mesti mengandungi hanya satu nilai atom.</p>
+            </div>
+        </div>
+
+        <div class="arrow-down"><i class="fas fa-arrow-down"></i></div>
+
+        <!-- 1NF -->
+        <div class="card">
+            <div class="card-header">
+                <span class="stage-badge">1NF</span>
+                <h2>Bentuk Normal Pertama</h2>
+            </div>
+            <p><strong>Mengapa:</strong> Pisahkan nilai yang dipisahkan koma ke baris individu. Setiap sel kini mempunyai satu nilai.</p>
+            
+            <div class="table-wrapper">
+                <table>
+                    <thead>
+                        <tr>
+                            <th class="pk-col">StudentID <i class="fas fa-key"></i></th>
+                            <th class="pk-col">BookID <i class="fas fa-key"></i></th>
+                            <th>Name</th><th>Class</th><th>BookName</th><th>CategoryID</th><th>Category</th><th>BorrowDate</th><th>ReturnDate</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr><td class="pk-col">S001</td><td class="pk-col">B001</td><td>Aina</td><td>6A</td><td>Python</td><td>C01</td><td>Programming</td><td>10/06/2026</td><td>17/06/2026</td></tr>
+                        <tr><td class="pk-col">S001</td><td class="pk-col">B003</td><td>Aina</td><td>6A</td><td>SQL</td><td>C02</td><td>Database</td><td>10/06/2026</td><td>17/06/2026</td></tr>
+                        <tr><td class="pk-col">S002</td><td class="pk-col">B002</td><td>Amir</td><td>6B</td><td>Computer Networks</td><td>C03</td><td>Networking</td><td>11/06/2026</td><td>18/06/2026</td></tr>
+                        <tr><td class="pk-col">S003</td><td class="pk-col">B004</td><td>Siti</td><td>6A</td><td>Media Design</td><td>C04</td><td>Multimedia</td><td>12/06/2026</td><td>19/06/2026</td></tr>
+                        <tr><td class="pk-col">S003</td><td class="pk-col">B005</td><td>Siti</td><td>6A</td><td>HTML Code</td><td>C01</td><td>Programming</td><td>12/06/2026</td><td>19/06/2026</td></tr>
+                    </tbody>
+                </table>
+            </div>
+            <div class="explanation-box">
+                <h4><i class="fas fa-key"></i> Mengapa Garis Bawah (Kunci Utama)?</h4>
+                <p><strong>Dari apa ke apa:</strong> Memandangkan data kini dalam nilai tunggal, <code>StudentID</code> atau <code>BookID</code> sahaja tidak dapat mengenal pasti baris secara unik.</p>
+                <p><strong>Kunci Komposit:</strong> Anda memerlukan <code>(StudentID, BookID)</code> bersama-sama untuk mengenal pasti siapa meminjam buku mana. Oleh itu, ia digariskan sebagai <strong>Kunci Utama Komposit</strong>.</p>
+                <p><em>Nota: <code>CategoryID</code> BUKAN kunci utama di sini kerana mengetahui kategori tidak mengenal pasti rekod pinjaman secara unik.</em></p>
+            </div>
+        </div>
+
+        <div class="arrow-down"><i class="fas fa-arrow-down"></i></div>
+
+        <!-- 2NF -->
+        <div class="card">
+            <div class="card-header">
+                <span class="stage-badge">2NF</span>
+                <h2>Bentuk Normal Kedua</h2>
+            </div>
+            <p><strong>Mengapa:</strong> Hapuskan <strong>Kebergantungan Separa</strong>. Dalam 1NF, <code>Name</code> & <code>Class</code> hanya bergantung pada <code>StudentID</code>. <code>BookName</code>, <code>CategoryID</code>, <code>Category</code> hanya bergantung pada <code>BookID</code>.</p>
+            
+            <div class="grid-3">
+                <div>
+                    <p class="sub-table-title">Jadual STUDENT</p>
+                    <div class="table-wrapper">
+                        <table>
+                            <thead><tr><th class="pk-col">StudentID</th><th>Name</th><th>Class</th></tr></thead>
+                            <tbody>
+                                <tr><td class="pk-col">S001</td><td>Aina</td><td>6A</td></tr>
+                                <tr><td class="pk-col">S002</td><td>Amir</td><td>6B</td></tr>
+                                <tr><td class="pk-col">S003</td><td>Siti</td><td>6A</td></tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+                <div>
+                    <p class="sub-table-title">Jadual BOOK</p>
+                    <div class="table-wrapper">
+                        <table>
+                            <thead><tr><th class="pk-col">BookID</th><th>BookName</th><th>CategoryID</th><th>Category</th></tr></thead>
+                            <tbody>
+                                <tr><td class="pk-col">B001</td><td>Python</td><td>C01</td><td>Programming</td></tr>
+                                <tr><td class="pk-col">B002</td><td>Computer Networks</td><td>C03</td><td>Networking</td></tr>
+                                <tr><td class="pk-col">B003</td><td>SQL</td><td>C02</td><td>Database</td></tr>
+                                <tr><td class="pk-col">B004</td><td>Media Design</td><td>C04</td><td>Multimedia</td></tr>
+                                <tr><td class="pk-col">B005</td><td>HTML Code</td><td>C01</td><td>Programming</td></tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+                <div>
+                    <p class="sub-table-title">Jadual BORROWING</p>
+                    <div class="table-wrapper">
+                        <table>
+                            <thead><tr><th class="pk-col">StudentID</th><th class="pk-col">BookID</th><th>BorrowDate</th><th>ReturnDate</th></tr></thead>
+                            <tbody>
+                                <tr><td class="pk-col">S001</td><td class="pk-col">B001</td><td>10/06/2026</td><td>17/06/2026</td></tr>
+                                <tr><td class="pk-col">S001</td><td class="pk-col">B003</td><td>10/06/2026</td><td>17/06/2026</td></tr>
+                                <tr><td class="pk-col">S002</td><td class="pk-col">B002</td><td>11/06/2026</td><td>18/06/2026</td></tr>
+                                <tr><td class="pk-col">S003</td><td class="pk-col">B004</td><td>12/06/2026</td><td>19/06/2026</td></tr>
+                                <tr><td class="pk-col">S003</td><td class="pk-col">B005</td><td>12/06/2026</td><td>19/06/2026</td></tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+            <div class="explanation-box">
+                <h4><i class="fas fa-cut"></i> Transformasi</h4>
+                <p><strong>Dari:</strong> Satu jadual besar dengan kebergantungan bercampur.</p>
+                <p><strong>Ke:</strong> Tiga jadual yang jelas. Atribut mengikut kunci utama masing-masing (<code>StudentID</code> atau <code>BookID</code>), meninggalkan hanya data yang benar-benar digabungkan (tarikh) dalam jadual <code>BORROWING</code>.</p>
+            </div>
+        </div>
+
+        <div class="arrow-down"><i class="fas fa-arrow-down"></i></div>
+
+        <!-- 3NF -->
+        <div class="card">
+            <div class="card-header">
+                <span class="stage-badge">3NF</span>
+                <h2>Bentuk Normal Ketiga</h2>
+            </div>
+            <p><strong>Mengapa:</strong> Hapuskan <strong>Kebergantungan Transitif</strong>. Dalam jadual BOOK 2NF, <code>BookID → CategoryID → Category</code>. <code>Category</code> tidak bergantung secara langsung pada <code>BookID</code>, tetapi secara tidak langsung melalui <code>CategoryID</code>.</p>
+            
+            <div class="grid-2">
+                <div>
+                    <p class="sub-table-title new-table-title"><i class="fas fa-plus-circle"></i> BAHARU: Jadual CATEGORY</p>
+                    <div class="table-wrapper" style="border-color: #fcd34d;">
+                        <table>
+                            <thead><tr><th class="pk-col" style="background-color: #fef3c7; border-color: #d97706;">CategoryID</th><th>Category</th></tr></thead>
+                            <tbody>
+                                <tr><td class="pk-col" style="background-color: #fef3c7; border-color: #d97706;">C01</td><td>Programming</td></tr>
+                                <tr><td class="pk-col" style="background-color: #fef3c7; border-color: #d97706;">C02</td><td>Database</td></tr>
+                                <tr><td class="pk-col" style="background-color: #fef3c7; border-color: #d97706;">C03</td><td>Networking</td></tr>
+                                <tr><td class="pk-col" style="background-color: #fef3c7; border-color: #d97706;">C04</td><td>Multimedia</td></tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+                <div>
+                    <p class="sub-table-title">Diubah suai: Jadual BOOK</p>
+                    <div class="table-wrapper">
+                        <table>
+                            <thead><tr><th class="pk-col">BookID</th><th>BookName</th><th class="fk-col">CategoryID (FK)</th></tr></thead>
+                            <tbody>
+                                <tr><td class="pk-col">B001</td><td>Python</td><td class="fk-col">C01</td></tr>
+                                <tr><td class="pk-col">B002</td><td>Computer Networks</td><td class="fk-col">C03</td></tr>
+                                <tr><td class="pk-col">B003</td><td>SQL</td><td class="fk-col">C02</td></tr>
+                                <tr><td class="pk-col">B004</td><td>Media Design</td><td class="fk-col">C04</td></tr>
+                                <tr><td class="pk-col">B005</td><td>HTML Code</td><td class="fk-col">C01</td></tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+            <div class="explanation-box">
+                <h4><i class="fas fa-link"></i> Transformasi</h4>
+                <p><strong>Dari:</strong> Jadual BOOK 2NF dengan nilai teks berlebihan (contohnya, "Programming" diulang untuk setiap buku).</p>
+                <p><strong>Ke:</strong> Jadual <code>CATEGORY</code> khusus di mana <code>CategoryID</code> ialah Kunci Utama. Dalam jadual <code>BOOK</code>, <code>CategoryID</code> menjadi <strong>Kunci Asing</strong> yang merujuk kepada kategori. Ini menghapuskan lebihan dan anomali kemas kini.</p>
+            </div>
+        </div>
+    </div>
+
+    <!-- ======================= 中文内容 ======================= -->
+    <div id="lang-zh" class="lang-content">
+        <h1 style="text-align: center; margin-bottom: 1rem;"><i class="fas fa-database"></i> 数据库规范化过程 (UNF 到 3NF)</h1>
+        <p style="text-align: center; color: var(--text-muted); margin-bottom: 2rem;">一步步消除数据冗余和异常的演变过程</p>
+
+        <!-- UNF -->
+        <div class="card">
+            <div class="card-header">
+                <span class="stage-badge">UNF</span>
+                <h2>未规范化形式</h2>
+            </div>
+            <p><strong>为什么：</strong>这是最原始的表格。为了省事，图书信息和分类信息被塞进了同一个单元格。</p>
+            
+            <div class="table-wrapper">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>StudentID</th><th>Name</th><th>Class</th><th>BookID</th><th>BookName</th><th>CategoryID</th><th>Category</th><th>BorrowDate</th><th>ReturnDate</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td>S001</td><td>Aina</td><td>6A</td>
+                            <td class="repeating-group">B001, B003</td>
+                            <td class="repeating-group">Python, SQL</td>
+                            <td class="repeating-group">C01, C02</td>
+                            <td class="repeating-group">Programming, Database</td>
+                            <td>10/06/2026</td><td>17/06/2026</td>
+                        </tr>
+                        <tr>
+                            <td>S002</td><td>Amir</td><td>6B</td>
+                            <td>B002</td><td>Computer Networks</td><td>C03</td><td>Networking</td><td>11/06/2026</td><td>18/06/2026</td>
+                        </tr>
+                        <tr>
+                            <td>S003</td><td>Siti</td><td>6A</td>
+                            <td class="repeating-group">B004, B005</td>
+                            <td class="repeating-group">Media Design, HTML</td>
+                            <td class="repeating-group">C04, C01</td>
+                            <td class="repeating-group">Multimedia, Programming</td>
+                            <td>12/06/2026</td><td>19/06/2026</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+            <div class="explanation-box">
+                <h4><i class="fas fa-bullseye"></i> 目标</h4>
+                <p>消除<strong>重复组 (Repeating Groups)</strong>。在 1NF 中，每个单元格只能包含一个原子值。</p>
+            </div>
+        </div>
+
+        <div class="arrow-down"><i class="fas fa-arrow-down"></i></div>
+
+        <!-- 1NF -->
+        <div class="card">
+            <div class="card-header">
+                <span class="stage-badge">1NF</span>
+                <h2>第一范式</h2>
+            </div>
+            <p><strong>为什么这样改：</strong>把用逗号隔开的数据拆成多行。现在每个格子只有一个值。</p>
+            
+            <div class="table-wrapper">
+                <table>
+                    <thead>
+                        <tr>
+                            <th class="pk-col">StudentID <i class="fas fa-key"></i></th>
+                            <th class="pk-col">BookID <i class="fas fa-key"></i></th>
+                            <th>Name</th><th>Class</th><th>BookName</th><th>CategoryID</th><th>Category</th><th>BorrowDate</th><th>ReturnDate</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr><td class="pk-col">S001</td><td class="pk-col">B001</td><td>Aina</td><td>6A</td><td>Python</td><td>C01</td><td>Programming</td><td>10/06/2026</td><td>17/06/2026</td></tr>
+                        <tr><td class="pk-col">S001</td><td class="pk-col">B003</td><td>Aina</td><td>6A</td><td>SQL</td><td>C02</td><td>Database</td><td>10/06/2026</td><td>17/06/2026</td></tr>
+                        <tr><td class="pk-col">S002</td><td class="pk-col">B002</td><td>Amir</td><td>6B</td><td>Computer Networks</td><td>C03</td><td>Networking</td><td>11/06/2026</td><td>18/06/2026</td></tr>
+                        <tr><td class="pk-col">S003</td><td class="pk-col">B004</td><td>Siti</td><td>6A</td><td>Media Design</td><td>C04</td><td>Multimedia</td><td>12/06/2026</td><td>19/06/2026</td></tr>
+                        <tr><td class="pk-col">S003</td><td class="pk-col">B005</td><td>Siti</td><td>6A</td><td>HTML Code</td><td>C01</td><td>Programming</td><td>12/06/2026</td><td>19/06/2026</td></tr>
+                    </tbody>
+                </table>
+            </div>
+            <div class="explanation-box">
+                <h4><i class="fas fa-key"></i> 为什么画下划线 (主键)？</h4>
+                <p><strong>从什么得到什么：</strong>因为数据拆成了单值，单靠 <code>StudentID</code>（比如 S001 有两行）或单靠 <code>BookID</code> 无法唯一确定一行。</p>
+                <p><strong>必须组合起来：</strong>必须同时知道 <code>(StudentID, BookID)</code> 才能唯一确定谁借了哪本书。所以形成了<strong>复合主键</strong>，并画上下划线。</p>
+                <p><em>注意：此时 <code>CategoryID</code> 只是一般属性，不能做主键，因为知道了分类 C01，并不代表唯一知道是谁借了哪本书。</em></p>
+            </div>
+        </div>
+
+        <div class="arrow-down"><i class="fas fa-arrow-down"></i></div>
+
+        <!-- 2NF -->
+        <div class="card">
+            <div class="card-header">
+                <span class="stage-badge">2NF</span>
+                <h2>第二范式</h2>
+            </div>
+            <p><strong>为什么这样改：</strong>消除<strong>部分函数依赖 (Partial Dependencies)</strong>。在 1NF 表中，<code>Name</code> 和 <code>Class</code> 只依赖 <code>StudentID</code>；<code>BookName</code>、<code>CategoryID</code> 等只依赖 <code>BookID</code>。</p>
+            
+            <div class="grid-3">
+                <div>
+                    <p class="sub-table-title">STUDENT (学生表)</p>
+                    <div class="table-wrapper">
+                        <table>
+                            <thead><tr><th class="pk-col">StudentID</th><th>Name</th><th>Class</th></tr></thead>
+                            <tbody>
+                                <tr><td class="pk-col">S001</td><td>Aina</td><td>6A</td></tr>
+                                <tr><td class="pk-col">S002</td><td>Amir</td><td>6B</td></tr>
+                                <tr><td class="pk-col">S003</td><td>Siti</td><td>6A</td></tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+                <div>
+                    <p class="sub-table-title">BOOK (图书表)</p>
+                    <div class="table-wrapper">
+                        <table>
+                            <thead><tr><th class="pk-col">BookID</th><th>BookName</th><th>CategoryID</th><th>Category</th></tr></thead>
+                            <tbody>
+                                <tr><td class="pk-col">B001</td><td>Python</td><td>C01</td><td>Programming</td></tr>
+                                <tr><td class="pk-col">B002</td><td>Computer Networks</td><td>C03</td><td>Networking</td></tr>
+                                <tr><td class="pk-col">B003</td><td>SQL</td><td>C02</td><td>Database</td></tr>
+                                <tr><td class="pk-col">B004</td><td>Media Design</td><td>C04</td><td>Multimedia</td></tr>
+                                <tr><td class="pk-col">B005</td><td>HTML Code</td><td>C01</td><td>Programming</td></tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+                <div>
+                    <p class="sub-table-title">BORROWING (借阅表)</p>
+                    <div class="table-wrapper">
+                        <table>
+                            <thead><tr><th class="pk-col">StudentID</th><th class="pk-col">BookID</th><th>BorrowDate</th><th>ReturnDate</th></tr></thead>
+                            <tbody>
+                                <tr><td class="pk-col">S001</td><td class="pk-col">B001</td><td>10/06/2026</td><td>17/06/2026</td></tr>
+                                <tr><td class="pk-col">S001</td><td class="pk-col">B003</td><td>10/06/2026</td><td>17/06/2026</td></tr>
+                                <tr><td class="pk-col">S002</td><td class="pk-col">B002</td><td>11/06/2026</td><td>18/06/2026</td></tr>
+                                <tr><td class="pk-col">S003</td><td class="pk-col">B004</td><td>12/06/2026</td><td>19/06/2026</td></tr>
+                                <tr><td class="pk-col">S003</td><td class="pk-col">B005</td><td>12/06/2026</td><td>19/06/2026</td></tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+            <div class="explanation-box">
+                <h4><i class="fas fa-cut"></i> 从什么得到什么 (Transformation)</h4>
+                <p><strong>从：</strong>一张包含所有信息、依赖关系混乱的超大表。</p>
+                <p><strong>得到：</strong>三张逻辑清晰的表。属性跟着各自的主键走（<code>StudentID</code> 或 <code>BookID</code>），只有真正依赖于两者的 <code>BorrowDate</code> 和 <code>ReturnDate</code> 留在借阅表里。</p>
+            </div>
+        </div>
+
+        <div class="arrow-down"><i class="fas fa-arrow-down"></i></div>
+
+        <!-- 3NF -->
+        <div class="card">
+            <div class="card-header">
+                <span class="stage-badge">3NF</span>
+                <h2>第三范式</h2>
+            </div>
+            <p><strong>为什么这样改：</strong>消除<strong>传递函数依赖 (Transitive Dependency)</strong>。在 2NF 的 BOOK 表中，<code>BookID → CategoryID → Category</code>。<code>Category</code> 不是直接依赖 <code>BookID</code>，而是通过 <code>CategoryID</code> 间接决定的。</p>
+            
+            <div class="grid-2">
+                <div>
+                    <p class="sub-table-title new-table-title"><i class="fas fa-plus-circle"></i> 新表：CATEGORY (分类表)</p>
+                    <div class="table-wrapper" style="border-color: #fcd34d;">
+                        <table>
+                            <thead><tr><th class="pk-col" style="background-color: #fef3c7; border-color: #d97706;">CategoryID</th><th>Category</th></tr></thead>
+                            <tbody>
+                                <tr><td class="pk-col" style="background-color: #fef3c7; border-color: #d97706;">C01</td><td>Programming</td></tr>
+                                <tr><td class="pk-col" style="background-color: #fef3c7; border-color: #d97706;">C02</td><td>Database</td></tr>
+                                <tr><td class="pk-col" style="background-color: #fef3c7; border-color: #d97706;">C03</td><td>Networking</td></tr>
+                                <tr><td class="pk-col" style="background-color: #fef3c7; border-color: #d97706;">C04</td><td>Multimedia</td></tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+                <div>
+                    <p class="sub-table-title">修改后的：BOOK (图书表)</p>
+                    <div class="table-wrapper">
+                        <table>
+                            <thead><tr><th class="pk-col">BookID</th><th>BookName</th><th class="fk-col">CategoryID (FK)</th></tr></thead>
+                            <tbody>
+                                <tr><td class="pk-col">B001</td><td>Python</td><td class="fk-col">C01</td></tr>
+                                <tr><td class="pk-col">B002</td><td>Computer Networks</td><td class="fk-col">C03</td></tr>
+                                <tr><td class="pk-col">B003</td><td>SQL</td><td class="fk-col">C02</td></tr>
+                                <tr><td class="pk-col">B004</td><td>Media Design</td><td class="fk-col">C04</td></tr>
+                                <tr><td class="pk-col">B005</td><td>HTML Code</td><td class="fk-col">C01</td></tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+            <div class="explanation-box">
+                <h4><i class="fas fa-link"></i> 从什么得到什么 (Transformation)</h4>
+                <p><strong>从：</strong>2NF 的 BOOK 表中包含冗余的 <code>Category</code> 文本（每次出现 C01 都要重复写一遍 Programming）。</p>
+                <p><strong>得到：</strong>独立出 <code>CATEGORY</code> 表。在 <code>CATEGORY</code> 表里，<code>CategoryID</code> 成为唯一的主键。在 <code>BOOK</code> 表里，<code>CategoryID</code> 变成了<strong>外键 (Foreign Key)</strong>。这不仅省空间，还解决了更新异常。</p>
+            </div>
+        </div>
+    </div>
+
+</div>
+
+<script>
+    (function() {
+        // 语言切换逻辑
+        const langBtns = document.querySelectorAll('.lang-btn');
+        const langContents = {
+            en: document.getElementById('lang-en'),
+            ms: document.getElementById('lang-ms'),
+            zh: document.getElementById('lang-zh')
+        };
+
+        function setLanguage(lang) {
+            // 隐藏所有内容
+            Object.values(langContents).forEach(el => {
+                if (el) el.classList.remove('active');
+            });
+            // 显示选中语言
+            if (langContents[lang]) {
+                langContents[lang].classList.add('active');
+            }
+            // 更新按钮激活状态
+            langBtns.forEach(btn => {
+                if (btn.dataset.lang === lang) {
+                    btn.classList.add('active');
+                } else {
+                    btn.classList.remove('active');
+                }
+            });
+            // 更新 html lang 属性
+            document.documentElement.lang = (lang === 'ms' ? 'ms' : (lang === 'zh' ? 'zh' : 'en'));
+        }
+
+        // 按钮点击事件
+        langBtns.forEach(btn => {
+            btn.addEventListener('click', (e) => {
+                const lang = e.currentTarget.dataset.lang;
+                setLanguage(lang);
+            });
+        });
+
+        // 自动检测设备语言
+        function detectDefaultLanguage() {
+            const deviceLang = navigator.language || navigator.userLanguage || 'en';
+            const langCode = deviceLang.toLowerCase();
+            if (langCode.startsWith('ms')) {
+                return 'ms';   // 马来文
+            } else if (langCode.startsWith('zh')) {
+                return 'zh';   // 中文
+            } else {
+                return 'en';   // 默认英文
+            }
+        }
+
+        // 初始化语言
+        const defaultLang = detectDefaultLanguage();
+        setLanguage(defaultLang);
+    })();
+</script>
+</body>
+</html>
