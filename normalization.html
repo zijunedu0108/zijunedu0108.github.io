@@ -1,0 +1,1101 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>DBMS Normalization · 数据库规范化 · Penormalan Pangkalan Data</title>
+    <!-- Favicon & Icon (zijunlogo.png) -->
+    <link rel="icon" type="image/png" href="zijunlogo.png">
+    <link rel="apple-touch-icon" href="zijunlogo.png">
+    <!-- Google Font & Icons -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:opsz,wght@14..32,400;14..32,500;14..32,600;14..32,700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        body {
+            font-family: 'Inter', sans-serif;
+            background: #f5f7fb;
+            color: #1e293b;
+            padding: 2rem 1.5rem;
+            line-height: 1.6;
+        }
+        .app-container {
+            max-width: 1200px;
+            margin: 0 auto;
+            background: #ffffff;
+            border-radius: 2.5rem;
+            box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
+            padding: 2rem 2rem 2.5rem;
+        }
+        .header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 1rem;
+            margin-bottom: 2rem;
+            border-bottom: 1px solid #e2e8f0;
+            padding-bottom: 1.25rem;
+        }
+        .logo-title {
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+        }
+        .logo-title img {
+            width: 42px;
+            height: 42px;
+            object-fit: contain;
+            border-radius: 10px;
+        }
+        .logo-title h1 {
+            font-size: 1.9rem;
+            font-weight: 700;
+            letter-spacing: -0.02em;
+            background: linear-gradient(135deg, #0f172a, #3b82f6);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+        .lang-switcher {
+            display: flex;
+            gap: 0.5rem;
+            background: #f1f5f9;
+            padding: 0.35rem;
+            border-radius: 40px;
+        }
+        .lang-btn {
+            background: transparent;
+            border: none;
+            padding: 0.5rem 1.2rem;
+            border-radius: 30px;
+            font-weight: 600;
+            font-size: 0.9rem;
+            color: #475569;
+            cursor: pointer;
+            transition: all 0.2s;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+        .lang-btn i {
+            font-size: 1rem;
+        }
+        .lang-btn.active {
+            background: #ffffff;
+            color: #0f172a;
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.05);
+        }
+        .lang-btn:hover {
+            color: #0f172a;
+        }
+        .content {
+            transition: opacity 0.2s;
+        }
+        .section-card {
+            background: #ffffff;
+            border: 1px solid #e9eef4;
+            border-radius: 1.5rem;
+            padding: 1.5rem 1.8rem;
+            margin-bottom: 1.75rem;
+            box-shadow: 0 6px 14px rgba(0, 0, 0, 0.02);
+            transition: box-shadow 0.2s;
+        }
+        .section-card:hover {
+            box-shadow: 0 12px 24px -8px rgba(0, 0, 0, 0.08);
+        }
+        h2 {
+            font-size: 1.6rem;
+            font-weight: 700;
+            letter-spacing: -0.01em;
+            margin-bottom: 1.2rem;
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+            color: #0f172a;
+        }
+        h2 i {
+            color: #3b82f6;
+            font-size: 1.5rem;
+        }
+        h3 {
+            font-size: 1.25rem;
+            font-weight: 600;
+            margin-top: 1.5rem;
+            margin-bottom: 0.8rem;
+            color: #1e293b;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+        h3 i {
+            color: #3b82f6;
+            width: 1.5rem;
+            text-align: center;
+        }
+        p {
+            margin-bottom: 1rem;
+            color: #334155;
+        }
+        .definition {
+            background: #f0f7ff;
+            border-left: 5px solid #3b82f6;
+            padding: 1rem 1.5rem;
+            border-radius: 1rem;
+            margin: 1rem 0;
+            font-style: normal;
+        }
+        .definition strong {
+            color: #1e4b8c;
+        }
+        .table-wrapper {
+            overflow-x: auto;
+            margin: 1.2rem 0;
+            border-radius: 1rem;
+            border: 1px solid #e2e8f0;
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 0.95rem;
+            background: #ffffff;
+        }
+        th {
+            background: #f8fafc;
+            font-weight: 600;
+            color: #0f172a;
+            padding: 0.9rem 1rem;
+            text-align: left;
+            border-bottom: 1px solid #e2e8f0;
+        }
+        td {
+            padding: 0.8rem 1rem;
+            border-bottom: 1px solid #edf2f7;
+            color: #1e293b;
+        }
+        tr:last-child td {
+            border-bottom: none;
+        }
+        .badge {
+            display: inline-block;
+            background: #e6f0ff;
+            color: #1d4ed8;
+            font-weight: 600;
+            font-size: 0.75rem;
+            padding: 0.25rem 0.75rem;
+            border-radius: 30px;
+            letter-spacing: 0.02em;
+            text-transform: uppercase;
+            margin-right: 0.5rem;
+        }
+        .math {
+            font-family: 'Courier New', monospace;
+            background: #f1f5f9;
+            padding: 0.2rem 0.6rem;
+            border-radius: 8px;
+            font-weight: 600;
+            color: #0f172a;
+            white-space: nowrap;
+        }
+        .math-block {
+            background: #f8fafc;
+            padding: 0.9rem 1.5rem;
+            border-radius: 1rem;
+            font-family: 'Courier New', monospace;
+            font-size: 1.1rem;
+            border: 1px solid #e2e8f0;
+            margin: 1rem 0;
+            text-align: center;
+            font-weight: 600;
+            color: #0f172a;
+            overflow-x: auto;
+        }
+        .note {
+            background: #fffbeb;
+            border: 1px solid #fde68a;
+            padding: 1rem 1.5rem;
+            border-radius: 1rem;
+            color: #92400e;
+            margin: 1.2rem 0;
+            font-weight: 500;
+        }
+        .note i {
+            margin-right: 0.5rem;
+            color: #d97706;
+        }
+        .grid-2 {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 1.5rem;
+        }
+        @media (max-width: 700px) {
+            .grid-2 {
+                grid-template-columns: 1fr;
+            }
+            .app-container {
+                padding: 1.5rem 1rem;
+            }
+            h1 {
+                font-size: 1.5rem;
+            }
+            .section-card {
+                padding: 1.2rem;
+            }
+        }
+        .step-list {
+            list-style-type: none;
+            counter-reset: step-counter;
+            padding-left: 0;
+        }
+        .step-list li {
+            counter-increment: step-counter;
+            margin-bottom: 0.75rem;
+            padding-left: 2.5rem;
+            position: relative;
+            color: #334155;
+        }
+        .step-list li::before {
+            content: counter(step-counter);
+            background: #3b82f6;
+            color: white;
+            font-weight: 700;
+            font-size: 0.85rem;
+            width: 1.8rem;
+            height: 1.8rem;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            position: absolute;
+            left: 0;
+            top: 0.1rem;
+        }
+        .summary-table th {
+            background: #1e293b;
+            color: white;
+        }
+        .summary-table td {
+            background: white;
+        }
+        .highlight {
+            background: linear-gradient(120deg, #dbeafe 0%, #dbeafe 40%, transparent 80%);
+            padding: 0.1rem 0.4rem;
+            border-radius: 6px;
+            font-weight: 600;
+        }
+        .icon-text {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            margin-bottom: 0.5rem;
+        }
+        .icon-text i {
+            color: #3b82f6;
+            width: 20px;
+        }
+        .footer-note {
+            text-align: center;
+            margin-top: 2rem;
+            font-size: 0.9rem;
+            color: #64748b;
+            border-top: 1px solid #e2e8f0;
+            padding-top: 1.5rem;
+        }
+        .footer-note img {
+            width: 24px;
+            vertical-align: middle;
+            margin-right: 6px;
+            border-radius: 6px;
+        }
+        .lang-content {
+            display: none;
+        }
+        .lang-content.active {
+            display: block;
+        }
+        .keep-original {
+            font-style: italic;
+            color: #475569;
+            background: #f8fafc;
+            padding: 0.5rem 1rem;
+            border-radius: 0.75rem;
+        }
+        /* Example highlight styling */
+        .example-box {
+            background: #f8fafc;
+            border-left: 5px solid #10b981;
+            padding: 0.75rem 1.25rem;
+            border-radius: 0.75rem;
+            margin: 1rem 0;
+            font-weight: 500;
+            color: #065f46;
+        }
+        .example-box i {
+            color: #10b981;
+            margin-right: 0.5rem;
+        }
+    </style>
+</head>
+<body>
+    <div class="app-container">
+        <!-- Header with Logo & Language Switcher -->
+        <div class="header">
+            <div class="logo-title">
+                <img src="zijunlogo.png" alt="zijun logo" onerror="this.src='data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22%3E%3Crect width=%22100%22 height=%22100%22 rx=%2220%22 fill=%22%233b82f6%22/%3E%3Ctext x=%2250%22 y=%2270%22 font-size=%2250%22 text-anchor=%22middle%22 fill=%22white%22 font-weight=%22bold%22%3EZJ%3C/text%3E%3C/svg%3E'">
+                <h1>DBMS Normalization</h1>
+            </div>
+            <div class="lang-switcher">
+                <button class="lang-btn active" data-lang="en"><i class="fas fa-globe"></i> English</button>
+                <button class="lang-btn" data-lang="ms"><i class="fas fa-globe"></i> Melayu</button>
+                <button class="lang-btn" data-lang="zh"><i class="fas fa-globe"></i> 中文</button>
+            </div>
+        </div>
+
+        <!-- Content sections: EN, MS, ZH -->
+        <!-- ========== ENGLISH ========== -->
+        <div id="lang-en" class="lang-content active">
+            <div class="section-card">
+                <h2><i class="fas fa-database"></i> 1. What is Database Normalization?</h2>
+                <div class="definition">
+                    <strong>Definition:</strong> Database normalization is the process of organizing data in a database to reduce data redundancy and prevent data anomalies.
+                </div>
+                <p>Main objectives:</p>
+                <ul style="margin-left: 1.8rem; color:#334155;">
+                    <li>Reduce data redundancy</li>
+                    <li>Prevent data inconsistency</li>
+                    <li>Avoid insertion anomalies</li>
+                    <li>Avoid update anomalies</li>
+                    <li>Avoid deletion anomalies</li>
+                </ul>
+                <h3><i class="fas fa-link"></i> Functional Dependency (FD)</h3>
+                <p>A Functional Dependency means one attribute's value determines another attribute's value.</p>
+                <div class="math-block">StudentID → StudentName</div>
+                <p>Meaning: knowing StudentID, you can determine StudentName. The symbol → stands for <strong>determines</strong>.</p>
+            </div>
+
+            <!-- UNF Example -->
+            <div class="section-card">
+                <h2><i class="fas fa-layer-group"></i> 2. UNF — Unnormalised Form</h2>
+                <p>UNF is a data structure that has not been normalized yet.</p>
+                <p><strong>Characteristics:</strong></p>
+                <ul style="margin-left:1.8rem; margin-bottom:1rem;">
+                    <li>May contain repeating groups.</li>
+                    <li>May contain multiple values in one field.</li>
+                    <li>Data is not properly organised.</li>
+                </ul>
+                <div class="example-box">
+                    <i class="fas fa-table"></i> <strong>Example — Student Course Registration (UNF)</strong>
+                </div>
+                <div class="table-wrapper">
+                    <table>
+                        <thead><tr><th>StudentID</th><th>StudentName</th><th>Courses</th></tr></thead>
+                        <tbody>
+                            <tr><td>S01</td><td>Ali</td><td>Biology, Chemistry</td></tr>
+                            <tr><td>S02</td><td>Mei</td><td>Physics, Biology</td></tr>
+                        </tbody>
+                    </table>
+                </div>
+                <p>The <strong>Courses</strong> field contains multiple course values. For S01, it stores both Biology and Chemistry. This is a <strong>Repeating Group</strong>.</p>
+                <p><strong>Problem:</strong> Data is not normalized, making it difficult to query, update, and manage each course independently.</p>
+            </div>
+
+            <!-- 1NF Example -->
+            <div class="section-card">
+                <h2><i class="fas fa-check-circle"></i> 3. 1NF — First Normal Form</h2>
+                <div class="definition">
+                    <strong>Definition:</strong> A table is in 1NF if all attributes contain atomic values and there are no repeating groups.
+                </div>
+                <p><strong>How it works:</strong></p>
+                <ul class="step-list">
+                    <li>Identify repeating groups.</li>
+                    <li>Separate multiple values.</li>
+                    <li>Ensure each cell contains only one value.</li>
+                    <li>Identify a suitable primary key.</li>
+                </ul>
+                <div class="example-box">
+                    <i class="fas fa-table"></i> <strong>Example — 1NF (Student Course Registration)</strong>
+                </div>
+                <div class="table-wrapper">
+                    <table>
+                        <thead><tr><th>StudentID</th><th>StudentName</th><th>Course</th></tr></thead>
+                        <tbody>
+                            <tr><td>S01</td><td>Ali</td><td>Biology</td></tr>
+                            <tr><td>S01</td><td>Ali</td><td>Chemistry</td></tr>
+                            <tr><td>S02</td><td>Mei</td><td>Physics</td></tr>
+                            <tr><td>S02</td><td>Mei</td><td>Biology</td></tr>
+                        </tbody>
+                    </table>
+                </div>
+                <p>Now every cell has a single value, so it satisfies 1NF. However, StudentName still repeats.</p>
+                <p>This leads us to 2NF.</p>
+            </div>
+
+            <!-- Composite Key -->
+            <div class="section-card">
+                <h2><i class="fas fa-key"></i> 4. Composite Primary Key</h2>
+                <p>A Composite Primary Key consists of two or more attributes combined.</p>
+                <div class="example-box">
+                    <i class="fas fa-table"></i> <strong>Example — Composite Key (StudentID, CourseID)</strong>
+                </div>
+                <div class="table-wrapper">
+                    <table>
+                        <thead><tr><th>StudentID</th><th>CourseID</th><th>StudentName</th><th>CourseName</th><th>Marks</th></tr></thead>
+                        <tbody>
+                            <tr><td>S01</td><td>C01</td><td>Ali</td><td>Biology</td><td>85</td></tr>
+                            <tr><td>S01</td><td>C02</td><td>Ali</td><td>Chemistry</td><td>90</td></tr>
+                            <tr><td>S02</td><td>C01</td><td>Mei</td><td>Biology</td><td>78</td></tr>
+                        </tbody>
+                    </table>
+                </div>
+                <p>Assume: a student can register for multiple courses; a course can have multiple students; Marks depends on both student and course.</p>
+                <div class="math-block">(StudentID, CourseID) → Marks</div>
+                <p>StudentID and CourseID together uniquely determine Marks. So the Composite Primary Key is <span class="math">(StudentID, CourseID)</span>.</p>
+            </div>
+
+            <!-- Full FD -->
+            <div class="section-card">
+                <h2><i class="fas fa-arrows-alt-h"></i> 5. Full Functional Dependency</h2>
+                <div class="definition">
+                    <strong>Definition:</strong> Full functional dependency occurs when a non-key attribute depends on the entire composite primary key, not just part of it.
+                </div>
+                <p><strong>Example:</strong></p>
+                <div class="math-block">(StudentID, CourseID) → Marks</div>
+                <p>Why? StudentID alone cannot determine Marks. CourseID alone cannot determine Marks. Both are needed. Therefore, Marks is fully functionally dependent.</p>
+                <p><strong>Remember:</strong> Full = depends on the WHOLE composite key.</p>
+            </div>
+
+            <!-- Partial FD -->
+            <div class="section-card">
+                <h2><i class="fas fa-puzzle-piece"></i> 6. Partial Functional Dependency</h2>
+                <div class="definition">
+                    <strong>Definition:</strong> Partial functional dependency occurs when a non-key attribute depends on only part of a composite primary key instead of the entire key.
+                </div>
+                <p><strong>Example:</strong></p>
+                <div class="math-block">StudentID → StudentName</div>
+                <p>Why? Knowing StudentID is enough to determine StudentName. We do not need CourseID. Thus StudentName depends on a part of the composite key.</p>
+                <p>Another example: <span class="math">CourseID → CourseName</span>. CourseName depends only on CourseID.</p>
+                <p><strong>How to eliminate?</strong> Split the table:</p>
+                <div class="grid-2">
+                    <div>
+                        <p><strong>STUDENT TABLE</strong></p>
+                        <div class="table-wrapper">
+                            <table><thead><tr><th>StudentID (PK)</th><th>StudentName</th></tr></thead><tbody><tr><td>S01</td><td>Ali</td></tr><tr><td>S02</td><td>Mei</td></tr></tbody></table>
+                        </div>
+                    </div>
+                    <div>
+                        <p><strong>COURSE TABLE</strong></p>
+                        <div class="table-wrapper">
+                            <table><thead><tr><th>CourseID (PK)</th><th>CourseName</th></tr></thead><tbody><tr><td>C01</td><td>Biology</td></tr><tr><td>C02</td><td>Chemistry</td></tr></tbody></table>
+                        </div>
+                    </div>
+                </div>
+                <p><strong>REGISTRATION TABLE</strong></p>
+                <div class="table-wrapper">
+                    <table><thead><tr><th>StudentID (PK, FK)</th><th>CourseID (PK, FK)</th><th>Marks</th></tr></thead><tbody><tr><td>S01</td><td>C01</td><td>85</td></tr><tr><td>S01</td><td>C02</td><td>90</td></tr><tr><td>S02</td><td>C01</td><td>78</td></tr></tbody></table>
+                </div>
+                <p>Now StudentName and CourseName no longer depend on part of the composite key. This eliminates Partial Functional Dependency.</p>
+            </div>
+
+            <!-- Transitive FD -->
+            <div class="section-card">
+                <h2><i class="fas fa-exchange-alt"></i> 7. Transitive Functional Dependency</h2>
+                <div class="definition">
+                    <strong>Definition:</strong> Transitive functional dependency occurs when a non-key attribute depends on another non-key attribute instead of depending directly on the primary key.
+                </div>
+                <div class="example-box">
+                    <i class="fas fa-table"></i> <strong>Example — Transitive FD (Department)</strong>
+                </div>
+                <div class="table-wrapper">
+                    <table><thead><tr><th>StudentID (PK)</th><th>StudentName</th><th>DepartmentID</th><th>DepartmentName</th></tr></thead><tbody><tr><td>S01</td><td>Ali</td><td>D01</td><td>Biology</td></tr><tr><td>S02</td><td>Mei</td><td>D02</td><td>Chemistry</td></tr><tr><td>S03</td><td>John</td><td>D01</td><td>Biology</td></tr></tbody></table>
+                </div>
+                <p>We know: <span class="math">StudentID → DepartmentID</span> and <span class="math">DepartmentID → DepartmentName</span>, therefore <span class="math">StudentID → DepartmentName</span>.</p>
+                <p>Here DepartmentName does not directly depend on StudentID; it is determined through DepartmentID. This is a Transitive Functional Dependency.</p>
+                <p><strong>How to eliminate?</strong> Split the table:</p>
+                <div class="grid-2">
+                    <div>
+                        <p><strong>STUDENT TABLE</strong></p>
+                        <div class="table-wrapper"><table><thead><tr><th>StudentID (PK)</th><th>StudentName</th><th>DepartmentID (FK)</th></tr></thead><tbody><tr><td>S01</td><td>Ali</td><td>D01</td></tr><tr><td>S02</td><td>Mei</td><td>D02</td></tr><tr><td>S03</td><td>John</td><td>D01</td></tr></tbody></table></div>
+                    </div>
+                    <div>
+                        <p><strong>DEPARTMENT TABLE</strong></p>
+                        <div class="table-wrapper"><table><thead><tr><th>DepartmentID (PK)</th><th>DepartmentName</th></tr></thead><tbody><tr><td>D01</td><td>Biology</td></tr><tr><td>D02</td><td>Chemistry</td></tr></tbody></table></div>
+                    </div>
+                </div>
+                <p>Now DepartmentName directly depends on DepartmentID, not indirectly through StudentID.</p>
+            </div>
+
+            <!-- 2NF Example -->
+            <div class="section-card">
+                <h2><i class="fas fa-cubes"></i> 8. 2NF — Second Normal Form</h2>
+                <div class="definition">
+                    <strong>Definition:</strong> A table is in 2NF if it is already in 1NF and has no partial functional dependency.
+                </div>
+                <p><strong>How it works:</strong></p>
+                <ul class="step-list">
+                    <li>Ensure the table is in 1NF.</li>
+                    <li>Identify the composite primary key.</li>
+                    <li>Identify partial functional dependencies.</li>
+                    <li>Remove partial dependencies by separating the tables.</li>
+                </ul>
+                <p><strong>Key point:</strong> 2NF = 1NF + No Partial Functional Dependency.</p>
+                <div class="example-box">
+                    <i class="fas fa-table"></i> <strong>Example — 2NF Result (from earlier split)</strong>
+                </div>
+                <div class="table-wrapper">
+                    <table><thead><tr><th>StudentID (PK)</th><th>StudentName</th></tr></thead><tbody><tr><td>S01</td><td>Ali</td></tr><tr><td>S02</td><td>Mei</td></tr></tbody></table>
+                </div>
+                <div class="table-wrapper">
+                    <table><thead><tr><th>CourseID (PK)</th><th>CourseName</th></tr></thead><tbody><tr><td>C01</td><td>Biology</td></tr><tr><td>C02</td><td>Chemistry</td></tr></tbody></table>
+                </div>
+                <div class="table-wrapper">
+                    <table><thead><tr><th>StudentID (PK, FK)</th><th>CourseID (PK, FK)</th><th>Marks</th></tr></thead><tbody><tr><td>S01</td><td>C01</td><td>85</td></tr><tr><td>S01</td><td>C02</td><td>90</td></tr><tr><td>S02</td><td>C01</td><td>78</td></tr></tbody></table>
+                </div>
+                <div class="note"><i class="fas fa-info-circle"></i> Note: If the primary key consists of a single attribute, there can be no partial dependency caused by a composite key.</div>
+            </div>
+
+            <!-- 3NF Example -->
+            <div class="section-card">
+                <h2><i class="fas fa-cube"></i> 9. 3NF — Third Normal Form</h2>
+                <div class="definition">
+                    <strong>Definition:</strong> A table is in 3NF if it is already in 2NF and has no transitive functional dependency of non-key attributes on candidate keys.
+                </div>
+                <p><strong>How it works:</strong></p>
+                <ul class="step-list">
+                    <li>Ensure the table is in 2NF.</li>
+                    <li>Identify transitive functional dependencies.</li>
+                    <li>Separate attributes that depend on other non-key attributes.</li>
+                    <li>Create new tables with appropriate primary and foreign keys.</li>
+                </ul>
+                <p><strong>Key point:</strong> 3NF = 2NF + No Transitive Functional Dependency.</p>
+                <div class="example-box">
+                    <i class="fas fa-table"></i> <strong>Example — 3NF Result (Department split)</strong>
+                </div>
+                <div class="table-wrapper">
+                    <table><thead><tr><th>StudentID (PK)</th><th>StudentName</th><th>DepartmentID (FK)</th></tr></thead><tbody><tr><td>S01</td><td>Ali</td><td>D01</td></tr><tr><td>S02</td><td>Mei</td><td>D02</td></tr><tr><td>S03</td><td>John</td><td>D01</td></tr></tbody></table>
+                </div>
+                <div class="table-wrapper">
+                    <table><thead><tr><th>DepartmentID (PK)</th><th>DepartmentName</th></tr></thead><tbody><tr><td>D01</td><td>Biology</td></tr><tr><td>D02</td><td>Chemistry</td></tr></tbody></table>
+                </div>
+                <p>Now DepartmentName directly depends on DepartmentID, not indirectly through StudentID.</p>
+            </div>
+
+            <!-- Summary -->
+            <div class="section-card">
+                <h2><i class="fas fa-table"></i> 10. Summary: UNF → 1NF → 2NF → 3NF</h2>
+                <div class="table-wrapper">
+                    <table class="summary-table">
+                        <thead><tr><th>Normal Form</th><th>Main Requirement</th><th>Eliminates</th></tr></thead>
+                        <tbody>
+                            <tr><td>UNF</td><td>Unnormalised</td><td>Repeating groups not yet handled</td></tr>
+                            <tr><td>1NF</td><td>Atomic Values</td><td>Repeating Groups</td></tr>
+                            <tr><td>2NF</td><td>1NF + No Partial FD</td><td>Partial Dependency</td></tr>
+                            <tr><td>3NF</td><td>2NF + No Transitive FD</td><td>Transitive Dependency</td></tr>
+                        </tbody>
+                    </table>
+                </div>
+                <p><strong>Exam memory tips:</strong></p>
+                <ul style="margin-left:1.8rem;">
+                    <li><strong>1NF:</strong> One cell = One value</li>
+                    <li><strong>2NF:</strong> Whole Key Dependency — eliminate Partial FD</li>
+                    <li><strong>3NF:</strong> Nothing but the Key — eliminate Transitive FD</li>
+                </ul>
+                <div class="note"><i class="fas fa-exclamation-triangle"></i> Special note: Both 2NF and 3NF require considering Candidate Keys and Functional Dependencies — not just checking for duplicate data.</div>
+                <p>My suggestion: practice a full normalization exercise from UNF step by step to 3NF, so you truly master how to decompose tables in the exam.</p>
+            </div>
+        </div>
+
+        <!-- ========== MALAY (MS) ========== -->
+        <div id="lang-ms" class="lang-content">
+            <div class="section-card">
+                <h2><i class="fas fa-database"></i> 1. Apakah Penormalan Pangkalan Data?</h2>
+                <div class="definition">
+                    <strong>Definisi:</strong> Penormalan pangkalan data ialah proses menyusun data dalam pangkalan data untuk mengurangkan lebihan data dan mengelakkan anomali data.
+                </div>
+                <p>Objektif utama:</p>
+                <ul style="margin-left:1.8rem; color:#334155;">
+                    <li>Mengurangkan lebihan data</li>
+                    <li>Mengelakkan ketidakselarasan data</li>
+                    <li>Mengelakkan anomali sisipan</li>
+                    <li>Mengelakkan anomali kemas kini</li>
+                    <li>Mengelakkan anomali pemadaman</li>
+                </ul>
+                <h3><i class="fas fa-link"></i> Kebergantungan Fungsian (FD)</h3>
+                <p>Kebergantungan fungsian bermaksud nilai satu atribut menentukan nilai atribut yang lain.</p>
+                <div class="math-block">StudentID → StudentName</div>
+                <p>Maksudnya: dengan mengetahui StudentID, kita boleh menentukan StudentName. Simbol → bermaksud <strong>menentukan</strong>.</p>
+            </div>
+
+            <!-- UNF Example -->
+            <div class="section-card">
+                <h2><i class="fas fa-layer-group"></i> 2. UNF — Bentuk Tidak Ternormal</h2>
+                <p>UNF ialah struktur data yang belum dinormalisasi.</p>
+                <p><strong>Ciri-ciri:</strong></p>
+                <ul style="margin-left:1.8rem; margin-bottom:1rem;">
+                    <li>Mungkin mengandungi kumpulan berulang.</li>
+                    <li>Mungkin mengandungi berbilang nilai dalam satu medan.</li>
+                    <li>Data tidak tersusun dengan baik.</li>
+                </ul>
+                <div class="example-box">
+                    <i class="fas fa-table"></i> <strong>Contoh — Pendaftaran Kursus Pelajar (UNF)</strong>
+                </div>
+                <div class="table-wrapper">
+                    <table><thead><tr><th>StudentID</th><th>StudentName</th><th>Courses</th></tr></thead><tbody><tr><td>S01</td><td>Ali</td><td>Biology, Chemistry</td></tr><tr><td>S02</td><td>Mei</td><td>Physics, Biology</td></tr></tbody></table>
+                </div>
+                <p>Medan <strong>Courses</strong> mengandungi berbilang nilai kursus. Bagi S01, ia menyimpan kedua-dua Biology dan Chemistry. Ini adalah <strong>Kumpulan Berulang</strong>.</p>
+                <p><strong>Masalah:</strong> Data tidak ternormal, menyukarkan pertanyaan, kemas kini, dan pengurusan setiap kursus secara berasingan.</p>
+            </div>
+
+            <!-- 1NF Example -->
+            <div class="section-card">
+                <h2><i class="fas fa-check-circle"></i> 3. 1NF — Bentuk Normal Pertama</h2>
+                <div class="definition">
+                    <strong>Definisi:</strong> Jadual berada dalam 1NF jika semua atribut mengandungi nilai atom dan tiada kumpulan berulang.
+                </div>
+                <p><strong>Cara ia berfungsi:</strong></p>
+                <ul class="step-list">
+                    <li>Kenal pasti kumpulan berulang.</li>
+                    <li>Pisahkan berbilang nilai.</li>
+                    <li>Pastikan setiap sel mengandungi hanya satu nilai.</li>
+                    <li>Kenal pasti kunci utama yang sesuai.</li>
+                </ul>
+                <div class="example-box">
+                    <i class="fas fa-table"></i> <strong>Contoh — 1NF (Pendaftaran Kursus Pelajar)</strong>
+                </div>
+                <div class="table-wrapper">
+                    <table><thead><tr><th>StudentID</th><th>StudentName</th><th>Course</th></tr></thead><tbody><tr><td>S01</td><td>Ali</td><td>Biology</td></tr><tr><td>S01</td><td>Ali</td><td>Chemistry</td></tr><tr><td>S02</td><td>Mei</td><td>Physics</td></tr><tr><td>S02</td><td>Mei</td><td>Biology</td></tr></tbody></table>
+                </div>
+                <p>Sekarang setiap sel mempunyai satu nilai, jadi ia memenuhi 1NF. Walau bagaimanapun, StudentName masih berulang.</p>
+                <p>Ini membawa kita kepada 2NF.</p>
+            </div>
+
+            <!-- Composite Key -->
+            <div class="section-card">
+                <h2><i class="fas fa-key"></i> 4. Kunci Utama Komposit</h2>
+                <p>Kunci Utama Komposit terdiri daripada dua atau lebih atribut yang digabungkan.</p>
+                <div class="example-box">
+                    <i class="fas fa-table"></i> <strong>Contoh — Kunci Komposit (StudentID, CourseID)</strong>
+                </div>
+                <div class="table-wrapper">
+                    <table><thead><tr><th>StudentID</th><th>CourseID</th><th>StudentName</th><th>CourseName</th><th>Marks</th></tr></thead><tbody><tr><td>S01</td><td>C01</td><td>Ali</td><td>Biology</td><td>85</td></tr><tr><td>S01</td><td>C02</td><td>Ali</td><td>Chemistry</td><td>90</td></tr><tr><td>S02</td><td>C01</td><td>Mei</td><td>Biology</td><td>78</td></tr></tbody></table>
+                </div>
+                <p>Andaikan: pelajar boleh mendaftar untuk berbilang kursus; kursus boleh mempunyai berbilang pelajar; Markah bergantung pada kedua-dua pelajar dan kursus.</p>
+                <div class="math-block">(StudentID, CourseID) → Marks</div>
+                <p>StudentID dan CourseID bersama-sama menentukan Markah secara unik. Jadi Kunci Utama Komposit ialah <span class="math">(StudentID, CourseID)</span>.</p>
+            </div>
+
+            <!-- Full FD -->
+            <div class="section-card">
+                <h2><i class="fas fa-arrows-alt-h"></i> 5. Kebergantungan Fungsian Penuh</h2>
+                <div class="definition">
+                    <strong>Definisi:</strong> Kebergantungan fungsian penuh berlaku apabila atribut bukan kunci bergantung pada keseluruhan kunci utama komposit, bukan sebahagian daripadanya.
+                </div>
+                <p><strong>Contoh:</strong></p>
+                <div class="math-block">(StudentID, CourseID) → Marks</div>
+                <p>Mengapa? StudentID sahaja tidak dapat menentukan Markah. CourseID sahaja juga tidak dapat menentukan Markah. Kedua-duanya diperlukan. Oleh itu, Markah adalah kebergantungan fungsian penuh.</p>
+                <p><strong>Ingat:</strong> Penuh = bergantung pada KESELURUHAN kunci komposit.</p>
+            </div>
+
+            <!-- Partial FD -->
+            <div class="section-card">
+                <h2><i class="fas fa-puzzle-piece"></i> 6. Kebergantungan Fungsian Separa</h2>
+                <div class="definition">
+                    <strong>Definisi:</strong> Kebergantungan fungsian separa berlaku apabila atribut bukan kunci bergantung hanya pada sebahagian kunci utama komposit dan bukan keseluruhan kunci.
+                </div>
+                <p><strong>Contoh:</strong></p>
+                <div class="math-block">StudentID → StudentName</div>
+                <p>Mengapa? Mengetahui StudentID sudah cukup untuk menentukan StudentName. Kita tidak memerlukan CourseID. Jadi StudentName bergantung pada sebahagian kunci komposit.</p>
+                <p>Contoh lain: <span class="math">CourseID → CourseName</span>. CourseName hanya bergantung pada CourseID.</p>
+                <p><strong>Cara menghapuskan?</strong> Pecahkan jadual:</p>
+                <div class="grid-2">
+                    <div>
+                        <p><strong>JADUAL PELAJAR</strong></p>
+                        <div class="table-wrapper"><table><thead><tr><th>StudentID (PK)</th><th>StudentName</th></tr></thead><tbody><tr><td>S01</td><td>Ali</td></tr><tr><td>S02</td><td>Mei</td></tr></tbody></table></div>
+                    </div>
+                    <div>
+                        <p><strong>JADUAL KURSUS</strong></p>
+                        <div class="table-wrapper"><table><thead><tr><th>CourseID (PK)</th><th>CourseName</th></tr></thead><tbody><tr><td>C01</td><td>Biology</td></tr><tr><td>C02</td><td>Chemistry</td></tr></tbody></table></div>
+                    </div>
+                </div>
+                <p><strong>JADUAL PENDAFTARAN</strong></p>
+                <div class="table-wrapper"><table><thead><tr><th>StudentID (PK, FK)</th><th>CourseID (PK, FK)</th><th>Marks</th></tr></thead><tbody><tr><td>S01</td><td>C01</td><td>85</td></tr><tr><td>S01</td><td>C02</td><td>90</td></tr><tr><td>S02</td><td>C01</td><td>78</td></tr></tbody></table></div>
+                <p>Kini StudentName dan CourseName tidak lagi bergantung pada sebahagian kunci komposit. Ini menghapuskan Kebergantungan Fungsian Separa.</p>
+            </div>
+
+            <!-- Transitive FD -->
+            <div class="section-card">
+                <h2><i class="fas fa-exchange-alt"></i> 7. Kebergantungan Fungsian Transitif</h2>
+                <div class="definition">
+                    <strong>Definisi:</strong> Kebergantungan fungsian transitif berlaku apabila atribut bukan kunci bergantung pada atribut bukan kunci lain dan bukannya bergantung secara langsung pada kunci utama.
+                </div>
+                <div class="example-box">
+                    <i class="fas fa-table"></i> <strong>Contoh — FD Transitif (Jabatan)</strong>
+                </div>
+                <div class="table-wrapper"><table><thead><tr><th>StudentID (PK)</th><th>StudentName</th><th>DepartmentID</th><th>DepartmentName</th></tr></thead><tbody><tr><td>S01</td><td>Ali</td><td>D01</td><td>Biology</td></tr><tr><td>S02</td><td>Mei</td><td>D02</td><td>Chemistry</td></tr><tr><td>S03</td><td>John</td><td>D01</td><td>Biology</td></tr></tbody></table></div>
+                <p>Kita tahu: <span class="math">StudentID → DepartmentID</span> dan <span class="math">DepartmentID → DepartmentName</span>, oleh itu <span class="math">StudentID → DepartmentName</span>.</p>
+                <p>Di sini DepartmentName tidak bergantung secara langsung pada StudentID; ia ditentukan melalui DepartmentID. Ini ialah Kebergantungan Fungsian Transitif.</p>
+                <p><strong>Cara menghapuskan?</strong> Pecahkan jadual:</p>
+                <div class="grid-2">
+                    <div>
+                        <p><strong>JADUAL PELAJAR</strong></p>
+                        <div class="table-wrapper"><table><thead><tr><th>StudentID (PK)</th><th>StudentName</th><th>DepartmentID (FK)</th></tr></thead><tbody><tr><td>S01</td><td>Ali</td><td>D01</td></tr><tr><td>S02</td><td>Mei</td><td>D02</td></tr><tr><td>S03</td><td>John</td><td>D01</td></tr></tbody></table></div>
+                    </div>
+                    <div>
+                        <p><strong>JADUAL JABATAN</strong></p>
+                        <div class="table-wrapper"><table><thead><tr><th>DepartmentID (PK)</th><th>DepartmentName</th></tr></thead><tbody><tr><td>D01</td><td>Biology</td></tr><tr><td>D02</td><td>Chemistry</td></tr></tbody></table></div>
+                    </div>
+                </div>
+                <p>Kini DepartmentName bergantung secara langsung pada DepartmentID, bukan secara tidak langsung melalui StudentID.</p>
+            </div>
+
+            <!-- 2NF Example -->
+            <div class="section-card">
+                <h2><i class="fas fa-cubes"></i> 8. 2NF — Bentuk Normal Kedua</h2>
+                <div class="definition">
+                    <strong>Definisi:</strong> Jadual berada dalam 2NF jika ia sudah berada dalam 1NF dan tiada kebergantungan fungsian separa.
+                </div>
+                <p><strong>Cara ia berfungsi:</strong></p>
+                <ul class="step-list">
+                    <li>Pastikan jadual berada dalam 1NF.</li>
+                    <li>Kenal pasti kunci utama komposit.</li>
+                    <li>Kenal pasti kebergantungan fungsian separa.</li>
+                    <li>Hapuskan kebergantungan separa dengan memisahkan jadual.</li>
+                </ul>
+                <p><strong>Perkara penting:</strong> 2NF = 1NF + Tiada Kebergantungan Fungsian Separa.</p>
+                <div class="example-box">
+                    <i class="fas fa-table"></i> <strong>Contoh — Hasil 2NF (pecahan sebelumnya)</strong>
+                </div>
+                <div class="table-wrapper"><table><thead><tr><th>StudentID (PK)</th><th>StudentName</th></tr></thead><tbody><tr><td>S01</td><td>Ali</td></tr><tr><td>S02</td><td>Mei</td></tr></tbody></table></div>
+                <div class="table-wrapper"><table><thead><tr><th>CourseID (PK)</th><th>CourseName</th></tr></thead><tbody><tr><td>C01</td><td>Biology</td></tr><tr><td>C02</td><td>Chemistry</td></tr></tbody></table></div>
+                <div class="table-wrapper"><table><thead><tr><th>StudentID (PK, FK)</th><th>CourseID (PK, FK)</th><th>Marks</th></tr></thead><tbody><tr><td>S01</td><td>C01</td><td>85</td></tr><tr><td>S01</td><td>C02</td><td>90</td></tr><tr><td>S02</td><td>C01</td><td>78</td></tr></tbody></table></div>
+                <div class="note"><i class="fas fa-info-circle"></i> Nota: Jika kunci utama terdiri daripada satu atribut, tiada kebergantungan separa yang disebabkan oleh kunci komposit.</div>
+            </div>
+
+            <!-- 3NF Example -->
+            <div class="section-card">
+                <h2><i class="fas fa-cube"></i> 9. 3NF — Bentuk Normal Ketiga</h2>
+                <div class="definition">
+                    <strong>Definisi:</strong> Jadual berada dalam 3NF jika ia sudah berada dalam 2NF dan tiada kebergantungan fungsian transitif atribut bukan kunci pada kunci calon.
+                </div>
+                <p><strong>Cara ia berfungsi:</strong></p>
+                <ul class="step-list">
+                    <li>Pastikan jadual berada dalam 2NF.</li>
+                    <li>Kenal pasti kebergantungan fungsian transitif.</li>
+                    <li>Pisahkan atribut yang bergantung pada atribut bukan kunci lain.</li>
+                    <li>Cipta jadual baharu dengan kunci utama dan kunci asing yang sesuai.</li>
+                </ul>
+                <p><strong>Perkara penting:</strong> 3NF = 2NF + Tiada Kebergantungan Fungsian Transitif.</p>
+                <div class="example-box">
+                    <i class="fas fa-table"></i> <strong>Contoh — Hasil 3NF (pecahan jabatan)</strong>
+                </div>
+                <div class="table-wrapper"><table><thead><tr><th>StudentID (PK)</th><th>StudentName</th><th>DepartmentID (FK)</th></tr></thead><tbody><tr><td>S01</td><td>Ali</td><td>D01</td></tr><tr><td>S02</td><td>Mei</td><td>D02</td></tr><tr><td>S03</td><td>John</td><td>D01</td></tr></tbody></table></div>
+                <div class="table-wrapper"><table><thead><tr><th>DepartmentID (PK)</th><th>DepartmentName</th></tr></thead><tbody><tr><td>D01</td><td>Biology</td></tr><tr><td>D02</td><td>Chemistry</td></tr></tbody></table></div>
+                <p>Kini DepartmentName bergantung secara langsung pada DepartmentID, bukan secara tidak langsung melalui StudentID.</p>
+            </div>
+
+            <!-- Summary -->
+            <div class="section-card">
+                <h2><i class="fas fa-table"></i> 10. Ringkasan: UNF → 1NF → 2NF → 3NF</h2>
+                <div class="table-wrapper">
+                    <table class="summary-table">
+                        <thead><tr><th>Bentuk Normal</th><th>Keperluan Utama</th><th>Menghapuskan</th></tr></thead>
+                        <tbody>
+                            <tr><td>UNF</td><td>Tidak ternormal</td><td>Kumpulan berulang belum diurus</td></tr>
+                            <tr><td>1NF</td><td>Nilai Atom</td><td>Kumpulan Berulang</td></tr>
+                            <tr><td>2NF</td><td>1NF + Tiada FD Separa</td><td>Kebergantungan Separa</td></tr>
+                            <tr><td>3NF</td><td>2NF + Tiada FD Transitif</td><td>Kebergantungan Transitif</td></tr>
+                        </tbody>
+                    </table>
+                </div>
+                <p><strong>Petua ingatan peperiksaan:</strong></p>
+                <ul style="margin-left:1.8rem;">
+                    <li><strong>1NF:</strong> Satu sel = Satu nilai</li>
+                    <li><strong>2NF:</strong> Kebergantungan Kunci Penuh — hapuskan FD Separa</li>
+                    <li><strong>3NF:</strong> Tiada apa-apa selain Kunci — hapuskan FD Transitif</li>
+                </ul>
+                <div class="note"><i class="fas fa-exclamation-triangle"></i> Nota khas: Kedua-dua 2NF dan 3NF memerlukan pertimbangan Kunci Calon dan Kebergantungan Fungsian — bukan sekadar memeriksa data pendua.</div>
+                <p>Saya cadangkan: berlatih satu latihan penormalan penuh dari UNF langkah demi langkah ke 3NF, supaya anda benar-benar menguasai cara mengurai jadual dalam peperiksaan.</p>
+            </div>
+        </div>
+
+        <!-- ========== CHINESE (ZH) ========== -->
+        <div id="lang-zh" class="lang-content">
+            <div class="section-card">
+                <h2><i class="fas fa-database"></i> 1. 什么是数据库规范化？</h2>
+                <div class="definition">
+                    <strong>定义：</strong> 数据库规范化是将数据库中的数据进行有系统的整理，以减少重复数据，并避免数据异常。
+                </div>
+                <p>主要目的：</p>
+                <ul style="margin-left:1.8rem; color:#334155;">
+                    <li>减少重复数据</li>
+                    <li>避免数据不一致</li>
+                    <li>避免插入异常</li>
+                    <li>避免更新异常</li>
+                    <li>避免删除异常</li>
+                </ul>
+                <h3><i class="fas fa-link"></i> 函数依赖 (Functional Dependency)</h3>
+                <p>函数依赖指一个属性的值能够决定另一个属性的值。</p>
+                <div class="math-block">StudentID → StudentName</div>
+                <p>意思是：只要知道 StudentID，就能确定对应的 StudentName。符号 → 代表 <strong>determines（决定）</strong>。</p>
+            </div>
+
+            <!-- UNF Example -->
+            <div class="section-card">
+                <h2><i class="fas fa-layer-group"></i> 2. UNF — 未规范化</h2>
+                <p>UNF 是尚未经过规范化的数据结构。</p>
+                <p><strong>特点：</strong></p>
+                <ul style="margin-left:1.8rem; margin-bottom:1rem;">
+                    <li>可能存在重复组。</li>
+                    <li>一个字段可能包含多个值。</li>
+                    <li>数据尚未妥善整理。</li>
+                </ul>
+                <div class="example-box">
+                    <i class="fas fa-table"></i> <strong>例子 — 学生课程注册系统 (UNF)</strong>
+                </div>
+                <div class="table-wrapper">
+                    <table><thead><tr><th>StudentID</th><th>StudentName</th><th>Courses</th></tr></thead><tbody><tr><td>S01</td><td>Ali</td><td>Biology, Chemistry</td></tr><tr><td>S02</td><td>Mei</td><td>Physics, Biology</td></tr></tbody></table>
+                </div>
+                <p>这里的 <strong>Courses</strong> 字段包含多个课程值。例如 S01 的 Courses 同时储存 Biology 和 Chemistry。这就是一个 <strong>Repeating Group（重复组）</strong>。</p>
+                <p><strong>问题：</strong> 数据不够规范，难以独立查询、更新和管理每个课程。</p>
+            </div>
+
+            <!-- 1NF Example -->
+            <div class="section-card">
+                <h2><i class="fas fa-check-circle"></i> 3. 1NF — 第一范式</h2>
+                <div class="definition">
+                    <strong>定义：</strong> 当表格中的每一个字段都只包含一个原子值（Atomic Value），并且没有重复组时，就符合 1NF。
+                </div>
+                <p><strong>如何运作：</strong></p>
+                <ul class="step-list">
+                    <li>找出重复组。</li>
+                    <li>分离多个值。</li>
+                    <li>确保每个单元格只有一个值。</li>
+                    <li>确定合适的主键。</li>
+                </ul>
+                <div class="example-box">
+                    <i class="fas fa-table"></i> <strong>例子 — 1NF (学生课程注册系统)</strong>
+                </div>
+                <div class="table-wrapper">
+                    <table><thead><tr><th>StudentID</th><th>StudentName</th><th>Course</th></tr></thead><tbody><tr><td>S01</td><td>Ali</td><td>Biology</td></tr><tr><td>S01</td><td>Ali</td><td>Chemistry</td></tr><tr><td>S02</td><td>Mei</td><td>Physics</td></tr><tr><td>S02</td><td>Mei</td><td>Biology</td></tr></tbody></table>
+                </div>
+                <p>现在每个单元格只有一个值，因此符合 1NF。不过，你会发现 StudentName 仍然重复出现。</p>
+                <p>这就引出了 2NF。</p>
+            </div>
+
+            <!-- Composite Key -->
+            <div class="section-card">
+                <h2><i class="fas fa-key"></i> 4. 复合主键 (Composite Primary Key)</h2>
+                <p>复合主键是由两个或以上的属性组合而成的主键。</p>
+                <div class="example-box">
+                    <i class="fas fa-table"></i> <strong>例子 — 复合主键 (StudentID, CourseID)</strong>
+                </div>
+                <div class="table-wrapper">
+                    <table><thead><tr><th>StudentID</th><th>CourseID</th><th>StudentName</th><th>CourseName</th><th>Marks</th></tr></thead><tbody><tr><td>S01</td><td>C01</td><td>Ali</td><td>Biology</td><td>85</td></tr><tr><td>S01</td><td>C02</td><td>Ali</td><td>Chemistry</td><td>90</td></tr><tr><td>S02</td><td>C01</td><td>Mei</td><td>Biology</td><td>78</td></tr></tbody></table>
+                </div>
+                <p>假设：一个学生可以注册多个课程；一个课程可以有多个学生；Marks 取决于学生和课程的组合。</p>
+                <div class="math-block">(StudentID, CourseID) → Marks</div>
+                <p>StudentID 和 CourseID 必须组合起来，才能唯一确定一项成绩。所以复合主键是 <span class="math">(StudentID, CourseID)</span>。</p>
+            </div>
+
+            <!-- Full FD -->
+            <div class="section-card">
+                <h2><i class="fas fa-arrows-alt-h"></i> 5. 完全函数依赖 (Full Functional Dependency)</h2>
+                <div class="definition">
+                    <strong>定义：</strong> 完全函数依赖是指一个非主键属性必须依赖整个复合主键，而不是只依赖其中一部分。
+                </div>
+                <p><strong>例子：</strong></p>
+                <div class="math-block">(StudentID, CourseID) → Marks</div>
+                <p>为什么？StudentID 单独无法决定 Marks。CourseID 单独也无法决定 Marks。必须同时知道 StudentID 和 CourseID，才能确定 Marks。因此，Marks 属于完全函数依赖。</p>
+                <p><strong>记忆：</strong> Full = Depends on the WHOLE composite key（依赖整个复合键）。</p>
+            </div>
+
+            <!-- Partial FD -->
+            <div class="section-card">
+                <h2><i class="fas fa-puzzle-piece"></i> 6. 部分函数依赖 (Partial Functional Dependency)</h2>
+                <div class="definition">
+                    <strong>定义：</strong> 部分函数依赖是指非主键属性只依赖复合主键的其中一部分，而不是整个主键。
+                </div>
+                <p><strong>例子：</strong></p>
+                <div class="math-block">StudentID → StudentName</div>
+                <p>为什么？因为只要知道 StudentID，就能确定 StudentName。不需要知道 CourseID。因此，StudentName 只依赖复合主键的一部分。这就是部分函数依赖。</p>
+                <p>另一个例子：<span class="math">CourseID → CourseName</span>。CourseName 只依赖 CourseID。</p>
+                <p><strong>如何消除？</strong> 将原本的表格拆分成不同的表格：</p>
+                <div class="grid-2">
+                    <div>
+                        <p><strong>STUDENT TABLE</strong></p>
+                        <div class="table-wrapper"><table><thead><tr><th>StudentID (PK)</th><th>StudentName</th></tr></thead><tbody><tr><td>S01</td><td>Ali</td></tr><tr><td>S02</td><td>Mei</td></tr></tbody></table></div>
+                    </div>
+                    <div>
+                        <p><strong>COURSE TABLE</strong></p>
+                        <div class="table-wrapper"><table><thead><tr><th>CourseID (PK)</th><th>CourseName</th></tr></thead><tbody><tr><td>C01</td><td>Biology</td></tr><tr><td>C02</td><td>Chemistry</td></tr></tbody></table></div>
+                    </div>
+                </div>
+                <p><strong>REGISTRATION TABLE</strong></p>
+                <div class="table-wrapper"><table><thead><tr><th>StudentID (PK, FK)</th><th>CourseID (PK, FK)</th><th>Marks</th></tr></thead><tbody><tr><td>S01</td><td>C01</td><td>85</td></tr><tr><td>S01</td><td>C02</td><td>90</td></tr><tr><td>S02</td><td>C01</td><td>78</td></tr></tbody></table></div>
+                <p>现在 StudentName 和 CourseName 不再依赖复合主键的一部分而留在 Registration Table 中。这就是消除部分函数依赖。</p>
+            </div>
+
+            <!-- Transitive FD -->
+            <div class="section-card">
+                <h2><i class="fas fa-exchange-alt"></i> 7. 传递函数依赖 (Transitive Functional Dependency)</h2>
+                <div class="definition">
+                    <strong>定义：</strong> 传递函数依赖是指一个非主键属性通过另一个非主键属性间接依赖主键。
+                </div>
+                <div class="example-box">
+                    <i class="fas fa-table"></i> <strong>例子 — 传递函数依赖 (部门)</strong>
+                </div>
+                <div class="table-wrapper"><table><thead><tr><th>StudentID (PK)</th><th>StudentName</th><th>DepartmentID</th><th>DepartmentName</th></tr></thead><tbody><tr><td>S01</td><td>Ali</td><td>D01</td><td>Biology</td></tr><tr><td>S02</td><td>Mei</td><td>D02</td><td>Chemistry</td></tr><tr><td>S03</td><td>John</td><td>D01</td><td>Biology</td></tr></tbody></table></div>
+                <p>我们知道：<span class="math">StudentID → DepartmentID</span> 以及 <span class="math">DepartmentID → DepartmentName</span>，所以 <span class="math">StudentID → DepartmentName</span>。</p>
+                <p>这里 DepartmentName 并不是直接依赖 StudentID，而是通过 DepartmentID 决定。这就是传递函数依赖。</p>
+                <p><strong>如何消除？</strong> 将表格拆分：</p>
+                <div class="grid-2">
+                    <div>
+                        <p><strong>STUDENT TABLE</strong></p>
+                        <div class="table-wrapper"><table><thead><tr><th>StudentID (PK)</th><th>StudentName</th><th>DepartmentID (FK)</th></tr></thead><tbody><tr><td>S01</td><td>Ali</td><td>D01</td></tr><tr><td>S02</td><td>Mei</td><td>D02</td></tr><tr><td>S03</td><td>John</td><td>D01</td></tr></tbody></table></div>
+                    </div>
+                    <div>
+                        <p><strong>DEPARTMENT TABLE</strong></p>
+                        <div class="table-wrapper"><table><thead><tr><th>DepartmentID (PK)</th><th>DepartmentName</th></tr></thead><tbody><tr><td>D01</td><td>Biology</td></tr><tr><td>D02</td><td>Chemistry</td></tr></tbody></table></div>
+                    </div>
+                </div>
+                <p>现在 DepartmentName 直接依赖 DepartmentID，不再通过 StudentID 间接决定。</p>
+            </div>
+
+            <!-- 2NF Example -->
+            <div class="section-card">
+                <h2><i class="fas fa-cubes"></i> 8. 2NF — 第二范式</h2>
+                <div class="definition">
+                    <strong>定义：</strong> 一张表格必须先符合 1NF，并且不存在部分函数依赖，才能符合 2NF。
+                </div>
+                <p><strong>如何运作：</strong></p>
+                <ul class="step-list">
+                    <li>确保表格符合 1NF。</li>
+                    <li>确定复合主键。</li>
+                    <li>找出部分函数依赖。</li>
+                    <li>通过拆分表格来消除部分依赖。</li>
+                </ul>
+                <p><strong>重点：</strong> 2NF = 1NF + 无部分函数依赖。</p>
+                <div class="example-box">
+                    <i class="fas fa-table"></i> <strong>例子 — 2NF 结果 (之前的拆分)</strong>
+                </div>
+                <div class="table-wrapper"><table><thead><tr><th>StudentID (PK)</th><th>StudentName</th></tr></thead><tbody><tr><td>S01</td><td>Ali</td></tr><tr><td>S02</td><td>Mei</td></tr></tbody></table></div>
+                <div class="table-wrapper"><table><thead><tr><th>CourseID (PK)</th><th>CourseName</th></tr></thead><tbody><tr><td>C01</td><td>Biology</td></tr><tr><td>C02</td><td>Chemistry</td></tr></tbody></table></div>
+                <div class="table-wrapper"><table><thead><tr><th>StudentID (PK, FK)</th><th>CourseID (PK, FK)</th><th>Marks</th></tr></thead><tbody><tr><td>S01</td><td>C01</td><td>85</td></tr><tr><td>S01</td><td>C02</td><td>90</td></tr><tr><td>S02</td><td>C01</td><td>78</td></tr></tbody></table></div>
+                <div class="note"><i class="fas fa-info-circle"></i> 注意：如果表格的主键只有一个属性，就不会存在由复合主键引起的部分函数依赖。</div>
+            </div>
+
+            <!-- 3NF Example -->
+            <div class="section-card">
+                <h2><i class="fas fa-cube"></i> 9. 3NF — 第三范式</h2>
+                <div class="definition">
+                    <strong>定义：</strong> 一张表格必须先符合 2NF，并且不存在非主键属性对候选键的传递函数依赖，才能符合 3NF。
+                </div>
+                <p><strong>如何运作：</strong></p>
+                <ul class="step-list">
+                    <li>确保表格符合 2NF。</li>
+                    <li>找出传递函数依赖。</li>
+                    <li>分离依赖其他非主键属性的属性。</li>
+                    <li>创建具有合适主键和外键的新表格。</li>
+                </ul>
+                <p><strong>重点：</strong> 3NF = 2NF + 无传递函数依赖。</p>
+                <div class="example-box">
+                    <i class="fas fa-table"></i> <strong>例子 — 3NF 结果 (部门拆分)</strong>
+                </div>
+                <div class="table-wrapper"><table><thead><tr><th>StudentID (PK)</th><th>StudentName</th><th>DepartmentID (FK)</th></tr></thead><tbody><tr><td>S01</td><td>Ali</td><td>D01</td></tr><tr><td>S02</td><td>Mei</td><td>D02</td></tr><tr><td>S03</td><td>John</td><td>D01</td></tr></tbody></table></div>
+                <div class="table-wrapper"><table><thead><tr><th>DepartmentID (PK)</th><th>DepartmentName</th></tr></thead><tbody><tr><td>D01</td><td>Biology</td></tr><tr><td>D02</td><td>Chemistry</td></tr></tbody></table></div>
+                <p>现在 DepartmentName 直接依赖 DepartmentID，不再通过 StudentID 间接决定。</p>
+            </div>
+
+            <!-- Summary -->
+            <div class="section-card">
+                <h2><i class="fas fa-table"></i> 10. 总结：UNF → 1NF → 2NF → 3NF</h2>
+                <div class="table-wrapper">
+                    <table class="summary-table">
+                        <thead><tr><th>范式</th><th>主要要求</th><th>消除什么？</th></tr></thead>
+                        <tbody>
+                            <tr><td>UNF</td><td>未规范化</td><td>尚未处理重复组</td></tr>
+                            <tr><td>1NF</td><td>原子值</td><td>重复组</td></tr>
+                            <tr><td>2NF</td><td>1NF + 无部分函数依赖</td><td>部分依赖</td></tr>
+                            <tr><td>3NF</td><td>2NF + 无传递函数依赖</td><td>传递依赖</td></tr>
+                        </tbody>
+                    </table>
+                </div>
+                <p><strong>考试记忆方式：</strong></p>
+                <ul style="margin-left:1.8rem;">
+                    <li><strong>1NF：</strong> 每个单元格只能有一个值</li>
+                    <li><strong>2NF：</strong> 依赖整个主键 — 消除部分函数依赖</li>
+                    <li><strong>3NF：</strong> 除主键外别无其他 — 消除传递函数依赖</li>
+                </ul>
+                <div class="note"><i class="fas fa-exclamation-triangle"></i> 特别注意：2NF 和 3NF 的判断都需要考虑候选键和函数依赖，不能只看表格有没有重复数据。</div>
+                <p>我的建议是下一步练习一道完整的规范化题目，从 UNF 一步一步转换到 3NF，这样你就能真正掌握如何在考试中拆分表格。</p>
+            </div>
+        </div>
+
+        <!-- Footer with logo -->
+        <div class="footer-note">
+            <img src="zijunlogo.png" alt="logo" onerror="this.src='data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22%3E%3Crect width=%22100%22 height=%22100%22 rx=%2220%22 fill=%22%233b82f6%22/%3E%3Ctext x=%2250%22 y=%2270%22 font-size=%2250%22 text-anchor=%22middle%22 fill=%22white%22 font-weight=%22bold%22%3EZJ%3C/text%3E%3C/svg%3E'">
+            DBMS Normalization · Database Management System
+        </div>
+    </div>
+
+    <script>
+        (function() {
+            // Language switcher functionality
+            const langBtns = document.querySelectorAll('.lang-btn');
+            const langContents = {
+                en: document.getElementById('lang-en'),
+                ms: document.getElementById('lang-ms'),
+                zh: document.getElementById('lang-zh')
+            };
+
+            function setLanguage(lang) {
+                // hide all
+                Object.values(langContents).forEach(el => {
+                    if (el) el.classList.remove('active');
+                });
+                // show selected
+                if (langContents[lang]) {
+                    langContents[lang].classList.add('active');
+                }
+                // update active button
+                langBtns.forEach(btn => {
+                    if (btn.dataset.lang === lang) {
+                        btn.classList.add('active');
+                    } else {
+                        btn.classList.remove('active');
+                    }
+                });
+                // set html lang attribute for accessibility
+                document.documentElement.lang = (lang === 'ms' ? 'ms' : (lang === 'zh' ? 'zh' : 'en'));
+            }
+
+            // Add click handlers
+            langBtns.forEach(btn => {
+                btn.addEventListener('click', (e) => {
+                    const lang = e.currentTarget.dataset.lang;
+                    setLanguage(lang);
+                });
+            });
+
+            // Auto-detect device language
+            function detectDefaultLanguage() {
+                const deviceLang = navigator.language || navigator.userLanguage || 'en';
+                const langCode = deviceLang.toLowerCase();
+                if (langCode.startsWith('ms')) {
+                    return 'ms';   // Malay
+                } else if (langCode.startsWith('zh')) {
+                    return 'zh';   // Chinese
+                } else {
+                    return 'en';   // default English
+                }
+            }
+
+            const defaultLang = detectDefaultLanguage();
+            setLanguage(defaultLang);
+        })();
+    </script>
+</body>
+</html>
