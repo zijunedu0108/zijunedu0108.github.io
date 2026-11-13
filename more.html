@@ -51,26 +51,56 @@
         .logo-area { display: flex; align-items: center; gap: 12px; }
         .logo-area img { width: 35px; height: 35px; border-radius: 8px; }
 
+        /* 修改：容器可滚动，以便看到更多内容，但保持整体干净 */
         .container {
-            max-width: 600px; margin: 0 auto;
+            max-width: 700px; margin: 0 auto;
             height: calc(100vh - 80px);
             display: flex; flex-direction: column;
-            justify-content: center;
-            padding: 0 20px;
+            justify-content: flex-start; /* 从顶部开始，配合滚动 */
+            padding: 20px 20px 40px;
             position: relative; z-index: 150;
+            overflow-y: auto;
+            scrollbar-width: thin;
+            scrollbar-color: var(--neon-blue) rgba(0,0,0,0.5);
+        }
+
+        /* 自定义滚动条 */
+        .container::-webkit-scrollbar {
+            width: 4px;
+        }
+        .container::-webkit-scrollbar-track {
+            background: rgba(0,0,0,0.5);
+        }
+        .container::-webkit-scrollbar-thumb {
+            background: var(--neon-blue);
+            border-radius: 4px;
         }
 
         .menu-title {
             font-family: monospace; font-size: 14px; color: var(--neon-blue);
             text-transform: uppercase; letter-spacing: 4px;
-            text-align: center; margin-bottom: 40px;
+            text-align: center; margin-bottom: 30px; margin-top: 10px;
         }
 
-        /* 按钮网格布局 */
+        /* 分区标题 */
+        .section-title {
+            font-family: monospace;
+            font-size: 12px;
+            color: var(--neon-blue);
+            text-transform: uppercase;
+            letter-spacing: 3px;
+            margin-top: 25px;
+            margin-bottom: 12px;
+            padding-left: 5px;
+            border-left: 3px solid var(--neon-blue);
+            opacity: 0.9;
+        }
+
+        /* 按钮网格布局 - 保持两列 */
         .module-grid {
             display: grid;
             grid-template-columns: 1fr 1fr;
-            gap: 20px;
+            gap: 16px;
         }
 
         .module-card {
@@ -78,8 +108,8 @@
             backdrop-filter: var(--ios-blur);
             -webkit-backdrop-filter: var(--ios-blur);
             border: 1px solid var(--border-glow);
-            padding: 40px 20px;
-            border-radius: 28px;
+            padding: 28px 12px;
+            border-radius: 24px;
             text-align: center;
             text-decoration: none;
             color: #fff;
@@ -94,17 +124,25 @@
         }
 
         .icon-box {
-            font-size: 32px; margin-bottom: 15px;
+            font-size: 32px; margin-bottom: 12px;
             filter: drop-shadow(0 0 10px var(--neon-blue));
+            display: flex; justify-content: center; align-items: center;
+            min-height: 48px;
+        }
+
+        .icon-box img {
+            max-height: 48px;
+            width: auto;
+            object-fit: contain;
         }
 
         .module-name {
-            font-size: 18px; font-weight: 700; letter-spacing: 1px;
-            margin-bottom: 5px;
+            font-size: 16px; font-weight: 700; letter-spacing: 0.5px;
+            margin-bottom: 4px;
         }
 
         .module-sub {
-            font-family: monospace; font-size: 10px; color: var(--neon-blue);
+            font-family: monospace; font-size: 9px; color: var(--neon-blue);
             opacity: 0.7; text-transform: uppercase;
         }
 
@@ -112,11 +150,19 @@
             color: #fff; text-decoration: none; background: rgba(255,255,255,0.1);
             padding: 8px 18px; border-radius: 15px; font-size: 12px; font-weight: 600;
             border: 1px solid var(--border-glow);
+            white-space: nowrap;
         }
 
-        @media (max-width: 400px) {
+        /* 底部签名 */
+        .footer-note {
+            text-align: center; font-family: monospace; opacity: 0.3; font-size: 9px;
+            margin-top: 40px; letter-spacing: 2px;
+        }
+
+        @media (max-width: 500px) {
             .module-grid { grid-template-columns: 1fr; }
-            .module-card { padding: 30px 20px; }
+            .module-card { padding: 24px 12px; }
+            .container { padding: 15px 15px 30px; }
         }
     </style>
 </head>
@@ -140,35 +186,89 @@
     <div class="container">
         <div class="menu-title">-- EXTENDED_INTERFACE --</div>
 
+        <!-- 学术工具区 -->
+        <div class="section-title">📚 ACADEMIC_TOOLS</div>
         <div class="module-grid">
             <a href="study.html" class="module-card">
                 <div class="icon-box">📖</div>
                 <div class="module-name">STUDY</div>
                 <div class="module-sub">> academic_hub</div>
             </a>
-            
+            <a href="mathmatrix.html" class="module-card">
+                <div class="icon-box">🧮</div>
+                <div class="module-name">MATH_MATRIX</div>
+                <div class="module-sub">> matrix_operations</div>
+            </a>
+            <a href="normalization.html" class="module-card">
+                <div class="icon-box">🗄️</div>
+                <div class="module-name">NORMALIZATION</div>
+                <div class="module-sub">> database_design</div>
+            </a>
+            <a href="muetcalculator.html" class="module-card">
+                <div class="icon-box">🎯</div>
+                <div class="module-name">MUET_CALC</div>
+                <div class="module-sub">> band_score</div>
+            </a>
+            <a href="pengajianamquiz.html" class="module-card">
+                <div class="icon-box">📝</div>
+                <div class="module-name">PA_QUIZ</div>
+                <div class="module-sub">> pengajian_am</div>
+            </a>
+            <a href="chartgraph.html" class="module-card">
+                <div class="icon-box">📊</div>
+                <div class="module-name">CHART_GRAPH</div>
+                <div class="module-sub">> generate_visuals</div>
+            </a>
+        </div>
+
+        <!-- 游戏与实验区 -->
+        <div class="section-title">🎮 GAMES_&_LABS</div>
+        <div class="module-grid">
+            <a href="coc.html" class="module-card">
+                <div class="icon-box">🏰</div>
+                <div class="module-name">CLASH_OF_CLANS</div>
+                <div class="module-sub">> coc_base</div>
+            </a>
+            <a href="zgame.html" class="module-card">
+                <div class="icon-box">🔫</div>
+                <div class="module-name">Z_GAME</div>
+                <div class="module-sub">> multiplayer_shooter</div>
+            </a>
+            <a href="drawing.html" class="module-card">
+                <div class="icon-box">🎨</div>
+                <div class="module-name">DRAW_TOGETHER</div>
+                <div class="module-sub">> multiplayer_draw</div>
+            </a>
+            <a href="vrtest.html" class="module-card">
+                <div class="icon-box">🕶️</div>
+                <div class="module-name">VR_TEST</div>
+                <div class="module-sub">> vr_experience</div>
+            </a>
+        </div>
+
+        <!-- 生活与倒计时 / 原有其他模块 -->
+        <div class="section-title">⏳ UTILITIES_&_LOGS</div>
+        <div class="module-grid">
             <a href="stpm_sem2.html" class="module-card">
                 <div class="icon-box">📅</div>
                 <div class="module-name">COUNTDOWN</div>
                 <div class="module-sub">> stpm_sem2</div>
             </a>
-            
             <a href="mixue.html" class="module-card">
                 <div class="icon-box">🍦</div>
                 <div class="module-name">MIXUE</div>
                 <div class="module-sub">> operation_logs</div>
             </a>
-
             <a href="eastel.html" class="module-card">
                 <div class="icon-box">
-                    <img src="eastel.png" alt="Eastel" style="height: 96px; width: auto; object-fit: contain; vertical-align: middle;">
+                    <img src="eastel.png" alt="Eastel" style="height: 48px; width: auto; object-fit: contain; vertical-align: middle;">
                 </div>
                 <div class="module-name">Eastel</div>
                 <div class="module-sub">> operation_logs</div>
             </a>
         </div>
 
-        <p style="text-align: center; font-family: monospace; opacity: 0.3; font-size: 9px; margin-top: 50px; letter-spacing: 2px;">
+        <p class="footer-note">
             SECURE_CONNECTION_ESTABLISHED<br>
             V.2026.MODULE_EXPANSION
         </p>
