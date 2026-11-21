@@ -4,11 +4,11 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>数学目标 · 打卡商店</title>
-    <!-- 引入 Font Awesome 图标库（不使用emoji） -->
+    <!-- 引入 Font Awesome 图标库 -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
-    <!-- 引入 Google Fonts 字体 (Inter 和 思源黑体) -->
+    <!-- 引入 Google Fonts -->
     <link href="https://fonts.googleapis.com/css2?family=Inter:opsz,wght@14..32,400;14..32,500;14..32,600;14..32,700&family=Noto+Sans+SC:wght@400;500;600;700&display=swap" rel="stylesheet">
-    <!-- 引入 canvas-confetti 用于烟花特效 -->
+    <!-- 引入 canvas-confetti -->
     <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1"></script>
     <style>
         * {
@@ -23,11 +23,11 @@
             justify-content: center;
             align-items: center;
             min-height: 100vh;
-            background: #f5e6e8; /* 柔和的粉色背景 */
+            background: #f5e6e8;
             padding: 12px;
         }
 
-        /* 主应用容器 - 模拟手机界面 */
+        /* 主应用容器 - 手机端友好 */
         .app-container {
             width: 100%;
             max-width: 420px;
@@ -278,6 +278,12 @@
             align-items: center;
             gap: 6px;
             flex-shrink: 0;
+            cursor: pointer;
+            transition: background 0.2s;
+        }
+
+        .subtopic-badge:active {
+            background: #f0c0ca;
         }
 
         /* 打卡按钮 */
@@ -308,7 +314,7 @@
             font-size: 14px;
         }
 
-        /* 抽屉式弹窗 (panel) */
+        /* 抽屉式弹窗 */
         .drawer-overlay {
             position: absolute;
             top: 0;
@@ -518,7 +524,7 @@
             padding: 6px;
         }
 
-        /* 身份选择界面 (初始) */
+        /* 身份选择界面 */
         .identity-select-overlay {
             position: absolute;
             top: 0;
@@ -582,19 +588,10 @@
             color: #a0858c;
         }
 
-        /* 其他工具类 */
+        /* 工具类 */
         .hidden {
             display: none !important;
         }
-
-        .flex-col {
-            display: flex;
-            flex-direction: column;
-        }
-
-        .mt-2 { margin-top: 8px; }
-        .mb-2 { margin-bottom: 8px; }
-        .text-center { text-align: center; }
 
         /* 烟花 canvas 容器 */
         #confetti-canvas {
@@ -615,11 +612,48 @@
             background: #f0c0ca;
             border-radius: 10px;
         }
+
+        /* ===== 电脑端适配 ===== */
+        @media (min-width: 768px) {
+            .app-container {
+                max-width: 480px;
+                height: 800px;
+                border-radius: 40px;
+            }
+            .screen {
+                padding: 24px 24px 100px;
+            }
+            .bottom-nav {
+                height: 78px;
+                border-radius: 0 0 40px 40px;
+            }
+            .nav-item i {
+                font-size: 24px;
+            }
+            .nav-item {
+                font-size: 13px;
+            }
+            .chapter-item {
+                padding: 16px 20px;
+            }
+            .shop-grid {
+                gap: 16px;
+            }
+        }
+
+        @media (min-width: 1024px) {
+            body {
+                padding: 24px;
+            }
+            .app-container {
+                max-width: 520px;
+                height: 880px;
+            }
+        }
     </style>
 </head>
 <body>
     <div class="app-container">
-        <!-- 主屏幕内容 -->
         <div class="screen" id="screenContent">
             <!-- 主页视图 -->
             <div id="homeView">
@@ -641,7 +675,6 @@
                         <p>Form 1 · 数学目标</p>
                     </div>
                 </div>
-                <!-- 表单选择器 -->
                 <div class="form-selector" id="formSelector">
                     <button class="form-chip active" data-form="1">Form 1</button>
                     <button class="form-chip" data-form="2">Form 2</button>
@@ -649,11 +682,7 @@
                     <button class="form-chip" data-form="4">Form 4</button>
                     <button class="form-chip" data-form="5">Form 5</button>
                 </div>
-                <!-- 章节列表 -->
-                <div class="chapter-list" id="chapterList">
-                    <!-- 动态渲染 -->
-                </div>
-                <!-- 跳转考题链接 -->
+                <div class="chapter-list" id="chapterList"></div>
                 <div style="margin-top: 20px; text-align: center;">
                     <a href="https://www.bumigemilang.com/soalan-percubaan-matematik/" target="_blank" style="color:#e6748e; font-size:14px; font-weight:500; text-decoration:none;">
                         <i class="fas fa-external-link-alt"></i> 理解考题 · 跳转练习
@@ -665,9 +694,7 @@
             <div id="shopView" class="hidden">
                 <h2 style="margin-bottom: 18px;">积分商店 · Points Shop</h2>
                 <p style="color: #a0858c; margin-bottom: 16px;">使用积分兑换美化背景 (每款100积分)</p>
-                <div class="shop-grid" id="shopGrid">
-                    <!-- 动态 -->
-                </div>
+                <div class="shop-grid" id="shopGrid"></div>
             </div>
 
             <!-- 我的视图 -->
@@ -683,9 +710,7 @@
                     </div>
                 </div>
                 <h3 style="font-size: 18px; margin-bottom: 14px;">打卡记录 · Check-in Records</h3>
-                <div id="recordsList">
-                    <!-- 动态 -->
-                </div>
+                <div id="recordsList"></div>
             </div>
         </div>
 
@@ -712,13 +737,11 @@
                 <h2>当前掌握程度</h2>
                 <button class="close-drawer" id="closeDrawer"><i class="fas fa-times"></i></button>
             </div>
-            <div id="masteryOptions">
-                <!-- 动态渲染 -->
-            </div>
+            <div id="masteryOptions"></div>
             <input type="hidden" id="currentSubtopicId" value="">
         </div>
 
-        <!-- 身份选择覆盖层 (初始) -->
+        <!-- 身份选择覆盖层 -->
         <div class="identity-select-overlay" id="identityOverlay">
             <h2>选择你的身份</h2>
             <div class="identity-option" data-identity="xinni" data-img="manto.png">
@@ -737,13 +760,111 @@
             </div>
         </div>
 
-        <!-- 烟花canvas -->
         <canvas id="confetti-canvas"></canvas>
     </div>
 
     <script>
-        // ---------- 数据部分 ----------
-        // 所有章节 & subtopics 数据 (英文 + 中文)
+        // ==================== 音效生成（Web Audio API） ====================
+        let audioCtx = null;
+
+        function getAudioContext() {
+            if (!audioCtx) {
+                audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+            }
+            // 如果被浏览器挂起，尝试恢复
+            if (audioCtx.state === 'suspended') {
+                audioCtx.resume();
+            }
+            return audioCtx;
+        }
+
+        // 播放短促的点击/成功音效
+        function playSound(type) {
+            try {
+                const ctx = getAudioContext();
+                const now = ctx.currentTime;
+
+                if (type === 'checkin') {
+                    // 轻快的“叮”声：两个音符
+                    const osc1 = ctx.createOscillator();
+                    const gain1 = ctx.createGain();
+                    osc1.type = 'sine';
+                    osc1.frequency.setValueAtTime(880, now);
+                    osc1.frequency.setValueAtTime(1100, now + 0.08);
+                    gain1.gain.setValueAtTime(0.15, now);
+                    gain1.gain.exponentialRampToValueAtTime(0.01, now + 0.2);
+                    osc1.connect(gain1).connect(ctx.destination);
+                    osc1.start(now);
+                    osc1.stop(now + 0.2);
+
+                    const osc2 = ctx.createOscillator();
+                    const gain2 = ctx.createGain();
+                    osc2.type = 'sine';
+                    osc2.frequency.setValueAtTime(1320, now + 0.08);
+                    gain2.gain.setValueAtTime(0.12, now + 0.08);
+                    gain2.gain.exponentialRampToValueAtTime(0.01, now + 0.25);
+                    osc2.connect(gain2).connect(ctx.destination);
+                    osc2.start(now + 0.08);
+                    osc2.stop(now + 0.25);
+                } else if (type === 'full') {
+                    // 完全掌握：更华丽的音效（上升琶音 + 铃声）
+                    [523.25, 659.25, 783.99, 1046.5].forEach((freq, i) => {
+                        const osc = ctx.createOscillator();
+                        const gain = ctx.createGain();
+                        osc.type = 'triangle';
+                        osc.frequency.value = freq;
+                        gain.gain.setValueAtTime(0.12, now + i * 0.06);
+                        gain.gain.exponentialRampToValueAtTime(0.01, now + i * 0.06 + 0.2);
+                        osc.connect(gain).connect(ctx.destination);
+                        osc.start(now + i * 0.06);
+                        osc.stop(now + i * 0.06 + 0.2);
+                    });
+                } else if (type === 'buy') {
+                    // 购买成功音效
+                    const osc = ctx.createOscillator();
+                    const gain = ctx.createGain();
+                    osc.type = 'sine';
+                    osc.frequency.setValueAtTime(784, now);
+                    osc.frequency.setValueAtTime(1046, now + 0.1);
+                    gain.gain.setValueAtTime(0.15, now);
+                    gain.gain.exponentialRampToValueAtTime(0.01, now + 0.25);
+                    osc.connect(gain).connect(ctx.destination);
+                    osc.start(now);
+                    osc.stop(now + 0.25);
+                } else if (type === 'delete') {
+                    // 删除音效
+                    const osc = ctx.createOscillator();
+                    const gain = ctx.createGain();
+                    osc.type = 'sawtooth';
+                    osc.frequency.setValueAtTime(400, now);
+                    osc.frequency.exponentialRampToValueAtTime(200, now + 0.15);
+                    gain.gain.setValueAtTime(0.08, now);
+                    gain.gain.exponentialRampToValueAtTime(0.01, now + 0.2);
+                    osc.connect(gain).connect(ctx.destination);
+                    osc.start(now);
+                    osc.stop(now + 0.2);
+                }
+            } catch (e) {
+                // 忽略音频错误
+            }
+        }
+
+        // ==================== 震动反馈 ====================
+        function vibrate(pattern) {
+            if (navigator.vibrate) {
+                navigator.vibrate(pattern);
+            }
+        }
+
+        // 不同类型的震动模式
+        const VIBE = {
+            light: 15,
+            medium: [20, 30, 20],
+            success: [30, 50, 30, 50, 50],
+            heavy: [50, 30, 100]
+        };
+
+        // ==================== 数据部分 ====================
         const curriculum = {
             1: [
                 { chapter: "Chapter 1 Rational Numbers", chapterCN: "第一章节 有理数", subtopics: [
@@ -985,7 +1106,6 @@
             ]
         };
 
-        // 积分商店背景
         const backgrounds = [
             { id: 'bg1', name: '搭配1 · 暖粉', colors: ['#F8CECC', '#E5DEDE', '#CEE0DC', '#A9E2E2'] },
             { id: 'bg2', name: '搭配2 · 森系', colors: ['#FCF8E8', '#CBDCCB', '#E5A983', '#DC6E57'] },
@@ -1001,7 +1121,6 @@
             { id: 'bg12', name: '搭配12 · 薰衣草', colors: ['#F3E8FF', '#D8B4FE', '#A855F7', '#6B21A8'] }
         ];
 
-        // 掌握程度选项 (对应鼓励语)
         const masteryLevels = [
             { id: 'none', label: '完全不懂', cn: '完全不懂', icon: 'fa-face-frown', message: '别灰心，再看一遍会更好！', color: '#f4a2b2' },
             { id: 'little', label: '好像懂了', cn: '好像懂了', icon: 'fa-face-smile', message: '有点感觉了，继续加油！', color: '#f8c9d4' },
@@ -1010,14 +1129,13 @@
             { id: 'full', label: '完全掌握', cn: '完全掌握', icon: 'fa-face-grin-stars', message: '太棒了！完全掌握！', color: '#e6748e' }
         ];
 
-        // ---------- 全局状态 ----------
-        let currentUser = null; // 'xinni' or 'zijun'
+        // ==================== 全局状态 ====================
+        let currentUser = null;
         let currentForm = 1;
         let points = 0;
-        let records = []; // { id, subtopicId, subtopicName, subtopicCN, mastery, date, points }
-        let usedBackgrounds = []; // 已购买的背景id
+        let records = [];
+        let usedBackgrounds = [];
 
-        // 从 localStorage 加载
         function loadState() {
             const savedUser = localStorage.getItem('math_user');
             if (savedUser) {
@@ -1025,7 +1143,6 @@
                 points = parseInt(localStorage.getItem('math_points') || '0');
                 records = JSON.parse(localStorage.getItem('math_records') || '[]');
                 usedBackgrounds = JSON.parse(localStorage.getItem('math_backgrounds') || '[]');
-                // 应用背景
                 applyBackgroundFromStorage();
             }
         }
@@ -1037,7 +1154,6 @@
             localStorage.setItem('math_backgrounds', JSON.stringify(usedBackgrounds));
         }
 
-        // 应用背景到 screen
         function applyBackgroundFromStorage() {
             const savedBg = localStorage.getItem('math_current_bg');
             if (savedBg) {
@@ -1047,14 +1163,12 @@
         }
 
         function applyBackground(bg) {
-            // 简洁处理：使用线性渐变
             const screen = document.getElementById('screenContent');
             screen.style.background = `linear-gradient(135deg, ${bg.colors[0]}, ${bg.colors[1]}, ${bg.colors[2]}, ${bg.colors[3]})`;
-            // 调整文字颜色？但为了可读性，保留白色卡片，只修改背景
             localStorage.setItem('math_current_bg', bg.id);
         }
 
-        // ---------- DOM 元素 ----------
+        // ==================== DOM 元素 ====================
         const screenContent = document.getElementById('screenContent');
         const homeView = document.getElementById('homeView');
         const shopView = document.getElementById('shopView');
@@ -1077,11 +1191,10 @@
         const shopGrid = document.getElementById('shopGrid');
         const greetingText = document.getElementById('greetingText');
 
-        // ---------- 初始化 ----------
+        // ==================== 初始化 ====================
         function init() {
             loadState();
             if (!currentUser) {
-                // 显示身份选择
                 identityOverlay.classList.remove('hidden');
             } else {
                 identityOverlay.classList.add('hidden');
@@ -1092,7 +1205,6 @@
             renderShop();
             renderRecords();
             setupEventListeners();
-            // 应用背景
             applyBackgroundFromStorage();
         }
 
@@ -1113,7 +1225,7 @@
             profilePointsSpan.textContent = points;
         }
 
-        // ---------- 渲染章节 ----------
+        // ==================== 渲染章节 ====================
         function renderChapters() {
             const data = curriculum[currentForm] || [];
             chapterListDiv.innerHTML = data.map(ch => {
@@ -1134,26 +1246,25 @@
                 `;
             }).join('');
 
-            // 给每个 subtopic 徽章绑定打卡事件
             document.querySelectorAll('.subtopic-badge').forEach(badge => {
                 badge.addEventListener('click', (e) => {
                     e.stopPropagation();
                     const subId = badge.dataset.subid;
                     const subName = badge.dataset.subname;
                     const subCn = badge.dataset.subcn;
+                    // 轻震动 + 音效
+                    vibrate(VIBE.light);
+                    playSound('checkin');
                     openMasteryDrawer(subId, subName, subCn);
                 });
             });
         }
 
-        // 打开掌握程度抽屉
         function openMasteryDrawer(subId, subName, subCn) {
             document.getElementById('currentSubtopicId').value = subId;
-            // 暂存名字
             drawerPanel.dataset.subName = subName;
             drawerPanel.dataset.subCn = subCn;
 
-            // 渲染选项
             masteryOptionsDiv.innerHTML = masteryLevels.map(level => `
                 <div class="mastery-option" data-level="${level.id}" data-message="${level.message}">
                     <i class="fas ${level.icon}" style="color:${level.color}"></i>
@@ -1164,17 +1275,17 @@
                 </div>
             `).join('');
 
-            // 绑定点击
             document.querySelectorAll('.mastery-option').forEach(opt => {
                 opt.addEventListener('click', () => {
                     const levelId = opt.dataset.level;
                     const levelObj = masteryLevels.find(l => l.id === levelId);
+                    // 触摸反馈
+                    vibrate(VIBE.medium);
                     handleCheckin(subId, subName, subCn, levelId, levelObj.message);
                     closeDrawer();
                 });
             });
 
-            // 打开抽屉
             drawerOverlay.classList.add('active');
             drawerPanel.classList.add('open');
         }
@@ -1184,9 +1295,8 @@
             drawerPanel.classList.remove('open');
         }
 
-        // 处理打卡
+        // ==================== 处理打卡 ====================
         function handleCheckin(subId, subName, subCn, levelId, message) {
-            // 积分规则：完全掌握+20，就快掌握+15，一半+10，好像懂了+5，完全不懂+2
             let earned = 0;
             if (levelId === 'full') earned = 20;
             else if (levelId === 'almost') earned = 15;
@@ -1195,7 +1305,6 @@
             else earned = 2;
 
             points += earned;
-            // 保存记录
             const record = {
                 id: Date.now() + Math.random().toString(36).substr(2, 6),
                 subtopicId: subId,
@@ -1211,22 +1320,21 @@
             updatePointsDisplay();
             renderRecords();
 
-            // 弹出鼓励（alert 或者 toast？我们用简单的非阻塞提示，这里用alert不太优雅，采用底部小提示或者直接弹烟花）
-            // 完全掌握 -> 烟花
+            // 音效 + 震动
             if (levelId === 'full') {
+                playSound('full');
+                vibrate(VIBE.success);
                 fireConfetti();
-                // 再加一个消息
                 showToast('🎉 完全掌握！太厉害了！');
             } else {
+                playSound('checkin');
+                vibrate(VIBE.medium);
                 showToast(message + ' +' + earned + '积分');
             }
-
-            // 如果当前在主页，重新渲染章节（实际上不需要）
         }
 
-        // 烟花特效
+        // ==================== 烟花特效 ====================
         function fireConfetti() {
-            const canvas = document.getElementById('confetti-canvas');
             confetti({
                 particleCount: 150,
                 spread: 70,
@@ -1243,7 +1351,7 @@
             }, 250);
         }
 
-        // Toast 简单实现
+        // ==================== Toast ====================
         function showToast(msg) {
             const toast = document.createElement('div');
             toast.textContent = msg;
@@ -1269,7 +1377,7 @@
             }, 2000);
         }
 
-        // ---------- 积分商店渲染 ----------
+        // ==================== 积分商店 ====================
         function renderShop() {
             shopGrid.innerHTML = backgrounds.map(bg => {
                 const owned = usedBackgrounds.includes(bg.id);
@@ -1297,28 +1405,32 @@
                         saveState();
                         updatePointsDisplay();
                         renderShop();
+                        playSound('buy');
+                        vibrate(VIBE.success);
                         showToast('兑换成功！可在商店点击应用背景～');
                     } else if (points < 100) {
+                        vibrate(VIBE.heavy);
                         showToast('积分不足，继续打卡吧！');
                     }
                 });
             });
 
-            // 同时允许点击已拥有的背景来应用
             document.querySelectorAll('.shop-item').forEach((item, idx) => {
                 const bg = backgrounds[idx];
                 if (!bg) return;
                 item.addEventListener('click', (e) => {
-                    if (e.target.classList.contains('buy-btn')) return; // 按钮单独处理
+                    if (e.target.classList.contains('buy-btn')) return;
                     if (usedBackgrounds.includes(bg.id)) {
                         applyBackground(bg);
+                        playSound('buy');
+                        vibrate(VIBE.light);
                         showToast('背景已应用');
                     }
                 });
             });
         }
 
-        // ---------- 渲染我的记录 ----------
+        // ==================== 我的记录 ====================
         function renderRecords() {
             if (records.length === 0) {
                 recordsListDiv.innerHTML = '<p style="color:#b2959e; text-align:center; padding:20px;">还没有记录，快去打卡吧</p>';
@@ -1345,12 +1457,14 @@
                     records = records.filter(r => r.id !== id);
                     saveState();
                     renderRecords();
+                    playSound('delete');
+                    vibrate(VIBE.heavy);
                     showToast('记录已删除');
                 });
             });
         }
 
-        // ---------- 事件绑定 ----------
+        // ==================== 事件绑定 ====================
         function setupEventListeners() {
             // 身份选择
             document.querySelectorAll('.identity-option').forEach(opt => {
@@ -1360,9 +1474,9 @@
                     saveState();
                     identityOverlay.classList.add('hidden');
                     renderIdentity();
-                    renderIdentity();
                     updatePointsDisplay();
-                    // 重新渲染背景等
+                    playSound('checkin');
+                    vibrate(VIBE.light);
                 });
             });
 
@@ -1387,6 +1501,7 @@
                         profileView.classList.remove('hidden');
                         renderRecords();
                     }
+                    vibrate(VIBE.light);
                 });
             });
 
@@ -1398,13 +1513,18 @@
                 chip.classList.add('active');
                 currentForm = parseInt(chip.dataset.form);
                 renderChapters();
+                vibrate(VIBE.light);
             });
 
             // 关闭抽屉
-            closeDrawerBtn.addEventListener('click', closeDrawer);
-            drawerOverlay.addEventListener('click', closeDrawer);
-
-            // 身份覆盖层不能点击外部关闭
+            closeDrawerBtn.addEventListener('click', () => {
+                closeDrawer();
+                vibrate(VIBE.light);
+            });
+            drawerOverlay.addEventListener('click', () => {
+                closeDrawer();
+                vibrate(VIBE.light);
+            });
         }
 
         // 启动
