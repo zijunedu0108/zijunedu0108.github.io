@@ -7,28 +7,6 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
     <link href="https://fonts.googleapis.com/css2?family=Inter:opsz,wght@14..32,400;14..32,500;14..32,600;14..32,700&family=Noto+Sans+SC:wght@400;500;600;700&display=swap" rel="stylesheet">
     <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1"></script>
-    <!-- Firebase SDK -->
-    <script type="module">
-        import { initializeApp } from "https://www.gstatic.com/firebasejs/13.4.0/firebase-app.js";
-        import { getFirestore, doc, getDoc, setDoc } from "https://www.gstatic.com/firebasejs/13.4.0/firebase-firestore.js";
-        
-        const firebaseConfig = {
-            apiKey: "AIzaSyBhc2JVAoxfk3wEsLee-Gr4I1StgqsPkBU",
-            authDomain: "zijunblog.firebaseapp.com",
-            projectId: "zijunblog",
-            storageBucket: "zijunblog.firebasestorage.app",
-            messagingSenderId: "689359220073",
-            appId: "1:689359220073:web:be9d4a467f438b6e8de1f8",
-            measurementId: "G-M8540FQZQD"
-        };
-        
-        const app = initializeApp(firebaseConfig);
-        const db = getFirestore(app);
-        window.firestoreDB = db;
-        window.firestoreDoc = doc;
-        window.firestoreGetDoc = getDoc;
-        window.firestoreSetDoc = setDoc;
-    </script>
     <style>
         * {
             margin: 0;
@@ -894,6 +872,35 @@
         <canvas id="confetti-canvas"></canvas>
     </div>
 
+    <!-- Firebase 模块脚本 -->
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/13.4.0/firebase-app.js";
+        import { getFirestore, doc, getDoc, setDoc } from "https://www.gstatic.com/firebasejs/13.4.0/firebase-firestore.js";
+        
+        const firebaseConfig = {
+            apiKey: "AIzaSyBhc2JVAoxfk3wEsLee-Gr4I1StgqsPkBU",
+            authDomain: "zijunblog.firebaseapp.com",
+            projectId: "zijunblog",
+            storageBucket: "zijunblog.firebasestorage.app",
+            messagingSenderId: "689359220073",
+            appId: "1:689359220073:web:be9d4a467f438b6e8de1f8",
+            measurementId: "G-M8540FQZQD"
+        };
+        
+        const app = initializeApp(firebaseConfig);
+        const db = getFirestore(app);
+        
+        // 将 Firebase 方法挂载到 window 对象上
+        window.firestoreDB = db;
+        window.firestoreDoc = doc;
+        window.firestoreGetDoc = getDoc;
+        window.firestoreSetDoc = setDoc;
+        
+        // 通知主脚本 Firebase 已就绪
+        window.dispatchEvent(new CustomEvent('firebaseReady'));
+    </script>
+
+    <!-- 应用主脚本 -->
     <script>
         // 禁用右键菜单
         document.addEventListener('contextmenu', (e) => e.preventDefault());
@@ -1222,12 +1229,14 @@
         let points = 0;
         let records = [];
         let usedBackgrounds = [];
-        let chartHoverData = []; // 存储画布上的可交互点
+        let chartHoverData = [];
+        let firebaseReady = false;
 
         // ==================== Firebase 对接 ====================
         async function loadFromFirebase() {
             if (!window.firestoreDB) {
-                console.warn('Firebase 未初始化');
+                console.warn('Firebase 未初始化，降级到 localStorage');
+                loadState();
                 return;
             }
             try {
@@ -1246,12 +1255,10 @@
                     renderRecords();
                     renderChart();
                 } else {
-                    // 新用户，初始化
                     await saveToFirebase();
                 }
             } catch (e) {
                 console.error('Firebase 读取失败:', e);
-                // 降级到 localStorage
                 loadState();
             }
         }
@@ -1272,7 +1279,6 @@
             }
         }
 
-        // 兼容旧版 localStorage
         function loadState() {
             const savedUser = localStorage.getItem('math_user');
             if (savedUser) {
@@ -1338,15 +1344,21 @@
 
         // ==================== 初始化 ====================
         async function init() {
-            // 先从 localStorage 读取身份
             loadState();
             if (!currentUser) {
                 identityOverlay.classList.remove('hidden');
             } else {
                 identityOverlay.classList.add('hidden');
                 renderIdentity();
-                // 从 Firebase 加载数据
-                await loadFromFirebase();
+                // 等待 Firebase 就绪后再加载
+                if (window.firestoreDB) {
+                    await loadFromFirebase();
+                } else {
+                    // 如果 Firebase 还没就绪，监听事件
+                    window.addEventListener('firebaseReady', async () => {
+                        await loadFromFirebase();
+                    }, { once: true });
+                }
             }
             updatePointsDisplay();
             renderChapters();
@@ -1355,7 +1367,6 @@
             setupEventListeners();
             applyBackgroundFromStorage();
 
-            // 绘制图表
             setTimeout(() => {
                 resizeChartCanvas();
                 renderChart();
@@ -1890,7 +1901,6 @@
                     saveState();
                     identityOverlay.classList.add('hidden');
                     renderIdentity();
-                    // 从 Firebase 加载该身份的数据
                     await loadFromFirebase();
                     updatePointsDisplay();
                     playSound('checkin');
