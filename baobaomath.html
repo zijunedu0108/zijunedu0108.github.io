@@ -2,7 +2,7 @@
 <html lang="zh-CN">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
     <title>数学目标 · 打卡商店</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
     <link href="https://fonts.googleapis.com/css2?family=Inter:opsz,wght@14..32,400;14..32,500;14..32,600;14..32,700&family=Noto+Sans+SC:wght@400;500;600;700&display=swap" rel="stylesheet">
@@ -23,25 +23,26 @@
             -moz-user-select: none;
             -ms-user-select: none;
             overflow: hidden;
+            height: 100%;
+            width: 100%;
         }
 
         body {
             display: flex;
             justify-content: center;
             align-items: center;
-            height: 100vh;
-            width: 100vw;
             background: #f5e6e8;
-            padding: 0;
             margin: 0;
+            padding: 0;
             overflow: hidden;
         }
 
+        /* 主应用容器：使用 100dvh 适配移动端地址栏变化 */
         .app-container {
             width: 100%;
-            height: 100%;
+            height: 100dvh;
             max-width: 100%;
-            max-height: 100%;
+            max-height: 100dvh;
             background: rgba(255, 255, 255, 0.75);
             backdrop-filter: blur(24px);
             -webkit-backdrop-filter: blur(24px);
@@ -54,12 +55,12 @@
             border: none;
         }
 
-        /* 关键修复：为底部导航留出足够空间 */
+        /* 屏幕内容区：底部 padding 由 JS 动态计算 */
         .screen {
             flex: 1;
             overflow-y: auto;
             overflow-x: hidden;
-            padding: 20px 18px 80px; /* 从90px改为80px，但配合底部导航高度调整 */
+            padding: 20px 18px 100px;
             scroll-behavior: smooth;
             transition: background 0.4s ease;
             position: relative;
@@ -71,25 +72,67 @@
             display: none;
         }
 
-        /* 关键修复：底部导航使用固定高度和绝对定位，确保完整显示 */
+        /* 底部导航：固定定位，彻底解决消失问题 */
         .bottom-nav {
-            position: absolute;
+            position: fixed;
             bottom: 0;
             left: 0;
+            right: 0;
             width: 100%;
-            height: 64px; /* 稍微降低高度，但确保完整可见 */
-            background: rgba(255, 255, 255, 0.92);
+            height: 64px;
+            background: rgba(255, 255, 255, 0.95);
             backdrop-filter: blur(20px);
             -webkit-backdrop-filter: blur(20px);
             border-top: 1px solid rgba(240, 217, 221, 0.6);
             display: flex;
             justify-content: space-around;
             align-items: center;
-            padding-bottom: 0;
-            border-radius: 0;
-            z-index: 20;
-            /* 确保安全区域 */
+            z-index: 1000;
             padding-bottom: env(safe-area-inset-bottom, 0);
+            /* 在桌面端居中，限制宽度与 app-container 一致 */
+            max-width: 480px;
+            left: 50%;
+            transform: translateX(-50%);
+            border-radius: 0;
+        }
+
+        /* 桌面端调整 */
+        @media (min-width: 768px) {
+            body {
+                padding: 12px;
+            }
+            .app-container {
+                max-width: 480px;
+                height: 800px;
+                max-height: 800px;
+                border-radius: 40px;
+                box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
+                border: 1px solid rgba(255, 255, 255, 0.6);
+            }
+            .bottom-nav {
+                max-width: 480px;
+                height: 72px;
+                border-radius: 0 0 40px 40px;
+                bottom: 12px;
+            }
+            .screen {
+                padding: 24px 24px 100px;
+            }
+        }
+
+        @media (min-width: 1024px) {
+            body {
+                padding: 24px;
+            }
+            .app-container {
+                max-width: 520px;
+                height: 880px;
+                max-height: 880px;
+            }
+            .bottom-nav {
+                max-width: 520px;
+                bottom: 24px;
+            }
         }
 
         .nav-item {
@@ -106,6 +149,7 @@
             flex: 1;
             user-select: none;
             padding: 6px 0;
+            height: 100%;
         }
 
         .nav-item i {
@@ -378,14 +422,14 @@
         }
 
         .drawer-overlay {
-            position: absolute;
+            position: fixed;
             top: 0;
             left: 0;
             width: 100%;
             height: 100%;
             background: rgba(0, 0, 0, 0.2);
             backdrop-filter: blur(4px);
-            z-index: 100;
+            z-index: 1100;
             opacity: 0;
             visibility: hidden;
             transition: opacity 0.3s, visibility 0.3s;
@@ -398,18 +442,19 @@
         }
 
         .drawer-panel {
-            position: absolute;
+            position: fixed;
             bottom: 0;
-            left: 0;
+            left: 50%;
+            transform: translateX(-50%) translateY(100%);
             width: 100%;
+            max-width: 480px;
             background: rgba(255, 250, 251, 0.92);
             backdrop-filter: blur(30px);
             -webkit-backdrop-filter: blur(30px);
             border-radius: 32px 32px 0 0;
             padding: 24px 20px 30px;
-            transform: translateY(100%);
             transition: transform 0.4s cubic-bezier(0.22, 1, 0.36, 1);
-            z-index: 101;
+            z-index: 1101;
             box-shadow: 0 -10px 40px rgba(230, 116, 142, 0.08);
             max-height: 85%;
             overflow-y: auto;
@@ -421,7 +466,21 @@
         }
 
         .drawer-panel.open {
-            transform: translateY(0);
+            transform: translateX(-50%) translateY(0);
+        }
+
+        @media (min-width: 768px) {
+            .drawer-panel {
+                max-width: 480px;
+                bottom: 12px;
+                border-radius: 32px;
+            }
+        }
+        @media (min-width: 1024px) {
+            .drawer-panel {
+                max-width: 520px;
+                bottom: 24px;
+            }
         }
 
         .drawer-header {
@@ -518,6 +577,7 @@
             flex-direction: column;
             gap: 8px;
             transition: all 0.3s ease;
+            position: relative;
         }
 
         .shop-preview {
@@ -570,6 +630,20 @@
             cursor: not-allowed;
         }
 
+        /* 免费标签 */
+        .free-tag {
+            position: absolute;
+            top: 8px;
+            right: 8px;
+            background: #4caf50;
+            color: white;
+            font-size: 10px;
+            font-weight: 700;
+            padding: 3px 8px;
+            border-radius: 10px;
+            z-index: 2;
+        }
+
         .record-item {
             display: flex;
             justify-content: space-between;
@@ -613,7 +687,7 @@
         }
 
         .identity-select-overlay {
-            position: absolute;
+            position: fixed;
             top: 0;
             left: 0;
             width: 100%;
@@ -621,7 +695,7 @@
             background: rgba(255, 245, 247, 0.96);
             backdrop-filter: blur(20px);
             -webkit-backdrop-filter: blur(20px);
-            z-index: 200;
+            z-index: 2000;
             display: flex;
             flex-direction: column;
             align-items: center;
@@ -640,6 +714,7 @@
 
         .identity-option {
             width: 100%;
+            max-width: 340px;
             background: rgba(255, 245, 247, 0.8);
             backdrop-filter: blur(12px);
             border-radius: 30px;
@@ -704,74 +779,6 @@
                 transform: translateX(0);
             }
         }
-
-        @media (min-width: 768px) {
-            body {
-                padding: 12px;
-            }
-            .app-container {
-                max-width: 480px;
-                height: 800px;
-                border-radius: 40px;
-                box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
-                border: 1px solid rgba(255, 255, 255, 0.6);
-            }
-            .screen {
-                padding: 24px 24px 90px;
-            }
-            .bottom-nav {
-                height: 72px;
-                border-radius: 0 0 40px 40px;
-                padding-bottom: 0;
-            }
-            .nav-item i {
-                font-size: 22px;
-            }
-            .nav-item {
-                font-size: 12px;
-            }
-            .chapter-item {
-                padding: 16px 20px;
-            }
-            .shop-grid {
-                gap: 16px;
-            }
-            #progressChart {
-                height: 170px;
-            }
-            .drawer-panel {
-                border-radius: 32px 32px 0 0;
-            }
-            .identity-select-overlay {
-                border-radius: 40px;
-            }
-        }
-
-        @media (min-width: 1024px) {
-            body {
-                padding: 24px;
-            }
-            .app-container {
-                max-width: 520px;
-                height: 880px;
-            }
-        }
-
-        /* 针对小屏幕手机的额外修复 */
-        @media (max-width: 380px) {
-            .screen {
-                padding-bottom: 75px;
-            }
-            .bottom-nav {
-                height: 60px;
-            }
-            .nav-item i {
-                font-size: 18px;
-            }
-            .nav-item {
-                font-size: 10px;
-            }
-        }
     </style>
 </head>
 <body>
@@ -794,7 +801,7 @@
                     </div>
                     <div class="identity-info">
                         <h3 id="identityName">MANTO</h3>
-                        <p>Form 1 · 数学目标</p>
+                        <p>SPM · 数学目标</p>
                     </div>
                 </div>
 
@@ -854,7 +861,7 @@
         </div>
 
         <!-- 底部导航 -->
-        <div class="bottom-nav">
+        <div class="bottom-nav" id="bottomNav">
             <div class="nav-item active" data-nav="home">
                 <i class="fas fa-home"></i>
                 <span>主页</span>
@@ -1213,7 +1220,9 @@
             ]
         };
 
+        // 背景列表（新增免费粉色主题）
         const backgrounds = [
+            { id: 'bg_free_pink', name: '原版粉色 · 免费', colors: ['#F8CECC', '#E5DEDE', '#CEE0DC', '#A9E2E2'], free: true },
             { id: 'bg1', name: '搭配1 · 暖粉', colors: ['#F8CECC', '#E5DEDE', '#CEE0DC', '#A9E2E2'] },
             { id: 'bg2', name: '搭配2 · 森系', colors: ['#FCF8E8', '#CBDCCB', '#E5A983', '#DC6E57'] },
             { id: 'bg3', name: '搭配3 · 樱花', colors: ['#F78585', '#FBB2B2', '#FCD5D5', '#FDE8E8'] },
@@ -1252,7 +1261,6 @@
         let records = [];
         let usedBackgrounds = [];
         let chartHoverData = [];
-        let firebaseReady = false;
 
         // ==================== Firebase 对接 ====================
         async function loadFromFirebase() {
@@ -1738,7 +1746,7 @@
         function showToast(msg) {
             const toast = document.createElement('div');
             toast.textContent = msg;
-            toast.style.cssText = 'position:fixed;bottom:100px;left:50%;transform:translateX(-50%);background:rgba(230,116,142,0.92);backdrop-filter:blur(10px);color:white;padding:12px 24px;border-radius:30px;font-weight:600;font-size:14px;box-shadow:0 8px 24px rgba(0,0,0,0.2);z-index:1000;opacity:0;transition:opacity 0.3s;border:1px solid rgba(255,255,255,0.3);white-space:nowrap;';
+            toast.style.cssText = 'position:fixed;bottom:100px;left:50%;transform:translateX(-50%);background:rgba(230,116,142,0.92);backdrop-filter:blur(10px);color:white;padding:12px 24px;border-radius:30px;font-weight:600;font-size:14px;box-shadow:0 8px 24px rgba(0,0,0,0.2);z-index:2000;opacity:0;transition:opacity 0.3s;border:1px solid rgba(255,255,255,0.3);white-space:nowrap;';
             document.body.appendChild(toast);
             requestAnimationFrame(() => toast.style.opacity = '1');
             setTimeout(() => {
@@ -1750,16 +1758,18 @@
         // ==================== 商店 ====================
         function renderShop() {
             shopGrid.innerHTML = backgrounds.map(bg => {
-                const owned = usedBackgrounds.includes(bg.id);
+                const owned = usedBackgrounds.includes(bg.id) || bg.free;
+                const isFree = bg.free;
                 return `
                     <div class="shop-item glass-card" style="padding: 12px;">
+                        ${isFree ? '<span class="free-tag">免费</span>' : ''}
                         <div class="shop-preview">
                             ${bg.colors.map(c => `<span style="background:${c};"></span>`).join('')}
                         </div>
                         <h4>${bg.name}</h4>
-                        <p>100 积分</p>
-                        <button class="buy-btn" data-bgid="${bg.id}" ${owned ? 'disabled' : ''}>
-                            ${owned ? '已拥有' : '兑换'}
+                        <p>${isFree ? '0 积分' : '100 积分'}</p>
+                        <button class="buy-btn" data-bgid="${bg.id}" ${(!isFree && !owned) ? '' : (owned ? 'disabled' : '')}>
+                            ${owned ? (isFree ? '已免费' : '已拥有') : '兑换'}
                         </button>
                     </div>
                 `;
@@ -1767,9 +1777,23 @@
 
             document.querySelectorAll('.buy-btn').forEach(btn => {
                 if (btn.disabled) return;
-                btn.addEventListener('click', async () => {
+                btn.addEventListener('click', async (e) => {
+                    e.stopPropagation();
                     const bgId = btn.dataset.bgid;
-                    if (points >= 100 && !usedBackgrounds.includes(bgId)) {
+                    const bg = backgrounds.find(b => b.id === bgId);
+                    if (bg.free) {
+                        // 免费直接应用
+                        if (!usedBackgrounds.includes(bgId)) {
+                            usedBackgrounds.push(bgId);
+                            saveState();
+                            await saveToFirebase();
+                        }
+                        applyBackground(bg);
+                        renderShop();
+                        playSound('buy');
+                        vibrate(VIBE.success);
+                        showToast('已应用免费粉色主题');
+                    } else if (points >= 100 && !usedBackgrounds.includes(bgId)) {
                         points -= 100;
                         usedBackgrounds.push(bgId);
                         saveState();
@@ -1791,7 +1815,7 @@
                 if (!bg) return;
                 item.addEventListener('click', async (e) => {
                     if (e.target.classList.contains('buy-btn')) return;
-                    if (usedBackgrounds.includes(bg.id)) {
+                    if (bg.free || usedBackgrounds.includes(bg.id)) {
                         applyBackground(bg);
                         await saveToFirebase();
                         playSound('buy');
@@ -1955,6 +1979,18 @@
                 closeDrawer();
                 vibrate(VIBE.light);
             });
+
+            // 动态计算底部导航高度，避免内容被遮挡
+            function adjustScreenPadding() {
+                const nav = document.getElementById('bottomNav');
+                if (nav) {
+                    const navHeight = nav.offsetHeight;
+                    document.getElementById('screenContent').style.paddingBottom = (navHeight + 20) + 'px';
+                }
+            }
+            setTimeout(adjustScreenPadding, 100);
+            window.addEventListener('resize', adjustScreenPadding);
+            window.addEventListener('orientationchange', () => setTimeout(adjustScreenPadding, 200));
         }
 
         // 启动
