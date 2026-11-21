@@ -1,0 +1,1414 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>数学目标 · 打卡商店</title>
+    <!-- 引入 Font Awesome 图标库（不使用emoji） -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    <!-- 引入 Google Fonts 字体 (Inter 和 思源黑体) -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:opsz,wght@14..32,400;14..32,500;14..32,600;14..32,700&family=Noto+Sans+SC:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <!-- 引入 canvas-confetti 用于烟花特效 -->
+    <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1"></script>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Inter', 'Noto Sans SC', sans-serif;
+        }
+
+        body {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            background: #f5e6e8; /* 柔和的粉色背景 */
+            padding: 12px;
+        }
+
+        /* 主应用容器 - 模拟手机界面 */
+        .app-container {
+            width: 100%;
+            max-width: 420px;
+            height: 720px;
+            background-color: #ffffff;
+            border-radius: 36px;
+            box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
+            overflow: hidden;
+            display: flex;
+            flex-direction: column;
+            position: relative;
+            border: 1px solid rgba(255, 255, 255, 0.5);
+            backdrop-filter: blur(2px);
+        }
+
+        /* 屏幕内容区 */
+        .screen {
+            flex: 1;
+            overflow-y: auto;
+            padding: 20px 18px 90px;
+            scroll-behavior: smooth;
+            background-color: #ffffff;
+            transition: background 0.3s ease;
+            position: relative;
+        }
+
+        /* 底部导航栏 */
+        .bottom-nav {
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            width: 100%;
+            height: 70px;
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(12px);
+            border-top: 1px solid #f0d9dd;
+            display: flex;
+            justify-content: space-around;
+            align-items: center;
+            padding-bottom: 6px;
+            border-radius: 0 0 36px 36px;
+            z-index: 20;
+        }
+
+        .nav-item {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            gap: 4px;
+            color: #b0a6a8;
+            font-size: 12px;
+            font-weight: 500;
+            transition: color 0.2s;
+            cursor: pointer;
+            flex: 1;
+        }
+
+        .nav-item i {
+            font-size: 22px;
+        }
+
+        .nav-item.active {
+            color: #e6748e;
+        }
+
+        .nav-item.active i {
+            transform: scale(1.05);
+        }
+
+        /* 首页内容样式 */
+        .header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+        }
+
+        .greeting h1 {
+            font-size: 20px;
+            font-weight: 700;
+            color: #2d1e22;
+        }
+
+        .greeting p {
+            font-size: 13px;
+            color: #a0858c;
+            margin-top: 4px;
+            font-weight: 500;
+        }
+
+        .points-badge {
+            background: #fbe9ec;
+            padding: 8px 14px;
+            border-radius: 30px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-weight: 600;
+            color: #e6748e;
+            font-size: 16px;
+            box-shadow: 0 2px 10px rgba(230, 116, 142, 0.15);
+        }
+
+        .points-badge i {
+            font-size: 18px;
+        }
+
+        .identity-card {
+            background: linear-gradient(145deg, #fff2f4, #ffe7ec);
+            border-radius: 24px;
+            padding: 16px;
+            display: flex;
+            align-items: center;
+            gap: 14px;
+            margin-bottom: 20px;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.03);
+            border: 1px solid #fce1e6;
+        }
+
+        .identity-avatar {
+            width: 56px;
+            height: 56px;
+            border-radius: 28px;
+            background: #fadadd;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            overflow: hidden;
+            border: 2px solid white;
+            box-shadow: 0 4px 8px rgba(0,0,0,0.05);
+            flex-shrink: 0;
+        }
+
+        .identity-avatar img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+
+        .identity-info h3 {
+            font-size: 18px;
+            font-weight: 700;
+            color: #3d2b2f;
+        }
+
+        .identity-info p {
+            font-size: 13px;
+            color: #a0858c;
+            margin-top: 2px;
+        }
+
+        /* 章节卡片 */
+        .chapter-section {
+            margin-bottom: 22px;
+        }
+
+        .form-selector {
+            display: flex;
+            gap: 8px;
+            margin-bottom: 14px;
+            overflow-x: auto;
+            padding-bottom: 6px;
+            scrollbar-width: thin;
+            scrollbar-color: #f0c0ca transparent;
+        }
+
+        .form-selector::-webkit-scrollbar {
+            height: 4px;
+        }
+
+        .form-selector::-webkit-scrollbar-thumb {
+            background: #f0c0ca;
+            border-radius: 10px;
+        }
+
+        .form-chip {
+            background: #f9f0f2;
+            border: none;
+            padding: 8px 18px;
+            border-radius: 30px;
+            font-size: 14px;
+            font-weight: 600;
+            color: #7a5f66;
+            white-space: nowrap;
+            cursor: pointer;
+            transition: all 0.2s;
+            border: 1px solid transparent;
+        }
+
+        .form-chip.active {
+            background: #e6748e;
+            color: white;
+            box-shadow: 0 6px 12px rgba(230, 116, 142, 0.25);
+        }
+
+        .chapter-list {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+
+        .chapter-item {
+            background: #ffffff;
+            border-radius: 18px;
+            padding: 12px 16px;
+            border: 1px solid #f5e1e5;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.02);
+            transition: all 0.15s;
+            cursor: pointer;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .chapter-item:active {
+            background: #fff6f8;
+            transform: scale(0.98);
+        }
+
+        .chapter-info {
+            display: flex;
+            flex-direction: column;
+            gap: 4px;
+            flex: 1;
+        }
+
+        .chapter-name {
+            font-weight: 700;
+            font-size: 15px;
+            color: #3d2b2f;
+        }
+
+        .chapter-sub {
+            font-size: 12px;
+            color: #a88991;
+            font-weight: 500;
+        }
+
+        .subtopic-badge {
+            background: #f9eaee;
+            border-radius: 30px;
+            padding: 6px 12px;
+            font-size: 11px;
+            font-weight: 600;
+            color: #b27a89;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            flex-shrink: 0;
+        }
+
+        /* 打卡按钮 */
+        .checkin-btn {
+            background: #e6748e;
+            color: white;
+            border: none;
+            padding: 10px 18px;
+            border-radius: 30px;
+            font-weight: 600;
+            font-size: 14px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            box-shadow: 0 6px 14px rgba(230, 116, 142, 0.3);
+            cursor: pointer;
+            transition: all 0.2s;
+            width: fit-content;
+            margin-top: 6px;
+        }
+
+        .checkin-btn:active {
+            transform: scale(0.96);
+            box-shadow: 0 3px 8px rgba(230, 116, 142, 0.3);
+        }
+
+        .checkin-btn i {
+            font-size: 14px;
+        }
+
+        /* 抽屉式弹窗 (panel) */
+        .drawer-overlay {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.25);
+            backdrop-filter: blur(2px);
+            z-index: 100;
+            opacity: 0;
+            visibility: hidden;
+            transition: opacity 0.25s, visibility 0.25s;
+            border-radius: 36px;
+        }
+
+        .drawer-overlay.active {
+            opacity: 1;
+            visibility: visible;
+        }
+
+        .drawer-panel {
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            width: 100%;
+            background: #ffffff;
+            border-radius: 32px 32px 0 0;
+            padding: 24px 20px 30px;
+            transform: translateY(100%);
+            transition: transform 0.35s cubic-bezier(0.22, 1, 0.36, 1);
+            z-index: 101;
+            box-shadow: 0 -10px 30px rgba(0,0,0,0.1);
+            max-height: 85%;
+            overflow-y: auto;
+        }
+
+        .drawer-panel.open {
+            transform: translateY(0);
+        }
+
+        .drawer-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 18px;
+        }
+
+        .drawer-header h2 {
+            font-size: 20px;
+            font-weight: 700;
+            color: #2d1e22;
+        }
+
+        .close-drawer {
+            background: #f5eaed;
+            border: none;
+            width: 36px;
+            height: 36px;
+            border-radius: 18px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: #8a6d75;
+            font-size: 18px;
+            cursor: pointer;
+        }
+
+        .mastery-option {
+            display: flex;
+            align-items: center;
+            padding: 16px 14px;
+            background: #fdf7f8;
+            border-radius: 20px;
+            margin-bottom: 10px;
+            cursor: pointer;
+            transition: all 0.2s;
+            border: 1px solid #fce6ea;
+            gap: 14px;
+        }
+
+        .mastery-option:active {
+            background: #ffeef2;
+            transform: scale(0.98);
+        }
+
+        .mastery-option i {
+            font-size: 24px;
+            color: #e6748e;
+            width: 32px;
+            text-align: center;
+        }
+
+        .mastery-text {
+            flex: 1;
+            font-weight: 600;
+            color: #3d2b2f;
+            font-size: 16px;
+        }
+
+        .mastery-sub {
+            font-size: 12px;
+            color: #b2959e;
+            font-weight: 400;
+            display: block;
+            margin-top: 2px;
+        }
+
+        /* 积分商店 */
+        .shop-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 12px;
+            margin-top: 10px;
+        }
+
+        .shop-item {
+            background: #ffffff;
+            border-radius: 20px;
+            padding: 14px;
+            border: 1px solid #f5e1e5;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.02);
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+
+        .shop-preview {
+            display: flex;
+            height: 60px;
+            border-radius: 12px;
+            overflow: hidden;
+            border: 1px solid #eee;
+        }
+
+        .shop-preview span {
+            flex: 1;
+        }
+
+        .shop-item h4 {
+            font-size: 14px;
+            font-weight: 700;
+            color: #3d2b2f;
+        }
+
+        .shop-item p {
+            font-size: 12px;
+            color: #a0858c;
+        }
+
+        .buy-btn {
+            background: #f0c0ca;
+            border: none;
+            border-radius: 30px;
+            padding: 8px;
+            font-weight: 600;
+            color: #7a3e50;
+            font-size: 13px;
+            cursor: pointer;
+            transition: all 0.2s;
+            margin-top: 6px;
+        }
+
+        .buy-btn:active {
+            background: #e6748e;
+            color: white;
+        }
+
+        .buy-btn:disabled {
+            opacity: 0.5;
+            background: #e0d6d9;
+            color: #999;
+            cursor: not-allowed;
+        }
+
+        /* 我的记录 */
+        .record-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            background: #fdf7f8;
+            padding: 14px 16px;
+            border-radius: 18px;
+            margin-bottom: 10px;
+            border: 1px solid #f5e1e5;
+        }
+
+        .record-info .record-title {
+            font-weight: 600;
+            font-size: 14px;
+            color: #3d2b2f;
+        }
+
+        .record-info .record-meta {
+            font-size: 12px;
+            color: #b2959e;
+            margin-top: 3px;
+            display: flex;
+            gap: 10px;
+        }
+
+        .record-delete {
+            background: none;
+            border: none;
+            color: #d9a7b3;
+            font-size: 18px;
+            cursor: pointer;
+            padding: 6px;
+        }
+
+        /* 身份选择界面 (初始) */
+        .identity-select-overlay {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(255, 245, 247, 0.98);
+            backdrop-filter: blur(8px);
+            z-index: 200;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            padding: 30px;
+            border-radius: 36px;
+            gap: 20px;
+        }
+
+        .identity-select-overlay h2 {
+            font-size: 24px;
+            font-weight: 700;
+            color: #3d2b2f;
+            margin-bottom: 10px;
+        }
+
+        .identity-option {
+            width: 100%;
+            background: white;
+            border-radius: 30px;
+            padding: 16px 20px;
+            display: flex;
+            align-items: center;
+            gap: 18px;
+            cursor: pointer;
+            box-shadow: 0 8px 20px rgba(230, 116, 142, 0.15);
+            border: 2px solid transparent;
+            transition: all 0.2s;
+        }
+
+        .identity-option:active {
+            border-color: #e6748e;
+            transform: scale(0.98);
+        }
+
+        .identity-option img {
+            width: 60px;
+            height: 60px;
+            border-radius: 30px;
+            object-fit: cover;
+            background: #fadadd;
+        }
+
+        .identity-option .identity-name {
+            font-size: 20px;
+            font-weight: 700;
+            color: #2d1e22;
+        }
+
+        .identity-option .identity-desc {
+            font-size: 13px;
+            color: #a0858c;
+        }
+
+        /* 其他工具类 */
+        .hidden {
+            display: none !important;
+        }
+
+        .flex-col {
+            display: flex;
+            flex-direction: column;
+        }
+
+        .mt-2 { margin-top: 8px; }
+        .mb-2 { margin-bottom: 8px; }
+        .text-center { text-align: center; }
+
+        /* 烟花 canvas 容器 */
+        #confetti-canvas {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+            z-index: 999;
+        }
+
+        /* 滚动条美化 */
+        .screen::-webkit-scrollbar {
+            width: 4px;
+        }
+        .screen::-webkit-scrollbar-thumb {
+            background: #f0c0ca;
+            border-radius: 10px;
+        }
+    </style>
+</head>
+<body>
+    <div class="app-container">
+        <!-- 主屏幕内容 -->
+        <div class="screen" id="screenContent">
+            <!-- 主页视图 -->
+            <div id="homeView">
+                <div class="header">
+                    <div class="greeting">
+                        <h1 id="greetingText">你好，同学</h1>
+                        <p id="subGreeting">今天也要加油哦 ✨</p>
+                    </div>
+                    <div class="points-badge" id="pointsDisplay">
+                        <i class="fas fa-star"></i> <span id="pointsValue">0</span>
+                    </div>
+                </div>
+                <div class="identity-card" id="identityCard">
+                    <div class="identity-avatar">
+                        <img id="identityAvatar" src="manto.png" alt="avatar" onerror="this.src='https://placehold.co/56x56/fadadd/ffffff?text=?'">
+                    </div>
+                    <div class="identity-info">
+                        <h3 id="identityName">XIN NI</h3>
+                        <p>Form 1 · 数学目标</p>
+                    </div>
+                </div>
+                <!-- 表单选择器 -->
+                <div class="form-selector" id="formSelector">
+                    <button class="form-chip active" data-form="1">Form 1</button>
+                    <button class="form-chip" data-form="2">Form 2</button>
+                    <button class="form-chip" data-form="3">Form 3</button>
+                    <button class="form-chip" data-form="4">Form 4</button>
+                    <button class="form-chip" data-form="5">Form 5</button>
+                </div>
+                <!-- 章节列表 -->
+                <div class="chapter-list" id="chapterList">
+                    <!-- 动态渲染 -->
+                </div>
+                <!-- 跳转考题链接 -->
+                <div style="margin-top: 20px; text-align: center;">
+                    <a href="https://www.bumigemilang.com/soalan-percubaan-matematik/" target="_blank" style="color:#e6748e; font-size:14px; font-weight:500; text-decoration:none;">
+                        <i class="fas fa-external-link-alt"></i> 理解考题 · 跳转练习
+                    </a>
+                </div>
+            </div>
+
+            <!-- 积分商店视图 -->
+            <div id="shopView" class="hidden">
+                <h2 style="margin-bottom: 18px;">积分商店 · Points Shop</h2>
+                <p style="color: #a0858c; margin-bottom: 16px;">使用积分兑换美化背景 (每款100积分)</p>
+                <div class="shop-grid" id="shopGrid">
+                    <!-- 动态 -->
+                </div>
+            </div>
+
+            <!-- 我的视图 -->
+            <div id="profileView" class="hidden">
+                <h2 style="margin-bottom: 18px;">我的 · Profile</h2>
+                <div class="identity-card" style="margin-bottom: 24px;">
+                    <div class="identity-avatar">
+                        <img id="profileAvatar" src="manto.png" alt="avatar" onerror="this.src='https://placehold.co/56x56/fadadd/ffffff?text=?'">
+                    </div>
+                    <div class="identity-info">
+                        <h3 id="profileName">XIN NI</h3>
+                        <p>积分: <span id="profilePoints">0</span></p>
+                    </div>
+                </div>
+                <h3 style="font-size: 18px; margin-bottom: 14px;">打卡记录 · Check-in Records</h3>
+                <div id="recordsList">
+                    <!-- 动态 -->
+                </div>
+            </div>
+        </div>
+
+        <!-- 底部导航 -->
+        <div class="bottom-nav">
+            <div class="nav-item active" data-nav="home">
+                <i class="fas fa-home"></i>
+                <span>主页</span>
+            </div>
+            <div class="nav-item" data-nav="shop">
+                <i class="fas fa-store"></i>
+                <span>积分商店</span>
+            </div>
+            <div class="nav-item" data-nav="profile">
+                <i class="fas fa-user"></i>
+                <span>我</span>
+            </div>
+        </div>
+
+        <!-- 抽屉式打卡弹窗 -->
+        <div class="drawer-overlay" id="drawerOverlay"></div>
+        <div class="drawer-panel" id="drawerPanel">
+            <div class="drawer-header">
+                <h2>当前掌握程度</h2>
+                <button class="close-drawer" id="closeDrawer"><i class="fas fa-times"></i></button>
+            </div>
+            <div id="masteryOptions">
+                <!-- 动态渲染 -->
+            </div>
+            <input type="hidden" id="currentSubtopicId" value="">
+        </div>
+
+        <!-- 身份选择覆盖层 (初始) -->
+        <div class="identity-select-overlay" id="identityOverlay">
+            <h2>选择你的身份</h2>
+            <div class="identity-option" data-identity="xinni" data-img="manto.png">
+                <img src="manto.png" alt="XIN NI" onerror="this.src='https://placehold.co/60x60/fadadd/ffffff?text=X'">
+                <div>
+                    <div class="identity-name">XIN NI</div>
+                    <div class="identity-desc">使用 manto.png</div>
+                </div>
+            </div>
+            <div class="identity-option" data-identity="zijun" data-img="gento.png">
+                <img src="gento.png" alt="ZI JUN" onerror="this.src='https://placehold.co/60x60/fadadd/ffffff?text=Z'">
+                <div>
+                    <div class="identity-name">ZI JUN</div>
+                    <div class="identity-desc">使用 gento.png</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- 烟花canvas -->
+        <canvas id="confetti-canvas"></canvas>
+    </div>
+
+    <script>
+        // ---------- 数据部分 ----------
+        // 所有章节 & subtopics 数据 (英文 + 中文)
+        const curriculum = {
+            1: [
+                { chapter: "Chapter 1 Rational Numbers", chapterCN: "第一章节 有理数", subtopics: [
+                    { id: "1-1", en: "1.1 Integers", cn: "整数" },
+                    { id: "1-2", en: "1.2 Basic Arithmetic Operations Involving Integers", cn: "整数的基本运算" },
+                    { id: "1-3", en: "1.3 Positive and Negative Fractions", cn: "正负分数" },
+                    { id: "1-4", en: "1.4 Positive and Negative Decimals", cn: "正负小数" },
+                    { id: "1-5", en: "1.5 Rational Numbers", cn: "有理数" }
+                ]},
+                { chapter: "Chapter 2 Factors and Multiples", chapterCN: "第二章节 因数与倍数", subtopics: [
+                    { id: "2-1", en: "2.1 Factors, Prime Factors and Highest Common Factor (HCF)", cn: "因数、质因数与最大公因数" },
+                    { id: "2-2", en: "2.2 Multiples, Common Multiples and Lowest Common Multiple (LCM)", cn: "倍数、公倍数与最小公倍数" }
+                ]},
+                { chapter: "Chapter 3 Squares, Square Roots, Cubes and Cube Roots", chapterCN: "第三章节 平方、平方根、立方与立方根", subtopics: [
+                    { id: "3-1", en: "3.1 Squares and Square Roots", cn: "平方与平方根" },
+                    { id: "3-2", en: "3.2 Cubes and Cube Roots", cn: "立方与立方根" }
+                ]},
+                { chapter: "Chapter 4 Ratios, Rates and Proportions", chapterCN: "第四章节 比、比率与比例", subtopics: [
+                    { id: "4-1", en: "4.1 Ratios", cn: "比" },
+                    { id: "4-2", en: "4.2 Rates", cn: "比率" },
+                    { id: "4-3", en: "4.3 Proportions", cn: "比例" },
+                    { id: "4-4", en: "4.4 Ratios, Rates and Proportions", cn: "比、比率与比例" },
+                    { id: "4-5", en: "4.5 Relationship between Ratios, Rates and Proportions, with Percentages, Fractions and Decimals", cn: "比、比率、比例与百分比、分数、小数的关系" }
+                ]},
+                { chapter: "Chapter 5 Algebraic Expressions", chapterCN: "第五章节 代数表达式", subtopics: [
+                    { id: "5-1", en: "5.1 Variables and Algebraic Expression", cn: "变量与代数表达式" },
+                    { id: "5-2", en: "5.2 Algebraic Expressions Involving Basic Arithmetic Operations", cn: "涉及基本算术运算的代数表达式" }
+                ]},
+                { chapter: "Chapter 6 Linear Equations", chapterCN: "第六章节 线性方程", subtopics: [
+                    { id: "6-1", en: "6.1 Linear Equations in One Variable", cn: "一元一次方程" },
+                    { id: "6-2", en: "6.2 Linear Equations in Two Variables", cn: "二元一次方程" },
+                    { id: "6-3", en: "6.3 Simultaneous Linear Equations in Two Variables", cn: "二元一次联立方程" }
+                ]},
+                { chapter: "Chapter 7 Linear Inequalities", chapterCN: "第七章节 线性不等式", subtopics: [
+                    { id: "7-1", en: "7.1 Inequalities", cn: "不等式" },
+                    { id: "7-2", en: "7.2 Linear Inequalities in One Variable", cn: "一元一次不等式" }
+                ]},
+                { chapter: "Chapter 8 Lines and Angles", chapterCN: "第八章节 线与角", subtopics: [
+                    { id: "8-1", en: "8.1 Lines and Angles", cn: "线与角" },
+                    { id: "8-2", en: "8.2 Angles related to Intersecting Lines", cn: "与相交线有关的角" },
+                    { id: "8-3", en: "8.3 Angles related to Parallel Lines and Transversals", cn: "与平行线和截线有关的角" }
+                ]},
+                { chapter: "Chapter 9 Basic Polygons", chapterCN: "第九章节 基本多边形", subtopics: [
+                    { id: "9-1", en: "9.1 Polygons", cn: "多边形" },
+                    { id: "9-2", en: "9.2 Properties of Triangles and the Interior and Exterior Angles of Triangles", cn: "三角形的性质及内角与外角" },
+                    { id: "9-3", en: "9.3 Properties of Quadrilaterals and the Interior and Exterior Angles of Quadrilaterals", cn: "四边形的性质及内角与外角" }
+                ]},
+                { chapter: "Chapter 10 Perimeter and Area", chapterCN: "第十章节 周长与面积", subtopics: [
+                    { id: "10-1", en: "10.1 Perimeter", cn: "周长" },
+                    { id: "10-2", en: "10.2 Area of Triangles, Parallelograms, Kites and Trapeziums", cn: "三角形、平行四边形、风筝形与梯形的面积" },
+                    { id: "10-3", en: "10.3 Relationship between Perimeter and Area", cn: "周长与面积的关系" }
+                ]},
+                { chapter: "Chapter 11 Introduction of Set", chapterCN: "第十一章节 集合简介", subtopics: [
+                    { id: "11-1", en: "11.1 Set", cn: "集合" },
+                    { id: "11-2", en: "11.2 Venn Diagrams, Universal Sets, Complement of a Set and Subsets", cn: "维恩图、全集、补集与子集" }
+                ]},
+                { chapter: "Chapter 12 Data Handling", chapterCN: "第十二章节 数据处理", subtopics: [
+                    { id: "12-1", en: "12.1 Data Collection, Organization and Representation Process, and Interpretation of Data Representation", cn: "数据收集、整理与表示过程，以及数据表示的解释" }
+                ]},
+                { chapter: "Chapter 13 The Pythagoras' Theorem", chapterCN: "第十三章节 毕达哥拉斯定理", subtopics: [
+                    { id: "13-1", en: "13.1 The Pythagoras' Theorem", cn: "毕达哥拉斯定理" },
+                    { id: "13-2", en: "13.2 The Converse of Pythagoras' Theorem", cn: "毕达哥拉斯定理的逆定理" }
+                ]}
+            ],
+            2: [
+                { chapter: "Chapter 1 Patterns and Sequences", chapterCN: "第一章节 规律与数列", subtopics: [
+                    { id: "1-1", en: "1.1 Patterns", cn: "规律" },
+                    { id: "1-2", en: "1.2 Sequences", cn: "数列" },
+                    { id: "1-3", en: "1.3 Patterns and Sequences", cn: "规律与数列" }
+                ]},
+                { chapter: "Chapter 2 Factorisation and Algebraic Fractions", chapterCN: "第二章节 因式分解与代数分数", subtopics: [
+                    { id: "2-1", en: "2.1 Expansion", cn: "展开" },
+                    { id: "2-2", en: "2.2 Factorisation", cn: "因式分解" },
+                    { id: "2-3", en: "2.3 Algebraic Expressions and Laws of Basic Arithmetic Operations", cn: "代数表达式与基本算术运算律" }
+                ]},
+                { chapter: "Chapter 3 Algebraic Formulae", chapterCN: "第三章节 代数公式", subtopics: [
+                    { id: "3-1", en: "3.1 Algebraic Formulae", cn: "代数公式" }
+                ]},
+                { chapter: "Chapter 4 Polygon", chapterCN: "第四章节 多边形", subtopics: [
+                    { id: "4-1", en: "4.1 Regular Polygon", cn: "正多边形" },
+                    { id: "4-2", en: "4.2 Interior Angles and Exterior Angles of Polygons", cn: "多边形的内角与外角" }
+                ]},
+                { chapter: "Chapter 5 Circles", chapterCN: "第五章节 圆", subtopics: [
+                    { id: "5-1", en: "5.1 Properties of Circles", cn: "圆的性质" },
+                    { id: "5-2", en: "5.2 Symmetry and Chords", cn: "对称与弦" },
+                    { id: "5-3", en: "5.3 Circumference and Area of a Circle", cn: "圆的周长与面积" }
+                ]},
+                { chapter: "Chapter 6 Three-Dimensional Geometrical Shapes", chapterCN: "第六章节 三维几何图形", subtopics: [
+                    { id: "6-1", en: "6.1 Geometric Properties of Three-Dimensional Shapes", cn: "三维图形的几何性质" },
+                    { id: "6-2", en: "6.2 Nets of Three-Dimensional Shapes", cn: "三维图形的展开图" },
+                    { id: "6-3", en: "6.3 Surface Area of Three-Dimensional Shapes", cn: "三维图形的表面积" },
+                    { id: "6-4", en: "6.4 Volume of Three-Dimensional Shapes", cn: "三维图形的体积" }
+                ]},
+                { chapter: "Chapter 7 Coordinates", chapterCN: "第七章节 坐标", subtopics: [
+                    { id: "7-1", en: "7.1 Distance in a Cartesian Coordinate System", cn: "笛卡尔坐标系中的距离" },
+                    { id: "7-2", en: "7.2 Midpoint in The Cartesian Coordinate System", cn: "笛卡尔坐标系中的中点" },
+                    { id: "7-3", en: "7.3 The Cartesian Coordinate System", cn: "笛卡尔坐标系" }
+                ]},
+                { chapter: "Chapter 8 Graphs of Functions", chapterCN: "第八章节 函数图像", subtopics: [
+                    { id: "8-1", en: "8.1 Functions", cn: "函数" },
+                    { id: "8-2", en: "8.2 Graphs of Functions", cn: "函数图像" }
+                ]},
+                { chapter: "Chapter 9 Speed and Acceleration", chapterCN: "第九章节 速度与加速度", subtopics: [
+                    { id: "9-1", en: "9.1 Speed", cn: "速度" },
+                    { id: "9-2", en: "9.2 Acceleration", cn: "加速度" }
+                ]},
+                { chapter: "Chapter 10 Gradient of a Straight Line", chapterCN: "第十章节 直线的斜率", subtopics: [
+                    { id: "10-1", en: "10.1 Gradient", cn: "斜率" }
+                ]},
+                { chapter: "Chapter 11 Isometric Transformations", chapterCN: "第十一章节 等距变换", subtopics: [
+                    { id: "11-1", en: "11.1 Transformations", cn: "变换" },
+                    { id: "11-2", en: "11.2 Translation", cn: "平移" },
+                    { id: "11-3", en: "11.3 Reflection", cn: "反射" },
+                    { id: "11-4", en: "11.4 Rotation", cn: "旋转" },
+                    { id: "11-5", en: "11.5 Translation, Reflection and Rotation as an Isometry", cn: "平移、反射与旋转作为等距变换" },
+                    { id: "11-6", en: "11.6 Rotational Symmetry", cn: "旋转对称" }
+                ]},
+                { chapter: "Chapter 12 Measures of Central Tendencies", chapterCN: "第十二章节 集中趋势的度量", subtopics: [
+                    { id: "12-1", en: "12.1 Measures of Central Tendencies", cn: "集中趋势的度量" }
+                ]},
+                { chapter: "Chapter 13 Simple Probability", chapterCN: "第十三章节 简单概率", subtopics: [
+                    { id: "13-1", en: "13.1 Experimental Probability", cn: "实验概率" },
+                    { id: "13-2", en: "13.2 The Probability Theory Involving Equally Likely Outcomes", cn: "涉及等可能结果的概率理论" },
+                    { id: "13-3", en: "13.3 Complement of An Event Probability", cn: "事件概率的补集" },
+                    { id: "13-4", en: "13.4 Simple Probability", cn: "简单概率" }
+                ]}
+            ],
+            3: [
+                { chapter: "Chapter 1 Indices", chapterCN: "第一章节 指数", subtopics: [
+                    { id: "1-1", en: "1.1 Index Notation", cn: "指数记法" },
+                    { id: "1-2", en: "1.2 Law of Indices", cn: "指数定律" }
+                ]},
+                { chapter: "Chapter 2 Standard Form", chapterCN: "第二章节 标准形式", subtopics: [
+                    { id: "2-1", en: "2.1 Significant Figures", cn: "有效数字" },
+                    { id: "2-2", en: "2.2 Standard Form", cn: "标准形式" }
+                ]},
+                { chapter: "Chapter 3 Consumer Mathematics: Savings and Investments, Credit and Debt", chapterCN: "第三章节 消费数学：储蓄与投资、信贷与债务", subtopics: [
+                    { id: "3-1", en: "3.1 Savings and Investments", cn: "储蓄与投资" },
+                    { id: "3-2", en: "3.2 Credit and Debt Management", cn: "信贷与债务管理" }
+                ]},
+                { chapter: "Chapter 4 Scale Drawings", chapterCN: "第四章节 比例图", subtopics: [
+                    { id: "4-1", en: "4.1 Scale Drawings", cn: "比例图" }
+                ]},
+                { chapter: "Chapter 5 Trigonometric Ratios", chapterCN: "第五章节 三角比", subtopics: [
+                    { id: "5-1", en: "5.1 Sine, Cosine and Tangent of Acute Angles in Right-angled Triangles", cn: "直角三角形中锐角的正弦、余弦与正切" }
+                ]},
+                { chapter: "Chapter 6 Angles and Tangents of Circles", chapterCN: "第六章节 圆的角度与切线", subtopics: [
+                    { id: "6-1", en: "6.1 Angle at the Circumference and Central Angle Subtended by an Arc", cn: "圆周角与弧所对的圆心角" },
+                    { id: "6-2", en: "6.2 Cyclic Quadrilaterals", cn: "圆内接四边形" },
+                    { id: "6-3", en: "6.3 Tangents to Circles", cn: "圆的切线" },
+                    { id: "6-4", en: "6.4 Angles and Tangents of Circles", cn: "圆的角度与切线" }
+                ]},
+                { chapter: "Chapter 7 Plans and Elevations", chapterCN: "第七章节 平面图与立面图", subtopics: [
+                    { id: "7-1", en: "7.1 Orthogonal Projections", cn: "正投影" },
+                    { id: "7-2", en: "7.2 Plans and Elevations", cn: "平面图与立面图" }
+                ]},
+                { chapter: "Chapter 8 Loci in Two Dimensions", chapterCN: "第八章节 二维轨迹", subtopics: [
+                    { id: "8-1", en: "8.1 Loci", cn: "轨迹" },
+                    { id: "8-2", en: "8.2 Loci in Two Dimensions", cn: "二维轨迹" }
+                ]},
+                { chapter: "Chapter 9 Straight Lines", chapterCN: "第九章节 直线", subtopics: [
+                    { id: "9-1", en: "9.1 Straight Lines", cn: "直线" }
+                ]}
+            ],
+            4: [
+                { chapter: "Chapter 1 Quadratic Functions and Equations in One Variable", chapterCN: "第一章节 一元二次函数与方程", subtopics: [
+                    { id: "1-1", en: "1.1 Quadratic Functions and Equations", cn: "二次函数与方程" }
+                ]},
+                { chapter: "Chapter 2 Number Bases", chapterCN: "第二章节 数基", subtopics: [
+                    { id: "2-1", en: "2.1 Number Bases", cn: "数基" }
+                ]},
+                { chapter: "Chapter 3 Logical Reasoning", chapterCN: "第三章节 逻辑推理", subtopics: [
+                    { id: "3-1", en: "3.1 Statements", cn: "陈述" },
+                    { id: "3-2", en: "3.2 Arguments", cn: "论证" }
+                ]},
+                { chapter: "Chapter 4 Operations on Sets", chapterCN: "第四章节 集合运算", subtopics: [
+                    { id: "4-1", en: "4.1 Intersection of Sets", cn: "集合的交集" },
+                    { id: "4-2", en: "4.2 Union of Sets", cn: "集合的并集" },
+                    { id: "4-3", en: "4.3 Combined Operations on Sets", cn: "集合的混合运算" }
+                ]},
+                { chapter: "Chapter 5 Network in Graph Theory", chapterCN: "第五章节 图论中的网络", subtopics: [
+                    { id: "5-1", en: "5.1 Network", cn: "网络" }
+                ]},
+                { chapter: "Chapter 6 Linear Inequalities in Two Variables", chapterCN: "第六章节 二元线性不等式", subtopics: [
+                    { id: "6-1", en: "6.1 Linear Inequalities in Two Variables", cn: "二元线性不等式" },
+                    { id: "6-2", en: "6.2 Systems of Linear Inequalities in Two Variables", cn: "二元线性不等式组" }
+                ]},
+                { chapter: "Chapter 7 Graphs of Motion", chapterCN: "第七章节 运动图像", subtopics: [
+                    { id: "7-1", en: "7.1 Distance-Time Graphs", cn: "距离-时间图" },
+                    { id: "7-2", en: "7.2 Speed-Time Graphs", cn: "速度-时间图" }
+                ]},
+                { chapter: "Chapter 8 Measures of Dispersion for Ungrouped Data", chapterCN: "第八章节 未分组数据的离散程度", subtopics: [
+                    { id: "8-1", en: "8.1 Dispersion", cn: "离散程度" },
+                    { id: "8-2", en: "8.2 Measures of Dispersion", cn: "离散程度的度量" }
+                ]},
+                { chapter: "Chapter 9 Probability of Combined Events", chapterCN: "第九章节 组合事件的概率", subtopics: [
+                    { id: "9-1", en: "9.1 Combined Events", cn: "组合事件" },
+                    { id: "9-2", en: "9.2 Dependent Events and Independent Events", cn: "相关事件与独立事件" },
+                    { id: "9-3", en: "9.3 Mutually Exclusive Events and Non-Mutually Exclusive Events", cn: "互斥事件与非互斥事件" },
+                    { id: "9-4", en: "9.4 Application of Probability of Combined Events", cn: "组合事件概率的应用" }
+                ]},
+                { chapter: "Chapter 10 Consumer Mathematics: Financial Management", chapterCN: "第十章节 消费数学：财务管理", subtopics: [
+                    { id: "10-1", en: "10.1 Financial Planning and Management", cn: "财务规划与管理" }
+                ]}
+            ],
+            5: [
+                { chapter: "Chapter 1 Variation", chapterCN: "第一章节 变分", subtopics: [
+                    { id: "1-1", en: "1.1 Direct Variation", cn: "正变分" },
+                    { id: "1-2", en: "1.2 Inverse Variation", cn: "逆变分" },
+                    { id: "1-3", en: "1.3 Combined Variation", cn: "联合变分" }
+                ]},
+                { chapter: "Chapter 2 Matrices", chapterCN: "第二章节 矩阵", subtopics: [
+                    { id: "2-1", en: "2.1 Matrices", cn: "矩阵" },
+                    { id: "2-2", en: "2.2 Basic Operation on Matrices", cn: "矩阵的基本运算" }
+                ]},
+                { chapter: "Chapter 3 Consumer Mathematics: Insurance", chapterCN: "第三章节 消费数学：保险", subtopics: [
+                    { id: "3-1", en: "3.1 Risk and Insurance Coverage", cn: "风险与保险覆盖" }
+                ]},
+                { chapter: "Chapter 4 Consumer Mathematics: Taxation", chapterCN: "第四章节 消费数学：税务", subtopics: [
+                    { id: "4-1", en: "4.1 Taxation", cn: "税务" }
+                ]},
+                { chapter: "Chapter 5 Congruency, Enlargement and Combined Transformations", chapterCN: "第五章节 全等、放大与组合变换", subtopics: [
+                    { id: "5-1", en: "5.1 Congruency", cn: "全等" },
+                    { id: "5-2", en: "5.2 Enlargement", cn: "放大" },
+                    { id: "5-3", en: "5.3 Combined Transformation", cn: "组合变换" },
+                    { id: "5-4", en: "5.4 Tessellation", cn: "密铺" }
+                ]},
+                { chapter: "Chapter 6 Ratios and Graphs of Trigonometric Functions", chapterCN: "第六章节 三角函数的比与图像", subtopics: [
+                    { id: "6-1", en: "6.1 The Value of Sine, Cosine and Tangent for Angle θ, 0° ≤ θ ≤ 360°", cn: "角度θ的正弦、余弦与正切值" },
+                    { id: "6-2", en: "6.2 The Graphs of Sine, Cosine and Tangent Functions", cn: "正弦、余弦与正切函数的图像" }
+                ]},
+                { chapter: "Chapter 7 Measures of Dispersion for Grouped Data", chapterCN: "第七章节 分组数据的离散程度", subtopics: [
+                    { id: "7-1", en: "7.1 Dispersion", cn: "离散程度" },
+                    { id: "7-2", en: "7.2 Measures of Dispersion", cn: "离散程度的度量" }
+                ]},
+                { chapter: "Chapter 8 Mathematical Modeling", chapterCN: "第八章节 数学建模", subtopics: [
+                    { id: "8-1", en: "8.1 Mathematical Modeling", cn: "数学建模" }
+                ]}
+            ]
+        };
+
+        // 积分商店背景
+        const backgrounds = [
+            { id: 'bg1', name: '搭配1 · 暖粉', colors: ['#F8CECC', '#E5DEDE', '#CEE0DC', '#A9E2E2'] },
+            { id: 'bg2', name: '搭配2 · 森系', colors: ['#FCF8E8', '#CBDCCB', '#E5A983', '#DC6E57'] },
+            { id: 'bg3', name: '搭配3 · 樱花', colors: ['#F78585', '#FBB2B2', '#FCD5D5', '#FDE8E8'] },
+            { id: 'bg4', name: '搭配4 · 柠檬', colors: ['#FAF9AA', '#FCE8AE', '#FAD8B0', '#FABDB4'] },
+            { id: 'bg5', name: '搭配5 · 莫兰迪', colors: ['#D8D3CD', '#B5ADA4', '#8D867E', '#5C5752'] },
+            { id: 'bg6', name: '搭配6 · 复古胶片', colors: ['#E6CCB2', '#DDB892', '#B08968', '#7F5539'] },
+            { id: 'bg7', name: '搭配7 · 海盐', colors: ['#CAF0F8', '#90E0EF', '#00B4D8', '#03045E'] },
+            { id: 'bg8', name: '搭配8 · 暗夜', colors: ['#0B132B', '#1C2541', '#3A506B', '#5BC0BE'] },
+            { id: 'bg9', name: '搭配9 · 抹茶', colors: ['#ECF39E', '#90A955', '#4F772D', '#132A13'] },
+            { id: 'bg10', name: '搭配10 · 落日', colors: ['#FFE5D9', '#FFCAD4', '#F4ACB7', '#9D8189'] },
+            { id: 'bg11', name: '搭配11 · 霓虹', colors: ['#0F0E17', '#7F5AF0', '#2CB67D', '#FFFFFE'] },
+            { id: 'bg12', name: '搭配12 · 薰衣草', colors: ['#F3E8FF', '#D8B4FE', '#A855F7', '#6B21A8'] }
+        ];
+
+        // 掌握程度选项 (对应鼓励语)
+        const masteryLevels = [
+            { id: 'none', label: '完全不懂', cn: '完全不懂', icon: 'fa-face-frown', message: '别灰心，再看一遍会更好！', color: '#f4a2b2' },
+            { id: 'little', label: '好像懂了', cn: '好像懂了', icon: 'fa-face-smile', message: '有点感觉了，继续加油！', color: '#f8c9d4' },
+            { id: 'half', label: '掌握了一半', cn: '掌握了一半', icon: 'fa-face-meh', message: '已经一半了，再努力一下！', color: '#fadadd' },
+            { id: 'almost', label: '就快掌握完成了', cn: '就快掌握完成了', icon: 'fa-face-grin-stars', message: '就差一点点了，冲鸭！', color: '#fbb2b2' },
+            { id: 'full', label: '完全掌握', cn: '完全掌握', icon: 'fa-face-grin-stars', message: '太棒了！完全掌握！', color: '#e6748e' }
+        ];
+
+        // ---------- 全局状态 ----------
+        let currentUser = null; // 'xinni' or 'zijun'
+        let currentForm = 1;
+        let points = 0;
+        let records = []; // { id, subtopicId, subtopicName, subtopicCN, mastery, date, points }
+        let usedBackgrounds = []; // 已购买的背景id
+
+        // 从 localStorage 加载
+        function loadState() {
+            const savedUser = localStorage.getItem('math_user');
+            if (savedUser) {
+                currentUser = savedUser;
+                points = parseInt(localStorage.getItem('math_points') || '0');
+                records = JSON.parse(localStorage.getItem('math_records') || '[]');
+                usedBackgrounds = JSON.parse(localStorage.getItem('math_backgrounds') || '[]');
+                // 应用背景
+                applyBackgroundFromStorage();
+            }
+        }
+
+        function saveState() {
+            localStorage.setItem('math_user', currentUser);
+            localStorage.setItem('math_points', points);
+            localStorage.setItem('math_records', JSON.stringify(records));
+            localStorage.setItem('math_backgrounds', JSON.stringify(usedBackgrounds));
+        }
+
+        // 应用背景到 screen
+        function applyBackgroundFromStorage() {
+            const savedBg = localStorage.getItem('math_current_bg');
+            if (savedBg) {
+                const bg = backgrounds.find(b => b.id === savedBg);
+                if (bg) applyBackground(bg);
+            }
+        }
+
+        function applyBackground(bg) {
+            // 简洁处理：使用线性渐变
+            const screen = document.getElementById('screenContent');
+            screen.style.background = `linear-gradient(135deg, ${bg.colors[0]}, ${bg.colors[1]}, ${bg.colors[2]}, ${bg.colors[3]})`;
+            // 调整文字颜色？但为了可读性，保留白色卡片，只修改背景
+            localStorage.setItem('math_current_bg', bg.id);
+        }
+
+        // ---------- DOM 元素 ----------
+        const screenContent = document.getElementById('screenContent');
+        const homeView = document.getElementById('homeView');
+        const shopView = document.getElementById('shopView');
+        const profileView = document.getElementById('profileView');
+        const navItems = document.querySelectorAll('.nav-item');
+        const drawerOverlay = document.getElementById('drawerOverlay');
+        const drawerPanel = document.getElementById('drawerPanel');
+        const closeDrawerBtn = document.getElementById('closeDrawer');
+        const masteryOptionsDiv = document.getElementById('masteryOptions');
+        const identityOverlay = document.getElementById('identityOverlay');
+        const formSelector = document.getElementById('formSelector');
+        const chapterListDiv = document.getElementById('chapterList');
+        const pointsValueSpan = document.getElementById('pointsValue');
+        const profilePointsSpan = document.getElementById('profilePoints');
+        const recordsListDiv = document.getElementById('recordsList');
+        const identityName = document.getElementById('identityName');
+        const identityAvatar = document.getElementById('identityAvatar');
+        const profileName = document.getElementById('profileName');
+        const profileAvatar = document.getElementById('profileAvatar');
+        const shopGrid = document.getElementById('shopGrid');
+        const greetingText = document.getElementById('greetingText');
+
+        // ---------- 初始化 ----------
+        function init() {
+            loadState();
+            if (!currentUser) {
+                // 显示身份选择
+                identityOverlay.classList.remove('hidden');
+            } else {
+                identityOverlay.classList.add('hidden');
+                renderIdentity();
+            }
+            updatePointsDisplay();
+            renderChapters();
+            renderShop();
+            renderRecords();
+            setupEventListeners();
+            // 应用背景
+            applyBackgroundFromStorage();
+        }
+
+        function renderIdentity() {
+            if (!currentUser) return;
+            const isXinni = currentUser === 'xinni';
+            const avatarSrc = isXinni ? 'manto.png' : 'gento.png';
+            const name = isXinni ? 'XIN NI' : 'ZI JUN';
+            identityName.textContent = name;
+            identityAvatar.src = avatarSrc;
+            profileName.textContent = name;
+            profileAvatar.src = avatarSrc;
+            greetingText.textContent = `你好，${name} 👋`;
+        }
+
+        function updatePointsDisplay() {
+            pointsValueSpan.textContent = points;
+            profilePointsSpan.textContent = points;
+        }
+
+        // ---------- 渲染章节 ----------
+        function renderChapters() {
+            const data = curriculum[currentForm] || [];
+            chapterListDiv.innerHTML = data.map(ch => {
+                return `
+                    <div class="chapter-item" data-chapter="${ch.chapter}">
+                        <div class="chapter-info">
+                            <div class="chapter-name">${ch.chapter}</div>
+                            <div class="chapter-sub">${ch.chapterCN}</div>
+                            <div style="display:flex; flex-wrap:wrap; gap:8px; margin-top:6px;">
+                                ${ch.subtopics.map(sub => `
+                                    <span class="subtopic-badge" data-subid="${sub.id}" data-subname="${sub.en}" data-subcn="${sub.cn}">
+                                        <i class="fas fa-book-open"></i> ${sub.en.split(' ')[0]} ${sub.cn}
+                                    </span>
+                                `).join('')}
+                            </div>
+                        </div>
+                    </div>
+                `;
+            }).join('');
+
+            // 给每个 subtopic 徽章绑定打卡事件
+            document.querySelectorAll('.subtopic-badge').forEach(badge => {
+                badge.addEventListener('click', (e) => {
+                    e.stopPropagation();
+                    const subId = badge.dataset.subid;
+                    const subName = badge.dataset.subname;
+                    const subCn = badge.dataset.subcn;
+                    openMasteryDrawer(subId, subName, subCn);
+                });
+            });
+        }
+
+        // 打开掌握程度抽屉
+        function openMasteryDrawer(subId, subName, subCn) {
+            document.getElementById('currentSubtopicId').value = subId;
+            // 暂存名字
+            drawerPanel.dataset.subName = subName;
+            drawerPanel.dataset.subCn = subCn;
+
+            // 渲染选项
+            masteryOptionsDiv.innerHTML = masteryLevels.map(level => `
+                <div class="mastery-option" data-level="${level.id}" data-message="${level.message}">
+                    <i class="fas ${level.icon}" style="color:${level.color}"></i>
+                    <div class="mastery-text">
+                        ${level.cn} <span style="font-weight:400; font-size:13px; color:#b2959e;">${level.label}</span>
+                        <span class="mastery-sub">${level.message}</span>
+                    </div>
+                </div>
+            `).join('');
+
+            // 绑定点击
+            document.querySelectorAll('.mastery-option').forEach(opt => {
+                opt.addEventListener('click', () => {
+                    const levelId = opt.dataset.level;
+                    const levelObj = masteryLevels.find(l => l.id === levelId);
+                    handleCheckin(subId, subName, subCn, levelId, levelObj.message);
+                    closeDrawer();
+                });
+            });
+
+            // 打开抽屉
+            drawerOverlay.classList.add('active');
+            drawerPanel.classList.add('open');
+        }
+
+        function closeDrawer() {
+            drawerOverlay.classList.remove('active');
+            drawerPanel.classList.remove('open');
+        }
+
+        // 处理打卡
+        function handleCheckin(subId, subName, subCn, levelId, message) {
+            // 积分规则：完全掌握+20，就快掌握+15，一半+10，好像懂了+5，完全不懂+2
+            let earned = 0;
+            if (levelId === 'full') earned = 20;
+            else if (levelId === 'almost') earned = 15;
+            else if (levelId === 'half') earned = 10;
+            else if (levelId === 'little') earned = 5;
+            else earned = 2;
+
+            points += earned;
+            // 保存记录
+            const record = {
+                id: Date.now() + Math.random().toString(36).substr(2, 6),
+                subtopicId: subId,
+                subtopicName: subName,
+                subtopicCN: subCn,
+                mastery: levelId,
+                masteryLabel: masteryLevels.find(l => l.id === levelId)?.cn || levelId,
+                date: new Date().toLocaleString('zh-CN', { hour12: false }),
+                points: earned
+            };
+            records.unshift(record);
+            saveState();
+            updatePointsDisplay();
+            renderRecords();
+
+            // 弹出鼓励（alert 或者 toast？我们用简单的非阻塞提示，这里用alert不太优雅，采用底部小提示或者直接弹烟花）
+            // 完全掌握 -> 烟花
+            if (levelId === 'full') {
+                fireConfetti();
+                // 再加一个消息
+                showToast('🎉 完全掌握！太厉害了！');
+            } else {
+                showToast(message + ' +' + earned + '积分');
+            }
+
+            // 如果当前在主页，重新渲染章节（实际上不需要）
+        }
+
+        // 烟花特效
+        function fireConfetti() {
+            const canvas = document.getElementById('confetti-canvas');
+            confetti({
+                particleCount: 150,
+                spread: 70,
+                origin: { y: 0.6 },
+                colors: ['#e6748e', '#fbb2b2', '#fadadd', '#f8c9d4', '#ffe5d9']
+            });
+            setTimeout(() => {
+                confetti({
+                    particleCount: 100,
+                    spread: 100,
+                    origin: { y: 0.5 },
+                    colors: ['#F8CECC', '#E5DEDE', '#CEE0DC', '#A9E2E2']
+                });
+            }, 250);
+        }
+
+        // Toast 简单实现
+        function showToast(msg) {
+            const toast = document.createElement('div');
+            toast.textContent = msg;
+            toast.style.position = 'fixed';
+            toast.style.bottom = '100px';
+            toast.style.left = '50%';
+            toast.style.transform = 'translateX(-50%)';
+            toast.style.background = '#e6748e';
+            toast.style.color = 'white';
+            toast.style.padding = '12px 24px';
+            toast.style.borderRadius = '30px';
+            toast.style.fontWeight = '600';
+            toast.style.fontSize = '14px';
+            toast.style.boxShadow = '0 8px 20px rgba(0,0,0,0.2)';
+            toast.style.zIndex = '1000';
+            toast.style.opacity = '0';
+            toast.style.transition = 'opacity 0.3s';
+            document.body.appendChild(toast);
+            requestAnimationFrame(() => toast.style.opacity = '1');
+            setTimeout(() => {
+                toast.style.opacity = '0';
+                setTimeout(() => toast.remove(), 400);
+            }, 2000);
+        }
+
+        // ---------- 积分商店渲染 ----------
+        function renderShop() {
+            shopGrid.innerHTML = backgrounds.map(bg => {
+                const owned = usedBackgrounds.includes(bg.id);
+                return `
+                    <div class="shop-item">
+                        <div class="shop-preview">
+                            ${bg.colors.map(c => `<span style="background:${c};"></span>`).join('')}
+                        </div>
+                        <h4>${bg.name}</h4>
+                        <p>100 积分</p>
+                        <button class="buy-btn" data-bgid="${bg.id}" data-owned="${owned}" ${owned ? 'disabled' : ''}>
+                            ${owned ? '已拥有' : '兑换'}
+                        </button>
+                    </div>
+                `;
+            }).join('');
+
+            document.querySelectorAll('.buy-btn').forEach(btn => {
+                if (btn.disabled) return;
+                btn.addEventListener('click', () => {
+                    const bgId = btn.dataset.bgid;
+                    if (points >= 100 && !usedBackgrounds.includes(bgId)) {
+                        points -= 100;
+                        usedBackgrounds.push(bgId);
+                        saveState();
+                        updatePointsDisplay();
+                        renderShop();
+                        showToast('兑换成功！可在商店点击应用背景～');
+                    } else if (points < 100) {
+                        showToast('积分不足，继续打卡吧！');
+                    }
+                });
+            });
+
+            // 同时允许点击已拥有的背景来应用
+            document.querySelectorAll('.shop-item').forEach((item, idx) => {
+                const bg = backgrounds[idx];
+                if (!bg) return;
+                item.addEventListener('click', (e) => {
+                    if (e.target.classList.contains('buy-btn')) return; // 按钮单独处理
+                    if (usedBackgrounds.includes(bg.id)) {
+                        applyBackground(bg);
+                        showToast('背景已应用');
+                    }
+                });
+            });
+        }
+
+        // ---------- 渲染我的记录 ----------
+        function renderRecords() {
+            if (records.length === 0) {
+                recordsListDiv.innerHTML = '<p style="color:#b2959e; text-align:center; padding:20px;">还没有记录，快去打卡吧</p>';
+                return;
+            }
+            recordsListDiv.innerHTML = records.map(rec => `
+                <div class="record-item" data-recordid="${rec.id}">
+                    <div class="record-info">
+                        <div class="record-title">${rec.subtopicName} · ${rec.subtopicCN}</div>
+                        <div class="record-meta">
+                            <span><i class="far fa-calendar"></i> ${rec.date}</span>
+                            <span><i class="fas fa-tag"></i> ${rec.masteryLabel}</span>
+                            <span><i class="fas fa-star"></i> +${rec.points}</span>
+                        </div>
+                    </div>
+                    <button class="record-delete" data-id="${rec.id}"><i class="fas fa-trash-alt"></i></button>
+                </div>
+            `).join('');
+
+            document.querySelectorAll('.record-delete').forEach(btn => {
+                btn.addEventListener('click', (e) => {
+                    e.stopPropagation();
+                    const id = btn.dataset.id;
+                    records = records.filter(r => r.id !== id);
+                    saveState();
+                    renderRecords();
+                    showToast('记录已删除');
+                });
+            });
+        }
+
+        // ---------- 事件绑定 ----------
+        function setupEventListeners() {
+            // 身份选择
+            document.querySelectorAll('.identity-option').forEach(opt => {
+                opt.addEventListener('click', () => {
+                    const identity = opt.dataset.identity;
+                    currentUser = identity;
+                    saveState();
+                    identityOverlay.classList.add('hidden');
+                    renderIdentity();
+                    renderIdentity();
+                    updatePointsDisplay();
+                    // 重新渲染背景等
+                });
+            });
+
+            // 底部导航
+            navItems.forEach(item => {
+                item.addEventListener('click', () => {
+                    navItems.forEach(n => n.classList.remove('active'));
+                    item.classList.add('active');
+                    const nav = item.dataset.nav;
+                    if (nav === 'home') {
+                        homeView.classList.remove('hidden');
+                        shopView.classList.add('hidden');
+                        profileView.classList.add('hidden');
+                    } else if (nav === 'shop') {
+                        homeView.classList.add('hidden');
+                        shopView.classList.remove('hidden');
+                        profileView.classList.add('hidden');
+                        renderShop();
+                    } else if (nav === 'profile') {
+                        homeView.classList.add('hidden');
+                        shopView.classList.add('hidden');
+                        profileView.classList.remove('hidden');
+                        renderRecords();
+                    }
+                });
+            });
+
+            // 表单切换
+            formSelector.addEventListener('click', (e) => {
+                const chip = e.target.closest('.form-chip');
+                if (!chip) return;
+                formSelector.querySelectorAll('.form-chip').forEach(c => c.classList.remove('active'));
+                chip.classList.add('active');
+                currentForm = parseInt(chip.dataset.form);
+                renderChapters();
+            });
+
+            // 关闭抽屉
+            closeDrawerBtn.addEventListener('click', closeDrawer);
+            drawerOverlay.addEventListener('click', closeDrawer);
+
+            // 身份覆盖层不能点击外部关闭
+        }
+
+        // 启动
+        init();
+    </script>
+</body>
+</html>
