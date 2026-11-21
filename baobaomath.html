@@ -54,11 +54,12 @@
             border: none;
         }
 
+        /* 关键修复：为底部导航留出足够空间 */
         .screen {
             flex: 1;
             overflow-y: auto;
             overflow-x: hidden;
-            padding: 20px 18px 90px;
+            padding: 20px 18px 80px; /* 从90px改为80px，但配合底部导航高度调整 */
             scroll-behavior: smooth;
             transition: background 0.4s ease;
             position: relative;
@@ -70,22 +71,25 @@
             display: none;
         }
 
+        /* 关键修复：底部导航使用固定高度和绝对定位，确保完整显示 */
         .bottom-nav {
             position: absolute;
             bottom: 0;
             left: 0;
             width: 100%;
-            height: 70px;
-            background: rgba(255, 255, 255, 0.85);
+            height: 64px; /* 稍微降低高度，但确保完整可见 */
+            background: rgba(255, 255, 255, 0.92);
             backdrop-filter: blur(20px);
             -webkit-backdrop-filter: blur(20px);
-            border-top: 1px solid rgba(255, 255, 255, 0.5);
+            border-top: 1px solid rgba(240, 217, 221, 0.6);
             display: flex;
             justify-content: space-around;
             align-items: center;
-            padding-bottom: 6px;
+            padding-bottom: 0;
             border-radius: 0;
             z-index: 20;
+            /* 确保安全区域 */
+            padding-bottom: env(safe-area-inset-bottom, 0);
         }
 
         .nav-item {
@@ -93,18 +97,19 @@
             flex-direction: column;
             align-items: center;
             justify-content: center;
-            gap: 4px;
+            gap: 2px;
             color: #b0a6a8;
-            font-size: 12px;
+            font-size: 11px;
             font-weight: 500;
             transition: color 0.2s;
             cursor: pointer;
             flex: 1;
             user-select: none;
+            padding: 6px 0;
         }
 
         .nav-item i {
-            font-size: 22px;
+            font-size: 20px;
         }
 
         .nav-item.active {
@@ -115,13 +120,14 @@
             transform: scale(1.05);
         }
 
+        /* ========== 粉色主题卡片 ========== */
         .glass-card {
-            background: rgba(255, 255, 255, 0.55);
+            background: rgba(255, 245, 247, 0.65);
             backdrop-filter: blur(18px);
             -webkit-backdrop-filter: blur(18px);
             border-radius: 24px;
-            border: 1px solid rgba(255, 255, 255, 0.7);
-            box-shadow: 0 8px 24px rgba(0, 0, 0, 0.04);
+            border: 1px solid rgba(252, 225, 230, 0.8);
+            box-shadow: 0 8px 24px rgba(230, 116, 142, 0.06);
             padding: 16px;
             transition: all 0.3s cubic-bezier(0.22, 1, 0.36, 1);
         }
@@ -147,7 +153,7 @@
         }
 
         .points-badge {
-            background: rgba(251, 233, 236, 0.7);
+            background: rgba(251, 233, 236, 0.8);
             backdrop-filter: blur(10px);
             padding: 8px 16px;
             border-radius: 30px;
@@ -157,8 +163,8 @@
             font-weight: 700;
             color: #e6748e;
             font-size: 16px;
-            box-shadow: 0 2px 10px rgba(230, 116, 142, 0.1);
-            border: 1px solid rgba(255, 255, 255, 0.5);
+            box-shadow: 0 2px 10px rgba(230, 116, 142, 0.08);
+            border: 1px solid rgba(255, 255, 255, 0.6);
             min-width: 80px;
             justify-content: center;
         }
@@ -172,6 +178,7 @@
             align-items: center;
             gap: 14px;
             margin-bottom: 18px;
+            background: linear-gradient(145deg, rgba(255, 242, 244, 0.7), rgba(255, 231, 236, 0.7));
         }
 
         .identity-avatar {
@@ -183,8 +190,8 @@
             align-items: center;
             justify-content: center;
             overflow: hidden;
-            border: 2px solid rgba(255, 255, 255, 0.8);
-            box-shadow: 0 4px 8px rgba(0,0,0,0.05);
+            border: 2px solid rgba(255, 255, 255, 0.9);
+            box-shadow: 0 4px 8px rgba(0,0,0,0.04);
             flex-shrink: 0;
         }
 
@@ -285,9 +292,9 @@
         }
 
         .form-chip {
-            background: rgba(249, 240, 242, 0.7);
+            background: rgba(249, 240, 242, 0.75);
             backdrop-filter: blur(8px);
-            border: 1px solid rgba(255, 255, 255, 0.6);
+            border: 1px solid rgba(252, 225, 230, 0.7);
             padding: 8px 18px;
             border-radius: 30px;
             font-size: 14px;
@@ -303,7 +310,7 @@
         .form-chip.active {
             background: rgba(230, 116, 142, 0.9);
             color: white;
-            box-shadow: 0 6px 16px rgba(230, 116, 142, 0.3);
+            box-shadow: 0 6px 16px rgba(230, 116, 142, 0.25);
             border-color: rgba(230, 116, 142, 0.5);
         }
 
@@ -314,13 +321,13 @@
         }
 
         .chapter-item {
-            background: rgba(255, 255, 255, 0.5);
+            background: rgba(255, 245, 247, 0.6);
             backdrop-filter: blur(16px);
             -webkit-backdrop-filter: blur(16px);
             border-radius: 20px;
             padding: 14px 18px;
-            border: 1px solid rgba(255, 255, 255, 0.6);
-            box-shadow: 0 4px 16px rgba(0, 0, 0, 0.03);
+            border: 1px solid rgba(252, 225, 230, 0.7);
+            box-shadow: 0 4px 16px rgba(230, 116, 142, 0.04);
             transition: all 0.3s cubic-bezier(0.22, 1, 0.36, 1);
             cursor: default;
             display: flex;
@@ -348,9 +355,9 @@
         }
 
         .subtopic-badge {
-            background: rgba(249, 234, 238, 0.7);
+            background: rgba(249, 234, 238, 0.75);
             backdrop-filter: blur(8px);
-            border: 1px solid rgba(255, 255, 255, 0.5);
+            border: 1px solid rgba(252, 225, 230, 0.6);
             border-radius: 30px;
             padding: 6px 14px;
             font-size: 12px;
@@ -395,7 +402,7 @@
             bottom: 0;
             left: 0;
             width: 100%;
-            background: rgba(255, 255, 255, 0.85);
+            background: rgba(255, 250, 251, 0.92);
             backdrop-filter: blur(30px);
             -webkit-backdrop-filter: blur(30px);
             border-radius: 32px 32px 0 0;
@@ -403,10 +410,10 @@
             transform: translateY(100%);
             transition: transform 0.4s cubic-bezier(0.22, 1, 0.36, 1);
             z-index: 101;
-            box-shadow: 0 -10px 40px rgba(0,0,0,0.1);
+            box-shadow: 0 -10px 40px rgba(230, 116, 142, 0.08);
             max-height: 85%;
             overflow-y: auto;
-            border-top: 1px solid rgba(255, 255, 255, 0.8);
+            border-top: 1px solid rgba(252, 225, 230, 0.8);
             scrollbar-width: none;
         }
         .drawer-panel::-webkit-scrollbar {
@@ -431,8 +438,8 @@
         }
 
         .close-drawer {
-            background: rgba(245, 234, 237, 0.7);
-            border: 1px solid rgba(255, 255, 255, 0.5);
+            background: rgba(245, 234, 237, 0.8);
+            border: 1px solid rgba(252, 225, 230, 0.6);
             width: 36px;
             height: 36px;
             border-radius: 18px;
@@ -454,13 +461,13 @@
             display: flex;
             align-items: center;
             padding: 16px 14px;
-            background: rgba(253, 247, 248, 0.6);
+            background: rgba(253, 247, 248, 0.7);
             backdrop-filter: blur(10px);
             border-radius: 20px;
             margin-bottom: 10px;
             cursor: pointer;
             transition: all 0.3s cubic-bezier(0.22, 1, 0.36, 1);
-            border: 1px solid rgba(255, 255, 255, 0.6);
+            border: 1px solid rgba(252, 225, 230, 0.7);
             gap: 14px;
             -webkit-tap-highlight-color: transparent;
         }
@@ -500,13 +507,13 @@
         }
 
         .shop-item {
-            background: rgba(255, 255, 255, 0.5);
+            background: rgba(255, 245, 247, 0.6);
             backdrop-filter: blur(16px);
             -webkit-backdrop-filter: blur(16px);
             border-radius: 20px;
             padding: 14px;
-            border: 1px solid rgba(255, 255, 255, 0.6);
-            box-shadow: 0 4px 16px rgba(0, 0, 0, 0.03);
+            border: 1px solid rgba(252, 225, 230, 0.7);
+            box-shadow: 0 4px 16px rgba(230, 116, 142, 0.04);
             display: flex;
             flex-direction: column;
             gap: 8px;
@@ -518,7 +525,7 @@
             height: 60px;
             border-radius: 12px;
             overflow: hidden;
-            border: 1px solid rgba(255,255,255,0.5);
+            border: 1px solid rgba(252, 225, 230, 0.6);
         }
 
         .shop-preview span {
@@ -537,9 +544,9 @@
         }
 
         .buy-btn {
-            background: rgba(240, 192, 202, 0.8);
+            background: rgba(240, 192, 202, 0.85);
             backdrop-filter: blur(8px);
-            border: 1px solid rgba(255, 255, 255, 0.5);
+            border: 1px solid rgba(252, 225, 230, 0.6);
             border-radius: 30px;
             padding: 8px;
             font-weight: 600;
@@ -567,12 +574,12 @@
             display: flex;
             justify-content: space-between;
             align-items: center;
-            background: rgba(253, 247, 248, 0.6);
+            background: rgba(253, 247, 248, 0.65);
             backdrop-filter: blur(12px);
             padding: 14px 16px;
             border-radius: 18px;
             margin-bottom: 10px;
-            border: 1px solid rgba(255, 255, 255, 0.6);
+            border: 1px solid rgba(252, 225, 230, 0.7);
         }
 
         .record-info .record-title {
@@ -611,7 +618,7 @@
             left: 0;
             width: 100%;
             height: 100%;
-            background: rgba(255, 245, 247, 0.95);
+            background: rgba(255, 245, 247, 0.96);
             backdrop-filter: blur(20px);
             -webkit-backdrop-filter: blur(20px);
             z-index: 200;
@@ -633,7 +640,7 @@
 
         .identity-option {
             width: 100%;
-            background: rgba(255, 255, 255, 0.7);
+            background: rgba(255, 245, 247, 0.8);
             backdrop-filter: blur(12px);
             border-radius: 30px;
             padding: 20px;
@@ -642,8 +649,8 @@
             align-items: center;
             gap: 12px;
             cursor: pointer;
-            box-shadow: 0 8px 24px rgba(230, 116, 142, 0.12);
-            border: 2px solid rgba(255, 255, 255, 0.8);
+            box-shadow: 0 8px 24px rgba(230, 116, 142, 0.08);
+            border: 2px solid rgba(252, 225, 230, 0.8);
             transition: all 0.3s cubic-bezier(0.22, 1, 0.36, 1);
             -webkit-tap-highlight-color: transparent;
         }
@@ -660,7 +667,7 @@
             object-fit: cover;
             background: #fadadd;
             border: 3px solid white;
-            box-shadow: 0 4px 12px rgba(0,0,0,0.08);
+            box-shadow: 0 4px 12px rgba(0,0,0,0.06);
         }
 
         .identity-option .identity-name {
@@ -710,17 +717,18 @@
                 border: 1px solid rgba(255, 255, 255, 0.6);
             }
             .screen {
-                padding: 24px 24px 100px;
+                padding: 24px 24px 90px;
             }
             .bottom-nav {
-                height: 78px;
+                height: 72px;
                 border-radius: 0 0 40px 40px;
+                padding-bottom: 0;
             }
             .nav-item i {
-                font-size: 24px;
+                font-size: 22px;
             }
             .nav-item {
-                font-size: 13px;
+                font-size: 12px;
             }
             .chapter-item {
                 padding: 16px 20px;
@@ -746,6 +754,22 @@
             .app-container {
                 max-width: 520px;
                 height: 880px;
+            }
+        }
+
+        /* 针对小屏幕手机的额外修复 */
+        @media (max-width: 380px) {
+            .screen {
+                padding-bottom: 75px;
+            }
+            .bottom-nav {
+                height: 60px;
+            }
+            .nav-item i {
+                font-size: 18px;
+            }
+            .nav-item {
+                font-size: 10px;
             }
         }
     </style>
@@ -890,13 +914,11 @@
         const app = initializeApp(firebaseConfig);
         const db = getFirestore(app);
         
-        // 将 Firebase 方法挂载到 window 对象上
         window.firestoreDB = db;
         window.firestoreDoc = doc;
         window.firestoreGetDoc = getDoc;
         window.firestoreSetDoc = setDoc;
         
-        // 通知主脚本 Firebase 已就绪
         window.dispatchEvent(new CustomEvent('firebaseReady'));
     </script>
 
@@ -1350,11 +1372,9 @@
             } else {
                 identityOverlay.classList.add('hidden');
                 renderIdentity();
-                // 等待 Firebase 就绪后再加载
                 if (window.firestoreDB) {
                     await loadFromFirebase();
                 } else {
-                    // 如果 Firebase 还没就绪，监听事件
                     window.addEventListener('firebaseReady', async () => {
                         await loadFromFirebase();
                     }, { once: true });
