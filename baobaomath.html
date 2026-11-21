@@ -13,17 +13,16 @@
             padding: 0;
             box-sizing: border-box;
             font-family: 'Inter', 'Noto Sans SC', sans-serif;
-            -webkit-tap-highlight-color: transparent; /* 禁用移动端点击高亮 */
-            -webkit-touch-callout: none; /* 禁用长按菜单 */
+            -webkit-tap-highlight-color: transparent;
+            -webkit-touch-callout: none;
         }
 
-        /* 禁用右键菜单 */
         html, body {
             user-select: none;
             -webkit-user-select: none;
             -moz-user-select: none;
             -ms-user-select: none;
-            overflow: hidden; /* 防止页面本身出现滚动条 */
+            overflow: hidden;
         }
 
         body {
@@ -33,12 +32,11 @@
             height: 100vh;
             width: 100vw;
             background: #f5e6e8;
-            padding: 0; /* 移除内边距，让容器贴边 */
+            padding: 0;
             margin: 0;
             overflow: hidden;
         }
 
-        /* 主应用容器 - 全屏手机布局 */
         .app-container {
             width: 100%;
             height: 100%;
@@ -47,7 +45,7 @@
             background: rgba(255, 255, 255, 0.75);
             backdrop-filter: blur(24px);
             -webkit-backdrop-filter: blur(24px);
-            border-radius: 0; /* 手机端全屏无圆角 */
+            border-radius: 0;
             box-shadow: none;
             overflow: hidden;
             display: flex;
@@ -56,7 +54,6 @@
             border: none;
         }
 
-        /* 屏幕内容区 */
         .screen {
             flex: 1;
             overflow-y: auto;
@@ -66,15 +63,13 @@
             transition: background 0.4s ease;
             position: relative;
             background: rgba(255, 255, 255, 0.25);
-            /* 隐藏滚动条但保留滚动功能 */
-            scrollbar-width: none; /* Firefox */
-            -ms-overflow-style: none; /* IE 10+ */
+            scrollbar-width: none;
+            -ms-overflow-style: none;
         }
         .screen::-webkit-scrollbar {
-            display: none; /* Chrome Safari */
+            display: none;
         }
 
-        /* 底部导航栏 */
         .bottom-nav {
             position: absolute;
             bottom: 0;
@@ -120,7 +115,6 @@
             transform: scale(1.05);
         }
 
-        /* 毛玻璃卡片 */
         .glass-card {
             background: rgba(255, 255, 255, 0.55);
             backdrop-filter: blur(18px);
@@ -132,7 +126,6 @@
             transition: all 0.3s cubic-bezier(0.22, 1, 0.36, 1);
         }
 
-        /* 首页头部 */
         .header {
             display: flex;
             justify-content: space-between;
@@ -172,7 +165,6 @@
             font-size: 18px;
         }
 
-        /* 身份卡片 */
         .identity-card {
             display: flex;
             align-items: center;
@@ -212,7 +204,6 @@
             margin-top: 2px;
         }
 
-        /* 折线图容器 */
         .chart-container {
             margin-bottom: 18px;
             padding: 14px 10px 10px;
@@ -260,7 +251,6 @@
             display: block;
         }
 
-        /* 表单选择器 */
         .form-selector {
             display: flex;
             gap: 8px;
@@ -297,7 +287,6 @@
             border-color: rgba(230, 116, 142, 0.5);
         }
 
-        /* 章节列表 */
         .chapter-list {
             display: flex;
             flex-direction: column;
@@ -361,7 +350,6 @@
             transform: scale(0.96);
         }
 
-        /* 抽屉式弹窗 */
         .drawer-overlay {
             position: absolute;
             top: 0;
@@ -484,7 +472,6 @@
             margin-top: 2px;
         }
 
-        /* 积分商店 */
         .shop-grid {
             display: grid;
             grid-template-columns: 1fr 1fr;
@@ -556,7 +543,6 @@
             cursor: not-allowed;
         }
 
-        /* 我的记录 */
         .record-item {
             display: flex;
             justify-content: space-between;
@@ -599,7 +585,6 @@
             color: #e6748e;
         }
 
-        /* 身份选择界面 */
         .identity-select-overlay {
             position: absolute;
             top: 0;
@@ -664,12 +649,10 @@
             color: #2d1e22;
         }
 
-        /* 工具类 */
         .hidden {
             display: none !important;
         }
 
-        /* 烟花 canvas 容器 */
         #confetti-canvas {
             position: fixed;
             top: 0;
@@ -680,7 +663,6 @@
             z-index: 999;
         }
 
-        /* 页面切换动画 */
         .page-view {
             animation: fadeSlideIn 0.35s cubic-bezier(0.22, 1, 0.36, 1);
         }
@@ -696,7 +678,6 @@
             }
         }
 
-        /* ===== 电脑端适配 ===== */
         @media (min-width: 768px) {
             body {
                 padding: 12px;
@@ -1191,6 +1172,15 @@
         let records = [];
         let usedBackgrounds = [];
 
+        // 统一积分规则：完全掌握20，就快15，一半10，好像懂了5，完全不懂2
+        function getEarnedPoints(levelId) {
+            if (levelId === 'full') return 20;
+            if (levelId === 'almost') return 15;
+            if (levelId === 'half') return 10;
+            if (levelId === 'little') return 5;
+            return 2;
+        }
+
         function loadState() {
             const savedUser = localStorage.getItem('math_user');
             if (savedUser) {
@@ -1199,6 +1189,9 @@
                 points = parseInt(localStorage.getItem('math_points') || '0');
                 records = JSON.parse(localStorage.getItem('math_records') || '[]');
                 usedBackgrounds = JSON.parse(localStorage.getItem('math_backgrounds') || '[]');
+                // 修复旧记录：确保每条记录有form字段，且points值按统一规则修正（可选，但为了兼容旧数据，保留原points）
+                // 但为了避免旧数据导致积分显示异常，我们重新计算？但用户可能已经花掉积分，不能随便改。
+                // 这里不做自动修正，仅确保新记录正确。
                 applyBackgroundFromStorage();
             }
         }
@@ -1487,13 +1480,7 @@
 
         // ==================== 打卡 ====================
         function handleCheckin(subId, subName, subCn, levelId, message, form) {
-            let earned = 0;
-            if (levelId === 'full') earned = 20;
-            else if (levelId === 'almost') earned = 15;
-            else if (levelId === 'half') earned = 10;
-            else if (levelId === 'little') earned = 5;
-            else earned = 2;
-
+            const earned = getEarnedPoints(levelId);
             points += earned;
             const record = {
                 id: Date.now() + Math.random().toString(36).substr(2, 6),
