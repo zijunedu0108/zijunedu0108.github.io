@@ -7,6 +7,28 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
     <link href="https://fonts.googleapis.com/css2?family=Inter:opsz,wght@14..32,400;14..32,500;14..32,600;14..32,700&family=Noto+Sans+SC:wght@400;500;600;700&display=swap" rel="stylesheet">
     <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1"></script>
+    <!-- Firebase SDK -->
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/13.4.0/firebase-app.js";
+        import { getFirestore, doc, getDoc, setDoc } from "https://www.gstatic.com/firebasejs/13.4.0/firebase-firestore.js";
+        
+        const firebaseConfig = {
+            apiKey: "AIzaSyBhc2JVAoxfk3wEsLee-Gr4I1StgqsPkBU",
+            authDomain: "zijunblog.firebaseapp.com",
+            projectId: "zijunblog",
+            storageBucket: "zijunblog.firebasestorage.app",
+            messagingSenderId: "689359220073",
+            appId: "1:689359220073:web:be9d4a467f438b6e8de1f8",
+            measurementId: "G-M8540FQZQD"
+        };
+        
+        const app = initializeApp(firebaseConfig);
+        const db = getFirestore(app);
+        window.firestoreDB = db;
+        window.firestoreDoc = doc;
+        window.firestoreGetDoc = getDoc;
+        window.firestoreSetDoc = setDoc;
+    </script>
     <style>
         * {
             margin: 0;
@@ -146,7 +168,6 @@
             font-weight: 500;
         }
 
-        /* 积分徽章：确保足够宽，能显示大数字 */
         .points-badge {
             background: rgba(251, 233, 236, 0.7);
             backdrop-filter: blur(10px);
@@ -253,10 +274,9 @@
             width: 100%;
             height: 150px;
             display: block;
-            touch-action: none; /* 让长按不触发页面滚动 */
+            touch-action: none;
         }
 
-        /* 图表上的数据点提示 */
         .chart-tooltip {
             position: absolute;
             background: rgba(230, 116, 142, 0.95);
@@ -1187,7 +1207,6 @@
             { id: 'full', cn: '完全掌握', icon: 'fa-face-grin-stars', message: '太棒了！完全掌握！', color: '#e6748e' }
         ];
 
-        // 积分规则改为 10-30 分
         function getEarnedPoints(levelId) {
             if (levelId === 'full') return 30;
             if (levelId === 'almost') return 25;
@@ -1203,8 +1222,57 @@
         let points = 0;
         let records = [];
         let usedBackgrounds = [];
-        let chartHoverData = []; // 存储画布上的可点击点 {x, y, date, form, value}
+        let chartHoverData = []; // 存储画布上的可交互点
 
+        // ==================== Firebase 对接 ====================
+        async function loadFromFirebase() {
+            if (!window.firestoreDB) {
+                console.warn('Firebase 未初始化');
+                return;
+            }
+            try {
+                const docRef = window.firestoreDoc(window.firestoreDB, "users", currentUser);
+                const docSnap = await window.firestoreGetDoc(docRef);
+                if (docSnap.exists()) {
+                    const data = docSnap.data();
+                    points = data.points || 0;
+                    records = data.records || [];
+                    usedBackgrounds = data.backgrounds || [];
+                    if (data.currentBg) {
+                        const bg = backgrounds.find(b => b.id === data.currentBg);
+                        if (bg) applyBackground(bg);
+                    }
+                    updatePointsDisplay();
+                    renderRecords();
+                    renderChart();
+                } else {
+                    // 新用户，初始化
+                    await saveToFirebase();
+                }
+            } catch (e) {
+                console.error('Firebase 读取失败:', e);
+                // 降级到 localStorage
+                loadState();
+            }
+        }
+
+        async function saveToFirebase() {
+            if (!window.firestoreDB || !currentUser) return;
+            try {
+                const docRef = window.firestoreDoc(window.firestoreDB, "users", currentUser);
+                await window.firestoreSetDoc(docRef, {
+                    points: points,
+                    records: records,
+                    backgrounds: usedBackgrounds,
+                    currentBg: localStorage.getItem('math_current_bg') || null,
+                    updatedAt: new Date()
+                }, { merge: true });
+            } catch (e) {
+                console.error('Firebase 保存失败:', e);
+            }
+        }
+
+        // 兼容旧版 localStorage
         function loadState() {
             const savedUser = localStorage.getItem('math_user');
             if (savedUser) {
@@ -1269,13 +1337,16 @@
         let chartCtx = chartCanvas.getContext('2d');
 
         // ==================== 初始化 ====================
-        function init() {
+        async function init() {
+            // 先从 localStorage 读取身份
             loadState();
             if (!currentUser) {
                 identityOverlay.classList.remove('hidden');
             } else {
                 identityOverlay.classList.add('hidden');
                 renderIdentity();
+                // 从 Firebase 加载数据
+                await loadFromFirebase();
             }
             updatePointsDisplay();
             renderChapters();
@@ -1284,12 +1355,12 @@
             setupEventListeners();
             applyBackgroundFromStorage();
 
-            // 等待 DOM 渲染完成后再绘制图表（解决电脑端不渲染问题）
+            // 绘制图表
             setTimeout(() => {
                 resizeChartCanvas();
                 renderChart();
                 setupChartInteraction();
-            }, 100);
+            }, 200);
 
             window.addEventListener('resize', () => {
                 resizeChartCanvas();
@@ -1428,7 +1499,6 @@
                     const val = data[i];
                     const x = paddingLeft + stepX * i;
                     const y = paddingTop + plotHeight * (1 - val / maxVal);
-                    // 存储可交互点（所有点都存，即使值为0）
                     chartHoverData.push({
                         x, y, date: d, form, value: val,
                         color: colors[fi]
@@ -1446,12 +1516,11 @@
             });
         }
 
-        // ==================== 图表长按/点击交互 ====================
+        // ==================== 图表交互 ====================
         let chartLongPressTimer = null;
         let chartTouchStartPos = null;
 
         function setupChartInteraction() {
-            // 移动端：长按显示
             chartCanvas.addEventListener('touchstart', (e) => {
                 e.preventDefault();
                 const touch = e.touches[0];
@@ -1476,7 +1545,6 @@
                 setTimeout(() => hideChartTooltip(), 1500);
             }, { passive: true });
 
-            // 电脑端：点击显示
             chartCanvas.addEventListener('click', (e) => {
                 showChartTooltipAtTouch(e.clientX, e.clientY);
                 setTimeout(() => hideChartTooltip(), 2000);
@@ -1492,7 +1560,6 @@
             const x = canvasX * scaleX;
             const y = canvasY * scaleY;
 
-            // 找最近的点
             let nearest = null;
             let minDist = 25;
             chartHoverData.forEach(pt => {
@@ -1508,7 +1575,6 @@
                 tooltip.classList.remove('hidden');
                 const formLabel = `F${nearest.form}`;
                 tooltip.textContent = `${nearest.date}  ${formLabel}  ${nearest.value}分`;
-                // 定位到点的上方
                 const ptRect = chartCanvas.getBoundingClientRect();
                 const containerRect = chartContainer.getBoundingClientRect();
                 const left = (nearest.x / scaleX) + (ptRect.left - containerRect.left);
@@ -1592,7 +1658,7 @@
         }
 
         // ==================== 打卡 ====================
-        function handleCheckin(subId, subName, subCn, levelId, message, form) {
+        async function handleCheckin(subId, subName, subCn, levelId, message, form) {
             const earned = getEarnedPoints(levelId);
             points += earned;
             const record = {
@@ -1608,6 +1674,7 @@
             };
             records.unshift(record);
             saveState();
+            await saveToFirebase();
             updatePointsDisplay();
             renderRecords();
             renderChart();
@@ -1669,12 +1736,13 @@
 
             document.querySelectorAll('.buy-btn').forEach(btn => {
                 if (btn.disabled) return;
-                btn.addEventListener('click', () => {
+                btn.addEventListener('click', async () => {
                     const bgId = btn.dataset.bgid;
                     if (points >= 100 && !usedBackgrounds.includes(bgId)) {
                         points -= 100;
                         usedBackgrounds.push(bgId);
                         saveState();
+                        await saveToFirebase();
                         updatePointsDisplay();
                         renderShop();
                         playSound('buy');
@@ -1690,10 +1758,11 @@
             document.querySelectorAll('.shop-item').forEach((item, idx) => {
                 const bg = backgrounds[idx];
                 if (!bg) return;
-                item.addEventListener('click', (e) => {
+                item.addEventListener('click', async (e) => {
                     if (e.target.classList.contains('buy-btn')) return;
                     if (usedBackgrounds.includes(bg.id)) {
                         applyBackground(bg);
+                        await saveToFirebase();
                         playSound('buy');
                         vibrate(VIBE.light);
                         showToast('背景已应用');
@@ -1723,11 +1792,12 @@
             `).join('');
 
             document.querySelectorAll('.record-delete').forEach(btn => {
-                btn.addEventListener('click', (e) => {
+                btn.addEventListener('click', async (e) => {
                     e.stopPropagation();
                     const id = btn.dataset.id;
                     records = records.filter(r => r.id !== id);
                     saveState();
+                    await saveToFirebase();
                     renderRecords();
                     renderChart();
                     playSound('delete');
@@ -1757,7 +1827,6 @@
             view.classList.remove('page-view');
             void view.offsetWidth;
             view.classList.add('page-view');
-            // 切换回主页时刷新图表
             if (page === 'home') {
                 setTimeout(() => { resizeChartCanvas(); renderChart(); }, 100);
             }
@@ -1815,12 +1884,14 @@
         // ==================== 事件绑定 ====================
         function setupEventListeners() {
             document.querySelectorAll('.identity-option').forEach(opt => {
-                opt.addEventListener('click', () => {
+                opt.addEventListener('click', async () => {
                     currentUser = opt.dataset.identity;
                     currentUserName = opt.dataset.name;
                     saveState();
                     identityOverlay.classList.add('hidden');
                     renderIdentity();
+                    // 从 Firebase 加载该身份的数据
+                    await loadFromFirebase();
                     updatePointsDisplay();
                     playSound('checkin');
                     vibrate(VIBE.light);
