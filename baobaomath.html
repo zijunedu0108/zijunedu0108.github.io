@@ -146,19 +146,22 @@
             font-weight: 500;
         }
 
+        /* 积分徽章：确保足够宽，能显示大数字 */
         .points-badge {
             background: rgba(251, 233, 236, 0.7);
             backdrop-filter: blur(10px);
-            padding: 8px 14px;
+            padding: 8px 16px;
             border-radius: 30px;
             display: flex;
             align-items: center;
             gap: 8px;
-            font-weight: 600;
+            font-weight: 700;
             color: #e6748e;
             font-size: 16px;
             box-shadow: 0 2px 10px rgba(230, 116, 142, 0.1);
             border: 1px solid rgba(255, 255, 255, 0.5);
+            min-width: 80px;
+            justify-content: center;
         }
 
         .points-badge i {
@@ -207,6 +210,7 @@
         .chart-container {
             margin-bottom: 18px;
             padding: 14px 10px 10px;
+            position: relative;
         }
 
         .chart-header {
@@ -249,6 +253,24 @@
             width: 100%;
             height: 150px;
             display: block;
+            touch-action: none; /* 让长按不触发页面滚动 */
+        }
+
+        /* 图表上的数据点提示 */
+        .chart-tooltip {
+            position: absolute;
+            background: rgba(230, 116, 142, 0.95);
+            color: white;
+            padding: 6px 10px;
+            border-radius: 10px;
+            font-size: 12px;
+            font-weight: 600;
+            pointer-events: none;
+            z-index: 10;
+            white-space: nowrap;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+            transform: translate(-50%, -100%);
+            transition: opacity 0.15s;
         }
 
         .form-selector {
@@ -755,7 +777,7 @@
                 </div>
 
                 <!-- 折线图 -->
-                <div class="chart-container glass-card">
+                <div class="chart-container glass-card" id="chartContainer">
                     <div class="chart-header">
                         <h3>近15天打卡得分 · Daily Score</h3>
                         <div class="chart-legend">
@@ -767,6 +789,7 @@
                         </div>
                     </div>
                     <canvas id="progressChart"></canvas>
+                    <div class="chart-tooltip hidden" id="chartTooltip"></div>
                 </div>
 
                 <div class="form-selector" id="formSelector">
@@ -1164,6 +1187,15 @@
             { id: 'full', cn: '完全掌握', icon: 'fa-face-grin-stars', message: '太棒了！完全掌握！', color: '#e6748e' }
         ];
 
+        // 积分规则改为 10-30 分
+        function getEarnedPoints(levelId) {
+            if (levelId === 'full') return 30;
+            if (levelId === 'almost') return 25;
+            if (levelId === 'half') return 20;
+            if (levelId === 'little') return 15;
+            return 10;
+        }
+
         // ==================== 状态 ====================
         let currentUser = null;
         let currentUserName = 'MANTO';
@@ -1171,15 +1203,7 @@
         let points = 0;
         let records = [];
         let usedBackgrounds = [];
-
-        // 统一积分规则：完全掌握20，就快15，一半10，好像懂了5，完全不懂2
-        function getEarnedPoints(levelId) {
-            if (levelId === 'full') return 20;
-            if (levelId === 'almost') return 15;
-            if (levelId === 'half') return 10;
-            if (levelId === 'little') return 5;
-            return 2;
-        }
+        let chartHoverData = []; // 存储画布上的可点击点 {x, y, date, form, value}
 
         function loadState() {
             const savedUser = localStorage.getItem('math_user');
@@ -1189,9 +1213,6 @@
                 points = parseInt(localStorage.getItem('math_points') || '0');
                 records = JSON.parse(localStorage.getItem('math_records') || '[]');
                 usedBackgrounds = JSON.parse(localStorage.getItem('math_backgrounds') || '[]');
-                // 修复旧记录：确保每条记录有form字段，且points值按统一规则修正（可选，但为了兼容旧数据，保留原points）
-                // 但为了避免旧数据导致积分显示异常，我们重新计算？但用户可能已经花掉积分，不能随便改。
-                // 这里不做自动修正，仅确保新记录正确。
                 applyBackgroundFromStorage();
             }
         }
@@ -1241,6 +1262,8 @@
         const shopGrid = document.getElementById('shopGrid');
         const greetingText = document.getElementById('greetingText');
         const appContainer = document.getElementById('appContainer');
+        const chartContainer = document.getElementById('chartContainer');
+        const chartTooltip = document.getElementById('chartTooltip');
 
         const chartCanvas = document.getElementById('progressChart');
         let chartCtx = chartCanvas.getContext('2d');
@@ -1260,12 +1283,18 @@
             renderRecords();
             setupEventListeners();
             applyBackgroundFromStorage();
-            renderChart();
+
+            // 等待 DOM 渲染完成后再绘制图表（解决电脑端不渲染问题）
+            setTimeout(() => {
+                resizeChartCanvas();
+                renderChart();
+                setupChartInteraction();
+            }, 100);
+
             window.addEventListener('resize', () => {
                 resizeChartCanvas();
                 renderChart();
             });
-            resizeChartCanvas();
         }
 
         function resizeChartCanvas() {
@@ -1304,6 +1333,7 @@
             const width = chartCanvas.width / window.devicePixelRatio;
             const height = chartCanvas.height / window.devicePixelRatio;
             chartCtx.clearRect(0, 0, width, height);
+            chartHoverData = [];
 
             const dates = [];
             const today = new Date();
@@ -1396,9 +1426,14 @@
 
                 dates.forEach((d, i) => {
                     const val = data[i];
+                    const x = paddingLeft + stepX * i;
+                    const y = paddingTop + plotHeight * (1 - val / maxVal);
+                    // 存储可交互点（所有点都存，即使值为0）
+                    chartHoverData.push({
+                        x, y, date: d, form, value: val,
+                        color: colors[fi]
+                    });
                     if (val > 0) {
-                        const x = paddingLeft + stepX * i;
-                        const y = paddingTop + plotHeight * (1 - val / maxVal);
                         chartCtx.beginPath();
                         chartCtx.fillStyle = colors[fi];
                         chartCtx.arc(x, y, 2.5, 0, Math.PI * 2);
@@ -1409,6 +1444,84 @@
                     }
                 });
             });
+        }
+
+        // ==================== 图表长按/点击交互 ====================
+        let chartLongPressTimer = null;
+        let chartTouchStartPos = null;
+
+        function setupChartInteraction() {
+            // 移动端：长按显示
+            chartCanvas.addEventListener('touchstart', (e) => {
+                e.preventDefault();
+                const touch = e.touches[0];
+                chartTouchStartPos = { x: touch.clientX, y: touch.clientY };
+                chartLongPressTimer = setTimeout(() => {
+                    showChartTooltipAtTouch(touch.clientX, touch.clientY);
+                }, 400);
+            }, { passive: false });
+
+            chartCanvas.addEventListener('touchmove', (e) => {
+                if (chartLongPressTimer) {
+                    clearTimeout(chartLongPressTimer);
+                    chartLongPressTimer = null;
+                }
+            }, { passive: true });
+
+            chartCanvas.addEventListener('touchend', (e) => {
+                if (chartLongPressTimer) {
+                    clearTimeout(chartLongPressTimer);
+                    chartLongPressTimer = null;
+                }
+                setTimeout(() => hideChartTooltip(), 1500);
+            }, { passive: true });
+
+            // 电脑端：点击显示
+            chartCanvas.addEventListener('click', (e) => {
+                showChartTooltipAtTouch(e.clientX, e.clientY);
+                setTimeout(() => hideChartTooltip(), 2000);
+            });
+        }
+
+        function showChartTooltipAtTouch(clientX, clientY) {
+            const rect = chartCanvas.getBoundingClientRect();
+            const canvasX = clientX - rect.left;
+            const canvasY = clientY - rect.top;
+            const scaleX = (chartCanvas.width / window.devicePixelRatio) / rect.width;
+            const scaleY = (chartCanvas.height / window.devicePixelRatio) / rect.height;
+            const x = canvasX * scaleX;
+            const y = canvasY * scaleY;
+
+            // 找最近的点
+            let nearest = null;
+            let minDist = 25;
+            chartHoverData.forEach(pt => {
+                const dist = Math.sqrt((pt.x - x) ** 2 + (pt.y - y) ** 2);
+                if (dist < minDist) {
+                    minDist = dist;
+                    nearest = pt;
+                }
+            });
+
+            if (nearest) {
+                const tooltip = chartTooltip;
+                tooltip.classList.remove('hidden');
+                const formLabel = `F${nearest.form}`;
+                tooltip.textContent = `${nearest.date}  ${formLabel}  ${nearest.value}分`;
+                // 定位到点的上方
+                const ptRect = chartCanvas.getBoundingClientRect();
+                const containerRect = chartContainer.getBoundingClientRect();
+                const left = (nearest.x / scaleX) + (ptRect.left - containerRect.left);
+                const top = (nearest.y / scaleY) + (ptRect.top - containerRect.top) - 10;
+                tooltip.style.left = left + 'px';
+                tooltip.style.top = top + 'px';
+                tooltip.style.opacity = '1';
+                vibrate(VIBE.light);
+            }
+        }
+
+        function hideChartTooltip() {
+            chartTooltip.classList.add('hidden');
         }
 
         // ==================== 章节 ====================
@@ -1503,7 +1616,7 @@
                 playSound('full');
                 vibrate(VIBE.success);
                 fireConfetti();
-                showToast('🎉 完全掌握！太厉害了！');
+                showToast('🎉 完全掌握！+' + earned + '积分！');
             } else {
                 playSound('checkin');
                 vibrate(VIBE.medium);
@@ -1527,7 +1640,7 @@
         function showToast(msg) {
             const toast = document.createElement('div');
             toast.textContent = msg;
-            toast.style.cssText = 'position:fixed;bottom:100px;left:50%;transform:translateX(-50%);background:rgba(230,116,142,0.92);backdrop-filter:blur(10px);color:white;padding:12px 24px;border-radius:30px;font-weight:600;font-size:14px;box-shadow:0 8px 24px rgba(0,0,0,0.2);z-index:1000;opacity:0;transition:opacity 0.3s;border:1px solid rgba(255,255,255,0.3)';
+            toast.style.cssText = 'position:fixed;bottom:100px;left:50%;transform:translateX(-50%);background:rgba(230,116,142,0.92);backdrop-filter:blur(10px);color:white;padding:12px 24px;border-radius:30px;font-weight:600;font-size:14px;box-shadow:0 8px 24px rgba(0,0,0,0.2);z-index:1000;opacity:0;transition:opacity 0.3s;border:1px solid rgba(255,255,255,0.3);white-space:nowrap;';
             document.body.appendChild(toast);
             requestAnimationFrame(() => toast.style.opacity = '1');
             setTimeout(() => {
@@ -1644,6 +1757,10 @@
             view.classList.remove('page-view');
             void view.offsetWidth;
             view.classList.add('page-view');
+            // 切换回主页时刷新图表
+            if (page === 'home') {
+                setTimeout(() => { resizeChartCanvas(); renderChart(); }, 100);
+            }
         }
 
         // 滑动检测
@@ -1676,7 +1793,7 @@
         let mouseStartX = 0;
         let mouseDown = false;
         appContainer.addEventListener('mousedown', (e) => {
-            if (e.target.closest('.subtopic-badge') || e.target.closest('.buy-btn') || e.target.closest('.form-chip') || e.target.closest('.nav-item') || e.target.closest('.close-drawer') || e.target.closest('.mastery-option')) return;
+            if (e.target.closest('.subtopic-badge') || e.target.closest('.buy-btn') || e.target.closest('.form-chip') || e.target.closest('.nav-item') || e.target.closest('.close-drawer') || e.target.closest('.mastery-option') || e.target.closest('#progressChart')) return;
             mouseStartX = e.screenX;
             mouseDown = true;
         });
@@ -1707,7 +1824,7 @@
                     updatePointsDisplay();
                     playSound('checkin');
                     vibrate(VIBE.light);
-                    renderChart();
+                    setTimeout(() => { resizeChartCanvas(); renderChart(); }, 100);
                 });
             });
 
