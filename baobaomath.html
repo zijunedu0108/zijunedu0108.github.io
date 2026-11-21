@@ -13,43 +13,65 @@
             padding: 0;
             box-sizing: border-box;
             font-family: 'Inter', 'Noto Sans SC', sans-serif;
+            -webkit-tap-highlight-color: transparent; /* 禁用移动端点击高亮 */
+            -webkit-touch-callout: none; /* 禁用长按菜单 */
+        }
+
+        /* 禁用右键菜单 */
+        html, body {
+            user-select: none;
+            -webkit-user-select: none;
+            -moz-user-select: none;
+            -ms-user-select: none;
+            overflow: hidden; /* 防止页面本身出现滚动条 */
         }
 
         body {
             display: flex;
             justify-content: center;
             align-items: center;
-            min-height: 100vh;
+            height: 100vh;
+            width: 100vw;
             background: #f5e6e8;
-            padding: 12px;
+            padding: 0; /* 移除内边距，让容器贴边 */
+            margin: 0;
+            overflow: hidden;
         }
 
-        /* 主应用容器 */
+        /* 主应用容器 - 全屏手机布局 */
         .app-container {
             width: 100%;
-            max-width: 420px;
-            height: 720px;
+            height: 100%;
+            max-width: 100%;
+            max-height: 100%;
             background: rgba(255, 255, 255, 0.75);
             backdrop-filter: blur(24px);
             -webkit-backdrop-filter: blur(24px);
-            border-radius: 36px;
-            box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
+            border-radius: 0; /* 手机端全屏无圆角 */
+            box-shadow: none;
             overflow: hidden;
             display: flex;
             flex-direction: column;
             position: relative;
-            border: 1px solid rgba(255, 255, 255, 0.6);
+            border: none;
         }
 
         /* 屏幕内容区 */
         .screen {
             flex: 1;
             overflow-y: auto;
+            overflow-x: hidden;
             padding: 20px 18px 90px;
             scroll-behavior: smooth;
             transition: background 0.4s ease;
             position: relative;
             background: rgba(255, 255, 255, 0.25);
+            /* 隐藏滚动条但保留滚动功能 */
+            scrollbar-width: none; /* Firefox */
+            -ms-overflow-style: none; /* IE 10+ */
+        }
+        .screen::-webkit-scrollbar {
+            display: none; /* Chrome Safari */
         }
 
         /* 底部导航栏 */
@@ -67,7 +89,7 @@
             justify-content: space-around;
             align-items: center;
             padding-bottom: 6px;
-            border-radius: 0 0 36px 36px;
+            border-radius: 0;
             z-index: 20;
         }
 
@@ -98,7 +120,7 @@
             transform: scale(1.05);
         }
 
-        /* 毛玻璃卡片通用类 */
+        /* 毛玻璃卡片 */
         .glass-card {
             background: rgba(255, 255, 255, 0.55);
             backdrop-filter: blur(18px);
@@ -245,17 +267,11 @@
             margin-bottom: 14px;
             overflow-x: auto;
             padding-bottom: 6px;
-            scrollbar-width: thin;
-            scrollbar-color: #f0c0ca transparent;
+            scrollbar-width: none;
+            -ms-overflow-style: none;
         }
-
         .form-selector::-webkit-scrollbar {
-            height: 4px;
-        }
-
-        .form-selector::-webkit-scrollbar-thumb {
-            background: #f0c0ca;
-            border-radius: 10px;
+            display: none;
         }
 
         .form-chip {
@@ -271,6 +287,7 @@
             cursor: pointer;
             transition: all 0.25s cubic-bezier(0.22, 1, 0.36, 1);
             user-select: none;
+            -webkit-tap-highlight-color: transparent;
         }
 
         .form-chip.active {
@@ -336,35 +353,12 @@
             cursor: pointer;
             transition: all 0.25s cubic-bezier(0.22, 1, 0.36, 1);
             user-select: none;
+            -webkit-tap-highlight-color: transparent;
         }
 
         .subtopic-badge:active {
             background: rgba(240, 192, 202, 0.9);
             transform: scale(0.96);
-        }
-
-        /* 打卡按钮 */
-        .checkin-btn {
-            background: #e6748e;
-            color: white;
-            border: none;
-            padding: 10px 18px;
-            border-radius: 30px;
-            font-weight: 600;
-            font-size: 14px;
-            display: flex;
-            align-items: center;
-            gap: 8px;
-            box-shadow: 0 6px 14px rgba(230, 116, 142, 0.3);
-            cursor: pointer;
-            transition: all 0.2s;
-            width: fit-content;
-            margin-top: 6px;
-        }
-
-        .checkin-btn:active {
-            transform: scale(0.96);
-            box-shadow: 0 3px 8px rgba(230, 116, 142, 0.3);
         }
 
         /* 抽屉式弹窗 */
@@ -380,7 +374,7 @@
             opacity: 0;
             visibility: hidden;
             transition: opacity 0.3s, visibility 0.3s;
-            border-radius: 36px;
+            border-radius: 0;
         }
 
         .drawer-overlay.active {
@@ -405,6 +399,10 @@
             max-height: 85%;
             overflow-y: auto;
             border-top: 1px solid rgba(255, 255, 255, 0.8);
+            scrollbar-width: none;
+        }
+        .drawer-panel::-webkit-scrollbar {
+            display: none;
         }
 
         .drawer-panel.open {
@@ -437,6 +435,7 @@
             font-size: 18px;
             cursor: pointer;
             transition: all 0.2s;
+            -webkit-tap-highlight-color: transparent;
         }
 
         .close-drawer:active {
@@ -455,6 +454,7 @@
             transition: all 0.3s cubic-bezier(0.22, 1, 0.36, 1);
             border: 1px solid rgba(255, 255, 255, 0.6);
             gap: 14px;
+            -webkit-tap-highlight-color: transparent;
         }
 
         .mastery-option:active {
@@ -541,6 +541,7 @@
             cursor: pointer;
             transition: all 0.25s;
             margin-top: 6px;
+            -webkit-tap-highlight-color: transparent;
         }
 
         .buy-btn:active {
@@ -591,6 +592,7 @@
             cursor: pointer;
             padding: 6px;
             transition: color 0.2s;
+            -webkit-tap-highlight-color: transparent;
         }
 
         .record-delete:active {
@@ -613,7 +615,7 @@
             align-items: center;
             justify-content: center;
             padding: 30px;
-            border-radius: 36px;
+            border-radius: 0;
             gap: 28px;
         }
 
@@ -638,6 +640,7 @@
             box-shadow: 0 8px 24px rgba(230, 116, 142, 0.12);
             border: 2px solid rgba(255, 255, 255, 0.8);
             transition: all 0.3s cubic-bezier(0.22, 1, 0.36, 1);
+            -webkit-tap-highlight-color: transparent;
         }
 
         .identity-option:active {
@@ -677,15 +680,6 @@
             z-index: 999;
         }
 
-        /* 滚动条美化 */
-        .screen::-webkit-scrollbar {
-            width: 4px;
-        }
-        .screen::-webkit-scrollbar-thumb {
-            background: #f0c0ca;
-            border-radius: 10px;
-        }
-
         /* 页面切换动画 */
         .page-view {
             animation: fadeSlideIn 0.35s cubic-bezier(0.22, 1, 0.36, 1);
@@ -704,10 +698,15 @@
 
         /* ===== 电脑端适配 ===== */
         @media (min-width: 768px) {
+            body {
+                padding: 12px;
+            }
             .app-container {
                 max-width: 480px;
                 height: 800px;
                 border-radius: 40px;
+                box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
+                border: 1px solid rgba(255, 255, 255, 0.6);
             }
             .screen {
                 padding: 24px 24px 100px;
@@ -730,6 +729,12 @@
             }
             #progressChart {
                 height: 170px;
+            }
+            .drawer-panel {
+                border-radius: 32px 32px 0 0;
+            }
+            .identity-select-overlay {
+                border-radius: 40px;
             }
         }
 
@@ -866,6 +871,9 @@
     </div>
 
     <script>
+        // 禁用右键菜单
+        document.addEventListener('contextmenu', (e) => e.preventDefault());
+
         // ==================== 音效 ====================
         let audioCtx = null;
         function getAudioContext() {
@@ -1176,13 +1184,12 @@
         ];
 
         // ==================== 状态 ====================
-        let currentUser = null; // 'xinni' or 'zijun'
+        let currentUser = null;
         let currentUserName = 'MANTO';
         let currentForm = 1;
         let points = 0;
         let records = [];
         let usedBackgrounds = [];
-        let chartData = {}; // { dateStr: { form1: score, ... } }
 
         function loadState() {
             const savedUser = localStorage.getItem('math_user');
@@ -1192,7 +1199,6 @@
                 points = parseInt(localStorage.getItem('math_points') || '0');
                 records = JSON.parse(localStorage.getItem('math_records') || '[]');
                 usedBackgrounds = JSON.parse(localStorage.getItem('math_backgrounds') || '[]');
-                chartData = JSON.parse(localStorage.getItem('math_chartdata') || '{}');
                 applyBackgroundFromStorage();
             }
         }
@@ -1203,7 +1209,6 @@
             localStorage.setItem('math_points', points);
             localStorage.setItem('math_records', JSON.stringify(records));
             localStorage.setItem('math_backgrounds', JSON.stringify(usedBackgrounds));
-            localStorage.setItem('math_chartdata', JSON.stringify(chartData));
         }
 
         function applyBackgroundFromStorage() {
@@ -1244,7 +1249,6 @@
         const greetingText = document.getElementById('greetingText');
         const appContainer = document.getElementById('appContainer');
 
-        // 图表
         const chartCanvas = document.getElementById('progressChart');
         let chartCtx = chartCanvas.getContext('2d');
 
@@ -1264,7 +1268,6 @@
             setupEventListeners();
             applyBackgroundFromStorage();
             renderChart();
-            // 窗口大小变化重新绘制图表
             window.addEventListener('resize', () => {
                 resizeChartCanvas();
                 renderChart();
@@ -1302,14 +1305,13 @@
             profilePointsSpan.textContent = points;
         }
 
-        // ==================== 折线图渲染 ====================
+        // ==================== 折线图 ====================
         function renderChart() {
             if (!chartCanvas || !chartCtx) return;
             const width = chartCanvas.width / window.devicePixelRatio;
             const height = chartCanvas.height / window.devicePixelRatio;
             chartCtx.clearRect(0, 0, width, height);
 
-            // 计算近15天的日期
             const dates = [];
             const today = new Date();
             for (let i = 14; i >= 0; i--) {
@@ -1319,21 +1321,13 @@
                 dates.push(key);
             }
 
-            // 准备数据：每个form每天的得分
             const forms = [1, 2, 3, 4, 5];
             const colors = ['#e6748e', '#fbb2b2', '#f8c9d4', '#fadadd', '#a9e2e2'];
             const dataByForm = {};
             forms.forEach(f => { dataByForm[f] = dates.map(() => 0); });
 
-            // 从records中统计每天每个form的得分
             records.forEach(rec => {
-                // 根据subtopicId第一个数字判断form? 我们记录里有subtopicId如"1-1"，但form信息未存，改用记录里的form字段
-                // 为了兼容旧数据，我们从subtopicId推断：form1的id以1-开头，但会与form2冲突？我们记录时增加form字段
-                // 这里我们修改record结构，加入form字段（下面打卡时会加入）
-                // 处理旧数据，若无form则默认1
                 const form = rec.form || 1;
-                const dateStr = rec.date ? rec.date.slice(0, 10) : '';
-                // 日期格式可能为 '2025/3/21 14:30:00'，需要转成YYYY-MM-DD
                 let recDate = '';
                 if (rec.date) {
                     const parts = rec.date.split(' ')[0].split('/');
@@ -1347,14 +1341,12 @@
                 }
             });
 
-            // 计算最大值
             let maxVal = 10;
             forms.forEach(f => {
                 dataByForm[f].forEach(v => { if (v > maxVal) maxVal = v; });
             });
             maxVal = Math.ceil(maxVal / 10) * 10;
 
-            // 绘图区域
             const paddingLeft = 32;
             const paddingRight = 12;
             const paddingTop = 12;
@@ -1362,7 +1354,6 @@
             const plotWidth = width - paddingLeft - paddingRight;
             const plotHeight = height - paddingTop - paddingBottom;
 
-            // 绘制网格和Y轴标签
             chartCtx.font = '9px Inter, sans-serif';
             chartCtx.fillStyle = '#b2959e';
             chartCtx.textAlign = 'right';
@@ -1378,19 +1369,17 @@
                 chartCtx.stroke();
             }
 
-            // 绘制X轴标签（每隔几天显示）
             chartCtx.textAlign = 'center';
             chartCtx.fillStyle = '#b2959e';
             const stepX = plotWidth / (dates.length - 1);
             dates.forEach((d, i) => {
                 if (i % 3 === 0 || i === dates.length - 1) {
                     const x = paddingLeft + stepX * i;
-                    const label = d.slice(5); // MM-DD
+                    const label = d.slice(5);
                     chartCtx.fillText(label, x, height - 6);
                 }
             });
 
-            // 绘制每条线
             forms.forEach((form, fi) => {
                 const data = dataByForm[form];
                 chartCtx.beginPath();
@@ -1412,7 +1401,6 @@
                 });
                 chartCtx.stroke();
 
-                // 绘制数据点
                 dates.forEach((d, i) => {
                     const val = data[i];
                     if (val > 0) {
@@ -1430,7 +1418,7 @@
             });
         }
 
-        // ==================== 章节渲染 ====================
+        // ==================== 章节 ====================
         function renderChapters() {
             const data = curriculum[currentForm] || [];
             chapterListDiv.innerHTML = data.map(ch => {
@@ -1497,7 +1485,7 @@
             drawerPanel.classList.remove('open');
         }
 
-        // ==================== 处理打卡 ====================
+        // ==================== 打卡 ====================
         function handleCheckin(subId, subName, subCn, levelId, message, form) {
             let earned = 0;
             if (levelId === 'full') earned = 20;
@@ -1522,7 +1510,7 @@
             saveState();
             updatePointsDisplay();
             renderRecords();
-            renderChart(); // 更新图表
+            renderChart();
 
             if (levelId === 'full') {
                 playSound('full');
@@ -1649,7 +1637,7 @@
             });
         }
 
-        // ==================== 页面切换（含滑动） ====================
+        // ==================== 页面切换 ====================
         let currentPage = 'home';
         const pages = ['home', 'shop', 'profile'];
 
@@ -1665,7 +1653,6 @@
             if (page === 'home') homeView.classList.remove('hidden');
             else if (page === 'shop') { shopView.classList.remove('hidden'); renderShop(); }
             else if (page === 'profile') { profileView.classList.remove('hidden'); renderRecords(); }
-            // 添加动画
             const view = document.getElementById(page + 'View');
             view.classList.remove('page-view');
             void view.offsetWidth;
@@ -1690,18 +1677,15 @@
             const dy = touchEndY - touchStartY;
             if (Math.abs(dx) > 60 && Math.abs(dx) > Math.abs(dy) * 1.5) {
                 if (dx > 0) {
-                    // 右滑 -> 前一个页面
                     const idx = pages.indexOf(currentPage);
                     if (idx > 0) switchPage(pages[idx - 1]);
                 } else {
-                    // 左滑 -> 后一个页面
                     const idx = pages.indexOf(currentPage);
                     if (idx < pages.length - 1) switchPage(pages[idx + 1]);
                 }
             }
         }, { passive: true });
 
-        // 电脑端也支持鼠标拖拽滑动？简单加一个
         let mouseStartX = 0;
         let mouseDown = false;
         appContainer.addEventListener('mousedown', (e) => {
@@ -1726,7 +1710,6 @@
 
         // ==================== 事件绑定 ====================
         function setupEventListeners() {
-            // 身份选择
             document.querySelectorAll('.identity-option').forEach(opt => {
                 opt.addEventListener('click', () => {
                     currentUser = opt.dataset.identity;
@@ -1741,7 +1724,6 @@
                 });
             });
 
-            // 底部导航
             navItems.forEach(item => {
                 item.addEventListener('click', () => {
                     switchPage(item.dataset.nav);
@@ -1749,7 +1731,6 @@
                 });
             });
 
-            // 表单切换
             formSelector.addEventListener('click', (e) => {
                 const chip = e.target.closest('.form-chip');
                 if (!chip) return;
@@ -1761,7 +1742,6 @@
                 playSound('checkin');
             });
 
-            // 关闭抽屉
             closeDrawerBtn.addEventListener('click', () => {
                 closeDrawer();
                 vibrate(VIBE.light);
