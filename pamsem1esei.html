@@ -6,262 +6,45 @@
     <title>Pengajian Am Sem 1 · ZIJUN</title>
     <link rel="icon" href="zijunlogo.png" type="image/png">
     <style>
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-            font-family: system-ui, -apple-system, 'Segoe UI', Roboto, 'Helvetica Neue', sans-serif;
-        }
-
-        body {
-            background: #f5f7fb;
-            color: #1e293b;
-            padding: 1.5rem 1rem;
-            line-height: 1.6;
-        }
-
-        .app {
-            max-width: 1000px;
-            margin: 0 auto;
-        }
-
-        /* Header */
-        .header {
-            display: flex;
-            align-items: center;
-            gap: 0.75rem;
-            margin-bottom: 1.5rem;
-            padding: 0.75rem 1rem;
-            background: #ffffff;
-            border-radius: 20px;
-            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.03);
-            border: 1px solid #e9eef3;
-        }
-
-        .logo {
-            width: 42px;
-            height: 42px;
-            object-fit: contain;
-            border-radius: 10px;
-            background: #f1f5f9;
-            padding: 4px;
-        }
-
-        .header-text h1 {
-            font-size: 1.25rem;
-            font-weight: 700;
-            letter-spacing: -0.01em;
-            color: #0f172a;
-        }
-
-        .header-text p {
-            font-size: 0.8rem;
-            color: #64748b;
-            margin-top: 2px;
-        }
-
-        /* Progress bar */
-        .progress-wrap {
-            background: #ffffff;
-            border-radius: 14px;
-            padding: 0.85rem 1rem;
-            margin-bottom: 1.25rem;
-            border: 1px solid #e9eef3;
-            display: flex;
-            flex-wrap: wrap;
-            align-items: center;
-            gap: 0.75rem;
-            justify-content: space-between;
-        }
-
-        .progress-label {
-            font-size: 0.85rem;
-            font-weight: 500;
-            color: #334155;
-        }
-
-        .progress-label span {
-            color: #2563eb;
-            font-weight: 700;
-        }
-
-        .progress-track {
-            flex: 1;
-            min-width: 160px;
-            height: 8px;
-            background: #e2e8f0;
-            border-radius: 20px;
-            overflow: hidden;
-        }
-
-        .progress-fill {
-            height: 100%;
-            width: 0%;
-            background: linear-gradient(90deg, #2563eb, #3b82f6);
-            border-radius: 20px;
-            transition: width 0.3s ease;
-        }
-
-        /* Tabs */
-        .tabs {
-            display: flex;
-            flex-wrap: wrap;
-            gap: 0.5rem;
-            margin-bottom: 1.5rem;
-        }
-
-        .tab-btn {
-            padding: 0.55rem 1rem;
-            border-radius: 30px;
-            border: 1px solid #e2e8f0;
-            background: #ffffff;
-            font-size: 0.85rem;
-            font-weight: 500;
-            color: #475569;
-            cursor: pointer;
-            transition: all 0.15s;
-            white-space: nowrap;
-        }
-
-        .tab-btn:hover {
-            background: #f1f5f9;
-            border-color: #cbd5e1;
-        }
-
-        .tab-btn.active {
-            background: #2563eb;
-            border-color: #2563eb;
-            color: #ffffff;
-            box-shadow: 0 4px 10px rgba(37, 99, 235, 0.25);
-        }
-
-        /* Card grid */
-        .grid {
-            display: grid;
-            grid-template-columns: 1fr;
-            gap: 1rem;
-        }
-
-        @media (min-width: 700px) {
-            .grid {
-                grid-template-columns: 1fr 1fr;
-            }
-        }
-
-        /* Card */
-        .card {
-            background: #ffffff;
-            border-radius: 18px;
-            border: 1px solid #e9eef3;
-            overflow: hidden;
-            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.02);
-            transition: box-shadow 0.2s;
-        }
-
-        .card:hover {
-            box-shadow: 0 8px 20px rgba(0, 0, 0, 0.04);
-        }
-
-        .card-header {
-            padding: 0.9rem 1.2rem;
-            background: #f8fafc;
-            border-bottom: 1px solid #eef2f6;
-            cursor: pointer;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            user-select: none;
-        }
-
-        .card-header h3 {
-            font-size: 0.95rem;
-            font-weight: 600;
-            color: #0f172a;
-        }
-
-        .card-header .toggle-icon {
-            font-size: 1.2rem;
-            color: #94a3b8;
-            transition: transform 0.2s;
-        }
-
-        .card-header.open .toggle-icon {
-            transform: rotate(180deg);
-        }
-
-        .card-body {
-            padding: 0 1.2rem 1.2rem 1.2rem;
-            max-height: 0;
-            overflow: hidden;
-            transition: max-height 0.3s ease, padding 0.2s;
-        }
-
-        .card-body.open {
-            max-height: 2000px;
-            padding: 1rem 1.2rem 1.2rem 1.2rem;
-        }
-
-        .list-item {
-            margin-bottom: 0.8rem;
-            border-left: 3px solid #2563eb;
-            padding-left: 0.75rem;
-        }
-
-        .list-item .bm {
-            font-weight: 500;
-            font-size: 0.9rem;
-            color: #1e293b;
-        }
-
-        .list-item .zh {
-            font-size: 0.8rem;
-            color: #64748b;
-            margin-top: 2px;
-            padding-left: 0.25rem;
-            border-left: 2px solid #cbd5e1;
-            padding-left: 0.6rem;
-        }
-
-        .list-item .example {
-            font-size: 0.78rem;
-            color: #475569;
-            background: #f1f5f9;
-            border-radius: 8px;
-            padding: 0.45rem 0.7rem;
-            margin-top: 0.3rem;
-        }
-
-        .example strong {
-            color: #2563eb;
-            font-weight: 600;
-        }
-
-        .section-note {
-            font-size: 0.78rem;
-            color: #64748b;
-            background: #f8fafc;
-            padding: 0.6rem 0.9rem;
-            border-radius: 10px;
-            margin-bottom: 0.75rem;
-            border: 1px dashed #cbd5e1;
-        }
-
-        .hidden {
-            display: none;
-        }
-
-        /* Footer */
-        .footer {
-            margin-top: 2rem;
-            text-align: center;
-            font-size: 0.75rem;
-            color: #94a3b8;
-        }
+        * { margin: 0; padding: 0; box-sizing: border-box; font-family: system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif; }
+        body { background: #f5f7fb; color: #1e293b; padding: 1.5rem 1rem; line-height: 1.6; }
+        .app { max-width: 1000px; margin: 0 auto; }
+        .header { display: flex; align-items: center; gap: 0.75rem; margin-bottom: 1.5rem; padding: 0.75rem 1rem; background: #fff; border-radius: 20px; box-shadow: 0 4px 12px rgba(0,0,0,0.03); border: 1px solid #e9eef3; }
+        .logo { width: 42px; height: 42px; object-fit: contain; border-radius: 10px; background: #f1f5f9; padding: 4px; }
+        .header-text h1 { font-size: 1.25rem; font-weight: 700; color: #0f172a; }
+        .header-text p { font-size: 0.8rem; color: #64748b; margin-top: 2px; }
+        .progress-wrap { background: #fff; border-radius: 14px; padding: 0.85rem 1rem; margin-bottom: 1.25rem; border: 1px solid #e9eef3; display: flex; flex-wrap: wrap; align-items: center; gap: 0.75rem; justify-content: space-between; }
+        .progress-label { font-size: 0.85rem; font-weight: 500; color: #334155; }
+        .progress-label span { color: #2563eb; font-weight: 700; }
+        .progress-track { flex: 1; min-width: 160px; height: 8px; background: #e2e8f0; border-radius: 20px; overflow: hidden; }
+        .progress-fill { height: 100%; width: 0%; background: linear-gradient(90deg, #2563eb, #3b82f6); border-radius: 20px; transition: width 0.3s ease; }
+        .tabs { display: flex; flex-wrap: wrap; gap: 0.5rem; margin-bottom: 1.5rem; }
+        .tab-btn { padding: 0.55rem 1rem; border-radius: 30px; border: 1px solid #e2e8f0; background: #fff; font-size: 0.85rem; font-weight: 500; color: #475569; cursor: pointer; transition: all 0.15s; white-space: nowrap; }
+        .tab-btn:hover { background: #f1f5f9; border-color: #cbd5e1; }
+        .tab-btn.active { background: #2563eb; border-color: #2563eb; color: #fff; box-shadow: 0 4px 10px rgba(37,99,235,0.25); }
+        .grid { display: grid; grid-template-columns: 1fr; gap: 1rem; }
+        @media (min-width: 700px) { .grid { grid-template-columns: 1fr 1fr; } }
+        .card { background: #fff; border-radius: 18px; border: 1px solid #e9eef3; overflow: hidden; box-shadow: 0 2px 8px rgba(0,0,0,0.02); transition: box-shadow 0.2s; }
+        .card:hover { box-shadow: 0 8px 20px rgba(0,0,0,0.04); }
+        .card-header { padding: 0.9rem 1.2rem; background: #f8fafc; border-bottom: 1px solid #eef2f6; cursor: pointer; display: flex; justify-content: space-between; align-items: center; user-select: none; }
+        .card-header h3 { font-size: 0.95rem; font-weight: 600; color: #0f172a; }
+        .card-header .toggle-icon { font-size: 1.2rem; color: #94a3b8; transition: transform 0.2s; }
+        .card-header.open .toggle-icon { transform: rotate(180deg); }
+        .card-body { padding: 0 1.2rem 1.2rem 1.2rem; max-height: 0; overflow: hidden; transition: max-height 0.3s ease, padding 0.2s; }
+        .card-body.open { max-height: 3000px; padding: 1rem 1.2rem 1.2rem 1.2rem; }
+        .list-item { margin-bottom: 0.8rem; border-left: 3px solid #2563eb; padding-left: 0.75rem; }
+        .list-item .bm { font-weight: 500; font-size: 0.9rem; color: #1e293b; }
+        .list-item .zh { font-size: 0.8rem; color: #64748b; margin-top: 2px; padding-left: 0.6rem; border-left: 2px solid #cbd5e1; }
+        .list-item .example { font-size: 0.78rem; color: #475569; background: #f1f5f9; border-radius: 8px; padding: 0.45rem 0.7rem; margin-top: 0.3rem; }
+        .example strong { color: #2563eb; font-weight: 600; }
+        .section-note { font-size: 0.78rem; color: #64748b; background: #f8fafc; padding: 0.6rem 0.9rem; border-radius: 10px; margin-bottom: 0.75rem; border: 1px dashed #cbd5e1; }
+        .hidden { display: none; }
+        .footer { margin-top: 2rem; text-align: center; font-size: 0.75rem; color: #94a3b8; }
+        .badge { display: inline-block; font-size: 0.65rem; font-weight: 600; padding: 0.15rem 0.5rem; border-radius: 20px; background: #dbeafe; color: #1d4ed8; margin-left: 0.4rem; vertical-align: middle; }
     </style>
 </head>
 <body>
     <div class="app">
-        <!-- Header -->
         <div class="header">
             <img src="zijunlogo.png" alt="ZIJUN" class="logo">
             <div class="header-text">
@@ -269,16 +52,11 @@
                 <p>STPM · Nota Interaktif Dwibahasa · ZIJUN</p>
             </div>
         </div>
-
-        <!-- Progress -->
         <div class="progress-wrap">
-            <div class="progress-label">Kemajuan pembelajaran: <span id="progressText">0%</span></div>
-            <div class="progress-track">
-                <div class="progress-fill" id="progressFill"></div>
-            </div>
+            <div class="progress-label">Kemajuan: <span id="progressText">0%</span></div>
+            <div class="progress-track"><div class="progress-fill" id="progressFill"></div></div>
         </div>
 
-        <!-- Tabs -->
         <div class="tabs" id="tabs">
             <button class="tab-btn active" data-tab="keselamatan">🔒 Keselamatan</button>
             <button class="tab-btn" data-tab="sosial">🤝 Sosial & Budaya</button>
@@ -286,159 +64,314 @@
             <button class="tab-btn" data-tab="politik">🏛️ Politik</button>
             <button class="tab-btn" data-tab="sains">🔬 Sains & Teknologi</button>
             <button class="tab-btn" data-tab="integrasi">🌏 Integrasi</button>
+            <button class="tab-btn" data-tab="tadbir">⚖️ Tadbir Urus</button>
         </div>
 
-        <!-- Content panels -->
+        <!-- ============ 1. KESELAMATAN ============ -->
         <div id="panel-keselamatan" class="panel">
             <div class="grid">
+                <!-- Jenis Ancaman -->
                 <div class="card" data-card>
                     <div class="card-header" onclick="toggleCard(this)">
-                        <h3>Jenis Ancaman Keselamatan</h3>
+                        <h3>Jenis Ancaman Keselamatan Malaysia</h3>
                         <span class="toggle-icon">▼</span>
                     </div>
                     <div class="card-body">
-                        <div class="section-note">马来西亚面临的安全威胁类型 · 结合当前边境与网络犯罪案例</div>
-                        <div class="list-item"><div class="bm">1. Ancaman Aktiviti Jenayah</div><div class="zh">犯罪活动威胁 · 跨境走私、人口贩运等</div><div class="example"><strong>例子:</strong> PGA 在吉兰丹拦截 170 包走私食用油，企图运往泰国 [citation:4]</div></div>
-                        <div class="list-item"><div class="bm">2. Tadbir Urus yang Lemah</div><div class="zh">治理薄弱 · 执法漏洞与协调不足</div></div>
-                        <div class="list-item"><div class="bm">3. Ancaman Keselamatan Siber</div><div class="zh">网络安全威胁 · 病毒、假信息、黑客</div></div>
-                        <div class="list-item"><div class="bm">4. Pendatang Asing Tanpa Izin (PATI)</div><div class="zh">非法外劳 · 无证入境与逾期居留</div><div class="example"><strong>例子:</strong> 2026 年 8 月，APMM 在吉兰丹拦截 37 名缅甸籍无证移民 </div></div>
-                        <div class="list-item"><div class="bm">5. Budaya Politik Tidak Sihat</div><div class="zh">不健康政治文化 · 种族情绪与诽谤</div></div>
+                        <div class="section-note">马来西亚面临的安全威胁 · 犯罪、治理、网络、PATI、政治文化</div>
+                        <div class="list-item"><div class="bm">1. Ancaman Aktiviti Jenayah</div><div class="zh">犯罪活动威胁 · 走私、人口贩运</div></div>
+                        <div class="list-item"><div class="bm">2. Tadbir Urus yang Lemah</div><div class="zh">治理薄弱 · 执法协调不足</div></div>
+                        <div class="list-item"><div class="bm">3. Ancaman Keselamatan Siber</div><div class="zh">网络安全威胁 · 2025年网络罪案达6.6万宗，损失近30亿令吉 [citation:4]</div></div>
+                        <div class="list-item"><div class="bm">4. Pendatang Asing Tanpa Izin (PATI)</div><div class="zh">非法外劳 · 2025年逾9万人被捕 [citation:16][citation:26]</div></div>
+                        <div class="list-item"><div class="bm">5. Budaya Politik Tidak Sihat</div><div class="zh">不健康政治文化 · 诽谤、种族情绪</div></div>
                     </div>
                 </div>
+                <!-- Faktor Penyeludupan -->
                 <div class="card" data-card>
                     <div class="card-header" onclick="toggleCard(this)">
                         <h3>Faktor Penyeludupan Barangan</h3>
                         <span class="toggle-icon">▼</span>
                     </div>
                     <div class="card-body">
-                        <div class="section-note">走私商品的因素 · 价格差与地理条件是关键</div>
-                        <div class="list-item"><div class="bm">1. Kemiskinan dan Kesempitan Hidup</div><div class="zh">贫困与生活压力 · 低收入群体被利用为搬运工</div></div>
-                        <div class="list-item"><div class="bm">2. Permintaan yang Tinggi</div><div class="zh">高需求 · 邻国对补贴商品需求旺盛</div></div>
-                        <div class="list-item"><div class="bm">3. Keadaan Geografi Sempadan</div><div class="zh">边境地理条件 · 哥乐河等天然通道难以全面监控</div></div>
-                        <div class="list-item"><div class="bm">4. Perbezaan Harga Barangan</div><div class="zh">两国价格差异 · 马来西亚补贴食用油与泰国价差显著</div></div>
-                        <div class="list-item"><div class="bm">5. Kelonggaran Kawalan Sempadan</div><div class="zh">边境管控松懈 · 非法码头（pangkalan haram）成为漏洞</div></div>
+                        <div class="section-note">走私商品的因素 · 价格差与边境漏洞</div>
+                        <div class="list-item"><div class="bm">1. Kemiskinan dan Kesempitan Hidup</div><div class="zh">贫困与生活压力</div></div>
+                        <div class="list-item"><div class="bm">2. Permintaan yang Tinggi</div><div class="zh">高需求 · 邻国对补贴品需求旺盛</div></div>
+                        <div class="list-item"><div class="bm">3. Keadaan Geografi Sempadan</div><div class="zh">边境地理条件 · 哥乐河等通道难监控</div></div>
+                        <div class="list-item"><div class="bm">4. Perbezaan Harga Barangan</div><div class="zh">两国价格差异 · 汽油、食用油价差显著 [citation:27]</div></div>
+                        <div class="list-item"><div class="bm">5. Kelonggaran Kawalan Sempadan</div><div class="zh">边境管控松懈 · 非法码头成为漏洞</div></div>
+                    </div>
+                </div>
+                <!-- Kepentingan Memelihara -->
+                <div class="card" data-card>
+                    <div class="card-header" onclick="toggleCard(this)">
+                        <h3>Kepentingan Memelihara Keselamatan Negara</h3>
+                        <span class="toggle-icon">▼</span>
+                    </div>
+                    <div class="card-body">
+                        <div class="section-note">维护国家安全的重要性</div>
+                        <div class="list-item"><div class="bm">1. Meningkatkan Keamanan dan Kedamaian</div><div class="zh">提升和平与安宁</div></div>
+                        <div class="list-item"><div class="bm">2. Meningkatkan Perpaduan Negara</div><div class="zh">增进民族团结</div></div>
+                        <div class="list-item"><div class="bm">3. Mewujudkan Tadbir Urus yang Baik</div><div class="zh">建立良好治理</div></div>
+                        <div class="list-item"><div class="bm">4. Meningkatkan Ekonomi Negara</div><div class="zh">促进国家经济</div></div>
+                        <div class="list-item"><div class="bm">5. Mengekalkan Kemerdekaan dan Kedaulatan</div><div class="zh">维护独立与主权</div></div>
+                    </div>
+                </div>
+                <!-- Kesan Penyeludupan -->
+                <div class="card" data-card>
+                    <div class="card-header" onclick="toggleCard(this)">
+                        <h3>Kesan Aktiviti Penyeludupan Barangan</h3>
+                        <span class="toggle-icon">▼</span>
+                    </div>
+                    <div class="card-body">
+                        <div class="section-note">走私活动的后果</div>
+                        <div class="list-item"><div class="bm">1. Menjejaskan Pendapatan Negara</div><div class="zh">国家收入受损 · 补贴流失</div></div>
+                        <div class="list-item"><div class="bm">2. Meningkatkan Kos Kerajaan</div><div class="zh">政府成本增加 · 执法开销</div></div>
+                        <div class="list-item"><div class="bm">3. Peningkatan Kadar Jenayah</div><div class="zh">犯罪率上升</div></div>
+                        <div class="list-item"><div class="bm">4. Menjejaskan Hubungan Antarabangsa</div><div class="zh">影响国际关系</div></div>
+                        <div class="list-item"><div class="bm">5. Menjejaskan Alam Sekitar</div><div class="zh">环境破坏</div></div>
+                    </div>
+                </div>
+                <!-- Usaha Memelihara -->
+                <div class="card" data-card>
+                    <div class="card-header" onclick="toggleCard(this)">
+                        <h3>Usaha Memelihara Keselamatan Negara</h3>
+                        <span class="toggle-icon">▼</span>
+                    </div>
+                    <div class="card-body">
+                        <div class="section-note">维护国家安全的努力</div>
+                        <div class="list-item"><div class="bm">1. Meningkatkan Penguatkuasaan Undang-undang</div><div class="zh">加强执法 · 关闭非法码头后走私下降 [citation:27]</div></div>
+                        <div class="list-item"><div class="bm">2. Meningkatkan Kesedaran Awam</div><div class="zh">提升公众意识</div></div>
+                        <div class="list-item"><div class="bm">3. Memantapkan Semangat Patriotisme</div><div class="zh">巩固爱国精神</div></div>
+                        <div class="list-item"><div class="bm">4. Memperkasakan Pasukan Keselamatan</div><div class="zh">强化安全部队</div></div>
+                        <div class="list-item"><div class="bm">5. Mengukuhkan Perpaduan Nasional</div><div class="zh">巩固民族团结</div></div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- PATI 子板块 -->
+            <div class="grid" style="margin-top:1rem;">
+                <div class="card" data-card>
+                    <div class="card-header" onclick="toggleCard(this)">
+                        <h3>PATI · Faktor Kemasukan</h3>
+                        <span class="toggle-icon">▼</span>
+                    </div>
+                    <div class="card-body">
+                        <div class="section-note">非法外劳进入马来西亚的因素</div>
+                        <div class="list-item"><div class="bm">1. Penguatkuasaan Undang-undang Longgar</div><div class="zh">执法宽松</div></div>
+                        <div class="list-item"><div class="bm">2. Peluang Pekerjaan</div><div class="zh">就业机会 · 3D 行业依赖外劳</div></div>
+                        <div class="list-item"><div class="bm">3. Konflik dan Ketidakstabilan Politik</div><div class="zh">母国冲突与政治不稳定</div></div>
+                        <div class="list-item"><div class="bm">4. Proses Imigresen Rumit dan Mahal</div><div class="zh">移民程序复杂且昂贵</div></div>
+                        <div class="list-item"><div class="bm">5. Sikap Majikan</div><div class="zh">雇主态度 · 偏好无证劳工以降低成本</div></div>
                     </div>
                 </div>
                 <div class="card" data-card>
                     <div class="card-header" onclick="toggleCard(this)">
-                        <h3>Kesan Aktiviti Penyeludupan</h3>
+                        <h3>PATI · Masalah Akibat Kemasukan</h3>
                         <span class="toggle-icon">▼</span>
                     </div>
                     <div class="card-body">
-                        <div class="section-note">走私活动的后果 · 经济与安全双重打击</div>
-                        <div class="list-item"><div class="bm">1. Menjejaskan Pendapatan Negara</div><div class="zh">国家收入受损 · 补贴商品流失导致财政负担</div></div>
-                        <div class="list-item"><div class="bm">2. Meningkatkan Kos Kerajaan</div><div class="zh">政府成本增加 · 需投入更多执法资源</div></div>
-                        <div class="list-item"><div class="bm">3. Peningkatan Kadar Jenayah</div><div class="zh">犯罪率上升 · 走私网络与毒品、人口贩运交织</div></div>
-                        <div class="list-item"><div class="bm">4. Menjejaskan Hubungan Antarabangsa</div><div class="zh">影响国际关系 · 边境争端与外交压力</div></div>
-                        <div class="list-item"><div class="bm">5. Menjejaskan Alam Sekitar</div><div class="zh">环境破坏 · 走私活动可能绕过环保监管</div></div>
+                        <div class="section-note">非法外劳带来的问题</div>
+                        <div class="list-item"><div class="bm">1. Peningkatan Jenayah</div><div class="zh">犯罪率上升</div></div>
+                        <div class="list-item"><div class="bm">2. Penyebaran Penyakit Berbahaya</div><div class="zh">传染病传播</div></div>
+                        <div class="list-item"><div class="bm">3. Ekonomi Negara Terjejas</div><div class="zh">国家经济受影响 · 汇款外流</div></div>
+                        <div class="list-item"><div class="bm">4. Hak Rakyat Malaysia Terjejas</div><div class="zh">马来西亚公民权益受损</div></div>
+                        <div class="list-item"><div class="bm">5. Masalah Penempatan</div><div class="zh">安置问题 · 非法木屋区</div></div>
                     </div>
                 </div>
                 <div class="card" data-card>
                     <div class="card-header" onclick="toggleCard(this)">
-                        <h3>Usaha Memelihara Keselamatan</h3>
+                        <h3>PATI · Langkah Mengatasi</h3>
                         <span class="toggle-icon">▼</span>
                     </div>
                     <div class="card-body">
-                        <div class="section-note">维护国家安全的努力 · 执法与公众意识并重</div>
-                        <div class="list-item"><div class="bm">1. Meningkatkan Penguatkuasaan Undang-undang</div><div class="zh">加强执法 · 关闭非法码头后走私案显著下降 [citation:16]</div></div>
-                        <div class="list-item"><div class="bm">2. Meningkatkan Kesedaran Awam</div><div class="zh">提升公众意识 · 鼓励民众举报走私活动</div></div>
-                        <div class="list-item"><div class="bm">3. Memantapkan Semangat Patriotisme</div><div class="zh">巩固爱国精神 · 抵制非法活动</div></div>
-                        <div class="list-item"><div class="bm">4. Memperkasakan Pasukan Keselamatan</div><div class="zh">强化安全部队 · PGA、APMM 等前线机构</div></div>
-                        <div class="list-item"><div class="bm">5. Mengukuhkan Perpaduan Nasional</div><div class="zh">巩固民族团结 · 社会共同抵御威胁</div></div>
+                        <div class="section-note">应对非法外劳的措施</div>
+                        <div class="list-item"><div class="bm">1. Memantapkan Penguatkuasaan Undang-undang</div><div class="zh">加强执法 · 2025年逾9万人被捕 [citation:26]</div></div>
+                        <div class="list-item"><div class="bm">2. Menggubal Dasar Berkaitan PATI</div><div class="zh">制定相关政策</div></div>
+                        <div class="list-item"><div class="bm">3. Meningkatkan Peranan Anggota Masyarakat</div><div class="zh">提升社区角色 · 举报非法雇佣</div></div>
+                        <div class="list-item"><div class="bm">4. Memperkukuh Kerjasama dengan Negara Jiran</div><div class="zh">加强与邻国合作</div></div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Siber 子板块 -->
+            <div class="grid" style="margin-top:1rem;">
+                <div class="card" data-card>
+                    <div class="card-header" onclick="toggleCard(this)">
+                        <h3>Jenayah Siber · Jenis Ancaman</h3>
+                        <span class="toggle-icon">▼</span>
+                    </div>
+                    <div class="card-body">
+                        <div class="section-note">网络犯罪类型 · 2025年案件达6.6万宗 [citation:4]</div>
+                        <div class="list-item"><div class="bm">1. Penyebaran Virus</div><div class="zh">病毒传播</div></div>
+                        <div class="list-item"><div class="bm">2. Penyebaran Maklumat Palsu</div><div class="zh">虚假信息传播</div></div>
+                        <div class="list-item"><div class="bm">3. Pengintipan / Judi Siber</div><div class="zh">网络间谍 / 网络赌博</div></div>
+                        <div class="list-item"><div class="bm">4. Pornografi</div><div class="zh">色情内容</div></div>
+                        <div class="list-item"><div class="bm">5. Penggodam / Hacker</div><div class="zh">黑客攻击</div></div>
+                    </div>
+                </div>
+                <div class="card" data-card>
+                    <div class="card-header" onclick="toggleCard(this)">
+                        <h3>Jenayah Siber · Punca Sukar Dibanteras</h3>
+                        <span class="toggle-icon">▼</span>
+                    </div>
+                    <div class="card-body">
+                        <div class="section-note">网络犯罪难以根除的原因</div>
+                        <div class="list-item"><div class="bm">1. Kepentingan Ekonomi</div><div class="zh">经济利益驱动</div></div>
+                        <div class="list-item"><div class="bm">2. Sikap Pengguna Internet</div><div class="zh">网民态度 · 疏忽与贪念</div></div>
+                        <div class="list-item"><div class="bm">3. Teknologi Sentiasa Berkembang</div><div class="zh">技术不断演进</div></div>
+                        <div class="list-item"><div class="bm">4. Penjenayah Sukar Dikenal Pasti</div><div class="zh">罪犯难以识别 · 跨境匿名</div></div>
+                        <div class="list-item"><div class="bm">5. Perbezaan Takrifan Jenayah</div><div class="zh">各国犯罪定义差异</div></div>
+                    </div>
+                </div>
+                <div class="card" data-card>
+                    <div class="card-header" onclick="toggleCard(this)">
+                        <h3>Jenayah Siber · Langkah Mengatasi</h3>
+                        <span class="toggle-icon">▼</span>
+                    </div>
+                    <div class="card-body">
+                        <div class="section-note">应对网络犯罪的措施</div>
+                        <div class="list-item"><div class="bm">1. Memperkasakan Penguatkuasaan Undang-undang</div><div class="zh">强化执法</div></div>
+                        <div class="list-item"><div class="bm">2. Meningkatkan Kerjasama dengan Negara Luar</div><div class="zh">加强国际合作 · 跨境取证</div></div>
+                        <div class="list-item"><div class="bm">3. Mengkaji Hukuman yang Dikenali</div><div class="zh">检讨现有刑罚</div></div>
+                        <div class="list-item"><div class="bm">4. Mengadakan Pemantauan Berkesan</div><div class="zh">有效监控</div></div>
+                        <div class="list-item"><div class="bm">5. Meningkatkan Kesedaran Awam</div><div class="zh">提升公众意识 · 防诈骗教育</div></div>
                     </div>
                 </div>
             </div>
         </div>
 
+        <!-- ============ 2. SOSIAL & BUDAYA ============ -->
         <div id="panel-sosial" class="panel hidden">
             <div class="grid">
                 <div class="card" data-card>
                     <div class="card-header" onclick="toggleCard(this)">
-                        <h3>Warisan Budaya Malaysia</h3>
+                        <h3>Sebab Warisan Budaya Perlu Dipelihara</h3>
                         <span class="toggle-icon">▼</span>
                     </div>
                     <div class="card-body">
-                        <div class="section-note">马来西亚文化遗产 · 身份认同与团结的象征</div>
-                        <div class="list-item"><div class="bm">1. Mencerminkan Identiti Bangsa</div><div class="zh">反映民族身份 · 多元文化交汇</div></div>
-                        <div class="list-item"><div class="bm">2. Melambangkan Sikap Masyarakat</div><div class="zh">体现社会态度 · 包容与互助</div></div>
-                        <div class="list-item"><div class="bm">3. Meningkatkan Keharmonian</div><div class="zh">促进和谐 · 文化节庆共享</div></div>
-                        <div class="list-item"><div class="bm">4. Sumber Pendidikan</div><div class="zh">教育来源 · 年轻一代了解传统</div></div>
-                        <div class="list-item"><div class="bm">5. Menjana Pendapatan</div><div class="zh">创造收入 · 手工艺与文化旅游</div></div>
+                        <div class="section-note">文化遗产需要保护的原因</div>
+                        <div class="list-item"><div class="bm">1. Mencerminkan Identiti Bangsa Malaysia</div><div class="zh">反映马来西亚民族身份</div></div>
+                        <div class="list-item"><div class="bm">2. Melambangkan Sikap Masyarakat</div><div class="zh">体现社会态度 · 包容互助</div></div>
+                        <div class="list-item"><div class="bm">3. Meningkatkan Keharmonian dan Perpaduan</div><div class="zh">促进和谐与团结</div></div>
+                        <div class="list-item"><div class="bm">4. Sumber Pendidikan kepada Generasi Muda</div><div class="zh">年轻一代的教育来源</div></div>
+                        <div class="list-item"><div class="bm">5. Menjana Pendapatan Penduduk Setempat</div><div class="zh">为当地居民创造收入</div></div>
                     </div>
                 </div>
                 <div class="card" data-card>
                     <div class="card-header" onclick="toggleCard(this)">
-                        <h3>Masalah Remaja</h3>
+                        <h3>Cabaran Memelihara Warisan Budaya</h3>
                         <span class="toggle-icon">▼</span>
                     </div>
                     <div class="card-body">
-                        <div class="section-note">青少年问题 · 从毒品到心理健康</div>
-                        <div class="list-item"><div class="bm">1. Penyalahgunaan Dadah, Rokok, Alkohol</div><div class="zh">滥用毒品、香烟、酒精 · 马来青年吸毒者占比高 [citation:11]</div></div>
-                        <div class="list-item"><div class="bm">2. Buli Fizikal dan Siber</div><div class="zh">肢体与网络霸凌</div></div>
-                        <div class="list-item"><div class="bm">3. Kemiskinan dan Kekurangan Peluang</div><div class="zh">贫困与机会缺失</div></div>
-                        <div class="list-item"><div class="bm">4. Masalah Kesihatan Mental</div><div class="zh">心理健康问题</div></div>
-                        <div class="list-item"><div class="bm">5. Ponteng Sekolah dan Masalah Disiplin</div><div class="zh">逃学与纪律问题 · 非法赛车涉及 16–24 岁青年 </div></div>
+                        <div class="section-note">保护文化遗产的挑战</div>
+                        <div class="list-item"><div class="bm">1. Pengaruh Budaya Asing</div><div class="zh">外来文化影响</div></div>
+                        <div class="list-item"><div class="bm">2. Kurangnya Pendidikan dan Kesedaran</div><div class="zh">教育与意识不足</div></div>
+                        <div class="list-item"><div class="bm">3. Sumber Kewangan Terhad</div><div class="zh">资金有限</div></div>
+                        <div class="list-item"><div class="bm">4. Kurangnya Minat Generasi Muda</div><div class="zh">年轻一代兴趣不足</div></div>
+                        <div class="list-item"><div class="bm">5. Kekurangan Kemudahan Infrastruktur</div><div class="zh">基础设施不足</div></div>
                     </div>
                 </div>
                 <div class="card" data-card>
                     <div class="card-header" onclick="toggleCard(this)">
-                        <h3>Punca Masalah Remaja</h3>
+                        <h3>Usaha Mengekalkan Warisan Budaya</h3>
                         <span class="toggle-icon">▼</span>
                     </div>
                     <div class="card-body">
-                        <div class="section-note">青少年问题成因 · 家庭与同伴影响最大</div>
-                        <div class="list-item"><div class="bm">1. Sikap Remaja</div><div class="zh">青少年自身态度</div></div>
-                        <div class="list-item"><div class="bm">2. Pengaruh Rakan Sebaya</div><div class="zh">同伴负面影响</div></div>
-                        <div class="list-item"><div class="bm">3. Keadaan Keluarga</div><div class="zh">家庭状况 · 沟通缺失是主因之一 [citation:11]</div></div>
-                        <div class="list-item"><div class="bm">4. Kurang Pengawasan Ibu Bapa</div><div class="zh">父母监管不足</div></div>
-                        <div class="list-item"><div class="bm">5. Kurang Penghayatan Agama / Moral</div><div class="zh">宗教与道德修养不足</div></div>
+                        <div class="section-note">维护文化遗产的努力</div>
+                        <div class="list-item"><div class="bm">1. Meningkatkan Pendidikan tentang Warisan</div><div class="zh">加强文化遗产教育</div></div>
+                        <div class="list-item"><div class="bm">2. Mempromosikan Pelancongan Budaya</div><div class="zh">推广文化旅游</div></div>
+                        <div class="list-item"><div class="bm">3. Menyediakan Sokongan Kewangan</div><div class="zh">提供财政支持</div></div>
+                        <div class="list-item"><div class="bm">4. Peranan Media Sosial dan Teknologi Digital</div><div class="zh">社交媒体与数字技术角色</div></div>
+                        <div class="list-item"><div class="bm">5. Kerjasama Pelbagai Agensi</div><div class="zh">多机构合作</div></div>
                     </div>
                 </div>
                 <div class="card" data-card>
                     <div class="card-header" onclick="toggleCard(this)">
-                        <h3>Langkah Menangani</h3>
+                        <h3>Masalah Remaja · Contoh & Punca</h3>
                         <span class="toggle-icon">▼</span>
                     </div>
                     <div class="card-body">
-                        <div class="section-note">应对措施 · 教育、执法与辅导并行</div>
-                        <div class="list-item"><div class="bm">1. Meningkatkan Pendidikan</div><div class="zh">提升教育 · 品格与生活技能</div></div>
-                        <div class="list-item"><div class="bm">2. Penguatkuasaan Undang-undang</div><div class="zh">加强执法 · 针对非法赛车等行为</div></div>
-                        <div class="list-item"><div class="bm">3. Program Kaunseling</div><div class="zh">辅导计划 · 学校与社区层面</div></div>
-                        <div class="list-item"><div class="bm">4. Meningkatkan Kesedaran</div><div class="zh">提升意识 · 媒体宣传与讲座</div></div>
-                        <div class="list-item"><div class="bm">5. Aktiviti Positif</div><div class="zh">多元化正面活动 · 体育与志愿服务</div></div>
+                        <div class="section-note">青少年问题示例与成因</div>
+                        <div class="list-item"><div class="bm">Contoh: Dadah, Buli, Kemiskinan, Kesihatan Mental, Ponteng</div><div class="zh">毒品、霸凌、贫困、心理健康、逃学</div></div>
+                        <div class="list-item"><div class="bm">Punca: Sikap Remaja, Rakan Sebaya, Keluarga, Kurang Pengawasan, Kurang Agama/Moral</div><div class="zh">自身态度、同伴、家庭、监管不足、宗教道德薄弱</div></div>
+                    </div>
+                </div>
+                <div class="card" data-card>
+                    <div class="card-header" onclick="toggleCard(this)">
+                        <h3>Langkah Menangani Masalah Remaja</h3>
+                        <span class="toggle-icon">▼</span>
+                    </div>
+                    <div class="card-body">
+                        <div class="section-note">应对青少年问题的措施</div>
+                        <div class="list-item"><div class="bm">1. Meningkatkan Pendidikan</div><div class="zh">提升教育</div></div>
+                        <div class="list-item"><div class="bm">2. Penguatkuasaan Undang-undang</div><div class="zh">加强执法</div></div>
+                        <div class="list-item"><div class="bm">3. Program Kaunseling</div><div class="zh">辅导计划</div></div>
+                        <div class="list-item"><div class="bm">4. Meningkatkan Kesedaran</div><div class="zh">提升意识</div></div>
+                        <div class="list-item"><div class="bm">5. Mempelbagaikan Aktiviti Positif</div><div class="zh">多元化正面活动</div></div>
+                    </div>
+                </div>
+                <div class="card" data-card>
+                    <div class="card-header" onclick="toggleCard(this)">
+                        <h3>Pembangunan Sosial Luar Bandar</h3>
+                        <span class="toggle-icon">▼</span>
+                    </div>
+                    <div class="card-body">
+                        <div class="section-note">乡村社会发展 · 挑战与措施</div>
+                        <div class="list-item"><div class="bm">Cabaran</div><div class="zh">挑战 · 教育、医疗、基建、就业、贫困</div></div>
+                        <div class="list-item"><div class="bm">Langkah</div><div class="zh">措施 · 完善基建、教育可及性、数字化、机构合作、社会意识</div></div>
                     </div>
                 </div>
             </div>
         </div>
 
+        <!-- ============ 3. EKONOMI ============ -->
         <div id="panel-ekonomi" class="panel hidden">
             <div class="grid">
                 <div class="card" data-card>
                     <div class="card-header" onclick="toggleCard(this)">
-                        <h3>Gaji Minimum</h3>
+                        <h3>Gaji Minimum · Punca & Kebaikan</h3>
                         <span class="toggle-icon">▼</span>
                     </div>
                     <div class="card-body">
-                        <div class="section-note">最低薪金制度 · 保障工人与缩小差距</div>
-                        <div class="list-item"><div class="bm">1. Mengurangkan Jurang Pendapatan</div><div class="zh">缩小收入差距</div></div>
-                        <div class="list-item"><div class="bm">2. Mengurangkan Kadar Kemiskinan</div><div class="zh">降低贫困率</div></div>
-                        <div class="list-item"><div class="bm">3. Menarik Pekerja Mahir</div><div class="zh">吸引熟练工人</div></div>
-                        <div class="list-item"><div class="bm">4. Perlindungan Pekerja</div><div class="zh">工人保护</div></div>
-                        <div class="list-item"><div class="bm">5. Mengurangkan Kebergantungan Bantuan Sosial</div><div class="zh">减少对社会援助的依赖</div></div>
+                        <div class="section-note">最低薪金 · 实施原因与好处</div>
+                        <div class="list-item"><div class="bm">Punca: Kurangkan Jurang Pendapatan, Kemiskinan, Tarik Pekerja Mahir, Perlindungan, Kurang Bantuan Sosial</div><div class="zh">原因：缩小收入差距、减贫、吸引熟练工、保护工人、减少社会援助依赖</div></div>
+                        <div class="list-item"><div class="bm">Kebaikan Pekerja: Pendapatan, Taraf Hidup, Kebajikan, Motivasi, Kurang Masalah Sosial</div><div class="zh">对工人好处：收入、生活水平、福利、动力、减少社会问题</div></div>
+                        <div class="list-item"><div class="bm">Kebaikan Majikan: Atasi Kekurangan Tenaga Kerja, Kurang Pekerja Asing, Kesetiaan, Kurang Pertikaian, Produktiviti</div><div class="zh">对雇主好处：解决劳力短缺、减少外劳依赖、忠诚度、减少纠纷、生产力</div></div>
                     </div>
                 </div>
                 <div class="card" data-card>
                     <div class="card-header" onclick="toggleCard(this)">
-                        <h3>Industri Desa</h3>
+                        <h3>Gaji Minimum · Kesan Negatif</h3>
                         <span class="toggle-icon">▼</span>
                     </div>
                     <div class="card-body">
-                        <div class="section-note">乡村工业 · 利用本地资源创造就业</div>
-                        <div class="list-item"><div class="bm">1. Kraf Tangan & Produk Tradisional</div><div class="zh">手工艺与传统产品</div></div>
-                        <div class="list-item"><div class="bm">2. Pelancongan Desa</div><div class="zh">乡村旅游业</div></div>
-                        <div class="list-item"><div class="bm">3. Pertanian & Pengeluaran Makanan</div><div class="zh">农业与食品生产 · 如 Kampung Tamui 的红罗非鱼与 hydroponic 沙拉项目 [citation:6]</div></div>
-                        <div class="list-item"><div class="bm">4. Perikanan</div><div class="zh">渔业</div></div>
-                        <div class="list-item"><div class="bm">5. Tenaga Hijau & Sumber Alam Lestari</div><div class="zh">绿色能源与可持续资源</div></div>
+                        <div class="section-note">最低薪金的负面影响</div>
+                        <div class="list-item"><div class="bm">1. Peluang Pekerjaan Berkurang</div><div class="zh">就业机会减少</div></div>
+                        <div class="list-item"><div class="bm">2. Peningkatan Kos Pengurusan</div><div class="zh">管理成本上升</div></div>
+                        <div class="list-item"><div class="bm">3. Ketidakseimbangan Pasaran Kerja</div><div class="zh">劳动力市场失衡</div></div>
+                        <div class="list-item"><div class="bm">4. Peningkatan Harga Barang</div><div class="zh">商品与服务价格上涨</div></div>
+                        <div class="list-item"><div class="bm">5. Syarikat Kecil Mengalami Kerugian</div><div class="zh">中小企业亏损</div></div>
+                    </div>
+                </div>
+                <div class="card" data-card>
+                    <div class="card-header" onclick="toggleCard(this)">
+                        <h3>Industri Desa · Ciri & Kelebihan</h3>
+                        <span class="toggle-icon">▼</span>
+                    </div>
+                    <div class="card-body">
+                        <div class="section-note">乡村工业 · 特征与优势</div>
+                        <div class="list-item"><div class="bm">Ciri: Sumber Tempatan, Kecil-kecilan, Teknologi Tradisional, Kebudayaan</div><div class="zh">特征：本地资源、小规模、传统技术、文化元素</div></div>
+                        <div class="list-item"><div class="bm">Kelebihan: Pendapatan, Peluang Kerja, Warisan, Kurang Kemiskinan, Ekonomi Luar Bandar</div><div class="zh">优势：收入、就业、文化遗产、减贫、乡村经济</div></div>
+                    </div>
+                </div>
+                <div class="card" data-card>
+                    <div class="card-header" onclick="toggleCard(this)">
+                        <h3>Industri Desa · Cabaran & Usaha</h3>
+                        <span class="toggle-icon">▼</span>
+                    </div>
+                    <div class="card-body">
+                        <div class="section-note">乡村工业挑战与推动措施</div>
+                        <div class="list-item"><div class="bm">Cabaran: Persaingan Global, Kurang Tenaga Mahir, Modal, Infrastruktur, Teknologi</div><div class="zh">挑战：全球竞争、熟练工不足、资金、基建、技术</div></div>
+                        <div class="list-item"><div class="bm">Usaha: Latihan, Pembiayaan, Pasaran, Kerjasama Kerajaan-Swasta, Infrastruktur</div><div class="zh">措施：培训、融资、市场、公私合作、基建</div></div>
                     </div>
                 </div>
                 <div class="card" data-card>
@@ -447,15 +380,16 @@
                         <span class="toggle-icon">▼</span>
                     </div>
                     <div class="card-body">
-                        <div class="section-note">数字经济 · 机遇与挑战并存</div>
-                        <div class="list-item"><div class="bm">Impak Positif</div><div class="zh">正面影响 · 提升竞争力与生产力</div><div class="example"><strong>数据:</strong> TikTok 在 2025 年为马来西亚数字经济贡献约 RM200 亿，支持 14.7 万个岗位 [citation:7]</div></div>
-                        <div class="list-item"><div class="bm">Cabaran</div><div class="zh">挑战 · ICT 技能不足、网络安全、数字鸿沟</div></div>
-                        <div class="list-item"><div class="bm">Komponen Utama</div><div class="zh">核心组成 · 电子商务、数字服务、数字基建、先进技术</div></div>
+                        <div class="section-note">数字经济 · 影响、挑战与组成</div>
+                        <div class="list-item"><div class="bm">Impak: Daya Saing, Produktiviti, Pelabur, Peluang Kerja, Pasaran Luas</div><div class="zh">影响：竞争力、生产力、投资者、就业、市场</div></div>
+                        <div class="list-item"><div class="bm">Cabaran: Kurang Kemahiran ICT, Keselamatan Siber, Kewangan, Jurang Digital, Akses Internet</div><div class="zh">挑战：ICT技能不足、网络安全、资金、数字鸿沟、网络覆盖</div></div>
+                        <div class="list-item"><div class="bm">Komponen: E-dagang, Perkhidmatan Digital, Infrastruktur Digital, Teknologi Canggih</div><div class="zh">组成：电商、数字服务、数字基建、先进技术</div></div>
                     </div>
                 </div>
             </div>
         </div>
 
+        <!-- ============ 4. POLITIK ============ -->
         <div id="panel-politik" class="panel hidden">
             <div class="grid">
                 <div class="card" data-card>
@@ -464,9 +398,9 @@
                         <span class="toggle-icon">▼</span>
                     </div>
                     <div class="card-body">
-                        <div class="section-note">对领袖的盲目偏袒 · 理性丧失与民主受损</div>
-                        <div class="list-item"><div class="bm">Punca</div><div class="zh">成因 · 领袖魅力、传统服从、群体认同、信息操纵</div></div>
-                        <div class="list-item"><div class="bm">Keburukan</div><div class="zh">弊端 · 丧失理性、损害民主、社会分裂</div></div>
+                        <div class="section-note">对领袖的盲目偏袒 · 成因与弊端</div>
+                        <div class="list-item"><div class="bm">Punca: Kewibawaan, Kepatuhan Tradisional, Psikologi Kumpulan, Manipulasi Maklumat, Rasa Terhutang Budi</div><div class="zh">成因：领袖魅力、传统服从、群体心理、信息操纵、感恩心理</div></div>
+                        <div class="list-item"><div class="bm">Keburukan: Hilang Rasionaliti, Jejas Demokrasi, Perpecahan, Sukar Kerjasama</div><div class="zh">弊端：丧失理性、损害民主、分裂、难以合作</div></div>
                     </div>
                 </div>
                 <div class="card" data-card>
@@ -475,9 +409,24 @@
                         <span class="toggle-icon">▼</span>
                     </div>
                     <div class="card-body">
-                        <div class="section-note">政治稳定 · 经济发展与外资信心的基础</div>
-                        <div class="list-item"><div class="bm">Kepentingan</div><div class="zh">重要性 · 提升经济、国家形象、安全与团结</div></div>
-                        <div class="list-item"><div class="bm">Kesan Ketidakstabilan</div><div class="zh">不稳定后果 · 经济增长不确定、货币波动、投资者信心下降</div></div>
+                        <div class="section-note">政治稳定 · 重要性与不稳定后果</div>
+                        <div class="list-item"><div class="bm">Kepentingan: Ekonomi, Imej, Keamanan, Perpaduan, Kesejahteraan</div><div class="zh">重要性：经济、形象、和平、团结、福祉</div></div>
+                        <div class="list-item"><div class="bm">Kesan Ketidakstabilan: Ekonomi Tidak Tentu, Mata Wang, Kepercayaan Pelabur, Sosial, Hubungan Antarabangsa</div><div class="zh">不稳定后果：经济不确定、货币、投资者信心、社会、国际关系</div></div>
+                        <div class="list-item"><div class="bm">Langkah: Kukuh Institusi Demokrasi, Integriti, Perpaduan, Pembangunan Ekonomi</div><div class="zh">措施：巩固民主制度、诚信、团结、经济发展</div></div>
+                    </div>
+                </div>
+                <div class="card" data-card>
+                    <div class="card-header" onclick="toggleCard(this)">
+                        <h3>Peranan Pelbagai Pihak</h3>
+                        <span class="toggle-icon">▼</span>
+                    </div>
+                    <div class="card-body">
+                        <div class="section-note">各方在维护政治稳定中的角色</div>
+                        <div class="list-item"><div class="bm">1. Pihak Kerajaan</div><div class="zh">政府</div></div>
+                        <div class="list-item"><div class="bm">2. Pihak Swasta</div><div class="zh">私营部门</div></div>
+                        <div class="list-item"><div class="bm">3. Golongan Rakyat</div><div class="zh">民众</div></div>
+                        <div class="list-item"><div class="bm">4. Pihak Berkuasa Tempatan</div><div class="zh">地方政府</div></div>
+                        <div class="list-item"><div class="bm">5. Pihak Sekolah</div><div class="zh">学校</div></div>
                     </div>
                 </div>
                 <div class="card" data-card>
@@ -486,29 +435,55 @@
                         <span class="toggle-icon">▼</span>
                     </div>
                     <div class="card-body">
-                        <div class="section-note">青年在政治中的角色 · Undi 18 后的参与挑战</div>
-                        <div class="list-item"><div class="bm">Cabaran</div><div class="zh">挑战 · 心理健康、社会问题、竞争力不足、志愿服务低</div></div>
-                        <div class="list-item"><div class="bm">Punca Kurang Terlibat</div><div class="zh">参与度低的原因 · 对政治负面态度、缺乏家庭支持、爱国精神不足</div></div>
-                        <div class="list-item"><div class="bm">Langkah</div><div class="zh">措施 · 支持 Undi 18、培养领导文化、政治教育</div></div>
+                        <div class="section-note">青年政治参与 · 挑战与推动措施</div>
+                        <div class="list-item"><div class="bm">Cabaran: Kesihatan Mental, Masalah Sosial, Kurang Daya Saing, Globalisasi, Kesukarelawanan Rendah</div><div class="zh">挑战：心理健康、社会问题、竞争力不足、全球化、志愿服务低</div></div>
+                        <div class="list-item"><div class="bm">Punca Kurang Terlibat: Sikap Negatif, Kepimpinan Rendah, Kurang Sokongan Keluarga, Kurang Pendedahan, Patriotisme</div><div class="zh">参与度低原因：负面态度、领导力低、家庭支持不足、缺乏接触、爱国精神</div></div>
+                        <div class="list-item"><div class="bm">Langkah: Undi 18, Budaya Kepimpinan, Sokongan Keluarga, Lawatan, Pendidikan</div><div class="zh">措施：支持Undi 18、领导文化、家庭支持、访问、教育</div></div>
                     </div>
                 </div>
             </div>
         </div>
 
+        <!-- ============ 5. SAINS & TEKNOLOGI ============ -->
         <div id="panel-sains" class="panel hidden">
             <div class="grid">
                 <div class="card" data-card>
                     <div class="card-header" onclick="toggleCard(this)">
-                        <h3>DSTIN · Teras STI</h3>
+                        <h3>DSTIN · Enam Teras</h3>
                         <span class="toggle-icon">▼</span>
                     </div>
                     <div class="card-body">
-                        <div class="section-note">国家科技创新政策 · 迈向技术创造国</div>
-                        <div class="list-item"><div class="bm">1. Tadbir Urus STI Responsif</div><div class="zh">响应式 STI 治理</div></div>
+                        <div class="section-note">国家科技创新政策 · 六大支柱</div>
+                        <div class="list-item"><div class="bm">1. Tadbir Urus STI Responsif</div><div class="zh">响应式STI治理</div></div>
                         <div class="list-item"><div class="bm">2. Pembangunan Teknologi melalui R&D</div><div class="zh">通过研发发展技术</div></div>
                         <div class="list-item"><div class="bm">3. Industri Berasaskan Teknologi Tempatan</div><div class="zh">本地技术产业</div></div>
-                        <div class="list-item"><div class="bm">4. Pembudayaan STIE</div><div class="zh">STIE 文化培育</div></div>
+                        <div class="list-item"><div class="bm">4. Pembudayaan dan Pengaplikasian STIE</div><div class="zh">STIE文化与应用</div></div>
                         <div class="list-item"><div class="bm">5. Keunggulan Global</div><div class="zh">全球卓越</div></div>
+                    </div>
+                </div>
+                <div class="card" data-card>
+                    <div class="card-header" onclick="toggleCard(this)">
+                        <h3>Program Teknologi Tempatan</h3>
+                        <span class="toggle-icon">▼</span>
+                    </div>
+                    <div class="card-body">
+                        <div class="section-note">使马来西亚成为技术创造国的计划</div>
+                        <div class="list-item"><div class="bm">1. Digital Tsunami</div><div class="zh">数字海啸 · 政府服务数字化 [citation:28]</div></div>
+                        <div class="list-item"><div class="bm">2. Pertanian Pintar</div><div class="zh">智慧农业 · 2025年拨款RM1590万用于机械化自动化 [citation:19]</div></div>
+                        <div class="list-item"><div class="bm">3. Teknologi untuk Semua</div><div class="zh">全民科技</div></div>
+                        <div class="list-item"><div class="bm">4. Pusat Vaksin Kebangsaan</div><div class="zh">国家疫苗中心</div></div>
+                        <div class="list-item"><div class="bm">5. Hab Inovasi Malaysia</div><div class="zh">马来西亚创新枢纽</div></div>
+                    </div>
+                </div>
+                <div class="card" data-card>
+                    <div class="card-header" onclick="toggleCard(this)">
+                        <h3>Cabaran STI & Sumbangan Alam Sekitar</h3>
+                        <span class="toggle-icon">▼</span>
+                    </div>
+                    <div class="card-body">
+                        <div class="section-note">STI挑战与环境贡献</div>
+                        <div class="list-item"><div class="bm">Cabaran: Tadbir Urus Kurang Berkesan, Bakat Tidak Menyeluruh, Kerjasama Lemah</div><div class="zh">挑战：治理低效、人才不全面、合作薄弱</div></div>
+                        <div class="list-item"><div class="bm">Sumbangan: Teknologi Hijau, R&D, Pemantauan Hutan, Jentera Pembersih, AI</div><div class="zh">贡献：绿色技术、研发、森林监测、清洁机械、AI</div></div>
                     </div>
                 </div>
                 <div class="card" data-card>
@@ -517,14 +492,15 @@
                         <span class="toggle-icon">▼</span>
                     </div>
                     <div class="card-body">
-                        <div class="section-note">人工智能 · 生产力提升与伦理风险</div>
-                        <div class="list-item"><div class="bm">Kebaikan</div><div class="zh">好处 · 经济生产力、教育革命、医疗进步、基础设施、公共服务</div></div>
-                        <div class="list-item"><div class="bm">Keburukan</div><div class="zh">弊端 · 自动化失业、隐私丧失、偏见、安全风险、过度依赖</div><div class="example"><strong>例子:</strong> 马来西亚 2026 年预算拨款 RM20 亿建设 Sovereign AI Cloud [citation:25]</div></div>
+                        <div class="section-note">人工智能 · 好处与弊端</div>
+                        <div class="list-item"><div class="bm">Kebaikan: Produktiviti, Pendidikan, Kesihatan, Infrastruktur, Tadbir Urus</div><div class="zh">好处：生产力、教育、医疗、基建、治理</div></div>
+                        <div class="list-item"><div class="bm">Keburukan: Pengangguran, Privasi, Bias, Keselamatan, Ketergantungan</div><div class="zh">弊端：失业、隐私、偏见、安全、过度依赖</div></div>
                     </div>
                 </div>
             </div>
         </div>
 
+        <!-- ============ 6. INTEGRASI ============ -->
         <div id="panel-integrasi" class="panel hidden">
             <div class="grid">
                 <div class="card" data-card>
@@ -533,29 +509,85 @@
                         <span class="toggle-icon">▼</span>
                     </div>
                     <div class="card-body">
-                        <div class="section-note">融合与团结的重要性 · 主权国家的基石</div>
+                        <div class="section-note">融合与团结的重要性 · 主权国家基石</div>
                         <div class="list-item"><div class="bm">1. Menjamin Keselamatan Negara</div><div class="zh">保障国家安全</div></div>
                         <div class="list-item"><div class="bm">2. Mewujudkan Kestabilan Politik</div><div class="zh">创造政治稳定</div></div>
                         <div class="list-item"><div class="bm">3. Meningkatkan Imej Negara</div><div class="zh">提升国家形象</div></div>
                         <div class="list-item"><div class="bm">4. Menarik Pelancongan Asing</div><div class="zh">吸引外国游客</div></div>
                         <div class="list-item"><div class="bm">5. Meningkatkan Ekonomi Negara</div><div class="zh">促进国家经济</div></div>
-                        <div class="example"><strong>数据:</strong> 2025 年马来西亚民族宗教和谐指数得分 8.04/10 [citation:20]</div>
                     </div>
                 </div>
             </div>
         </div>
 
-        <div class="footer">
-            ZIJUN · Pengajian Am STPM Sem 1 · 内容基于用户笔记整理，例子来自公开新闻
+        <!-- ============ 7. TADBIR URUS BAIK ============ -->
+        <div id="panel-tadbir" class="panel hidden">
+            <div class="grid">
+                <div class="card" data-card>
+                    <div class="card-header" onclick="toggleCard(this)">
+                        <h3>Punca Rasuah</h3>
+                        <span class="toggle-icon">▼</span>
+                    </div>
+                    <div class="card-body">
+                        <div class="section-note">腐败成因 · 贪欲与制度漏洞</div>
+                        <div class="list-item"><div class="bm">1. Ketamakan dan Kepentingan Diri</div><div class="zh">贪婪与自身利益</div></div>
+                        <div class="list-item"><div class="bm">2. Kelemahan Penguatkuasaan Undang-undang</div><div class="zh">执法薄弱</div></div>
+                        <div class="list-item"><div class="bm">3. Budaya dan Norma Sosial Salah</div><div class="zh">错误文化与社会规范</div></div>
+                        <div class="list-item"><div class="bm">4. Ketidakcekapan Sistem Pentadbiran</div><div class="zh">行政系统低效</div></div>
+                        <div class="list-item"><div class="bm">5. Penyalahgunaan Kuasa dan Pengaruh</div><div class="zh">滥用权力与影响力</div></div>
+                    </div>
+                </div>
+                <div class="card" data-card>
+                    <div class="card-header" onclick="toggleCard(this)">
+                        <h3>Kesan Rasuah</h3>
+                        <span class="toggle-icon">▼</span>
+                    </div>
+                    <div class="card-body">
+                        <div class="section-note">腐败的后果</div>
+                        <div class="list-item"><div class="bm">1. Keruntuhan Institusi Ekonomi</div><div class="zh">经济制度崩溃</div></div>
+                        <div class="list-item"><div class="bm">2. Institusi Politik Tidak Dihormati</div><div class="zh">政治制度不受尊重</div></div>
+                        <div class="list-item"><div class="bm">3. Hilang Keyakinan kepada Pentadbiran</div><div class="zh">对行政失去信心</div></div>
+                        <div class="list-item"><div class="bm">4. Kedaulatan dan Keselamatan Terancam</div><div class="zh">主权与安全受威胁</div></div>
+                        <div class="list-item"><div class="bm">5. Imej Negara Terjejas</div><div class="zh">国家形象受损</div></div>
+                        <div class="example"><strong>数据:</strong> 马来西亚2025年CPI得分52，排名第54位，较前一年上升 [citation:7]</div>
+                    </div>
+                </div>
+                <div class="card" data-card>
+                    <div class="card-header" onclick="toggleCard(this)">
+                        <h3>Langkah Membanteras Rasuah</h3>
+                        <span class="toggle-icon">▼</span>
+                    </div>
+                    <div class="card-body">
+                        <div class="section-note">反腐措施</div>
+                        <div class="list-item"><div class="bm">1. Memperkasakan Penguatkuasaan Undang-undang</div><div class="zh">强化执法</div></div>
+                        <div class="list-item"><div class="bm">2. Memberi Pendidikan dan Kesedaran</div><div class="zh">教育与意识</div></div>
+                        <div class="list-item"><div class="bm">3. Meningkatkan Gaji dan Insentif</div><div class="zh">提高薪资与激励</div></div>
+                        <div class="list-item"><div class="bm">4. Penglibatan Masyarakat</div><div class="zh">社会参与</div></div>
+                        <div class="list-item"><div class="bm">5. Kerjasama Antarabangsa</div><div class="zh">国际合作</div></div>
+                    </div>
+                </div>
+                <div class="card" data-card>
+                    <div class="card-header" onclick="toggleCard(this)">
+                        <h3>Integriti · Cabaran & Kesan</h3>
+                        <span class="toggle-icon">▼</span>
+                    </div>
+                    <div class="card-body">
+                        <div class="section-note">诚信 · 挑战、失败后果与好处</div>
+                        <div class="list-item"><div class="bm">Cabaran: Tekanan Persekitaran, Kurang Jati Diri, Penguatkuasaan Lemah, Pengaruh Sosial, Kelemahan Pemimpin</div><div class="zh">挑战：环境压力、意志薄弱、执法薄弱、社会影响、领袖弱点</div></div>
+                        <div class="list-item"><div class="bm">Kesan Gagal: Hilang Kepercayaan, Psikologi, Ekonomi, Moral, Generasi Muda</div><div class="zh">失败后果：失去信任、心理、经济、道德、年轻一代</div></div>
+                        <div class="list-item"><div class="bm">Kebaikan: Kepercayaan, Persekitaran Harmoni, Kemajuan Ekonomi, Kredibiliti, Elak Konflik</div><div class="zh">好处：信任、和谐环境、经济进步、信誉、避免冲突</div></div>
+                    </div>
+                </div>
+            </div>
         </div>
+
+        <div class="footer">ZIJUN · Pengajian Am STPM Sem 1 · 内容严格基于用户笔记，例子来自公开资料</div>
     </div>
 
     <script>
-        // Toggle card
         function toggleCard(header) {
             const body = header.nextElementSibling;
             const isOpen = body.classList.contains('open');
-            // Close all in same panel (optional: only one open per panel)
             const panel = header.closest('.panel');
             if (panel) {
                 panel.querySelectorAll('.card-body.open').forEach(b => {
@@ -565,17 +597,11 @@
                     }
                 });
             }
-            if (isOpen) {
-                body.classList.remove('open');
-                header.classList.remove('open');
-            } else {
-                body.classList.add('open');
-                header.classList.add('open');
-            }
+            body.classList.toggle('open');
+            header.classList.toggle('open');
             updateProgress();
         }
 
-        // Tab switching
         const tabs = document.querySelectorAll('.tab-btn');
         const panels = {
             keselamatan: document.getElementById('panel-keselamatan'),
@@ -583,7 +609,8 @@
             ekonomi: document.getElementById('panel-ekonomi'),
             politik: document.getElementById('panel-politik'),
             sains: document.getElementById('panel-sains'),
-            integrasi: document.getElementById('panel-integrasi')
+            integrasi: document.getElementById('panel-integrasi'),
+            tadbir: document.getElementById('panel-tadbir')
         };
 
         tabs.forEach(tab => {
@@ -591,30 +618,24 @@
                 tabs.forEach(t => t.classList.remove('active'));
                 this.classList.add('active');
                 const target = this.dataset.tab;
-                Object.keys(panels).forEach(key => {
-                    panels[key].classList.add('hidden');
-                });
+                Object.keys(panels).forEach(k => panels[k].classList.add('hidden'));
                 if (panels[target]) panels[target].classList.remove('hidden');
                 updateProgress();
             });
         });
 
-        // Progress based on opened cards vs total cards
         function updateProgress() {
-            const allCards = document.querySelectorAll('[data-card]');
-            const openedCards = document.querySelectorAll('.card-body.open');
-            const total = allCards.length;
-            const opened = openedCards.length;
-            const percent = total === 0 ? 0 : Math.round((opened / total) * 100);
-            document.getElementById('progressFill').style.width = percent + '%';
-            document.getElementById('progressText').textContent = percent + '%';
+            const all = document.querySelectorAll('[data-card]');
+            const open = document.querySelectorAll('.card-body.open');
+            const pct = all.length === 0 ? 0 : Math.round((open.length / all.length) * 100);
+            document.getElementById('progressFill').style.width = pct + '%';
+            document.getElementById('progressText').textContent = pct + '%';
         }
 
-        // Open first card of active panel on load
         window.addEventListener('load', function() {
-            const activePanel = document.querySelector('.panel:not(.hidden)');
-            if (activePanel) {
-                const firstHeader = activePanel.querySelector('.card-header');
+            const firstPanel = document.querySelector('.panel:not(.hidden)');
+            if (firstPanel) {
+                const firstHeader = firstPanel.querySelector('.card-header');
                 if (firstHeader) toggleCard(firstHeader);
             }
             updateProgress();
